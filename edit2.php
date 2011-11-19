@@ -25,25 +25,27 @@ if (is_uploaded_file($_FILES['csv']['tmp_name'])) {
 </style>
 <script type="text/javascript">
 function xmlhttpPost(venue, dados, result) {
+  var resposta = {};
   var xmlhttp = new XMLHttpRequest();
   xmlhttp.onreadystatechange = function() {
     if (xmlhttp.readyState == 4) {
+      resposta = JSON.parse(xmlhttp.responseText);
       if (xmlhttp.status == 200) {
         document.getElementById(result).innerHTML = xmlhttp.responseText;
       } else if (xmlhttp.status == 400) {
-        document.getElementById(result).innerHTML ="Erro 400 (Bad Request)";
+        document.getElementById(result).innerHTML ="Erro 400: Bad Request, Tipo: " + resposta.meta.errorType + ", Detalhe: " + resposta.meta.errorDetail + ")";
       } else if (xmlhttp.status == 401) {
-        document.getElementById(result).innerHTML ="Erro 401 (Unauthorized)";
+        document.getElementById(result).innerHTML ="Erro 401: Unauthorized, Tipo: " + resposta.meta.errorType + ", Detalhe: " + resposta.meta.errorDetail + ")";
       } else if (xmlhttp.status == 403) {
-        document.getElementById(result).innerHTML ="Erro 403 (Forbidden)";
+        document.getElementById(result).innerHTML ="Erro 403: Forbidden";
       } else if (xmlhttp.status == 404) {
-        document.getElementById(result).innerHTML ="Erro 404 (Not Found)";
+        document.getElementById(result).innerHTML ="Erro 404: Not Found";
       } else if (xmlhttp.status == 405) {
-        document.getElementById(result).innerHTML ="Erro 405 (Method Not Allowed)";
+        document.getElementById(result).innerHTML ="Erro 405: Method Not Allowed";
       } else if (xmlhttp.status == 500) {
-        document.getElementById(result).innerHTML ="Erro 500 (Internal Server Error)";
+        document.getElementById(result).innerHTML ="Erro 500: Internal Server Error";
       } else
-        document.getElementById(result).innerHTML = "Erro desconhecido (" + xmlhttp.status + ")";
+        document.getElementById(result).innerHTML = "Erro desconhecido :" + xmlhttp.status;
     }
   }
   xmlhttp.open("POST", "https://api.foursquare.com/v2/venues/" + venue + "/edit", true);
