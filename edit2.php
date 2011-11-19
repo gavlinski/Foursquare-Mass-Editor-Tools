@@ -25,27 +25,26 @@ if (is_uploaded_file($_FILES['csv']['tmp_name'])) {
 </style>
 <script type="text/javascript">
 function xmlhttpPost(venue, dados, result) {
-  var resposta = {};
   var xmlhttp = new XMLHttpRequest();
   xmlhttp.onreadystatechange = function() {
     if (xmlhttp.readyState == 4) {
-      resposta = JSON.parse(xmlhttp.responseText);
-      if (xmlhttp.status == 200) {
+      var resposta = JSON.parse(xmlhttp.responseText);
+      if (xmlhttp.status == 200)
         document.getElementById(result).innerHTML = xmlhttp.responseText;
-      } else if (xmlhttp.status == 400) {
-        document.getElementById(result).innerHTML ="Erro 400: Bad Request, Tipo: " + resposta.meta.errorType + ", Detalhe: " + resposta.meta.errorDetail + ")";
-      } else if (xmlhttp.status == 401) {
-        document.getElementById(result).innerHTML ="Erro 401: Unauthorized, Tipo: " + resposta.meta.errorType + ", Detalhe: " + resposta.meta.errorDetail + ")";
-      } else if (xmlhttp.status == 403) {
+      else if (xmlhttp.status == 400)
+        document.getElementById(result).innerHTML ="Erro 400: Bad Request, Tipo: " + resposta.meta.errorType + ", Detalhe: " + resposta.meta.errorDetail;
+      else if (xmlhttp.status == 401)
+        document.getElementById(result).innerHTML ="Erro 401: Unauthorized, Tipo: " + resposta.meta.errorType + ", Detalhe: " + resposta.meta.errorDetail;
+      else if (xmlhttp.status == 403)
         document.getElementById(result).innerHTML ="Erro 403: Forbidden";
-      } else if (xmlhttp.status == 404) {
+      else if (xmlhttp.status == 404)
         document.getElementById(result).innerHTML ="Erro 404: Not Found";
-      } else if (xmlhttp.status == 405) {
+      else if (xmlhttp.status == 405)
         document.getElementById(result).innerHTML ="Erro 405: Method Not Allowed";
-      } else if (xmlhttp.status == 500) {
+      else if (xmlhttp.status == 500)
         document.getElementById(result).innerHTML ="Erro 500: Internal Server Error";
-      } else
-        document.getElementById(result).innerHTML = "Erro desconhecido :" + xmlhttp.status;
+      else
+        document.getElementById(result).innerHTML = "Erro desconhecido: " + xmlhttp.status;
     }
   }
   xmlhttp.open("POST", "https://api.foursquare.com/v2/venues/" + venue + "/edit", true);
@@ -53,42 +52,23 @@ function xmlhttpPost(venue, dados, result) {
   xmlhttp.send(dados);
 }
 function salvarVenues() {
-  var dados, ll;
+  var oauth_token = "<?php echo $oauth_token;?>";
+  var venue, dados, ll;
   document.getElementById("result").innerHTML = "Enviando dados...";
-<?php
-$i = 0;
-$today = date("Ymd");
-
-foreach ($file as $f) {
-  $venue = $f[Venue];
-
-  $i++;
-
-  $bloco = <<<BLOCO
-  dados = "oauth_token=" + document.forms["form$i"]["oauth_token"].value
-    + "&name=" + document.forms["form$i"]["name"].value
-    + "&address=" + document.forms["form$i"]["address"].value
-    + "&crossStreet=" + document.forms["form$i"]["crossStreet"].value
-    + "&city=" + document.forms["form$i"]["city"].value
-    + "&state=" + document.forms["form$i"]["state"].value
-    + "&zip=" + document.forms["form$i"]["zip"].value
-    + "&twitter=" + document.forms["form$i"]["twitter"].value
-    + "&phone=" + document.forms["form$i"]["phone"].value
-    + "&url=" + document.forms["form$i"]["url"].value
-    + "&description=" + document.forms["form$i"]["description"].value;
-  ll = document.forms["form$i"]["ll"].value;
-  if (ll != null && ll != "") {
-    dados += "&ll=" + document.forms["form$i"]["ll"].value;
+  for (i = 0; i < document.forms.length; i++) {
+    dados = "oauth_token=" + oauth_token;
+    for (j = 1; j < document.forms[i].elements.length; j++) {
+      venue = document.forms[i]["venue"].value;
+      if (document.forms[i].elements[j].name != "ll")
+        dados += "&" + document.forms[i].elements[j].name + "=" + document.forms[i].elements[j].value;
+    }
+    ll = document.forms[i]["ll"].value;
+    if (ll != null && ll != "")
+      dados += "&ll=" + document.forms[i]["ll"].value;
+    dados += "&v=20111119";
+    //document.getElementById("result").innerHTML += "<br>venue=" +venue + "<br>dados=" + dados + "<br>result=result" + i;
+    xmlhttpPost(venue, dados, "result" + i);
   }
-  dados += "&v=" + $today;
-  xmlhttpPost("$venue", dados, "result$i");
-
-BLOCO;
-
-  echo $bloco;
-}
-
-?>
   document.getElementById("result").innerHTML = "Dados enviados!";
 }
 </script>
@@ -119,7 +99,7 @@ foreach ($file as $f) {
 ?>
 <tr>
 <form name="<?php echo $iId;?>" accept-charset="utf-8" encType="multipart/form-dados" method="post">
-<input type="hidden" name="oauth_token" value="<?php echo $oauth_token;?>">
+<input type="hidden" name="venue" value="<?php echo $venue;?>">
 <input type="hidden" name="name" value="<?php echo $name;?>">
 <tr><td><a href="https://foursquare.com/v/<?php echo $venue;?>" target="_blank"><?php echo $name;?></a></td>
 <td><input type="text" name="address" size="15" maxlength="128" value="<?php echo $address;?>"></td>
@@ -144,14 +124,15 @@ foreach ($file as $f) {
  }
  ?>
 </table>
-<p><button type="button" onclick="salvarVenues()" name="submitButton">Salvar</button></p>
+<p><button type="button" onclick="salvarVenues()" name="submitButton">Salvar</button>
+<button type="button" onclick="history.go(-1)" name="backButton">Voltar</button></p>
 <p><b>Resultado</b><br>
 <div id="result"></div><br>
 <?php
 $id = 0;
 foreach ($file as $f) {
-  $id++;
   echo ('<div id="result' . $id . '"></div>' . "\n");
+  $id++;
 }
 ?></p>
 </body>
