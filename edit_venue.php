@@ -14,15 +14,62 @@ $oauth_token = $_GET["oauth"];
 <style type="text/css">
   body, html { font-family:helvetica,arial,sans-serif; font-size:90%; }
 </style>
-<script src="js/dojo/dojo.js" djConfig="parseOnLoad: true">
-</script>
+<script src="js/dojo/dojo.js" djConfig="parseOnLoad: true"></script>
 <script type="text/javascript">
 dojo.require("dijit.form.Button");
 dojo.require("dijit.form.TextBox");
 dojo.require("dijit.form.Select")
 
+function loadVenue() {
+  var xmlhttp = new XMLHttpRequest();
+  xmlhttp.onreadystatechange = function() {
+    if (xmlhttp.readyState == 4) {
+      var resposta = JSON.parse(xmlhttp.responseText);
+      if (xmlhttp.status == 200) {
+        //document.getElementById("result").innerHTML = xmlhttp.responseText;
+        document.getElementById("venueid").innerHTML = 'Venue: <a href="' + resposta.response.venue.canonicalUrl + '" target="_blanck">' + resposta.response.venue.canonicalUrl + '</a>';
+        document.forms["f"]["name"].value = resposta.response.venue.name;
+        document.forms["f"]["address"].value = resposta.response.venue.location.address;
+        document.forms["f"]["crossStreet"].value = resposta.response.venue.location.crossStreet;
+        document.forms["f"]["city"].value = resposta.response.venue.location.city;
+        document.forms["f"]["state"].value = resposta.response.venue.location.state;
+        document.forms["f"]["zip"].value = resposta.response.venue.location.postalCode;
+        document.forms["f"]["twitter"].value = resposta.response.venue.contact.twitter;
+        document.forms["f"]["phone"].value = resposta.response.venue.contact.phone;
+        document.forms["f"]["url"].value = resposta.response.venue.url;
+        document.forms["f"]["description"].value = resposta.response.venue.description;
+        document.forms["f"]["ll"].value = resposta.response.venue.location.lat + ', ' + resposta.response.venue.location.lng;
+      }
+      else if (xmlhttp.status == 400)
+        document.getElementById("result").innerHTML = "Erro 400: Bad Request, Tipo: " + resposta.meta.errorType + ", Detalhe: " + resposta.meta.errorDetail;
+      else if (xmlhttp.status == 401)
+        document.getElementById("result").innerHTML = "Erro 401: Unauthorized, Tipo: " + resposta.meta.errorType + ", Detalhe: " + resposta.meta.errorDetail;
+      else
+        document.getElementById("result").innerHTML = "Erro desconhecido: " + xmlhttp.status;
+    }
+  }
+  xmlhttp.open("GET","https://api.foursquare.com/v2/venues/<?php echo $venue;?>?oauth_token=<?php echo $oauth_token;?>&v=20111120",true);
+  xmlhttp.setRequestHeader("Content-type","application/x-www-form-urlencoded");
+  xmlhttp.send(null);
+}
+
 function Salvar() {
-  var data = "oauth_token=" + document.forms["f"]["oauth_token"].value
+  var xmlhttp = new XMLHttpRequest();
+  document.getElementById("result").innerHTML = "Enviando dados...";
+  xmlhttp.onreadystatechange = function() {
+    if (xmlhttp.readyState == 4) {
+      var resposta = JSON.parse(xmlhttp.responseText);
+      if (xmlhttp.status == 200)
+        document.getElementById("result").innerHTML = xmlhttp.responseText;
+      else if (xmlhttp.status == 400)
+        document.getElementById("result").innerHTML = "Erro 400: Bad Request, Tipo: " + resposta.meta.errorType + ", Detalhe: " + resposta.meta.errorDetail;
+      else if (xmlhttp.status == 401)
+        document.getElementById("result").innerHTML = "Erro 401: Unauthorized, Tipo: " + resposta.meta.errorType + ", Detalhe: " + resposta.meta.errorDetail;
+      else
+        document.getElementById("result").innerHTML = "Erro desconhecido: " + xmlhttp.status;
+    }
+  }
+  var data = "oauth_token=" + "<?php echo $oauth_token;?>"
     + "&name=" + document.forms["f"]["name"].value
     + "&address=" + document.forms["f"]["address"].value
     + "&crossStreet=" + document.forms["f"]["crossStreet"].value
@@ -37,15 +84,8 @@ function Salvar() {
   if (ll != null && ll != "") {
     data += "&ll=" + document.forms["f"]["ll"].value;
   }
+  data += "&v=20111120";
   document.getElementById("result").innerHTML = data;
-  var xmlhttp;
-  xmlhttp = new XMLHttpRequest();
-  document.getElementById("result").innerHTML = "Enviando dados...";
-  xmlhttp.onreadystatechange=function() {
-    if (xmlhttp.readyState == 4 && xmlhttp.status == 200) {
-      document.getElementById("result").innerHTML = xmlhttp.responseText;
-    }
-  }
   xmlhttp.open("POST","https://api.foursquare.com/v2/venues/<?php echo $venue;?>/edit",true);
   xmlhttp.setRequestHeader("Content-type","application/x-www-form-urlencoded");
   xmlhttp.send(data);
@@ -53,61 +93,55 @@ function Salvar() {
 </script>
 <link rel="stylesheet" type="text/css" href="http://ajax.googleapis.com/ajax/libs/dojo/1.6/dijit/themes/claro/claro.css"/>
 </head> 
-<body class="claro">
+<body class="claro" onload="loadVenue()">
 <h1>Venue Edit</h1>
-<p>Venue: <a href="https://foursquare.com/v/<?php echo $venue;?>" target="_blanck"><?php echo $venue;?></a></p>
+<p id="venueid">Venue: <a href="https://foursquare.com/v/<?php echo $venue;?>" target="_blanck"><?php echo $venue;?></a></p>
 <form name="f" accept-charset="utf-8" encType="multipart/form-data" action="" method="post">
-<input type="hidden" name="oauth_token" value="<?php echo $oauth_token;?>">
 <table style="border: 1px solid #9f9f9f;" cellspacing="10">
 <tr>
 <td><label for="name">Nome:</td>
-<td><input type="text" dojoType="dijit.form.TextBox" name="name" value="Voo Azul AD 4042"></td>
+<td><input type="text" dojoType="dijit.form.TextBox" name="name"></td>
 </tr>
 <tr>
 <td><label for="name">Endere&ccedil;o:</td>
-<td><input type="text" dojoType="dijit.form.TextBox" name="address" value="Aeroporto Salgado Filho"></td>
+<td><input type="text" dojoType="dijit.form.TextBox" name="address"></td>
 </tr>
 <tr>
 <td><label for="crossstreet">Rua Cross:</td>
-<td><input type="text" dojoType="dijit.form.TextBox" name="crossStreet" value="POA-VCP-CNF"></td>
+<td><input type="text" dojoType="dijit.form.TextBox" name="crossStreet"></td>
 </tr>
 <tr>
 <td><label for="city">Cidade:</td>
-<td><input type="text" dojoType="dijit.form.TextBox" name="city" value="Porto Alegre"></td>
+<td><input type="text" dojoType="dijit.form.TextBox" name="city"></td>
 </tr>
 <tr>
 <td><label for="state">Estado:</td>
-<td><select dojoType="dijit.form.Select" name="state">
-<option value=""></option>
-<option value="DF">DF</option>
-<option value="RJ">RJ</option>
-<option value="RS" selected="selected">RS</option>
-<option value="SP">SP</option></select></td>
+<td><input type="text" dojoType="dijit.form.TextBox" name="state"></td>
 </tr>
 <tr>
 <td>
 <label for="zip">CEP:</td>
-<td><input type="text" dojoType="dijit.form.TextBox" name="zip" value="90200-000"></td>
+<td><input type="text" dojoType="dijit.form.TextBox" name="zip"></td>
 </tr>
 <tr>
 <td><label for="twitter">Twitter:</td>
-<td><input type="text" dojoType="dijit.form.TextBox" name="twitter" value="azulinhasaereas"></td>
+<td><input type="text" dojoType="dijit.form.TextBox" name="twitter"></td>
 </tr>
 <tr>
 <td><label for="phone">Telefone:</td>
-<td><input type="text" dojoType="dijit.form.TextBox" name="phone" value="08008844040"></td>
+<td><input type="text" dojoType="dijit.form.TextBox" name="phone"></td>
 </tr>
 <tr>
 <td><label for="url">Website:</td>
-<td><input type="text" dojoType="dijit.form.TextBox" name="url" value="http://www.voeazul.com.br"></td>
+<td><input type="text" dojoType="dijit.form.TextBox" name="url"></td>
 </tr>
 <tr>
 <td><label for="description">Description:</td>
-<td><input type="text" dojoType="dijit.form.TextBox" name="description" value="A mais nova e moderna companhia aérea brasileira. Passagens mais baratas, aviões modernos, sem poltrona do meio, programa de vantagens mais simples, snacks e bebidas, Tripulação treinada. Compre 30 dias antes e pague menos."></td>
+<td><input type="text" dojoType="dijit.form.TextBox" name="description"></td>
 </tr>
 <tr>
 <td><label for="ll">Lat/Long:</td>
-<td><input type="text" dojoType="dijit.form.TextBox" name="ll" value="-29.990577, -51.181639"></td>
+<td><input type="text" dojoType="dijit.form.TextBox" name="ll"></td>
 </tr>
 </table>
 <br>

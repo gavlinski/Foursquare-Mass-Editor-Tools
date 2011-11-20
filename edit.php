@@ -16,7 +16,7 @@ if (is_uploaded_file($_FILES['csv']['tmp_name'])) {
 ?>
 <html>
 <head>
-<title>Csv Venues Edit</title>
+<title>CSV Venues Editor 0.3</title>
 <meta http-equiv="Content-type" content="text/html; charset=ISO-8859-1" />
 </head>
 <body>
