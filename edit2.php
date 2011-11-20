@@ -4,21 +4,31 @@ mb_http_output( "iso-8859-1" );
 ob_start("mb_output_handler");
 header("Content-Type: text/html; charset=ISO-8859-1",true);
 
+$VERSION = "CSV Venues Editor 0.4 beta";
+
 $oauth_token = $_POST["oauth_token"];
 
 if (is_uploaded_file($_FILES['csv']['tmp_name'])) {
   $csv = $_FILES['csv']['tmp_name'];
   require "CsvToArray.Class.php";
   $file = CsvToArray::open($csv);
+  if (count($file) > 500) {
+    echo '<html><head><title>', $VERSION, '</title><meta http-equiv="Content-type" content="text/html; charset=ISO-8859-1" /><style type="text/css">body, html { font-family:helvetica,arial,sans-serif; font-size:90%; }</style></head><body><p>O limite da API &eacute; de 500 requisi&ccedil;&otilde;es por hora por conjunto de endpoints por OAuth.</p><p>Reduza a quantidade de linhas do arquivo e tente novamente.<p><button type="button" onclick="history.go(-1)">Voltar</button></p></body></html>';
+    exit;
+  }
+  if (array_key_exists("venue", $file[0]) == false) {
+    echo '<html><head><title>', $VERSION, '</title><meta http-equiv="Content-type" content="text/html; charset=ISO-8859-1" /><style type="text/css">body, html { font-family:helvetica,arial,sans-serif; font-size:90%; }</style></head><body><p>A coluna "venue" &eacute; obrigat&oacute;ria para a edi&ccedil;&atilde;o!</p><p>Verifique o arquivo CSV e tente novamente.<p><button type="button" onclick="history.go(-1)">Voltar</button></p></body></html>';
+    exit;
+  }
 } else {
-  echo ("<html><body>Erro no envio do arquivo!</body></html>");
+  echo '<html><head><title>', $VERSION, '</title><meta http-equiv="Content-type" content="text/html; charset=ISO-8859-1" /><style type="text/css">body, html { font-family:helvetica,arial,sans-serif; font-size:90%; }</style></head><body>Erro ao enviar o arquivo!</body></html>';
   exit();
 }
 ?>
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
 <html dir="ltr">
 <head>
-<title>CSV Venues Editor 0.4 beta</title>
+<title><?php echo $VERSION;?></title>
 <meta http-equiv="Content-type" content="text/html; charset=ISO-8859-1" />
 <style type="text/css">
   body, html { font-family:helvetica,arial,sans-serif; font-size:90%; }
@@ -61,10 +71,12 @@ function salvarVenues() {
       venue = document.forms[i]["venue"].value;
       if (document.forms[i].elements[j].name != "ll")
         dados += "&" + document.forms[i].elements[j].name + "=" + document.forms[i].elements[j].value;
+      else {
+        ll = document.forms[i]["ll"].value;
+        if (ll != null && ll != "")
+          dados += "&ll=" + document.forms[i]["ll"].value;
+      }
     }
-    ll = document.forms[i]["ll"].value;
-    if (ll != null && ll != "")
-      dados += "&ll=" + document.forms[i]["ll"].value;
     dados += "&v=20111119";
     //document.getElementById("result").innerHTML += "<br>venue=" +venue + "<br>dados=" + dados + "<br>result=result" + i;
     xmlhttpPost(venue, dados, "result" + i);
@@ -74,55 +86,149 @@ function salvarVenues() {
 </script>
 </head>
 <body>
-<p><b>OAuth token:</b> <?php echo $oauth_token;?></p>
-<table><tr><th>Nome</th><th>Endere&ccedil;o</th><th>Rua Cross</th><th>Cidade</th><th>Estado</th><th>CEP</th><th>Twitter</th><th>Telefone</th><th>Website</th><th>Descri&ccedil;&atilde;o</th><th>Lat/Long</th></tr>
-<?php
+<table>
+<tr>
+<th></th><?php
+if (array_key_exists("name", $file[0])) {
+  $hasName = true;
+  echo '<th>Nome</th>';
+} else {
+  $hasName = false;
+}
+if (array_key_exists("address", $file[0])) {
+  $hasAddress = true;
+  echo '<th>Endere&ccedil;o</th>';
+} else {
+  $hasAddress = false;
+}
+if (array_key_exists("crossStreet", $file[0])) {
+  $hasCross = true;
+  echo '<th>Rua Cross</th>';
+} else {
+  $hasCross = false;
+}
+if (array_key_exists("city", $file[0])) {
+  $hasCity = true;
+  echo '<th>Cidade</th>';
+} else {
+  $hasCity = false;
+}
+if (array_key_exists("state", $file[0])) {
+  $hasState = true;
+  echo '<th>Estado</th>';
+} else {
+  $hasState = false;
+}
+if (array_key_exists("zip", $file[0])) {
+  $hasZip = true;
+  echo '<th>CEP</th>';
+} else {
+  $hasZip = false;
+}
+if (array_key_exists("twitter", $file[0])) {
+  $hasTwitter = true;
+  echo '<th>Twitter</th>';
+} else {
+  $hasTwitter = false;
+}
+if (array_key_exists("phone", $file[0])) {
+  $hasPhone = true;
+  echo '<th>Telefone</th>';
+} else {
+  $hasPhone = false;
+}
+if (array_key_exists("url", $file[0])) {
+  $hasUrl = true;
+  echo '<th>Website</th>';
+} else {
+  $hasUrl = false;
+}
+if (array_key_exists("description", $file[0])) {
+  $hasDesc = true;
+  echo '<th>Descri&ccedil;&atilde;o</th>';
+} else {
+  $hasDesc = false;
+}
+if (array_key_exists("ll", $file[0])) {
+  $hasLl = true;
+  echo '<th>Lat/Long</th>';
+} else {
+  $hasLl = false;
+}
+echo '</tr>', chr(10);
+
 $i = 0;
 
 foreach ($file as $f) {
-  $venue = $f[0];
-  $name = htmlentities($f[1]);
-  $address = htmlentities($f[2]);
-  $crossStreet = htmlentities($f[3]);
-  $city = htmlentities($f[4]);
-  $state = $f[5];
-  $zip = $f[6];
-  $twitter = $f[7];
-  $phone = $f[8];
-  $url = $f[9];
-  $description = htmlentities($f[10]);
-  $ll = $f[11];
-
   $i++;
 
-  $iId = "form$i";
+  $formId = "form$i";
+  echo '<tr>', chr(10), '<form name="', $formId, '" accept-charset="utf-8" encType="multipart/form-dados" method="post">', chr(10);
+
+  $venue = $f[venue];
+  echo '<td><input type="hidden" name="venue" value="', $venue, '"><a href="https://foursquare.com/v/', $venue, '" target="_blank">', $i, '</a></td>', chr(10);
+
+  $name = htmlentities($f[name]);
+  if ($hasName) {
+    echo '<td><input type="text" name="name" size="15" maxlenght="256" value="', $name, '"></td>', chr(10);
+  }
+
+  $address = htmlentities($f[address]);
+  if ($hasAddress) {
+    echo '<td><input type="text" name="address" size="15" maxlength="128" value="', $address, '"></td>', chr(10);
+  }
+
+  $crossStreet = htmlentities($f[crossStreet]);
+  if ($hasCross) {
+    echo '<td><input type="text" name="crossStreet" size="15" maxlength="51" value="', $crossStreet, '"></td>', chr(10);
+  }
+
+  $city = htmlentities($f[city]);
+  if ($hasCity) {
+    echo '<td><input type="text" name="city" size="10" maxlength="31" value="', $city, '"></td>', chr(10);
+  }
+
+  $state = $f[state];
+  if ($hasState) {
+    echo '<td><select name="state"><option value="', $state, '">', $state, '</option></select></td>', chr(10);
+  }
+
+  $zip = $f[zip];
+  if ($hasZip) {
+    echo '<td><input type="text" name="zip" size="10" maxlength="13" value="', $zip, '"></td>', chr(10);
+  }
+
+  $twitter = $f[twitter];
+  if ($hasTwitter) {
+    echo '<td><input type="text" name="twitter" size="10" maxlength="51" value="', $twitter, '"></td>', chr(10);
+  }
+
+  $phone = $f[phone];
+  if ($hasPhone) {
+    echo '<td><input type="text" name="phone" size="10" maxlength="21" value="', $phone, '"></td>', chr(10);
+  }
+
+  $url = $f[url];
+  if ($hasUrl) {
+    echo '<td><input type="text" name="url" size="15" maxlength="256" value="', $url, '"></td>', chr(10);
+  }
+
+  $description = htmlentities($f[description]);
+  if ($hasDesc) {
+    echo '<td><input type="text" name="description" size="15" maxlength="300" value="', $description, '"></td>', chr(10);
+  }
+
+  $ll = $f[ll];
+  if ($hasLl) {
+    if (($ll != '') && ($ll != ' ')) {
+      echo '<td><input type="text" name="ll" size="15" maxlength="402" value="', $ll, '"></td>', chr(10);
+    } else {
+      echo '<td><input type="text" name="ll" size="15" disabled></td>', chr(10);
+    }
+  }
+  echo '</form>', chr(10), '</tr>', chr(10);
+}
 ?>
-<tr>
-<form name="<?php echo $iId;?>" accept-charset="utf-8" encType="multipart/form-dados" method="post">
-<input type="hidden" name="venue" value="<?php echo $venue;?>">
-<input type="hidden" name="name" value="<?php echo $name;?>">
-<tr><td><a href="https://foursquare.com/v/<?php echo $venue;?>" target="_blank"><?php echo $name;?></a></td>
-<td><input type="text" name="address" size="15" maxlength="128" value="<?php echo $address;?>"></td>
-<td><input type="text" name="crossStreet" size="15" maxlength="51" value="<?php echo $crossStreet;?>"></td>
-<td><input type="text" name="city" size="10" maxlength="31" value="<?php echo $city;?>"></td>
-<td><select name="state"><option value="<?php echo $state;?>"><?php echo $state;?></option></select></td>
-<td><input type="text" name="zip" size="10" maxlength="13" value="<?php echo $zip;?>"></td>
-<td><input type="text" name="twitter" size="10" maxlength="51" value="<?php echo $twitter;?>"></td>
-<td><input type="text" name="phone" size="10" maxlength="21" value="<?php echo $phone;?>"></td>
-<td><input type="text" name="url" size="15" maxlength="256" value="<?php echo $url;?>"></td>
-<td><input type="text" name="description" size="15" maxlength="300" value="<?php echo $description;?>"></td>
-<?php
- if (($ll != '') && ($ll != ' ')) {
-     echo ('<td><input type="text" name="ll" size="15" maxlength="402" value="' . $ll . '"></td>');
- } else {
-     echo ('<td><input type="text" name="ll" size="15" disabled></td>');
- }
-?>
-</form>
-</tr>
-<?php
- }
- ?>
 </table>
 <p><button type="button" onclick="salvarVenues()" name="submitButton">Salvar</button>
 <button type="button" onclick="history.go(-1)" name="backButton">Voltar</button></p>
