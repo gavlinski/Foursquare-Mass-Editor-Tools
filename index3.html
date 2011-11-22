@@ -1,0 +1,49 @@
+<html> 
+<head> 
+<title>List Venues Editor 0.1 beta</title>
+<style type="text/css">
+  body, html { font-family:helvetica,arial,sans-serif; font-size:90%; }
+</style>
+<script type="text/javascript">
+function validateForm() {
+var x = document.forms["f"]["oauth_token"].value;
+var y = document.forms["f"]["txt"].value;
+if (x == null || x == "") {
+  alert("O OAuth token precisa ser informado");
+  document.forms["f"]["oauth_token"].focus();
+  return false;
+} else if (!y) {
+  alert("O arquivo precisa ser escolhido");
+  document.forms["f"]["txt"].focus();
+  return false;
+} else {
+  return true;
+}
+}
+</script>
+</head> 
+<body>
+<h1>List Venues Editor</h1>
+<form name="f" enctype="multipart/form-data" accept-charset="iso-8859-1" onsubmit="return validateForm()" method="post" action="edit3.php">
+<input type="hidden" name="MAX_FILE_SIZE" value="100000" />
+<p><a href="https://developer.foursquare.com/docs/explore.html#req=users/self" target="_blank">OAuth token</a>: <input type="text" name="oauth_token" size="53" maxlength="48"></p>
+<p>Arquivo TXT: <input type="file" name="txt"></p>
+<blockquote><blockquote><p><input type="checkbox" name="nome" />Nome <input type="checkbox" name="endereco" />Endere&ccedil;o <input type="checkbox" name="ruacross" />Rua Cross <input type="checkbox" name="cidade" />Cidade <input type="checkbox" name="estado" />Estado <input type="checkbox" name="cep" />CEP<br><input type="checkbox" name="twitter" />Twitter <input type="checkbox" name="telefone" />Telefone <input type="checkbox" name="website" />Website <input type="checkbox" name="descricao" />Descri&ccedil;&atilde;o <input type="checkbox" name="latlong" />Lat/Long </p></blockquote></blockquote>
+<p><input type="submit" value="Continuar"></p>
+</form>
+<!-- Start of StatCounter Code for Default Guide -->
+<script type="text/javascript">
+var sc_project=7288306; 
+var sc_invisible=1; 
+var sc_security="a38fdf67"; 
+</script>
+<script type="text/javascript"
+src="http://www.statcounter.com/counter/counter.js"></script>
+<noscript><div class="statcounter"><a title="tumblr visitor
+stats" href="http://statcounter.com/tumblr/"
+target="_blank"><img class="statcounter"
+src="http://c.statcounter.com/7288306/0/a38fdf67/1/"
+alt="tumblr visitor stats"></a></div></noscript>
+<!-- End of StatCounter Code for Default Guide -->
+</body>
+</html>

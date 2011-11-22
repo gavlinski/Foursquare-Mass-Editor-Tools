@@ -20,7 +20,7 @@ dojo.require("dijit.form.Button");
 dojo.require("dijit.form.TextBox");
 dojo.require("dijit.form.Select")
 
-function loadVenue() {
+function carregarVenue() {
   var xmlhttp = new XMLHttpRequest();
   xmlhttp.onreadystatechange = function() {
     if (xmlhttp.readyState == 4) {
@@ -53,7 +53,7 @@ function loadVenue() {
   xmlhttp.send(null);
 }
 
-function Salvar() {
+function salvarVenue() {
   var xmlhttp = new XMLHttpRequest();
   document.getElementById("result").innerHTML = "Enviando dados...";
   xmlhttp.onreadystatechange = function() {
@@ -93,7 +93,7 @@ function Salvar() {
 </script>
 <link rel="stylesheet" type="text/css" href="http://ajax.googleapis.com/ajax/libs/dojo/1.6/dijit/themes/claro/claro.css"/>
 </head> 
-<body class="claro" onload="loadVenue()">
+<body class="claro" onload="carregarVenue()">
 <h1>Venue Edit</h1>
 <p id="venueid">Venue: <a href="https://foursquare.com/v/<?php echo $venue;?>" target="_blanck"><?php echo $venue;?></a></p>
 <form name="f" accept-charset="utf-8" encType="multipart/form-data" action="" method="post">
@@ -145,7 +145,7 @@ function Salvar() {
 </tr>
 </table>
 <br>
-<button type="button" dojoType="dijit.form.Button" onclick="Salvar()" name="submitButton">Salvar</button>
+<button type="button" dojoType="dijit.form.Button" onclick="salvarVenue()" name="submitButton">Salvar</button>
 <button dojoType="dijit.form.Button" type="reset">Limpar</button>
 </form>
 <br><b>Resultado</b>

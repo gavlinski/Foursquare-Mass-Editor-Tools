@@ -34,25 +34,25 @@ if (is_uploaded_file($_FILES['csv']['tmp_name'])) {
   body, html { font-family:helvetica,arial,sans-serif; font-size:90%; }
 </style>
 <script type="text/javascript">
-function xmlhttpPost(venue, dados, result) {
+function xmlhttpPost(venue, dados, i) {
   var xmlhttp = new XMLHttpRequest();
   xmlhttp.onreadystatechange = function() {
     if (xmlhttp.readyState == 4) {
       var resposta = JSON.parse(xmlhttp.responseText);
       if (xmlhttp.status == 200)
-        document.getElementById(result).innerHTML = xmlhttp.responseText;
+        document.getElementById("result" + i).innerHTML = xmlhttp.responseText;
       else if (xmlhttp.status == 400)
-        document.getElementById(result).innerHTML ="Erro 400: Bad Request, Tipo: " + resposta.meta.errorType + ", Detalhe: " + resposta.meta.errorDetail;
+        document.getElementById("result" + i).innerHTML = "Erro 400: Bad Request, Tipo: " + resposta.meta.errorType + ", Detalhe: " + resposta.meta.errorDetail;
       else if (xmlhttp.status == 401)
-        document.getElementById(result).innerHTML ="Erro 401: Unauthorized, Tipo: " + resposta.meta.errorType + ", Detalhe: " + resposta.meta.errorDetail;
+        document.getElementById("result" + i).innerHTML = "Erro 401: Unauthorized, Tipo: " + resposta.meta.errorType + ", Detalhe: " + resposta.meta.errorDetail;
       else if (xmlhttp.status == 403)
-        document.getElementById(result).innerHTML ="Erro 403: Forbidden";
+        document.getElementById("result" + i).innerHTML = "Erro 403: Forbidden";
       else if (xmlhttp.status == 404)
-        document.getElementById(result).innerHTML ="Erro 404: Not Found";
+        document.getElementById("result" + i).innerHTML = "Erro 404: Not Found";
       else if (xmlhttp.status == 405)
-        document.getElementById(result).innerHTML ="Erro 405: Method Not Allowed";
+        document.getElementById("result" + i).innerHTML = "Erro 405: Method Not Allowed";
       else if (xmlhttp.status == 500)
-        document.getElementById(result).innerHTML ="Erro 500: Internal Server Error";
+        document.getElementById("result" + i).innerHTML = "Erro 500: Internal Server Error";
       else
         document.getElementById(result).innerHTML = "Erro desconhecido: " + xmlhttp.status;
     }
@@ -60,6 +60,7 @@ function xmlhttpPost(venue, dados, result) {
   xmlhttp.open("POST", "https://api.foursquare.com/v2/venues/" + venue + "/edit", true);
   xmlhttp.setRequestHeader("Content-type","application/x-www-form-urlencoded");
   xmlhttp.send(dados);
+  return false;
 }
 function salvarVenues() {
   var oauth_token = "<?php echo $oauth_token;?>";
@@ -77,9 +78,9 @@ function salvarVenues() {
           dados += "&ll=" + document.forms[i]["ll"].value;
       }
     }
-    dados += "&v=20111119";
+    dados += "&v=20111121";
     //document.getElementById("result").innerHTML += "<br>venue=" +venue + "<br>dados=" + dados + "<br>result=result" + i;
-    xmlhttpPost(venue, dados, "result" + i);
+    xmlhttpPost(venue, dados, i);
   }
   document.getElementById("result").innerHTML = "Dados enviados!";
 }
@@ -157,6 +158,8 @@ if (array_key_exists("ll", $file[0])) {
 }
 echo '</tr>', chr(10);
 
+$ufs = array("AC", "AL", "AP", "AM", "BA", "CE", "DF", "ES", "GO", "MA", "MT", "MS", "MG", "PA", "PB", "PR", "PE", "PI", "RJ", "RN", "RS", "RO", "RR", "SC", "SP", "SE", "TO");
+
 $i = 0;
 
 foreach ($file as $f) {
@@ -190,7 +193,15 @@ foreach ($file as $f) {
 
   $state = $f[state];
   if ($hasState) {
-    echo '<td><select name="state"><option value="', $state, '">', $state, '</option></select></td>', chr(10);
+    echo '<td><select name="state">';
+    $key = array_search($state, $ufs);
+    for ($j = 0; $j <= 26; $j++) {
+      if ($key == $j) {
+        echo '<option value="', $state, '" selected="selected">', $state, '</option>';
+      }
+      echo '<option value="', $ufs[$j], '">', $ufs[$j], '</option>';
+    }
+    echo '</select></td>', chr(10);
   }
 
   $zip = $f[zip];
@@ -232,7 +243,7 @@ foreach ($file as $f) {
 </table>
 <p><button type="button" onclick="salvarVenues()" name="submitButton">Salvar</button>
 <button type="button" onclick="history.go(-1)" name="backButton">Voltar</button></p>
-<p><b>Resultado</b><br>
+<br><p><b>Resultado</b><br>
 <div id="result"></div><br>
 <?php
 $id = 0;
