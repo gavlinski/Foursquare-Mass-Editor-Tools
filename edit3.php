@@ -59,7 +59,8 @@ function xmlhttpRequest(metodo, endpoint, dados, i) {
       var resposta = JSON.parse(xmlhttp.responseText);
       if (xmlhttp.status == 200)
         if (metodo == "POST")
-          document.getElementById("result" + i).innerHTML = xmlhttp.responseText;
+          //document.getElementById("result" + i).innerHTML = xmlhttp.responseText;
+          document.getElementById("result" + i).innerHTML = "OK";
         else
           atualizarTabela(resposta, i);
       else if (xmlhttp.status == 400)
@@ -165,73 +166,73 @@ function salvarVenues() {
 <table>
 <tr>
 <th></th><?php
-if ($_POST["nome"] != null) {
+if (isset($_POST['nome'])) {
   $editName = true;
   echo '<th>Nome</th>';
 } else {
   $editName = false;
 }
-if ($_POST["endereco"] != null) {
+if (isset($_POST['endereco'])) {
   $editAddress = true;
   echo '<th>Endere&ccedil;o</th>';
 } else {
   $editAddress = false;
 }
-if ($_POST["ruacross"] != null) {
+if (isset($_POST['ruacross'])) {
   $editCross = true;
   echo '<th>Rua Cross</th>';
 } else {
   $editCross = false;
 }
-if ($_POST["cidade"] != null) {
+if (isset($_POST['cidade'])) {
   $editCity = true;
   echo '<th>Cidade</th>';
 } else {
   $editCity = false;
 }
-if ($_POST["estado"] != null) {
+if (isset($_POST['estado'])) {
   $editState = true;
   echo '<th>Estado</th>';
 } else {
   $editState = false;
 }
-if ($_POST["cep"] != null) {
+if (isset($_POST['cep'])) {
   $editZip = true;
   echo '<th>CEP</th>';
 } else {
   $editZip = false;
 }
-if ($_POST["twitter"] != null) {
+if (isset($_POST['twitter'])) {
   $editTwitter = true;
   echo '<th>Twitter</th>';
 } else {
   $editTwitter = false;
 }
-if ($_POST["telefone"] != null) {
+if (isset($_POST['telefone'])) {
   $editPhone = true;
   echo '<th>Telefone</th>';
 } else {
   $editPhone = false;
 }
-if ($_POST["website"] != null) {
+if (isset($_POST['website'])) {
   $editUrl = true;
   echo '<th>Website</th>';
 } else {
   $editUrl = false;
 }
-if ($_POST["descricao"] != null) {
+if (isset($_POST['descricao'])) {
   $editDesc = true;
   echo '<th>Descri&ccedil;&atilde;o</th>';
 } else {
   $editDesc = false;
 }
-if ($_POST["latlong"] != null) {
+if (isset($_POST['latlong'])) {
   $editLl = true;
   echo '<th>Lat/Long</th>';
 } else {
   $editLl = false;
 }
-echo '</tr>', chr(10);
+echo '<th></th></tr>', chr(10);
 
 $ufs = array("AC", "AL", "AP", "AM", "BA", "CE", "DF", "ES", "GO", "MA", "MT", "MS", "MG", "PA", "PB", "PR", "PE", "PI", "RJ", "RN", "RS", "RO", "RR", "SC", "SP", "SE", "TO");
 
@@ -292,7 +293,7 @@ foreach ($file as $f) {
   if ($editLl) {
     echo '<td><input type="text" name="ll" size="15" maxlength="402"></td>', chr(10);
   }
-  echo '</form>', chr(10), '</tr>', chr(10);
+  echo '<td><div id="result', $i - 1, '"></div></td>', chr(10), '</form>', chr(10), '</tr>', chr(10);
 }
 ?>
 </table>
@@ -300,12 +301,6 @@ foreach ($file as $f) {
 <button type="button" onclick="history.go(-1)" name="backButton">Voltar</button></p>
 <br><p><b>Resultado</b><br>
 <div id="result"></div><br>
-<?php
-$id = 0;
-foreach ($file as $f) {
-  echo ('<div id="result' . $id . '"></div>' . "\n");
-  $id++;
-}
-?></p>
+</p>
 </body>
 </html>

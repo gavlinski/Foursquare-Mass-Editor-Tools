@@ -16,6 +16,20 @@ if (x == null || x == "") {
   alert("O arquivo precisa ser escolhido");
   document.forms["f"]["txt"].focus();
   return false;
+} else if (document.forms["f"]["nome"].checked == 0
+    && document.forms["f"]["endereco"].checked == 0
+    && document.forms["f"]["ruacross"].checked == 0
+    && document.forms["f"]["cidade"].checked == 0
+    && document.forms["f"]["estado"].checked == 0
+    && document.forms["f"]["cep"].checked == 0
+    && document.forms["f"]["twitter"].checked == 0
+    && document.forms["f"]["telefone"].checked == 0
+    && document.forms["f"]["website"].checked == 0
+    && document.forms["f"]["descricao"].checked == 0
+    && document.forms["f"]["latlong"].checked == 0) {
+  alert("Selecione pelo menos um dos campos");
+  document.forms["f"]["nome"].focus();
+  return false;
 } else {
   return true;
 }
