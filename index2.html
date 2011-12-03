@@ -1,43 +1,84 @@
-<html> 
-<head> 
-<title>CSV Venues Editor 0.4 beta</title>
-<style type="text/css">
-  body, html { font-family:helvetica,arial,sans-serif; font-size:90%; }
-</style>
+<html>
+<head>
+<title>CSV Venues Editor 0.5 beta</title>
+<script src="js/dojo/dojo.js" djConfig="parseOnLoad: true"></script>
 <script type="text/javascript">
-function validateForm() {
-var x = document.forms["f"]["oauth_token"].value;
-var y = document.forms["f"]["csv"].value;
-if (x == null || x == "") {
-  alert("O OAuth token precisa ser informado");
-  document.forms["f"]["oauth_token"].focus();
-  return false;
-} else if (!y) {
-  alert("O arquivo precisa ser escolhido");
-  document.forms["f"]["csv"].focus();
-  return false;
-} else if (y.split('.').pop() != "csv") {
-  alert("O arquivo deve ser do tipo csv");
-  document.forms["f"]["csv"].focus();
-  return false;
-} else {
-  return true;
-}
-}
+  dojo.require("dijit.form.Form");
+  dojo.require("dijit.form.Button");
+  dojo.require("dijit.form.TextBox");
+  dojo.require("dijit.form.ValidationTextBox");
+  dojo.require("dojox.form.Uploader");
+  dojo.addOnLoad(function() {
+    var arquivo = dojo.byId("arquivo");
+    var tipo = "";
+    var uploader = new dojox.form.Uploader({
+      name: "csv",
+      multiple: false,
+      label: "Escolher arquivo",
+      onChange: function(data) {
+        arquivo.innerHTML = data[0].name + " (" + Math.ceil(data[0].size * .001) + " kB)";
+        tipo = data[0].type;
+      }
+    },
+    "csv");
+    var form = dijit.byId("f");
+    dojo.connect(form, "onSubmit", function(e) {
+      if (form.validate()) {
+        if (arquivo.innerHTML === "Nenhum arquivo selecionado") {
+          e.preventDefault();
+          alert("O arquivo precisa ser escolhido");
+          uploader.inputNode.focus();
+        } else if (tipo != "text/csv") {
+          e.preventDefault();
+          alert("O arquivo deve ser do tipo CSV");
+          uploader.inputNode.focus();
+        //} else {
+          //alert("Ready to submit data: " + dojo.toJson(form.attr("value")));
+        }
+      } else {
+        e.preventDefault();
+      }
+    });
+  });
 </script>
-</head> 
-<body>
+<link rel="shortcut icon" href="favicon.ico" type="image/x-icon" />
+<link rel="stylesheet" type="text/css" href="js/dijit/themes/claro/claro.css"/>
+<link rel="stylesheet" type="text/css" href="estilo.css"/>
+</head>
+<body class="claro">
 <h1>CSV Venues Editor</h1>
-<form name="f" enctype="multipart/form-data" accept-charset="iso-8859-1" onsubmit="return validateForm()" method="post" action="edit2.php">
+<div dojoType="dijit.form.Form" enctype="multipart/form-data" accept-charset="iso-8859-1" id="f" jsId="f" encType="multipart/form-data" action="edit2.php" method="post">
+<table class="toolcontainer">
+  <tr>
+    <td><label for="oauth_token"><a href="https://developer.foursquare.com/docs/explore.html#req=users/self" target="_blank">OAuth token</a>:</td>
+    <td colspan="2"><input type="text" id="oauth_token" name="oauth_token" required="true" dojoType="dijit.form.ValidationTextBox" maxlength="48" style="width: 34em;"/></td>
+  </tr>
+  <tr>
+    <td><label for="csv">Arquivo CSV:</td>
+    <td width="117"><input type="hidden" name="MAX_FILE_SIZE" value="100000" dojoType="dijit.form.TextBox"/><input class="browseButton" type="file" id="csv" name="csv" style="width: 10em;"/></td>
+    <td><div id="arquivo">Nenhum arquivo selecionado</div></td>
+  </tr>
+</table>
+<!--
+<button dojoType="dijit.form.Button" type=button onClick="console.log(f.getValues())">
+  Get Values from form!
+</button>
+-->
+<button dojoType="dijit.form.Button" type="submit">
+  Continuar
+</button>
+</div>
+<!-- <form name="f" enctype="multipart/form-data" accept-charset="iso-8859-1" onsubmit="return validateForm()" method="post" action="edit2.php"> 
 <input type="hidden" name="MAX_FILE_SIZE" value="100000" />
 <p><a href="https://developer.foursquare.com/docs/explore.html#req=users/self" target="_blank">OAuth token</a>: <input type="text" name="oauth_token" size="53" maxlength="48"></p>
 <p>Arquivo CSV: <input type="file" name="csv"></p>
 <input type="submit" value="Continuar">
 </form>
-<!-- Start of StatCounter Code for Default Guide -->
+-->
+<!-- Start of StatCounter Code for Default Guide
 <script type="text/javascript">
-var sc_project=7288306; 
-var sc_invisible=1; 
+var sc_project=7288306;
+var sc_invisible=1;
 var sc_security="a38fdf67"; 
 </script>
 <script type="text/javascript"
@@ -47,6 +88,6 @@ stats" href="http://statcounter.com/tumblr/"
 target="_blank"><img class="statcounter"
 src="http://c.statcounter.com/7288306/0/a38fdf67/1/"
 alt="tumblr visitor stats"></a></div></noscript>
-<!-- End of StatCounter Code for Default Guide -->
+ End of StatCounter Code for Default Guide -->
 </body>
 </html>

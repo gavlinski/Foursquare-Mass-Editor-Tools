@@ -4,12 +4,14 @@ mb_http_output( "iso-8859-1" );
 ob_start("mb_output_handler");
 header("Content-Type: text/html; charset=ISO-8859-1",true);
 
-$VERSION = "CSV Venues Editor 0.4 beta";
+$VERSION = "CSV Venues Editor 0.5 beta";
 
 $oauth_token = $_POST["oauth_token"];
 
-if (is_uploaded_file($_FILES['csv']['tmp_name'])) {
-  $csv = $_FILES['csv']['tmp_name'];
+//if (is_uploaded_file($_FILES['csv']['tmp_name'])) {
+//  $csv = $_FILES['csv']['tmp_name'];
+if (is_uploaded_file($_FILES['csvs']['tmp_name'][0])) {
+  $csv = $_FILES['csvs']['tmp_name'][0];
   require "CsvToArray.Class.php";
   $file = CsvToArray::open($csv);
   if (count($file) > 500) {
@@ -30,17 +32,18 @@ if (is_uploaded_file($_FILES['csv']['tmp_name'])) {
 <head>
 <title><?php echo $VERSION;?></title>
 <meta http-equiv="Content-type" content="text/html; charset=ISO-8859-1" />
-<style type="text/css">
-  body, html { font-family:helvetica,arial,sans-serif; font-size:90%; }
-</style>
+<script src="js/dojo/dojo.js" djConfig="parseOnLoad: true"></script>
 <script type="text/javascript">
+dojo.require("dijit.form.Button");
+dojo.require("dijit.form.TextBox");
 function xmlhttpPost(venue, dados, i) {
   var xmlhttp = new XMLHttpRequest();
   xmlhttp.onreadystatechange = function() {
     if (xmlhttp.readyState == 4) {
       var resposta = JSON.parse(xmlhttp.responseText);
       if (xmlhttp.status == 200)
-        document.getElementById("result" + i).innerHTML = xmlhttp.responseText;
+        //document.getElementById("result" + i).innerHTML = xmlhttp.responseText;
+        document.getElementById("result" + i).innerHTML = "OK";
       else if (xmlhttp.status == 400)
         document.getElementById("result" + i).innerHTML = "Erro 400: Bad Request, Tipo: " + resposta.meta.errorType + ", Detalhe: " + resposta.meta.errorDetail;
       else if (xmlhttp.status == 401)
@@ -78,85 +81,89 @@ function salvarVenues() {
           dados += "&ll=" + document.forms[i]["ll"].value;
       }
     }
-    dados += "&v=20111121";
+    dados += "&v=20111130";
     //document.getElementById("result").innerHTML += "<br>venue=" +venue + "<br>dados=" + dados + "<br>result=result" + i;
     xmlhttpPost(venue, dados, i);
   }
   document.getElementById("result").innerHTML = "Dados enviados!";
 }
 </script>
+<link rel="shortcut icon" href="favicon.ico" type="image/x-icon" />
+<link rel="stylesheet" type="text/css" href="js/dijit/themes/claro/claro.css"/>
+<link rel="stylesheet" type="text/css" href="estilo.css"/>
 </head>
-<body>
-<table>
-<tr>
-<th></th><?php
+<body class="claro">
+<h2>Editar venues!</h2>
+<p>Antes de salvar suas altera&ccedil;&otilde;es, não deixe de ler nosso <a href="https://pt.foursquare.com/edit_venue?vid=4bfd98bfe529c9280c28bb8c#style_guide" target="_blank">guia de estilo</a> e as <a href="https://pt.foursquare.com/info/houserules" target="_blank">regras da casa</a>.<p>
+<table class="listContainer">
+<?php
 if (array_key_exists("name", $file[0])) {
   $hasName = true;
-  echo '<th>Nome</th>';
+  //echo '<th>Nome</th>';
 } else {
   $hasName = false;
 }
 if (array_key_exists("address", $file[0])) {
   $hasAddress = true;
-  echo '<th>Endere&ccedil;o</th>';
+  //echo '<th>Endere&ccedil;o</th>';
 } else {
   $hasAddress = false;
 }
 if (array_key_exists("crossStreet", $file[0])) {
   $hasCross = true;
-  echo '<th>Rua Cross</th>';
+  //echo '<th>Rua Cross</th>';
 } else {
   $hasCross = false;
 }
 if (array_key_exists("city", $file[0])) {
   $hasCity = true;
-  echo '<th>Cidade</th>';
+  //echo '<th>Cidade</th>';
 } else {
   $hasCity = false;
 }
 if (array_key_exists("state", $file[0])) {
   $hasState = true;
-  echo '<th>Estado</th>';
+  //echo '<th>Estado</th>';
 } else {
   $hasState = false;
 }
 if (array_key_exists("zip", $file[0])) {
   $hasZip = true;
-  echo '<th>CEP</th>';
+  //echo '<th>CEP</th>';
 } else {
   $hasZip = false;
 }
 if (array_key_exists("twitter", $file[0])) {
   $hasTwitter = true;
-  echo '<th>Twitter</th>';
+  //echo '<th>Twitter</th>';
 } else {
   $hasTwitter = false;
 }
 if (array_key_exists("phone", $file[0])) {
   $hasPhone = true;
-  echo '<th>Telefone</th>';
+  //echo '<th>Telefone</th>';
 } else {
   $hasPhone = false;
 }
 if (array_key_exists("url", $file[0])) {
   $hasUrl = true;
-  echo '<th>Website</th>';
+  //echo '<th>Website</th>';
 } else {
   $hasUrl = false;
 }
 if (array_key_exists("description", $file[0])) {
   $hasDesc = true;
-  echo '<th>Descri&ccedil;&atilde;o</th>';
+  //echo '<th>Descri&ccedil;&atilde;o</th>';
 } else {
   $hasDesc = false;
 }
 if (array_key_exists("ll", $file[0])) {
   $hasLl = true;
-  echo '<th>Lat/Long</th>';
+  //echo '<th>Lat/Long</th>';
 } else {
   $hasLl = false;
 }
-echo '</tr>', chr(10);
+//echo '<th></th></tr>', chr(10);
 
 $ufs = array("AC", "AL", "AP", "AM", "BA", "CE", "DF", "ES", "GO", "MA", "MT", "MS", "MG", "PA", "PB", "PR", "PE", "PI", "RJ", "RN", "RS", "RO", "RR", "SC", "SP", "SE", "TO");
 
@@ -173,22 +180,22 @@ foreach ($file as $f) {
 
   $name = htmlentities($f[name]);
   if ($hasName) {
-    echo '<td><input type="text" name="name" size="15" maxlenght="256" value="', $name, '"></td>', chr(10);
+    echo '<td><input type="text" name="name" maxlenght="256" value="', $name, '" dojoType="dijit.form.TextBox" placeHolder="Nome" style="width: 9em;"></td>', chr(10);
   }
 
   $address = htmlentities($f[address]);
   if ($hasAddress) {
-    echo '<td><input type="text" name="address" size="15" maxlength="128" value="', $address, '"></td>', chr(10);
+    echo '<td><input type="text" name="address" maxlength="128" value="', $address, '" dojoType="dijit.form.TextBox" placeHolder="Endere&ccedil;o" style="width: 9em;"></td>', chr(10);
   }
 
   $crossStreet = htmlentities($f[crossStreet]);
   if ($hasCross) {
-    echo '<td><input type="text" name="crossStreet" size="15" maxlength="51" value="', $crossStreet, '"></td>', chr(10);
+    echo '<td><input type="text" name="crossStreet" maxlength="51" value="', $crossStreet, '" dojoType="dijit.form.TextBox" placeHolder="Rua Cross" style="width: 9em;"></td>', chr(10);
   }
 
   $city = htmlentities($f[city]);
   if ($hasCity) {
-    echo '<td><input type="text" name="city" size="10" maxlength="31" value="', $city, '"></td>', chr(10);
+    echo '<td><input type="text" name="city" maxlength="31" value="', $city, '" dojoType="dijit.form.TextBox" placeHolder="Cidade" style="width: 8em;"></td>', chr(10);
   }
 
   $state = $f[state];
@@ -206,51 +213,43 @@ foreach ($file as $f) {
 
   $zip = $f[zip];
   if ($hasZip) {
-    echo '<td><input type="text" name="zip" size="10" maxlength="13" value="', $zip, '"></td>', chr(10);
+    echo '<td><input type="text" name="zip" maxlength="13" value="', $zip, '" dojoType="dijit.form.TextBox" placeHolder="CEP" style="width: 8em;"></td>', chr(10);
   }
 
   $twitter = $f[twitter];
   if ($hasTwitter) {
-    echo '<td><input type="text" name="twitter" size="10" maxlength="51" value="', $twitter, '"></td>', chr(10);
+    echo '<td><input type="text" name="twitter" maxlength="51" value="', $twitter, '" dojoType="dijit.form.TextBox" placeHolder="Twitter" style="width: 8em;"></td>', chr(10);
   }
 
   $phone = $f[phone];
   if ($hasPhone) {
-    echo '<td><input type="text" name="phone" size="10" maxlength="21" value="', $phone, '"></td>', chr(10);
+    echo '<td><input type="text" name="phone" maxlength="21" value="', $phone, '" dojoType="dijit.form.TextBox" placeHolder="Telefone" style="width: 8em;"></td>', chr(10);
   }
 
   $url = $f[url];
   if ($hasUrl) {
-    echo '<td><input type="text" name="url" size="15" maxlength="256" value="', $url, '"></td>', chr(10);
+    echo '<td><input type="text" name="url" maxlength="256" value="', $url, '" dojoType="dijit.form.TextBox" placeHolder="Website" style="width: 9em;"></td>', chr(10);
   }
 
   $description = htmlentities($f[description]);
   if ($hasDesc) {
-    echo '<td><input type="text" name="description" size="15" maxlength="300" value="', $description, '"></td>', chr(10);
+    echo '<td><input type="text" name="description" maxlength="300" value="', $description, '" dojoType="dijit.form.TextBox" placeHolder="Descri&ccedil;&atilde;o" style="width: 9em;"></td>', chr(10);
   }
 
   $ll = $f[ll];
   if ($hasLl) {
     if (($ll != '') && ($ll != ' ')) {
-      echo '<td><input type="text" name="ll" size="15" maxlength="402" value="', $ll, '"></td>', chr(10);
+      echo '<td><input type="text" name="ll" maxlength="402" value="', $ll, '" dojoType="dijit.form.TextBox" placeHolder="Lat/Long" style="width: 9em;"></td>', chr(10);
     } else {
-      echo '<td><input type="text" name="ll" size="15" disabled></td>', chr(10);
+      echo '<td><input type="text" name="ll" dojoType="dijit.form.TextBox" placeHolder="Lat/Long" style="width: 9em;" disabled></td>', chr(10);
     }
   }
-  echo '</form>', chr(10), '</tr>', chr(10);
+  echo '<td><div id="result', $i - 1, '"></div></td>', chr(10), '</form>', chr(10), '</tr>', chr(10);
 }
 ?>
 </table>
-<p><button type="button" onclick="salvarVenues()" name="submitButton">Salvar</button>
-<button type="button" onclick="history.go(-1)" name="backButton">Voltar</button></p>
-<br><p><b>Resultado</b><br>
-<div id="result"></div><br>
-<?php
-$id = 0;
-foreach ($file as $f) {
-  echo ('<div id="result' . $id . '"></div>' . "\n");
-  $id++;
-}
-?></p>
+<button dojoType="dijit.form.Button" type="button" onclick="salvarVenues()" name="submitButton">Salvar</button>
+<button dojoType="dijit.form.Button" type="button" onclick="history.go(-1)" name="backButton">Voltar</button>
+<p><div id="result"></div></p>
 </body>
 </html>
