@@ -8,6 +8,7 @@
   dojo.require("dijit.form.TextBox");
   dojo.require("dijit.form.ValidationTextBox");
   dojo.require("dojox.form.Uploader");
+  dojo.require("dojo.cookie");
   dojo.addOnLoad(function() {
     var arquivo = dojo.byId("arquivo");
     var tipo = "";
@@ -38,8 +39,15 @@
       } else {
         e.preventDefault();
       }
+      dojo.cookie("oauth_token", dijit.byId("oauth_token").value, { expires: 5 });
     });
   });
+  dojo.ready(function() {
+    setTimeout(function() {
+      dijit.byId("oauth_token").attr("value", dojo.cookie("oauth_token"));
+      //dijit.byId("oauth_token").focus();
+    });
+  }, 0);
 </script>
 <link rel="shortcut icon" href="favicon.ico" type="image/x-icon" />
 <link rel="stylesheet" type="text/css" href="js/dijit/themes/claro/claro.css"/>

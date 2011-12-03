@@ -34,7 +34,9 @@ if (is_uploaded_file($_FILES['csvs']['tmp_name'][0])) {
 <meta http-equiv="Content-type" content="text/html; charset=ISO-8859-1" />
 <script src="js/dojo/dojo.js" djConfig="parseOnLoad: true"></script>
 <script type="text/javascript">
+dojo.require("dijit.Dialog");
 dojo.require("dijit.form.Button");
+dojo.require("dijit.form.ComboBox");
 dojo.require("dijit.form.TextBox");
 function xmlhttpPost(venue, dados, i) {
   var xmlhttp = new XMLHttpRequest();
@@ -43,21 +45,21 @@ function xmlhttpPost(venue, dados, i) {
       var resposta = JSON.parse(xmlhttp.responseText);
       if (xmlhttp.status == 200)
         //document.getElementById("result" + i).innerHTML = xmlhttp.responseText;
-        document.getElementById("result" + i).innerHTML = "OK";
+        document.getElementById("result" + i).innerHTML = "<img src='img/ok.png' alt='OK' style='vertical-align: middle;'>";
       else if (xmlhttp.status == 400)
-        document.getElementById("result" + i).innerHTML = "Erro 400: Bad Request, Tipo: " + resposta.meta.errorType + ", Detalhe: " + resposta.meta.errorDetail;
+        document.getElementById("result" + i).innerHTML = "<img src='img/erro.png' alt='" + "Erro 400: Bad Request, Tipo: " + resposta.meta.errorType + ", Detalhe: " + resposta.meta.errorDetail + "' style='vertical-align: middle;'>";
       else if (xmlhttp.status == 401)
-        document.getElementById("result" + i).innerHTML = "Erro 401: Unauthorized, Tipo: " + resposta.meta.errorType + ", Detalhe: " + resposta.meta.errorDetail;
+        document.getElementById("result" + i).innerHTML = "<img src='img/erro.png' alt='" + "Erro 401: Unauthorized, Tipo: " + resposta.meta.errorType + ", Detalhe: " + resposta.meta.errorDetail + "' style='vertical-align: middle;'>";
       else if (xmlhttp.status == 403)
-        document.getElementById("result" + i).innerHTML = "Erro 403: Forbidden";
+        document.getElementById("result" + i).innerHTML = "<img src='img/erro.png' alt='" + "Erro 403: Forbidden" + "' style='vertical-align: middle;'>";
       else if (xmlhttp.status == 404)
-        document.getElementById("result" + i).innerHTML = "Erro 404: Not Found";
+        document.getElementById("result" + i).innerHTML = "<img src='img/erro.png' alt='" + "Erro 404: Not Found" + "' style='vertical-align: middle;'>";
       else if (xmlhttp.status == 405)
-        document.getElementById("result" + i).innerHTML = "Erro 405: Method Not Allowed";
+        document.getElementById("result" + i).innerHTML = "<img src='img/erro.png' alt='" + "Erro 405: Method Not Allowed" + "' style='vertical-align: middle;'>";
       else if (xmlhttp.status == 500)
-        document.getElementById("result" + i).innerHTML = "Erro 500: Internal Server Error";
+        document.getElementById("result" + i).innerHTML = "<img src='img/erro.png' alt='" + "Erro 500: Internal Server Error" + "' style='vertical-align: middle;'>";
       else
-        document.getElementById(result).innerHTML = "Erro desconhecido: " + xmlhttp.status;
+        document.getElementById(result).innerHTML = "<img src='img/erro.png' alt='" + "Erro desconhecido: " + xmlhttp.status + "' style='vertical-align: middle;'>";
     }
   }
   xmlhttp.open("POST", "https://api.foursquare.com/v2/venues/" + venue + "/edit", true);
@@ -68,11 +70,11 @@ function xmlhttpPost(venue, dados, i) {
 function salvarVenues() {
   var oauth_token = "<?php echo $oauth_token;?>";
   var venue, dados, ll;
-  document.getElementById("result").innerHTML = "Enviando dados...";
+  //document.getElementById("result").innerHTML = "Enviando dados...";
   for (i = 0; i < document.forms.length; i++) {
+    venue = document.forms[i]["venue"].value;
     dados = "oauth_token=" + oauth_token;
     for (j = 1; j < document.forms[i].elements.length; j++) {
-      venue = document.forms[i]["venue"].value;
       if (document.forms[i].elements[j].name != "ll")
         dados += "&" + document.forms[i].elements[j].name + "=" + document.forms[i].elements[j].value;
       else {
@@ -83,9 +85,23 @@ function salvarVenues() {
     }
     dados += "&v=20111130";
     //document.getElementById("result").innerHTML += "<br>venue=" +venue + "<br>dados=" + dados + "<br>result=result" + i;
+    document.getElementById("result" + i).innerHTML = "<img src='img/loading.gif' alt='Enviando dados...' style='vertical-align: middle;'>";
     xmlhttpPost(venue, dados, i);
   }
-  document.getElementById("result").innerHTML = "Dados enviados!";
+  //document.getElementById("result").innerHTML = "Dados enviados!";
+}
+var dlg;
+dojo.addOnLoad(function() {
+  // create the dialog:
+  dlg = new dijit.Dialog({
+    title: "Guia de estilo",
+    style: "width: 400px"
+  });
+});
+function showDialog() {
+  // set the content of the dialog:
+  dlg.attr("content", "<ul><li><p>Use sempre a ortografia e as letras maiúsculas corretas.</p></li><li><p>Em redes ou lugares com vários locais, não é mais preciso adicionar um sufixo de local. Portanto, pode deixar &quot;Starbucks&quot; ou &quot;Apple Store&quot; (em vez de &quot;Starbucks - Queen Anne&quot; ou &quot;Apple Store – Cidade alta&quot;).</p></li><li><p>Sempre que possível, use abreviações: &quot;Av.&quot; em vez de &quot;Avenida&quot;, &quot;R.&quot; em vez de &quot;Rua&quot;, etc.</p></li><li>Cross Street should be like one of the following:<ul><li>na R. Main (para lugares em uma esquina)</li><li>entre a Av. 2a. e Av. 3a. (para lugares no meio de um quarteirão)</li></ul><br></li><li>A R. Cross não <b>deve</b> ter o nome repetido da rua no endereço.<ul><li>Se o local é na R. Principal, a rua transversal deve ser &quot;na Segunda Av.&quot;</li><li>A transversal não deve ser &quot;R. Principal na R. Segunda&quot;</li></ul></li><li><p>Os nomes de estados e províncias devem ser abreviados.</p></li><li><p><b>Em caso de dúvida, formate os endereços de lugares de acordo com as diretrizes postais locais.</b></p></li><li><p>Se tiver mais perguntas sobre a criação e edição de lugares no foursquare, consulte nossas <a href='https://pt.foursquare.com/info/houserules' target='_blank'>regras da casa</a> e as <a href='http://support.foursquare.com/forums/191151-venue-help' target='_blank'>perguntas frequentes sobre lugares</a>.</p></li></ul>");
+  dlg.show();
 }
 </script>
 <link rel="shortcut icon" href="favicon.ico" type="image/x-icon" />
@@ -94,7 +110,7 @@ function salvarVenues() {
 </head>
 <body class="claro">
 <h2>Editar venues!</h2>
-<p>Antes de salvar suas altera&ccedil;&otilde;es, não deixe de ler nosso <a href="https://pt.foursquare.com/edit_venue?vid=4bfd98bfe529c9280c28bb8c#style_guide" target="_blank">guia de estilo</a> e as <a href="https://pt.foursquare.com/info/houserules" target="_blank">regras da casa</a>.<p>
+<p>Antes de salvar suas altera&ccedil;&otilde;es, não deixe de ler nosso <a href="javascript:showDialog();">guia de estilo</a> e as <a href="https://pt.foursquare.com/info/houserules" target="_blank">regras da casa</a>.<p>
 <table class="listContainer">
 <?php
 if (array_key_exists("name", $file[0])) {
@@ -180,7 +196,7 @@ foreach ($file as $f) {
 
   $name = htmlentities($f[name]);
   if ($hasName) {
-    echo '<td><input type="text" name="name" maxlenght="256" value="', $name, '" dojoType="dijit.form.TextBox" placeHolder="Nome" style="width: 9em;"></td>', chr(10);
+    echo '<td><input type="text" name="name" maxlenght="256" value="', $name, '" dojoType="dijit.form.TextBox" placeHolder="Nome" style="width: 9em;" onFocus="window.temp=this.value" onBlur="if (window.temp != this.value) dojo.byId(\'result', $i - 1, '\').innerHTML=\'\'" onChange="dojo.byId(\'result', $i - 1, '\').innerHTML=\'\'"></td>', chr(10);
   }
 
   $address = htmlentities($f[address]);
@@ -200,11 +216,11 @@ foreach ($file as $f) {
 
   $state = $f[state];
   if ($hasState) {
-    echo '<td><select name="state">';
+    echo '<td><select dojoType="dijit.form.ComboBox" id="state', $i, '" name="state" style="width: 4em;">';
     $key = array_search($state, $ufs);
     for ($j = 0; $j <= 26; $j++) {
       if ($key == $j) {
-        echo '<option value="', $state, '" selected="selected">', $state, '</option>';
+        echo '<option value="', $state, '" selected>', $state, '</option>';
       }
       echo '<option value="', $ufs[$j], '">', $ufs[$j], '</option>';
     }
@@ -250,6 +266,6 @@ foreach ($file as $f) {
 </table>
 <button dojoType="dijit.form.Button" type="button" onclick="salvarVenues()" name="submitButton">Salvar</button>
 <button dojoType="dijit.form.Button" type="button" onclick="history.go(-1)" name="backButton">Voltar</button>
-<p><div id="result"></div></p>
+<!--<p><div id="result"></div></p>-->
 </body>
 </html>
