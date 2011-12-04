@@ -49,6 +49,9 @@ a:hover {
   -moz-border-radius: 5px;
 }
 #listContainer {
+  width: 1px;
+  display: table;
+  min-height: 0;
   background-color: #F7F6F6;
   border: 1px solid #cccccc;
   font-size: 92%;
@@ -62,9 +65,12 @@ a:hover {
   margin-left: 10px;
   margin-right: 10px;
   margin-bottom: 10px;
+  white-space: nowrap;
 }
 #listContainer img {
-  float: right;
+  height: 16px;
+  margin-left: 5px;
+  vertical-align: middle;
+  width: 16px;
   position: relative;
-  top: -18px;
 }

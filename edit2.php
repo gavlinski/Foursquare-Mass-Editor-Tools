@@ -83,7 +83,6 @@ function salvarVenues() {
     }
     dados += "&v=20111204";
     //document.getElementById("result").innerHTML += "<br>venue=" +venue + "<br>dados=" + dados + "<br>result=result" + i;
-    document.getElementById("listContainer").style.width = "1220px";
     document.getElementById("result" + i).innerHTML = "<img src='img/loading.gif' alt='Enviando dados...'>";
     xmlhttpPost(venue, dados, i);
   }
@@ -110,7 +109,7 @@ function showDialog() {
 <body class="claro">
 <h2>Editar venues!</h2>
 <p>Antes de salvar suas altera&ccedil;&otilde;es, n&atilde;o deixe de ler nosso <a href="javascript:showDialog();">guia de estilo</a> e as <a href="https://pt.foursquare.com/info/houserules" target="_blank">regras da casa</a>.<p>
-<div id="listContainer" style="width: 1200px;">
+<div id="listContainer">
 <?php
 if (array_key_exists("name", $file[0])) {
   $hasName = true;
@@ -248,7 +247,7 @@ foreach ($file as $f) {
     }
   }
 
-  echo '<div id="result', $i - 1, '"></div>', chr(10), '</form>', chr(10), '</div>', chr(10);
+  echo '<span id="result', $i - 1, '"></span>', chr(10), '</form>', chr(10), '</div>', chr(10);
 }
 ?>
 </div>
