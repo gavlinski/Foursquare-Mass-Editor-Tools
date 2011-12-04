@@ -1,0 +1,70 @@
+body, html {
+  font-family: Helvetica, Verdana, Arial, sans-serif;
+  font-size: 90%;
+  color: #5A5858;
+}
+h2 {
+  color: #444444;
+  font-size: 20px;
+  font-weight: bold;
+  margin-bottom: 5px;
+}
+h3 {
+  font-weight: bold;
+  font-size: 14px;
+  margin-top:15px;
+}
+a:link {
+  color : #2398c9;
+  text-decoration: none;
+  font-weight : bold;
+}
+a:visited {
+  color : #2398c9;
+  text-decoration: none;
+  font-weight : bold;
+}
+a:active {
+  color : #2398c9;
+  text-decoration: none;
+  font-weight : bold;
+}
+a:hover {
+  color : #2398c9;
+  text-decoration: underline;
+  font-weight : bold;
+}
+.toolContainer {
+  background-color: #f9f9f9;
+  border: 1px solid #cccccc;
+  margin-bottom: 15px;
+  border-collapse: separate;
+  border-spacing: 10px;
+  padding: 5px;
+  overflow: hidden;
+  font-size: 100%;
+
+  border-radius: 5px;
+  -webkit-border-radius: 5px;
+  -moz-border-radius: 5px;
+}
+#listContainer {
+  background-color: #F7F6F6;
+  border: 1px solid #cccccc;
+  font-size: 92%;
+  margin-bottom: 15px;
+  border-radius: 5px;
+  -webkit-border-radius: 5px;
+  -moz-border-radius: 5px;
+}
+#listContainer .row {
+  margin-top: 10px;
+  margin-left: 10px;
+  margin-right: 10px;
+  margin-bottom: 10px;
+}
+#listContainer img {
+  float: right;
+  position: relative;
+  top: -18px;
+}
