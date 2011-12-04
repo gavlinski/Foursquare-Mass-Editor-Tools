@@ -43,10 +43,13 @@ a:hover {
   padding: 5px;
   overflow: hidden;
   font-size: 100%;
-
+  white-space: nowrap;
   border-radius: 5px;
   -webkit-border-radius: 5px;
   -moz-border-radius: 5px;
+}
+.checkbox {
+  float:left;
 }
 #listContainer {
   width: 1px;

@@ -1,50 +1,158 @@
 <html> 
 <head> 
-<title>List Venues Editor 0.1 beta</title>
-<style type="text/css">
-  body, html { font-family:helvetica,arial,sans-serif; font-size:90%; }
-</style>
+<title>List Venues Editor 0.2 beta</title>
+<script src="js/dojo/dojo.js" djConfig="parseOnLoad: true"></script>
 <script type="text/javascript">
-function validateForm() {
-var x = document.forms["f"]["oauth_token"].value;
-var y = document.forms["f"]["txt"].value;
-if (x == null || x == "") {
-  alert("O OAuth token precisa ser informado");
-  document.forms["f"]["oauth_token"].focus();
-  return false;
-} else if (!y) {
-  alert("O arquivo precisa ser escolhido");
-  document.forms["f"]["txt"].focus();
-  return false;
-} else if (document.forms["f"]["nome"].checked == 0
-    && document.forms["f"]["endereco"].checked == 0
-    && document.forms["f"]["ruacross"].checked == 0
-    && document.forms["f"]["cidade"].checked == 0
-    && document.forms["f"]["estado"].checked == 0
-    && document.forms["f"]["cep"].checked == 0
-    && document.forms["f"]["twitter"].checked == 0
-    && document.forms["f"]["telefone"].checked == 0
-    && document.forms["f"]["website"].checked == 0
-    && document.forms["f"]["descricao"].checked == 0
-    && document.forms["f"]["latlong"].checked == 0) {
-  alert("Selecione pelo menos um dos campos");
-  document.forms["f"]["nome"].focus();
-  return false;
-} else {
-  return true;
-}
-}
+  dojo.require("dijit.form.Form");
+  dojo.require("dijit.form.Button");
+  dojo.require("dijit.form.CheckBox");
+  dojo.require("dijit.form.TextBox");
+  dojo.require("dijit.form.ValidationTextBox");
+  dojo.require("dojox.form.Uploader");
+  dojo.require("dojo.cookie");
+  dojo.addOnLoad(function() {
+    var arquivo = dojo.byId("arquivo");
+    var tipo = "";
+    var uploader = new dojox.form.Uploader({
+      name: "txt",
+      multiple: false,
+      label: "Escolher arquivo",
+      onChange: function(data) {
+        arquivo.innerHTML = data[0].name + " (" + Math.ceil(data[0].size * .001) + " kB)";
+        tipo = data[0].type;
+      }
+    },
+    "txt");
+    var form = dijit.byId("f");
+    dojo.connect(form, "onSubmit", function(e) {
+      if (form.validate()) {
+        if (arquivo.innerHTML === "Nenhum arquivo selecionado") {
+          e.preventDefault();
+          alert("O arquivo precisa ser escolhido");
+          uploader.inputNode.focus();
+        } else if (tipo != "text/plain") {
+          e.preventDefault();
+          alert("O arquivo deve ser do tipo TXT");
+          uploader.inputNode.focus();
+        } else if (dojo.query('input:checked', 'f').length == 0) {
+          e.preventDefault();
+          alert("Selecione pelo menos um dos campos");
+          dijit.byId("nome").focus();
+        //} else {
+          //alert("Ready to submit data: " + dojo.toJson(form.attr("value")));
+        }
+      } else {
+        e.preventDefault();
+      }
+      dojo.cookie("oauth_token", dijit.byId("oauth_token").value, { expires: 5 });
+    });
+  });
+  dojo.ready(function() {
+    setTimeout(function() {
+      dijit.byId("oauth_token").attr("value", dojo.cookie("oauth_token"));
+      //dijit.byId("oauth_token").focus();
+    });
+  }, 0);
 </script>
+<link rel="shortcut icon" href="favicon.ico" type="image/x-icon" />
+<link rel="stylesheet" type="text/css" href="js/dijit/themes/claro/claro.css"/>
+<link rel="stylesheet" type="text/css" href="estilo.css"/>
 </head> 
-<body>
+<body class="claro">
 <h1>List Venues Editor</h1>
-<form name="f" enctype="multipart/form-data" accept-charset="iso-8859-1" onsubmit="return validateForm()" method="post" action="edit3.php">
-<input type="hidden" name="MAX_FILE_SIZE" value="100000" />
-<p><a href="https://developer.foursquare.com/docs/explore.html#req=users/self" target="_blank">OAuth token</a>: <input type="text" name="oauth_token" size="53" maxlength="48"></p>
-<p>Arquivo TXT: <input type="file" name="txt"></p>
-<blockquote><blockquote><p><input type="checkbox" name="nome" />Nome <input type="checkbox" name="endereco" />Endere&ccedil;o <input type="checkbox" name="ruacross" />Rua Cross <input type="checkbox" name="cidade" />Cidade <input type="checkbox" name="estado" />Estado <input type="checkbox" name="cep" />CEP<br><input type="checkbox" name="twitter" />Twitter <input type="checkbox" name="telefone" />Telefone <input type="checkbox" name="website" />Website <input type="checkbox" name="descricao" />Descri&ccedil;&atilde;o <input type="checkbox" name="latlong" />Lat/Long </p></blockquote></blockquote>
-<p><input type="submit" value="Continuar"></p>
-</form>
+<div dojoType="dijit.form.Form" enctype="multipart/form-data" accept-charset="iso-8859-1" id="f" jsId="f" encType="multipart/form-data" action="edit3.php" method="post">
+<table class="toolcontainer" width="580">
+  <tr>
+    <td><label for="oauth_token"><a href="https://developer.foursquare.com/docs/explore.html#req=users/self" target="_blank">OAuth token</a>:</td>
+    <td colspan="2"><input type="text" id="oauth_token" name="oauth_token" required="true" dojoType="dijit.form.ValidationTextBox" maxlength="48" style="width: 34em;"/></td>
+  </tr>
+  <tr>
+    <td><label for="txt">Arquivo TXT:</td>
+    <td width="117"><input type="hidden" name="MAX_FILE_SIZE" value="100000" dojoType="dijit.form.TextBox"/><input class="browseButton" type="file" id="txt" name="txt" style="width: 10em;"/></td>
+    <td width="300"><div id="arquivo">Nenhum arquivo selecionado</div></td>
+  </tr>
+  <tr>
+    <td><label for="campos">Campos:</td>
+    <td colspan="2">
+      <div class="checkbox" style="width: 5.2em;">
+        <input id="nome" name="campos[]" dojoType="dijit.form.CheckBox" value="nome">
+        <label for="nome">
+          Nome
+        </label>
+      </div>
+      <div class="checkbox" style="width: 6.2em;">
+        <input id="endereco" name="campos[]" dojoType="dijit.form.CheckBox" value="endereco">
+        <label for="endereco">
+          Endere&ccedil;o
+        </label>
+      </div>
+      <div class="checkbox" style="width: 6.7em;">
+        <input id="ruacross" name="campos[]" dojoType="dijit.form.CheckBox" value="ruacross">
+        <label for="ruacross">
+          Rua Cross
+        </label>
+      </div>
+      <div class="checkbox" style="width: 6.5em;">
+        <input id="cidade" name="campos[]" dojoType="dijit.form.CheckBox" value="cidade">
+        <label for="cidade">
+          Cidade
+        </label>
+      </div>
+      <div class="checkbox" style="width: 6em;">
+        <input id="estado" name="campos[]" dojoType="dijit.form.CheckBox" value="estado">
+        <label for="estado">
+          Estado
+        </label>
+      </div>
+      <div class="checkbox" style="width: 4em;">
+        <input id="cep" name="campos[]" dojoType="dijit.form.CheckBox" value="cep">
+        <label for="cep">
+          CEP
+        </label>
+      </div>
+      <br>
+      <div class="checkbox" style="width: 5.2em;">
+        <input id="twitter" name="campos[]" dojoType="dijit.form.CheckBox" value="twitter">
+        <label for="twitter">
+          Twitter
+        </label>
+      </div>
+      <div class="checkbox" style="width: 6.2em;">
+        <input id="telefone" name="campos[]" dojoType="dijit.form.CheckBox" value="telefone">
+        <label for="telefone">
+          Telefone
+        </label>
+      </div>
+      <div class="checkbox" style="width: 6.7em;">
+        <input id="website" name="campos[]" dojoType="dijit.form.CheckBox" value="website">
+        <label for="website">
+          Website
+        </label>
+      </div>
+      <div class="checkbox" style="width: 6.5em;">
+        <input id="descricao" name="campos[]" dojoType="dijit.form.CheckBox" value="descricao">
+        <label for="descricao">
+          Descri&ccedil;&atilde;o
+        </label>
+      </div>
+      <div class="checkbox" style="width: 6em;">
+        <input id="latlong" name="campos[]" dojoType="dijit.form.CheckBox" value="latlong">
+        <label for="latlong">
+          Lat/Long
+        </label>
+      </div>
+    </td>
+  </tr>
+</table>
+<!--
+<button dojoType="dijit.form.Button" type=button onClick="console.log(f.getValues())">
+  Get Values from form!
+</button>
+-->
+<button dojoType="dijit.form.Button" type="submit">
+  Continuar
+</button>
+</div>
 <!-- Start of StatCounter Code for Default Guide -->
 <script type="text/javascript">
 var sc_project=7288306; 

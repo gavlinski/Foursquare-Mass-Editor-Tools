@@ -73,9 +73,19 @@ function salvarVenues() {
     //var form = dojo.formToObject("form" + (i + 1));
     //document.getElementById("result").innerHTML += dojo.toJson(form, true) + "<br>";
     for (j = 1; j < document.forms[i].elements.length; j++) {
-      if (document.forms[i].elements[j].name != "ll")
+      if ((document.forms[i].elements[j].name != "ll") &&
+          ((document.forms[i].elements[j].name == "name")
+           || (document.forms[i].elements[j].name == "address")
+           || (document.forms[i].elements[j].name == "crossStreet")
+           || (document.forms[i].elements[j].name == "city")
+           || (document.forms[i].elements[j].name == "state")
+           || (document.forms[i].elements[j].name == "zip")
+           || (document.forms[i].elements[j].name == "twitter")
+           || (document.forms[i].elements[j].name == "phone")
+           || (document.forms[i].elements[j].name == "url")
+           || (document.forms[i].elements[j].name == "description")))
         dados += "&" + document.forms[i].elements[j].name + "=" + document.forms[i].elements[j].value;
-      else {
+      else if (document.forms[i].elements[j].name == "ll") {
         ll = document.forms[i]["ll"].value;
         if (ll != null && ll != "")
           dados += "&ll=" + document.forms[i]["ll"].value;
@@ -174,35 +184,41 @@ $i = 0;
 foreach ($file as $f) {
   $i++;
 
-  $formId = "form$i";
-  echo '<div class="row">', chr(10), '<form id="', $formId, '" accept-charset="utf-8" encType="multipart/form-dados" method="post">', chr(10);
+  echo '<div class="row">', chr(10), '<form name="form', $i, '" accept-charset="utf-8" encType="multipart/form-data" method="post">', chr(10);
 
   $venue = $f[venue];
-  echo '<input type="hidden" name="venue" value="', $venue, '"><a href="https://foursquare.com/v/', $venue, '" target="_blank">', $i, '</a>', chr(10);
+  echo '<input type="hidden" name="venue" value="', $venue, '"><a href="https://foursquare.com/v/', $venue, '" target="_blank">';
+  if (count($file) < 10)
+    echo $i;
+  else if (count($file) < 100)
+    echo str_pad($i, 2, "0", STR_PAD_LEFT);
+  else
+    echo str_pad($i, 3, "0", STR_PAD_LEFT);
+  echo '</a>', chr(10);
 
   $name = htmlentities($f[name]);
   if ($hasName) {
-    echo '<input type="text" dojoType="dijit.form.TextBox" id="name', $i, '" name="name', $i, '" maxlength="256" value="', $name, '"  placeHolder="Nome" style="width: 9em; margin-left: 5px;" onFocus="window.temp=this.value" onBlur="if (window.temp != this.value) dojo.byId(\'result', $i - 1, '\').innerHTML=\'\'" onChange="dojo.byId(\'result', $i - 1, '\').innerHTML=\'\'">', chr(10);
+    echo '<input type="text" dojoType="dijit.form.TextBox" name="name" maxlength="256" value="', $name, '" placeHolder="Nome" style="width: 9em; margin-left: 5px;" onFocus="window.temp=this.value" onBlur="if (window.temp != this.value) dojo.byId(\'result', $i - 1, '\').innerHTML=\'\'" onChange="dojo.byId(\'result', $i - 1, '\').innerHTML=\'\'">', chr(10);
   }
 
   $address = htmlentities($f[address]);
   if ($hasAddress) {
-    echo '<input type="text" name="address" maxlength="128" value="', $address, '" dojoType="dijit.form.TextBox" placeHolder="Endere&ccedil;o" style="width: 9em; margin-left: 5px;" onFocus="window.temp=this.value" onBlur="if (window.temp != this.value) dojo.byId(\'result', $i - 1, '\').innerHTML=\'\'" onChange="dojo.byId(\'result', $i - 1, '\').innerHTML=\'\'">', chr(10);
+    echo '<input type="text" dojoType="dijit.form.TextBox" name="address" maxlength="128" value="', $address, '" placeHolder="Endere&ccedil;o" style="width: 9em; margin-left: 5px;" onFocus="window.temp=this.value" onBlur="if (window.temp != this.value) dojo.byId(\'result', $i - 1, '\').innerHTML=\'\'" onChange="dojo.byId(\'result', $i - 1, '\').innerHTML=\'\'">', chr(10);
   }
 
   $crossStreet = htmlentities($f[crossStreet]);
   if ($hasCross) {
-    echo '<input type="text" name="crossStreet" maxlength="51" value="', $crossStreet, '" dojoType="dijit.form.TextBox" placeHolder="Rua Cross" style="width: 9em; margin-left: 5px;" onFocus="window.temp=this.value" onBlur="if (window.temp != this.value) dojo.byId(\'result', $i - 1, '\').innerHTML=\'\'" onChange="dojo.byId(\'result', $i - 1, '\').innerHTML=\'\'">', chr(10);
+    echo '<input type="text" dojoType="dijit.form.TextBox" name="crossStreet" maxlength="51" value="', $crossStreet, '" placeHolder="Rua Cross" style="width: 9em; margin-left: 5px;" onFocus="window.temp=this.value" onBlur="if (window.temp != this.value) dojo.byId(\'result', $i - 1, '\').innerHTML=\'\'" onChange="dojo.byId(\'result', $i - 1, '\').innerHTML=\'\'">', chr(10);
   }
 
   $city = htmlentities($f[city]);
   if ($hasCity) {
-    echo '<input type="text" name="city" maxlength="31" value="', $city, '" dojoType="dijit.form.TextBox" placeHolder="Cidade" style="width: 9em; margin-left: 5px;" onFocus="window.temp=this.value" onBlur="if (window.temp != this.value) dojo.byId(\'result', $i - 1, '\').innerHTML=\'\'" onChange="dojo.byId(\'result', $i - 1, '\').innerHTML=\'\'">', chr(10);
+    echo '<input type="text" dojoType="dijit.form.TextBox" name="city" maxlength="31" value="', $city, '" placeHolder="Cidade" style="width: 9em; margin-left: 5px;" onFocus="window.temp=this.value" onBlur="if (window.temp != this.value) dojo.byId(\'result', $i - 1, '\').innerHTML=\'\'" onChange="dojo.byId(\'result', $i - 1, '\').innerHTML=\'\'">', chr(10);
   }
 
   $state = $f[state];
   if ($hasState) {
-    echo '<select dojoType="dijit.form.ComboBox" id="state', $i, '" name="state" style="width: 4em; margin-left: 5px;" onFocus="window.temp=this.value" onBlur="if (window.temp != this.value) dojo.byId(\'result', $i - 1, '\').innerHTML=\'\'" onChange="dojo.byId(\'result', $i - 1, '\').innerHTML=\'\'">', chr(10);
+    echo '<select dojoType="dijit.form.ComboBox" name="state" style="width: 4em; margin-left: 5px;" onFocus="window.temp=this.value" onBlur="if (window.temp != this.value) dojo.byId(\'result', $i - 1, '\').innerHTML=\'\'" onChange="dojo.byId(\'result', $i - 1, '\').innerHTML=\'\'">', chr(10);
     $key = array_search($state, $ufs);
     for ($j = 0; $j <= 26; $j++) {
       if ($key == $j) {
@@ -210,40 +226,40 @@ foreach ($file as $f) {
       }
       echo '<option value="', $ufs[$j], '">', $ufs[$j], '</option>';
     }
-    echo '</select>', chr(10);
+    echo chr(10), '</select>', chr(10);
   }
 
   $zip = $f[zip];
   if ($hasZip) {
-    echo '<input type="text" name="zip" maxlength="13" value="', $zip, '" dojoType="dijit.form.TextBox" placeHolder="CEP" style="width: 6em; margin-left: 5px;" onFocus="window.temp=this.value" onBlur="if (window.temp != this.value) dojo.byId(\'result', $i - 1, '\').innerHTML=\'\'" onChange="dojo.byId(\'result', $i - 1, '\').innerHTML=\'\'">', chr(10);
+    echo '<input type="text" dojoType="dijit.form.TextBox" name="zip" maxlength="13" value="', $zip, '" placeHolder="CEP" style="width: 6em; margin-left: 5px;" onFocus="window.temp=this.value" onBlur="if (window.temp != this.value) dojo.byId(\'result', $i - 1, '\').innerHTML=\'\'" onChange="dojo.byId(\'result', $i - 1, '\').innerHTML=\'\'">', chr(10);
   }
 
   $twitter = $f[twitter];
   if ($hasTwitter) {
-    echo '<input type="text" name="twitter" maxlength="51" value="', $twitter, '" dojoType="dijit.form.TextBox" placeHolder="Twitter" style="width: 8em; margin-left: 5px;" onFocus="window.temp=this.value" onBlur="if (window.temp != this.value) dojo.byId(\'result', $i - 1, '\').innerHTML=\'\'" onChange="dojo.byId(\'result', $i - 1, '\').innerHTML=\'\'">', chr(10);
+    echo '<input type="text" dojoType="dijit.form.TextBox" name="twitter" maxlength="51" value="', $twitter, '" placeHolder="Twitter" style="width: 8em; margin-left: 5px;" onFocus="window.temp=this.value" onBlur="if (window.temp != this.value) dojo.byId(\'result', $i - 1, '\').innerHTML=\'\'" onChange="dojo.byId(\'result', $i - 1, '\').innerHTML=\'\'">', chr(10);
   }
 
   $phone = $f[phone];
   if ($hasPhone) {
-    echo '<input type="text" name="phone" maxlength="21" value="', $phone, '" dojoType="dijit.form.TextBox" placeHolder="Telefone" style="width: 8em; margin-left: 5px;" onFocus="window.temp=this.value" onBlur="if (window.temp != this.value) dojo.byId(\'result', $i - 1, '\').innerHTML=\'\'" onChange="dojo.byId(\'result', $i - 1, '\').innerHTML=\'\'">', chr(10);
+    echo '<input type="text" dojoType="dijit.form.TextBox" name="phone" maxlength="21" value="', $phone, '" placeHolder="Telefone" style="width: 8em; margin-left: 5px;" onFocus="window.temp=this.value" onBlur="if (window.temp != this.value) dojo.byId(\'result', $i - 1, '\').innerHTML=\'\'" onChange="dojo.byId(\'result', $i - 1, '\').innerHTML=\'\'">', chr(10);
   }
 
   $url = $f[url];
   if ($hasUrl) {
-    echo '<input type="text" name="url" maxlength="256" value="', $url, '" dojoType="dijit.form.TextBox" placeHolder="Website" style="width: 9em; margin-left: 5px;" onFocus="window.temp=this.value" onBlur="if (window.temp != this.value) dojo.byId(\'result', $i - 1, '\').innerHTML=\'\'" onChange="dojo.byId(\'result', $i - 1, '\').innerHTML=\'\'">', chr(10);
+    echo '<input type="text" dojoType="dijit.form.TextBox" name="url" maxlength="256" value="', $url, '" placeHolder="Website" style="width: 9em; margin-left: 5px;" onFocus="window.temp=this.value" onBlur="if (window.temp != this.value) dojo.byId(\'result', $i - 1, '\').innerHTML=\'\'" onChange="dojo.byId(\'result', $i - 1, '\').innerHTML=\'\'">', chr(10);
   }
 
   $description = htmlentities($f[description]);
   if ($hasDesc) {
-    echo '<input type="text" name="description" maxlength="300" value="', $description, '" dojoType="dijit.form.TextBox" placeHolder="Descri&ccedil;&atilde;o" style="width: 9em; margin-left: 5px;" onFocus="window.temp=this.value" onBlur="if (window.temp != this.value) dojo.byId(\'result', $i - 1, '\').innerHTML=\'\'" onChange="dojo.byId(\'result', $i - 1, '\').innerHTML=\'\'">', chr(10);
+    echo '<input type="text" dojoType="dijit.form.TextBox" name="description" maxlength="300" value="', $description, '" placeHolder="Descri&ccedil;&atilde;o" style="width: 9em; margin-left: 5px;" onFocus="window.temp=this.value" onBlur="if (window.temp != this.value) dojo.byId(\'result', $i - 1, '\').innerHTML=\'\'" onChange="dojo.byId(\'result', $i - 1, '\').innerHTML=\'\'">', chr(10);
   }
 
   $ll = $f[ll];
   if ($hasLl) {
     if (($ll != '') && ($ll != ' ')) {
-      echo '<input type="text" name="ll" maxlength="402" value="', $ll, '" dojoType="dijit.form.TextBox" placeHolder="Lat/Long" style="width: 9em; margin-left: 5px;" onFocus="window.temp=this.value" onBlur="if (window.temp != this.value) dojo.byId(\'result', $i - 1, '\').innerHTML=\'\'" onChange="dojo.byId(\'result', $i - 1, '\').innerHTML=\'\'">', chr(10);
+      echo '<input type="text" dojoType="dijit.form.TextBox" name="ll" maxlength="402" value="', $ll, '" placeHolder="Lat/Long" style="width: 9em; margin-left: 5px;" onFocus="window.temp=this.value" onBlur="if (window.temp != this.value) dojo.byId(\'result', $i - 1, '\').innerHTML=\'\'" onChange="dojo.byId(\'result', $i - 1, '\').innerHTML=\'\'">', chr(10);
     } else {
-      echo '<input type="text" name="ll" dojoType="dijit.form.TextBox" placeHolder="Lat/Long" style="width: 9em; margin-left: 5px;" disabled>', chr(10);
+      echo '<input type="text" dojoType="dijit.form.TextBox" name="ll" placeHolder="Lat/Long" style="width: 9em; margin-left: 5px;" disabled>', chr(10);
     }
   }
 
