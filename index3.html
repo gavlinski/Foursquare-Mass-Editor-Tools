@@ -19,20 +19,21 @@
       label: "Escolher arquivo",
       onChange: function(data) {
         arquivo.innerHTML = data[0].name + " (" + Math.ceil(data[0].size * .001) + " kB)";
-        tipo = data[0].type;
+        nome = data[0].name;
       }
     },
     "txt");
     var form = dijit.byId("f");
+    var oauth = dijit.byId("oauth_token");
     dojo.connect(form, "onSubmit", function(e) {
       if (form.validate()) {
-        if (arquivo.innerHTML === "Nenhum arquivo selecionado") {
+        if (oauth.get("value").length != 48) {
+          e.preventDefault();
+          alert("O OAuth token deve possuir 48 caracteres");
+          oauth.focus();
+        } else if (arquivo.innerHTML === "Nenhum arquivo selecionado") {
           e.preventDefault();
           alert("O arquivo precisa ser escolhido");
-          uploader.inputNode.focus();
-        } else if (tipo != "text/plain") {
-          e.preventDefault();
-          alert("O arquivo deve ser do tipo TXT");
           uploader.inputNode.focus();
         } else if (dojo.query('input:checked', 'f').length == 0) {
           e.preventDefault();
