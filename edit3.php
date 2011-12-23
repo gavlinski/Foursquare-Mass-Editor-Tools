@@ -4,19 +4,27 @@ mb_http_output( "iso-8859-1" );
 ob_start("mb_output_handler");
 header("Content-Type: text/html; charset=ISO-8859-1",true);
 
-$VERSION = "List Venues Editor 0.2 beta";
+define("VERSION", "List Venues Editor 0.3 beta");
+define("TEMPLATE1", '<html><head><title>' . VERSION . '</title><meta http-equiv="Content-type" content="text/html; charset=ISO-8859-1"/><script src="js/dojo/dojo.js" djConfig="parseOnLoad: true"></script><script type="text/javascript">dojo.require("dijit.form.Button");</script><link rel="shortcut icon" href="favicon.ico" type="image/x-icon"/><link rel="stylesheet" type="text/css" href="js/dijit/themes/claro/claro.css"/><link rel="stylesheet" type="text/css" href="estilo.css"/></head><body class="claro">');
+define("TEMPLATE2", '<p><button dojoType="dijit.form.Button" type="button" onclick="history.go(-1)">Voltar</button></p></body></html>');
+define("ERRO01", TEMPLATE1 . '<p>O limite da API &eacute; de 500 requisi&ccedil;&otilde;es por hora por conjunto de endpoints por OAuth.</p><p>Reduza a quantidade de linhas do arquivo e tente novamente.' . TEMPLATE2);
+define("ERRO02", TEMPLATE1 . '<p>Erro na leitura do endere&ccedil;o das venues!</p><p>Verifique o arquivo e tente novamente.' . TEMPLATE2);
+define("ERRO03", TEMPLATE1 . '<p>O limite da API &eacute; de 500 requisi&ccedil;&otilde;es por hora por conjunto de endpoints por OAuth.</p><p>Reduza a quantidade de linhas e tente novamente.' . TEMPLATE2);
+define("ERRO04", TEMPLATE1 . '<p>Erro na leitura do endere&ccedil;o das venues!</p><p>Verifique a lista e tente novamente.' . TEMPLATE2);
+define("ERRO99", '<html><head><title>' . VERSION . '</title><meta http-equiv="Content-type" content="text/html; charset=ISO-8859-1" /><link rel="shortcut icon" href="favicon.ico" type="image/x-icon"/><link rel="stylesheet" type="text/css" href="estilo.css"/></head><body><p>Erro na leitura dos dados!</body></html>');
 
 $oauth_token = $_POST["oauth_token"];
-$campos = $_POST["campos"];
 
-if (is_uploaded_file($_FILES['txts']['tmp_name'][0])) {
-  $txt = $_FILES['txts']['tmp_name'][0];
-  $file = file($txt);
+$txt = $_FILES['txts']['tmp_name'][0];
+$lista = explode("\n", $_POST["textarea"]);
+
+function validar ($file) {
   //print_r($file);
   if (count($file) > 500) {
-    echo '<html><head><title>', $VERSION, '</title><meta http-equiv="Content-type" content="text/html; charset=ISO-8859-1"/><script src="js/dojo/dojo.js" djConfig="parseOnLoad: true"></script><script type="text/javascript">dojo.require("dijit.form.Button");</script><link rel="shortcut icon" href="favicon.ico" type="image/x-icon"/><link rel="stylesheet" type="text/css" href="js/dijit/themes/claro/claro.css"/><link rel="stylesheet" type="text/css" href="estilo.css"/></head><body class="claro"><p>O limite da API &eacute; de 500 requisi&ccedil;&otilde;es por hora por conjunto de endpoints por OAuth.</p><p>Reduza a quantidade de linhas do arquivo e tente novamente.<p><button dojoType="dijit.form.Button" type="button" onclick="history.go(-1)">Voltar</button></p></body></html>';
+    return 1;
     exit;
   }
+  global $venues;
   $venues = array();
   $i = 0;
   //echo '<br><br>';
@@ -24,7 +32,7 @@ if (is_uploaded_file($_FILES['txts']['tmp_name'][0])) {
   //exit;
   foreach ($file as &$f) {
     if ((stripos($f, "foursquare.com/v") === false) && (strlen($f) != 25)) {
-      echo '<html><head><title>', $VERSION, '</title><meta http-equiv="Content-type" content="text/html; charset=ISO-8859-1" /><script src="js/dojo/dojo.js" djConfig="parseOnLoad: true"></script><script type="text/javascript">dojo.require("dijit.form.Button");</script><link rel="shortcut icon" href="favicon.ico" type="image/x-icon"/><link rel="stylesheet" type="text/css" href="js/dijit/themes/claro/claro.css"/><link rel="stylesheet" type="text/css" href="estilo.css"/></head><body class="claro"><p>Erro na leitura do endere&ccedil;o das venues!</p><p>Verifique o arquivo e tente novamente.<p><button dojoType="dijit.form.Button" type="button" onclick="history.go(-1)">Voltar</button></p></body></html>';
+      return 2;
       exit;
     }
     if (strlen($f) != 25) {
@@ -46,15 +54,48 @@ if (is_uploaded_file($_FILES['txts']['tmp_name'][0])) {
   //echo '<br><br>';
   //print_r($venues);
   //exit;
+  return 0;
+}
+
+if (is_uploaded_file($txt)) {
+  $file = file($txt);
+  $campos = $_POST["campos"];
+  $result = validar($file);
+  if ($result != 0) {
+    switch ($result) {
+      case 1:
+        echo ERRO01;
+        break;
+      case 2:
+        echo ERRO02;
+        break;
+    }
+    exit;
+  }
+} else if ($lista != "")  {
+  $file = $lista;
+  $campos = $_POST["campos2"];
+  $result = validar($file);
+  if ($result != 0) {
+    switch ($result) {
+      case 1:
+        echo ERRO03;
+        break;
+      case 2:
+        echo ERRO04;
+        break;
+    }
+    exit;
+  }
 } else {
-  echo '<html><head><title>', $VERSION, '</title><meta http-equiv="Content-type" content="text/html; charset=ISO-8859-1" /><link rel="shortcut icon" href="favicon.ico" type="image/x-icon"/><link rel="stylesheet" type="text/css" href="estilo.css"/></head><body><p>Erro ao enviar o arquivo!</body></html>';
+  echo ERRO99;
   exit();
 }
 ?>
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
 <html dir="ltr">
 <head>
-<title><?php echo $VERSION;?></title>
+<title><?php echo VERSION;?></title>
 <meta http-equiv="Content-type" content="text/html; charset=ISO-8859-1" />
 <script src="js/dojo/dojo.js" djConfig="parseOnLoad: true"></script>
 <script type="text/javascript">
@@ -63,7 +104,7 @@ dojo.require("dijit.form.Button");
 dojo.require("dijit.form.ComboBox");
 dojo.require("dijit.form.TextBox");
 dojo.require("dijit.Tooltip");
-var total = 0;
+//var total = 0;
 function xmlhttpRequest(metodo, endpoint, dados, i) {
   var xmlhttp = new XMLHttpRequest();
   xmlhttp.onreadystatechange = function() {
@@ -96,7 +137,7 @@ function xmlhttpRequest(metodo, endpoint, dados, i) {
   return false;
 }
 function atualizarTabela(resposta, i) {
-  total++;
+  //total++;
   for (j = 1; j < document.forms[i].elements.length; j++) {
     switch (document.forms[i].elements[j].name) {
     case "name":
@@ -137,14 +178,16 @@ function atualizarTabela(resposta, i) {
     }
     if (document.forms[i].elements[j].value == "undefined") {
       document.forms[i].elements[j].value = "";
+      var x = window.scrollX, y = window.scrollY;
       document.forms[i].elements[j].focus();
-      //document.forms[i].elements[j].blur();
+      document.forms[i].elements[j].blur();
+      window.scrollTo(x, y);
     }
     document.getElementById("result" + i).innerHTML = "";
-    if (total == document.forms.length) {
-      dojo.byId("regras").focus();
-      dojo.byId("regras").blur();
-    }
+    //if (total == document.forms.length) {
+      //dojo.byId("regras").focus();
+      //dojo.byId("regras").blur();
+    //}
   }
   var dica = "<b>" + resposta.response.venue.name + "</b>";
   try {
@@ -182,7 +225,7 @@ function carregarVenues() {
   //document.getElementById("result").innerHTML = "Recuperando dados...";
   for (i = 0; i < document.forms.length; i++) {
     venue = document.forms[i]["venue"].value;
-    xmlhttpRequest("GET", "https://api.foursquare.com/v2/venues/" + venue + "?oauth_token=" + oauth_token + "&v=20111121", null, i);
+    xmlhttpRequest("GET", "https://api.foursquare.com/v2/venues/" + venue + "?oauth_token=" + oauth_token + "&v=20111223", null, i);
     document.getElementById("result" + i).innerHTML = "<img src='img/loading.gif' alt='Enviando dados...'>"
   }
   //document.getElementById("result").innerHTML = "Dados recuperados!";
@@ -213,7 +256,7 @@ function salvarVenues() {
           dados += "&ll=" + document.forms[i]["ll"].value;
       }
     }
-    dados += "&v=20111204";
+    dados += "&v=20111223";
     //document.getElementById("result").innerHTML += "<br>venue=" +venue + "<br>dados=" + dados + "<br>result=result" + i;
     xmlhttpRequest("POST", "https://api.foursquare.com/v2/venues/" + venue + "/edit", dados, i);
     document.getElementById("result" + i).innerHTML = "<img src='img/loading.gif' alt='Enviando dados...'>";

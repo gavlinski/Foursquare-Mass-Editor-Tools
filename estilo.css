@@ -3,6 +3,11 @@ body, html {
   font-size: 90%;
   color: #5A5858;
 }
+h1 {
+  color: #444444;
+  font-weight: bold;
+  margin-bottom: 12px;
+}
 h2 {
   color: #444444;
   font-size: 20px;
@@ -34,22 +39,61 @@ a:hover {
   text-decoration: underline;
   font-weight : bold;
 }
-.toolContainer {
+#toolContainer {
+  min-width: 535px;
   background-color: #f9f9f9;
   border: 1px solid #cccccc;
   margin-bottom: 15px;
-  border-collapse: separate;
-  border-spacing: 10px;
-  padding: 5px;
-  overflow: hidden;
-  font-size: 100%;
-  white-space: nowrap;
+  display: table;
+  min-height: 0;
+  padding: 5px 10px 00px 10px;
   border-radius: 5px;
   -webkit-border-radius: 5px;
   -moz-border-radius: 5px;
 }
+#toolContainer .row {
+  clear: both;
+  overflow: hidden;
+  white-space: nowrap;
+}
+#toolContainer .row span.label {
+  float: left;
+  width: 84px;
+  padding-top: 8px;
+  padding-right: 5px;
+}
+#toolContainer .row span.formw {
+  float: left;
+  padding-left: 3px;
+  padding-bottom: 5px;
+  padding-top: 5px;
+}
+#toolContainer .row span.button {
+  float: left;
+  padding-left: 3px;
+  padding-bottom: 2px;
+  padding-top: 5px;
+}
+#toolContainer .row span.arquivo {
+  float: left;
+  padding-top: 8px;
+  padding-left: 12px;
+}
+#toolContainer .row span.checkboxes {
+  float: left;
+  padding-left: 3px;
+  padding-bottom: 8px;
+}
 .checkbox {
-  float:left;
+  float: left;
+  margin-top: 1px;
+  margin-bottom: 2px;
+}
+#toolContainer .row span.textarea {
+  float: left;
+  padding-left: 3px;
+  padding-bottom: 8px;
+  padding-top: 5px;
 }
 #listContainer {
   width: 1px;
