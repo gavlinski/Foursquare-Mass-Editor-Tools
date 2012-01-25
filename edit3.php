@@ -16,6 +16,7 @@ define("ERRO99", '<html><head><title>' . VERSION . '</title><meta http-equiv="Co
 $oauth_token = $_POST["oauth_token"];
 
 $txt = $_FILES['txts']['tmp_name'][0];
+$pagina = $_POST["pagina"];
 $lista = explode("\n", $_POST["textarea"]);
 
 function validar ($file) {
@@ -31,11 +32,11 @@ function validar ($file) {
   //print_r($file);
   //exit;
   foreach ($file as &$f) {
-    if ((stripos($f, "foursquare.com/v") === false) && (strlen($f) != 25)) {
+    if ((stripos($f, "foursquare.com/v") === false) && (strlen($f) > 25)) {
       return 2;
       exit;
     }
-    if (strlen($f) != 25) {
+    if (strlen($f) > 25) {
       $l = strlen($f) - 2;
       if ($f[$l] === "/")
         $f = substr($f, 0, $l);
@@ -57,6 +58,29 @@ function validar ($file) {
   return 0;
 }
 
+function getLinks($link) {
+  /*** return array ***/
+  $ret = array();
+
+  /*** a new dom object ***/
+  $dom = new domDocument;
+
+  /*** get the HTML (suppress errors) ***/
+  @$dom->loadHTML(file_get_contents($link));
+
+  /*** remove silly white space ***/
+  $dom->preserveWhiteSpace = false;
+
+  /*** get the links from the HTML ***/
+  $links = $dom->getElementsByTagName('a');
+    
+  /*** loop over the links ***/
+  foreach ($links as $tag) {
+    $ret[$tag->getAttribute('href')] = $tag->childNodes->item(0)->nodeValue;
+  }
+  return $ret;
+}
+
 if (is_uploaded_file($txt)) {
   $file = file($txt);
   $campos = $_POST["campos"];
@@ -72,9 +96,28 @@ if (is_uploaded_file($txt)) {
     }
     exit;
   }
+} else if ($pagina != "")  {
+  /*** get the links ***/
+  $urls = getLinks($pagina);
+  $campos = $_POST["campos2"];
+
+  /*** check for results ***/
+  if (sizeof($urls) > 0) {
+    $file = array();
+    $i = 0;
+    foreach($urls as $key => $value) {
+      if (stripos($key, "/venue/") !== false ) {
+        $file[$i] = str_pad($key, 53, "https://foursquare.com", STR_PAD_LEFT);
+        $i++;
+      }
+    }
+    validar($file);
+  } else {
+    echo "No links found at $pagina";
+  }
 } else if ($lista != "")  {
   $file = $lista;
-  $campos = $_POST["campos2"];
+  $campos = $_POST["campos3"];
   $result = validar($file);
   if ($result != 0) {
     switch ($result) {
@@ -125,6 +168,8 @@ function xmlhttpRequest(metodo, endpoint, dados, i) {
         document.getElementById("result" + i).innerHTML = "<img src='img/erro.png' alt='" + "Erro 404: Not Found" + "'>";
       else if (xmlhttp.status == 405)
         document.getElementById("result" + i).innerHTML = "<img src='img/erro.png' alt='" + "Erro 405: Method Not Allowed" + "'>";
+      else if (xmlhttp.status == 409)
+        document.getElementById("result" + i).innerHTML = "<img src='img/erro.png' alt='" + "Erro 409: Conflict" + "'>";
       else if (xmlhttp.status == 500)
         document.getElementById("result" + i).innerHTML = "<img src='img/erro.png' alt='" + "Erro 500: Internal Server Error" + "'>";
       else
@@ -277,6 +322,13 @@ function showDialog() {
   dlg.attr("content", "<ul><li><p>Use sempre a ortografia e as letras maiúsculas corretas.</p></li><li><p>Em redes ou lugares com vários locais, não é mais preciso adicionar um sufixo de local. Portanto, pode deixar &quot;Starbucks&quot; ou &quot;Apple Store&quot; (em vez de &quot;Starbucks - Queen Anne&quot; ou &quot;Apple Store – Cidade alta&quot;).</p></li><li><p>Sempre que possível, use abreviações: &quot;Av.&quot; em vez de &quot;Avenida&quot;, &quot;R.&quot; em vez de &quot;Rua&quot;, etc.</p></li><li>Cross Street should be like one of the following:<ul><li>na R. Main (para lugares em uma esquina)</li><li>entre a Av. 2a. e Av. 3a. (para lugares no meio de um quarteirão)</li></ul><br></li><li>A R. Cross não <b>deve</b> ter o nome repetido da rua no endereço.<ul><li>Se o local é na R. Principal, a rua transversal deve ser &quot;na Segunda Av.&quot;</li><li>A transversal não deve ser &quot;R. Principal na R. Segunda&quot;</li></ul></li><li><p>Os nomes de estados e províncias devem ser abreviados.</p></li><li><p><b>Em caso de dúvida, formate os endereços de lugares de acordo com as diretrizes postais locais.</b></p></li><li><p>Se tiver mais perguntas sobre a criação e edição de lugares no foursquare, consulte nossas <a href='https://pt.foursquare.com/info/houserules' target='_blank'>regras da casa</a> e as <a href='http://support.foursquare.com/forums/191151-venue-help' target='_blank'>perguntas frequentes sobre lugares</a>.</p></li></ul>");
   dlg.show();
 }
+//var node = dojo.byId("forms");
+//dojo.connect(node, "onkeypress", function(e) {
+  //if (e.keyCode == dojo.keys.DOWN_ARROW) {
+    //document.forms[1].elements[1].focus();
+    //dojo.stopEvent(e);
+  //}
+//});
 </script>
 <link rel="shortcut icon" href="favicon.ico" type="image/x-icon" />
 <link rel="stylesheet" type="text/css" href="js/dijit/themes/claro/claro.css"/>
@@ -287,61 +339,76 @@ function showDialog() {
 <p>Antes de salvar suas altera&ccedil;&otilde;es, n&atilde;o deixe de ler nosso <a id="guia" href="javascript:showDialog();">guia de estilo</a> e as <a id="regras" href="https://pt.foursquare.com/info/houserules" target="_blank">regras da casa</a>.<p>
 <div id="listContainer">
 <?php
+$totalCampos = 0;
+
 if (in_array("nome", $campos)) {
   $editName = true;
+  $totalCampos++;
 } else {
   $editName = false;
 }
 if (in_array("endereco", $campos)) {
   $editAddress = true;
+  $totalCampos++;
 } else {
   $editAddress = false;
 }
 if (in_array("ruacross", $campos)) {
   $editCross = true;
+  $totalCampos++;
 } else {
   $editCross = false;
 }
 if (in_array("cidade", $campos)) {
   $editCity = true;
+  $totalCampos++;
 } else {
   $editCity = false;
 }
 if (in_array("estado", $campos)) {
   $editState = true;
+  $totalCampos++;
 } else {
   $editState = false;
 }
 if (in_array("cep", $campos)) {
   $editZip = true;
+  $totalCampos++;
 } else {
   $editZip = false;
 }
 if (in_array("twitter", $campos)) {
   $editTwitter = true;
+  $totalCampos++;
 } else {
   $editTwitter = false;
 }
 if (in_array("telefone", $campos)) {
   $editPhone = true;
+  $totalCampos++;
 } else {
   $editPhone = false;
 }
 if (in_array("website", $campos)) {
   $editUrl = true;
+  $totalCampos++;
 } else {
   $editUrl = false;
 }
 if (in_array("descricao", $campos)) {
   $editDesc = true;
+  $totalCampos++;
 } else {
   $editDesc = false;
 }
 if (in_array("latlong", $campos)) {
   $editLl = true;
+  $totalCampos++;
 } else {
   $editLl = false;
 }
+
+$ajusteInput = 11 - $totalCampos;
 
 $ufs = array("AC", "AL", "AP", "AM", "BA", "CE", "DF", "ES", "GO", "MA", "MT", "MS", "MG", "PA", "PB", "PR", "PE", "PI", "RJ", "RN", "RS", "RO", "RR", "SC", "SP", "SE", "TO");
 
@@ -363,19 +430,19 @@ foreach ($file as $f) {
   echo '</a>', chr(10);
 
   if ($editName) {
-    echo '<input type="text" dojoType="dijit.form.TextBox" name="name" maxlength="256" value=" " placeHolder="Nome" style="width: 9em; margin-left: 5px;" onFocus="window.temp=this.value" onBlur="if (window.temp != this.value) dojo.byId(\'result', $i - 1, '\').innerHTML=\'\'" onChange="dojo.byId(\'result', $i - 1, '\').innerHTML=\'\'">', chr(10);
+    echo '<input type="text" dojoType="dijit.form.TextBox" name="name" maxlength="256" value=" " placeHolder="Nome" style="width: ', 9 + $ajusteInput, 'em; margin-left: 5px;" onFocus="window.temp=this.value" onBlur="if (window.temp != this.value) dojo.byId(\'result', $i - 1, '\').innerHTML=\'\'" onChange="dojo.byId(\'result', $i - 1, '\').innerHTML=\'\'">', chr(10);
   }
 
   if ($editAddress) {
-    echo '<input type="text" dojoType="dijit.form.TextBox" name="address" maxlength="128" value=" " placeHolder="Endere&ccedil;o" style="width: 9em; margin-left: 5px;" onFocus="window.temp=this.value" onBlur="if (window.temp != this.value) dojo.byId(\'result', $i - 1, '\').innerHTML=\'\'" onChange="dojo.byId(\'result', $i - 1, '\').innerHTML=\'\'">', chr(10);
+    echo '<input type="text" dojoType="dijit.form.TextBox" name="address" maxlength="128" value=" " placeHolder="Endere&ccedil;o" style="width: ', 9 + $ajusteInput, 'em; margin-left: 5px;" onFocus="window.temp=this.value" onBlur="if (window.temp != this.value) dojo.byId(\'result', $i - 1, '\').innerHTML=\'\'" onChange="dojo.byId(\'result', $i - 1, '\').innerHTML=\'\'">', chr(10);
   }
 
   if ($editCross) {
-    echo '<input type="text" dojoType="dijit.form.TextBox" name="crossStreet" maxlength="51" value=" " placeHolder="Rua Cross" style="width: 9em; margin-left: 5px;" onFocus="window.temp=this.value" onBlur="if (window.temp != this.value) dojo.byId(\'result', $i - 1, '\').innerHTML=\'\'" onChange="dojo.byId(\'result', $i - 1, '\').innerHTML=\'\'">', chr(10);
+    echo '<input type="text" dojoType="dijit.form.TextBox" name="crossStreet" maxlength="51" value=" " placeHolder="Rua Cross" style="width: ', 9 + $ajusteInput, 'em; margin-left: 5px;" onFocus="window.temp=this.value" onBlur="if (window.temp != this.value) dojo.byId(\'result', $i - 1, '\').innerHTML=\'\'" onChange="dojo.byId(\'result', $i - 1, '\').innerHTML=\'\'">', chr(10);
   }
 
   if ($editCity) {
-    echo '<input type="text" dojoType="dijit.form.TextBox" name="city" maxlength="31" value=" " placeHolder="Cidade" style="width: 9em; margin-left: 5px;" onFocus="window.temp=this.value" onBlur="if (window.temp != this.value) dojo.byId(\'result', $i - 1, '\').innerHTML=\'\'" onChange="dojo.byId(\'result', $i - 1, '\').innerHTML=\'\'">', chr(10);
+    echo '<input type="text" dojoType="dijit.form.TextBox" name="city" maxlength="31" value=" " placeHolder="Cidade" style="width: ', 9 + $ajusteInput, 'em; margin-left: 5px;" onFocus="window.temp=this.value" onBlur="if (window.temp != this.value) dojo.byId(\'result', $i - 1, '\').innerHTML=\'\'" onChange="dojo.byId(\'result', $i - 1, '\').innerHTML=\'\'">', chr(10);
   }
 
   if ($editState) {
@@ -391,23 +458,23 @@ foreach ($file as $f) {
   }
 
   if ($editTwitter) {
-    echo '<input type="text" dojoType="dijit.form.TextBox" name="twitter" maxlength="51" value=" " placeHolder="Twitter" style="width: 8em; margin-left: 5px;" onFocus="window.temp=this.value" onBlur="if (window.temp != this.value) dojo.byId(\'result', $i - 1, '\').innerHTML=\'\'" onChange="dojo.byId(\'result', $i - 1, '\').innerHTML=\'\'">', chr(10);
+    echo '<input type="text" dojoType="dijit.form.TextBox" name="twitter" maxlength="51" value=" " placeHolder="Twitter" style="width: ', 8 + $ajusteInput, 'em; margin-left: 5px;" onFocus="window.temp=this.value" onBlur="if (window.temp != this.value) dojo.byId(\'result', $i - 1, '\').innerHTML=\'\'" onChange="dojo.byId(\'result', $i - 1, '\').innerHTML=\'\'">', chr(10);
   }
 
   if ($editPhone) {
-    echo '<input type="text" dojoType="dijit.form.TextBox" name="phone" maxlength="21" value=" " placeHolder="Telefone" style="width: 8em; margin-left: 5px;" onFocus="window.temp=this.value" onBlur="if (window.temp != this.value) dojo.byId(\'result', $i - 1, '\').innerHTML=\'\'" onChange="dojo.byId(\'result', $i - 1, '\').innerHTML=\'\'">', chr(10);
+    echo '<input type="text" dojoType="dijit.form.TextBox" name="phone" maxlength="21" value=" " placeHolder="Telefone" style="width: 7em; margin-left: 5px;" onFocus="window.temp=this.value" onBlur="if (window.temp != this.value) dojo.byId(\'result', $i - 1, '\').innerHTML=\'\'" onChange="dojo.byId(\'result', $i - 1, '\').innerHTML=\'\'">', chr(10);
   }
 
   if ($editUrl) {
-    echo '<input type="text" dojoType="dijit.form.TextBox" name="url" maxlength="256" value=" " placeHolder="Website" style="width: 9em; margin-left: 5px;" onFocus="window.temp=this.value" onBlur="if (window.temp != this.value) dojo.byId(\'result', $i - 1, '\').innerHTML=\'\'" onChange="dojo.byId(\'result', $i - 1, '\').innerHTML=\'\'">', chr(10);
+    echo '<input type="text" dojoType="dijit.form.TextBox" name="url" maxlength="256" value=" " placeHolder="Website" style="width: ', 9 + $ajusteInput, 'em; margin-left: 5px;" onFocus="window.temp=this.value" onBlur="if (window.temp != this.value) dojo.byId(\'result', $i - 1, '\').innerHTML=\'\'" onChange="dojo.byId(\'result', $i - 1, '\').innerHTML=\'\'">', chr(10);
   }
 
   if ($editDesc) {
-    echo '<input type="text" dojoType="dijit.form.TextBox" name="description" maxlength="300" value=" " placeHolder="Descri&ccedil;&atilde;o" style="width: 9em; margin-left: 5px;" onFocus="window.temp=this.value" onBlur="if (window.temp != this.value) dojo.byId(\'result', $i - 1, '\').innerHTML=\'\'" onChange="dojo.byId(\'result', $i - 1, '\').innerHTML=\'\'">', chr(10);
+    echo '<input type="text" dojoType="dijit.form.TextBox" name="description" maxlength="300" value=" " placeHolder="Descri&ccedil;&atilde;o" style="width: ', 9 + $ajusteInput, 'em; margin-left: 5px;" onFocus="window.temp=this.value" onBlur="if (window.temp != this.value) dojo.byId(\'result', $i - 1, '\').innerHTML=\'\'" onChange="dojo.byId(\'result', $i - 1, '\').innerHTML=\'\'">', chr(10);
   }
 
   if ($editLl) {
-    echo '<input type="text" dojoType="dijit.form.TextBox" name="ll" maxlength="402" value=" " placeHolder="Lat/Long" style="width: 9em; margin-left: 5px;" onFocus="window.temp=this.value" onBlur="if (window.temp != this.value) dojo.byId(\'result', $i - 1, '\').innerHTML=\'\'" onChange="dojo.byId(\'result', $i - 1, '\').innerHTML=\'\'">', chr(10);
+    echo '<input type="text" dojoType="dijit.form.TextBox" name="ll" maxlength="402" value=" " placeHolder="Lat/Long" style="width: ', 9 + $ajusteInput, 'em; margin-left: 5px;" onFocus="window.temp=this.value" onBlur="if (window.temp != this.value) dojo.byId(\'result', $i - 1, '\').innerHTML=\'\'" onChange="dojo.byId(\'result', $i - 1, '\').innerHTML=\'\'">', chr(10);
   }
 
   echo '<span id="result', $i - 1, '"></span>', chr(10), '</form>', chr(10), '</div>', chr(10);
