@@ -9,8 +9,9 @@ define("TEMPLATE1", '<html><head><title>' . VERSION . '</title><meta http-equiv=
 define("TEMPLATE2", '<p><button dojoType="dijit.form.Button" type="button" onclick="history.go(-1)">Voltar</button></p></body></html>');
 define("ERRO01", TEMPLATE1 . '<p>O limite da API &eacute; de 500 requisi&ccedil;&otilde;es por hora por conjunto de endpoints por OAuth.</p><p>Reduza a quantidade de linhas do arquivo e tente novamente.' . TEMPLATE2);
 define("ERRO02", TEMPLATE1 . '<p>Erro na leitura do endere&ccedil;o das venues!</p><p>Verifique o arquivo e tente novamente.' . TEMPLATE2);
-define("ERRO03", TEMPLATE1 . '<p>O limite da API &eacute; de 500 requisi&ccedil;&otilde;es por hora por conjunto de endpoints por OAuth.</p><p>Reduza a quantidade de linhas e tente novamente.' . TEMPLATE2);
-define("ERRO04", TEMPLATE1 . '<p>Erro na leitura do endere&ccedil;o das venues!</p><p>Verifique a lista e tente novamente.' . TEMPLATE2);
+define("ERRO03", TEMPLATE1 . '<p>Nenhuma venue encontrada no endere&ccedil;o especificado.</p><p>Verifique a p&aacute;gina e tente novamente.' . TEMPLATE2);
+define("ERRO04", TEMPLATE1 . '<p>O limite da API &eacute; de 500 requisi&ccedil;&otilde;es por hora por conjunto de endpoints por OAuth.</p><p>Reduza a quantidade de linhas e tente novamente.' . TEMPLATE2);
+define("ERRO05", TEMPLATE1 . '<p>Erro na leitura do endere&ccedil;o das venues!</p><p>Verifique a lista e tente novamente.' . TEMPLATE2);
 define("ERRO99", '<html><head><title>' . VERSION . '</title><meta http-equiv="Content-type" content="text/html; charset=ISO-8859-1" /><link rel="shortcut icon" href="favicon.ico" type="image/x-icon"/><link rel="stylesheet" type="text/css" href="estilo.css"/></head><body><p>Erro na leitura dos dados!</body></html>');
 
 $oauth_token = $_POST["oauth_token"];
@@ -19,18 +20,33 @@ $txt = $_FILES['txts']['tmp_name'][0];
 $pagina = $_POST["pagina"];
 $lista = explode("\n", $_POST["textarea"]);
 
-function validar ($file) {
-  //print_r($file);
+function validarVenues($file) {
+  //$lines = file($file);
+  //$ret = array();
+  //global $venues;
+  //$venues = array();
+  //$i = 0;
+  foreach ($file as $line_num => $line) {
+    // Places
+    if (stripos($line, '", "id": "') !== false) {
+      echo "Line #<b>{$line_num}</b> : " . htmlspecialchars($line) . "<br />\n";
+
+    // Tidysquare
+    //} else if
+
+    }
+  }
+  exit;
+
   if (count($file) > 500) {
     return 1;
     exit;
   }
+
   global $venues;
   $venues = array();
   $i = 0;
-  //echo '<br><br>';
-  //print_r($file);
-  //exit;
+
   foreach ($file as &$f) {
     if ((stripos($f, "foursquare.com/v") === false) && (strlen($f) > 25)) {
       return 2;
@@ -58,33 +74,63 @@ function validar ($file) {
   return 0;
 }
 
-function getLinks($link) {
-  /*** return array ***/
+function parseVenues($html) {
+  $lines = file($html);
   $ret = array();
+  global $venues;
+  $venues = array();
+  $i = 0;
 
-  /*** a new dom object ***/
-  $dom = new domDocument;
-
-  /*** get the HTML (suppress errors) ***/
-  @$dom->loadHTML(file_get_contents($link));
-
-  /*** remove silly white space ***/
-  $dom->preserveWhiteSpace = false;
-
-  /*** get the links from the HTML ***/
-  $links = $dom->getElementsByTagName('a');
-    
-  /*** loop over the links ***/
-  foreach ($links as $tag) {
-    $ret[$tag->getAttribute('href')] = $tag->childNodes->item(0)->nodeValue;
+  foreach ($lines as $line_num => $line) {
+    // Listas do usuario do foursquare
+    if (stripos($line, 'ITEMS_JSON') !== false) {
+      $ret = array_slice(explode('\"id\":\"v', $line), 1);
+      break;
+    // Resultados da pesquisa
+    } else if (stripos($line, 'fourSq.tiplists.setupSearchPageListControls([{"id":"v') !== false) {
+      $ret = array_slice(explode('"id":"v', $line), 1);
+      break;
+    }
   }
+
+  // Paginas normais com a tag <a href="https://foursquare.com/v..."></a>
+  if ($ret == null) {
+    /*** a new dom object ***/
+    $dom = new domDocument;
+
+    /*** get the HTML (suppress errors) ***/
+    @$dom->loadHTML(file_get_contents($html));
+
+    /*** remove silly white space ***/
+    $dom->preserveWhiteSpace = false;
+
+    /*** get the links from the HTML ***/
+    $links = $dom->getElementsByTagName('a');
+    
+    /*** loop over the links ***/
+    foreach ($links as $tag) {
+      if (stripos($tag->getAttribute('href'), "/venue/") !== false ) {
+        $venues[$i] = substr($tag->getAttribute('href'), 7, 24);
+        $ret[$i] = str_pad($tag->getAttribute('href'), 53, "https://foursquare.com", STR_PAD_LEFT);
+        $i++;
+      }
+    }
+  } else {
+    foreach ($ret as &$r) {
+      $venues[$i] = substr($r, 0, 24);
+      $r = str_pad($venues[$i], 53, "https://foursquare.com/venue/", STR_PAD_LEFT);
+      $i++;
+    }
+    unset($r); // break the reference with the last element
+  }
+
   return $ret;
 }
 
 if (is_uploaded_file($txt)) {
   $file = file($txt);
   $campos = $_POST["campos"];
-  $result = validar($file);
+  $result = validarVenues($file);
   if ($result != 0) {
     switch ($result) {
       case 1:
@@ -98,34 +144,30 @@ if (is_uploaded_file($txt)) {
   }
 } else if ($pagina != "")  {
   /*** get the links ***/
-  $urls = getLinks($pagina);
+  $file = parseVenues($pagina);
   $campos = $_POST["campos2"];
 
+  //print_r($file);
+  //echo '<br><br>';
+  //print_r($venues);
+  //exit;
+
   /*** check for results ***/
-  if (sizeof($urls) > 0) {
-    $file = array();
-    $i = 0;
-    foreach($urls as $key => $value) {
-      if (stripos($key, "/venue/") !== false ) {
-        $file[$i] = str_pad($key, 53, "https://foursquare.com", STR_PAD_LEFT);
-        $i++;
-      }
-    }
-    validar($file);
-  } else {
-    echo "No links found at $pagina";
+  if (sizeof($file) == 0) {
+    echo ERRO03;
+    exit;
   }
 } else if ($lista != "")  {
   $file = $lista;
   $campos = $_POST["campos3"];
-  $result = validar($file);
+  $result = validarVenues($file);
   if ($result != 0) {
     switch ($result) {
       case 1:
-        echo ERRO03;
+        echo ERRO04;
         break;
       case 2:
-        echo ERRO04;
+        echo ERRO05;
         break;
     }
     exit;
