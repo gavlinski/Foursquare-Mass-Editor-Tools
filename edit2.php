@@ -248,7 +248,7 @@ foreach ($file as $f) {
 
   $phone = $f[phone];
   if ($hasPhone) {
-    echo '<input type="text" dojoType="dijit.form.TextBox" name="phone" maxlength="21" value="', $phone, '" placeHolder="Telefone" style="width: 7em; margin-left: 5px;" onFocus="window.temp=this.value" onBlur="if (window.temp != this.value) dojo.byId(\'result', $i - 1, '\').innerHTML=\'\'" onChange="dojo.byId(\'result', $i - 1, '\').innerHTML=\'\'">', chr(10);
+    echo '<input type="text" dojoType="dijit.form.TextBox" name="phone" maxlength="21" value="', $phone, '" placeHolder="Telefone" style="width: 8em; margin-left: 5px;" onFocus="window.temp=this.value" onBlur="if (window.temp != this.value) dojo.byId(\'result', $i - 1, '\').innerHTML=\'\'" onChange="dojo.byId(\'result', $i - 1, '\').innerHTML=\'\'">', chr(10);
   }
 
   $url = $f[url];

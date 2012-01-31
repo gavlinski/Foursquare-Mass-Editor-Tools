@@ -7,71 +7,81 @@ header("Content-Type: text/html; charset=ISO-8859-1",true);
 define("VERSION", "List Venues Editor 0.3 beta");
 define("TEMPLATE1", '<html><head><title>' . VERSION . '</title><meta http-equiv="Content-type" content="text/html; charset=ISO-8859-1"/><script src="js/dojo/dojo.js" djConfig="parseOnLoad: true"></script><script type="text/javascript">dojo.require("dijit.form.Button");</script><link rel="shortcut icon" href="favicon.ico" type="image/x-icon"/><link rel="stylesheet" type="text/css" href="js/dijit/themes/claro/claro.css"/><link rel="stylesheet" type="text/css" href="estilo.css"/></head><body class="claro">');
 define("TEMPLATE2", '<p><button dojoType="dijit.form.Button" type="button" onclick="history.go(-1)">Voltar</button></p></body></html>');
-define("ERRO01", TEMPLATE1 . '<p>O limite da API &eacute; de 500 requisi&ccedil;&otilde;es por hora por conjunto de endpoints por OAuth.</p><p>Reduza a quantidade de linhas do arquivo e tente novamente.' . TEMPLATE2);
-define("ERRO02", TEMPLATE1 . '<p>Erro na leitura do endere&ccedil;o das venues!</p><p>Verifique o arquivo e tente novamente.' . TEMPLATE2);
+define("ERRO01", TEMPLATE1 . '<p>O limite da API &eacute; de 500 requisi&ccedil;&otilde;es por hora por conjunto de endpoints por OAuth.</p><p>Reduza a quantidade de linhas e tente novamente.' . TEMPLATE2);
+define("ERRO02", TEMPLATE1 . '<p>Erro na leitura do endere&ccedil;os de uma das venues!</p><p>Verifique o arquivo ou a lista e tente novamente.' . TEMPLATE2);
 define("ERRO03", TEMPLATE1 . '<p>Nenhuma venue encontrada no endere&ccedil;o especificado.</p><p>Verifique a p&aacute;gina e tente novamente.' . TEMPLATE2);
-define("ERRO04", TEMPLATE1 . '<p>O limite da API &eacute; de 500 requisi&ccedil;&otilde;es por hora por conjunto de endpoints por OAuth.</p><p>Reduza a quantidade de linhas e tente novamente.' . TEMPLATE2);
-define("ERRO05", TEMPLATE1 . '<p>Erro na leitura do endere&ccedil;o das venues!</p><p>Verifique a lista e tente novamente.' . TEMPLATE2);
 define("ERRO99", '<html><head><title>' . VERSION . '</title><meta http-equiv="Content-type" content="text/html; charset=ISO-8859-1" /><link rel="shortcut icon" href="favicon.ico" type="image/x-icon"/><link rel="stylesheet" type="text/css" href="estilo.css"/></head><body><p>Erro na leitura dos dados!</body></html>');
 
 $oauth_token = $_POST["oauth_token"];
 
-$txt = $_FILES['txts']['tmp_name'][0];
+$arquivo = $_FILES['txts']['tmp_name'][0];
 $pagina = $_POST["pagina"];
-$lista = explode("\n", $_POST["textarea"]);
+if ($_POST["textarea"] != "")
+  $lista = explode("\n", $_POST["textarea"]);
 
-function validarVenues($file) {
-  //$lines = file($file);
-  //$ret = array();
-  //global $venues;
-  //$venues = array();
-  //$i = 0;
-  foreach ($file as $line_num => $line) {
-    // Places
-    if (stripos($line, '", "id": "') !== false) {
-      echo "Line #<b>{$line_num}</b> : " . htmlspecialchars($line) . "<br />\n";
-
-    // Tidysquare
-    //} else if
-
-    }
-  }
-  exit;
-
-  if (count($file) > 500) {
-    return 1;
-    exit;
-  }
-
+function validarVenues($lines) {
+  $ret = array();
   global $venues;
   $venues = array();
   $i = 0;
 
-  foreach ($file as &$f) {
-    if ((stripos($f, "foursquare.com/v") === false) && (strlen($f) > 25)) {
-      return 2;
-      exit;
+  foreach ($lines as $line_num => $line) {
+    /*** Places ***/
+    //if (stripos($line, '", "id": "') !== false) {
+      //echo "Line #<b>{$line_num}</b> : " . htmlspecialchars($line) . "<br />\n";
+
+    /*** Tidysquare ***/
+    if (stripos($line, 'venuesArray.push(venue') !== false) {
+      $ret = $ret + explode('venuesArray.push(venue', $line);
     }
-    if (strlen($f) > 25) {
-      $l = strlen($f) - 2;
-      if ($f[$l] === "/")
-        $f = substr($f, 0, $l);
-      $f = str_replace("/edit", "", $f);
-      $venues[$i] = substr($f, strrpos($f, "/") + 1, 24);
-    } else {
-      $venues[$i] = $f;
-      $f = str_pad($f, 54, "https://foursquare.com/venue/", STR_PAD_LEFT);
-      //$f = "" + $venues[$i];
-    }
-    $i++;
   }
-  unset($f); // break the reference with the last element
-  //echo '<br><br>';
-  //print_r($file);
-  //echo '<br><br>';
-  //print_r($venues);
-  //exit;
-  return 0;
+  $ret = array_slice($ret, 1);
+
+  $i = 0;
+
+  if (count($ret) > 0) {
+    foreach ($ret as &$r) {
+      $venues[$i] = substr($r, 0, 24);
+      $r = str_pad($venues[$i], 53, "https://foursquare.com/venue/", STR_PAD_LEFT);
+      $i++;
+    }
+    /*** break the reference with the last element ***/
+    unset($r);
+    //print_r($ret);
+    //echo '<br><br>';
+    //print_r($venues);
+    //exit;
+    return $ret;
+  } else if (count($lines) > 500) {
+    echo ERRO01;
+    exit;
+  } else {
+    foreach ($lines as &$line) {
+      if ((stripos($line, "foursquare.com/v") === false) && (strlen($line) > 25)) {
+        echo ERRO02;
+        exit;
+      }
+      if (strlen($line) > 25) {
+        $l = strlen($line) - 2;
+        if ($line[$l] === "/")
+          $line = substr($line, 0, $l);
+        $line = str_replace("/edit", "", $line);
+        $venues[$i] = substr($line, strrpos($line, "/") + 1, 24);
+      } else {
+        $venues[$i] = $line;
+        $line = str_pad($line, 54, "https://foursquare.com/venue/", STR_PAD_LEFT);
+        //$line = "" + $venues[$i];
+      }
+      $i++;
+    }
+    /*** break the reference with the last element ***/
+    unset($line);
+    //print_r($lines);
+    //echo '<br><br>';
+    //print_r($venues);
+    //exit;
+    return $lines;
+  }
 }
 
 function parseVenues($html) {
@@ -82,18 +92,18 @@ function parseVenues($html) {
   $i = 0;
 
   foreach ($lines as $line_num => $line) {
-    // Listas do usuario do foursquare
+    /*** Listas do usuario do foursquare ***/
     if (stripos($line, 'ITEMS_JSON') !== false) {
       $ret = array_slice(explode('\"id\":\"v', $line), 1);
       break;
-    // Resultados da pesquisa
+    /*** Resultados da pesquisa ***/
     } else if (stripos($line, 'fourSq.tiplists.setupSearchPageListControls([{"id":"v') !== false) {
       $ret = array_slice(explode('"id":"v', $line), 1);
       break;
     }
   }
 
-  // Paginas normais com a tag <a href="https://foursquare.com/v..."></a>
+  /*** Paginas normais com a tag <a href="https://foursquare.com/venue/..."></a> ***/
   if ($ret == null) {
     /*** a new dom object ***/
     $dom = new domDocument;
@@ -121,57 +131,33 @@ function parseVenues($html) {
       $r = str_pad($venues[$i], 53, "https://foursquare.com/venue/", STR_PAD_LEFT);
       $i++;
     }
-    unset($r); // break the reference with the last element
+    /*** break the reference with the last element ***/
+    unset($r);
   }
-
-  return $ret;
-}
-
-if (is_uploaded_file($txt)) {
-  $file = file($txt);
-  $campos = $_POST["campos"];
-  $result = validarVenues($file);
-  if ($result != 0) {
-    switch ($result) {
-      case 1:
-        echo ERRO01;
-        break;
-      case 2:
-        echo ERRO02;
-        break;
-    }
-    exit;
-  }
-} else if ($pagina != "")  {
-  /*** get the links ***/
-  $file = parseVenues($pagina);
-  $campos = $_POST["campos2"];
 
   //print_r($file);
   //echo '<br><br>';
   //print_r($venues);
   //exit;
+  return $ret;
+}
 
-  /*** check for results ***/
+if (is_uploaded_file($arquivo)) {
+  $campos = $_POST["campos"];
+  $file = validarVenues(file($arquivo));
+
+} else if ($pagina != "")  {
+  $campos = $_POST["campos2"];
+  $file = parseVenues($pagina);
   if (sizeof($file) == 0) {
     echo ERRO03;
     exit;
   }
-} else if ($lista != "")  {
-  $file = $lista;
+
+} else if (isset($lista)) {
   $campos = $_POST["campos3"];
-  $result = validarVenues($file);
-  if ($result != 0) {
-    switch ($result) {
-      case 1:
-        echo ERRO04;
-        break;
-      case 2:
-        echo ERRO05;
-        break;
-    }
-    exit;
-  }
+  $file = validarVenues($lista);
+
 } else {
   echo ERRO99;
   exit();
@@ -504,7 +490,7 @@ foreach ($file as $f) {
   }
 
   if ($editPhone) {
-    echo '<input type="text" dojoType="dijit.form.TextBox" name="phone" maxlength="21" value=" " placeHolder="Telefone" style="width: 7em; margin-left: 5px;" onFocus="window.temp=this.value" onBlur="if (window.temp != this.value) dojo.byId(\'result', $i - 1, '\').innerHTML=\'\'" onChange="dojo.byId(\'result', $i - 1, '\').innerHTML=\'\'">', chr(10);
+    echo '<input type="text" dojoType="dijit.form.TextBox" name="phone" maxlength="21" value=" " placeHolder="Telefone" style="width: 8em; margin-left: 5px;" onFocus="window.temp=this.value" onBlur="if (window.temp != this.value) dojo.byId(\'result', $i - 1, '\').innerHTML=\'\'" onChange="dojo.byId(\'result', $i - 1, '\').innerHTML=\'\'">', chr(10);
   }
 
   if ($editUrl) {
