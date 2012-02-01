@@ -27,11 +27,13 @@ function validarVenues($lines) {
 
   foreach ($lines as $line_num => $line) {
     /*** Places ***/
-    //if (stripos($line, '", "id": "') !== false) {
-      //echo "Line #<b>{$line_num}</b> : " . htmlspecialchars($line) . "<br />\n";
+    $pos = stripos($line, ' "id": "');
+    if ($pos !== false) {
+      //echo "Line #<b>{$line_num}</b> : " . htmlspecialchars($line) . " at position <b>" . $pos . "</b><br />\n";
+      $ret[] = substr($line, $pos + 8);
 
     /*** Tidysquare ***/
-    if (stripos($line, 'venuesArray.push(venue') !== false) {
+    } else if (stripos($line, 'venuesArray.push(venue') !== false) {
       //echo "Line #<b>{$line_num}</b> : " . htmlspecialchars($line) . "<br />\n";
       if (strlen($line) == 53)
         $ret[] = substr($line, -27);
