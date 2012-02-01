@@ -152,7 +152,7 @@
 <div style="width: 583px;">
 <p>Para ajudar a manter atualizadas as venues do foursquare, temos algumas ferramentas que permitem aos usu&aacute;rios confi&aacute;veis editar, atualizar ou mesclar venues. Obrigado por ajudar a melhorar as listagens de venues do foursquare.<p>
 <div dojoType="dijit.layout.AccordionContainer" doLayout="false">
-  <div dojoType="dijit.layout.ContentPane" title="Importar dados de um arquivo CSV" selected="true">
+  <div dojoType="dijit.layout.ContentPane" title="Importar dados de um arquivo CSV">
     <div dojoType="dijit.form.Form" enctype="multipart/form-data" accept-charset="iso-8859-1" id="f_csv" jsId="f_csv" encType="multipart/form-data" action="edit_csv.php" method="post">
     <div id="toolContainer">
     <div class="row">
@@ -193,37 +193,37 @@
     <span class="label"><label for="campos">Campos:</span>
     <span class="checkboxes">
     <div class="checkbox" style="width: 5.2em;">
-      <input id="nome" name="campos[]" dojoType="dijit.form.CheckBox" value="nome">
+      <input id="nome" name="campos[]" dojoType="dijit.form.CheckBox" value="nome" checked>
       <label for="nome">
         Nome
       </label>
     </div>
     <div class="checkbox" style="width: 6.2em;">
-      <input id="endereco" name="campos[]" dojoType="dijit.form.CheckBox" value="endereco">
+      <input id="endereco" name="campos[]" dojoType="dijit.form.CheckBox" value="endereco" checked>
       <label for="endereco">
         Endere&ccedil;o
       </label>
     </div>
     <div class="checkbox" style="width: 6.7em;">
-      <input id="ruacross" name="campos[]" dojoType="dijit.form.CheckBox" value="ruacross">
+      <input id="ruacross" name="campos[]" dojoType="dijit.form.CheckBox" value="ruacross" checked>
       <label for="ruacross">
         Rua Cross
       </label>
     </div>
     <div class="checkbox" style="width: 6.5em;">
-      <input id="cidade" name="campos[]" dojoType="dijit.form.CheckBox" value="cidade">
+      <input id="cidade" name="campos[]" dojoType="dijit.form.CheckBox" value="cidade" checked>
       <label for="cidade">
         Cidade
       </label>
     </div>
     <div class="checkbox" style="width: 5.8em;">
-      <input id="estado" name="campos[]" dojoType="dijit.form.CheckBox" value="estado">
+      <input id="estado" name="campos[]" dojoType="dijit.form.CheckBox" value="estado" checked>
       <label for="estado">
         Estado
       </label>
     </div>
     <div class="checkbox" style="width: 3.6em;">
-      <input id="cep" name="campos[]" dojoType="dijit.form.CheckBox" value="cep">
+      <input id="cep" name="campos[]" dojoType="dijit.form.CheckBox" value="cep" checked>
       <label for="cep">
         CEP
       </label>
@@ -289,37 +289,37 @@
     <span class="label"><label for="campos2">Campos:</span>
     <span class="checkboxes">
     <div class="checkbox" style="width: 5.2em;">
-      <input id="nome2" name="campos2[]" dojoType="dijit.form.CheckBox" value="nome">
+      <input id="nome2" name="campos2[]" dojoType="dijit.form.CheckBox" value="nome" checked>
       <label for="nome2">
         Nome
       </label>
     </div>
     <div class="checkbox" style="width: 6.2em;">
-      <input id="endereco2" name="campos2[]" dojoType="dijit.form.CheckBox" value="endereco">
+      <input id="endereco2" name="campos2[]" dojoType="dijit.form.CheckBox" value="endereco" checked>
       <label for="endereco2">
         Endere&ccedil;o
       </label>
     </div>
     <div class="checkbox" style="width: 6.7em;">
-      <input id="ruacross2" name="campos2[]" dojoType="dijit.form.CheckBox" value="ruacross">
+      <input id="ruacross2" name="campos2[]" dojoType="dijit.form.CheckBox" value="ruacross" checked>
       <label for="ruacross2">
         Rua Cross
       </label>
     </div>
     <div class="checkbox" style="width: 6.5em;">
-      <input id="cidade2" name="campos2[]" dojoType="dijit.form.CheckBox" value="cidade">
+      <input id="cidade2" name="campos2[]" dojoType="dijit.form.CheckBox" value="cidade" checked>
       <label for="cidade2">
         Cidade
       </label>
     </div>
     <div class="checkbox" style="width: 5.8em;">
-      <input id="estado2" name="campos2[]" dojoType="dijit.form.CheckBox" value="estado">
+      <input id="estado2" name="campos2[]" dojoType="dijit.form.CheckBox" value="estado" checked>
       <label for="estado2">
         Estado
       </label>
     </div>
     <div class="checkbox" style="width: 3.6em;">
-      <input id="cep2" name="campos2[]" dojoType="dijit.form.CheckBox" value="cep">
+      <input id="cep2" name="campos2[]" dojoType="dijit.form.CheckBox" value="cep" checked>
       <label for="cep2">
         CEP
       </label>
@@ -370,7 +370,7 @@
     </div>
     </div>
   </div>
-  <div dojoType="dijit.layout.ContentPane" title="Informar IDs ou URLs das venues">
+  <div dojoType="dijit.layout.ContentPane" title="Informar IDs ou URLs das venues" selected="true">
     <div dojoType="dijit.form.Form" enctype="multipart/form-data" accept-charset="iso-8859-1" id="f_ids" jsId="f_ids" encType="multipart/form-data" action="edit.php" method="post">
     <div id="toolContainer">
     <div class="row">
@@ -385,37 +385,37 @@
     <span class="label"><label for="campos3">Campos:</span>
     <span class="checkboxes">
     <div class="checkbox" style="width: 5.2em;">
-      <input id="nome3" name="campos3[]" dojoType="dijit.form.CheckBox" value="nome">
+      <input id="nome3" name="campos3[]" dojoType="dijit.form.CheckBox" value="nome" checked>
       <label for="nome3">
         Nome
       </label>
     </div>
     <div class="checkbox" style="width: 6.2em;">
-      <input id="endereco3" name="campos3[]" dojoType="dijit.form.CheckBox" value="endereco">
+      <input id="endereco3" name="campos3[]" dojoType="dijit.form.CheckBox" value="endereco" checked>
       <label for="endereco3">
         Endere&ccedil;o
       </label>
     </div>
     <div class="checkbox" style="width: 6.7em;">
-      <input id="ruacross3" name="campos3[]" dojoType="dijit.form.CheckBox" value="ruacross">
+      <input id="ruacross3" name="campos3[]" dojoType="dijit.form.CheckBox" value="ruacross" checked>
       <label for="ruacross3">
         Rua Cross
       </label>
     </div>
     <div class="checkbox" style="width: 6.5em;">
-      <input id="cidade3" name="campos3[]" dojoType="dijit.form.CheckBox" value="cidade">
+      <input id="cidade3" name="campos3[]" dojoType="dijit.form.CheckBox" value="cidade" checked>
       <label for="cidade3">
         Cidade
       </label>
     </div>
     <div class="checkbox" style="width: 5.8em;">
-      <input id="estado3" name="campos3[]" dojoType="dijit.form.CheckBox" value="estado">
+      <input id="estado3" name="campos3[]" dojoType="dijit.form.CheckBox" value="estado" checked>
       <label for="estado3">
         Estado
       </label>
     </div>
     <div class="checkbox" style="width: 3.6em;">
-      <input id="cep3" name="campos3[]" dojoType="dijit.form.CheckBox" value="cep">
+      <input id="cep3" name="campos3[]" dojoType="dijit.form.CheckBox" value="cep" checked>
       <label for="cep3">
         CEP
       </label>
