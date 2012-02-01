@@ -152,8 +152,8 @@
 <div style="width: 583px;">
 <p>Para ajudar a manter atualizadas as venues do foursquare, temos algumas ferramentas que permitem aos usu&aacute;rios confi&aacute;veis editar, atualizar ou mesclar venues. Obrigado por ajudar a melhorar as listagens de venues do foursquare.<p>
 <div dojoType="dijit.layout.AccordionContainer" doLayout="false">
-  <div dojoType="dijit.layout.ContentPane" title="Importar dados de um arquivo CSV">
-    <div dojoType="dijit.form.Form" enctype="multipart/form-data" accept-charset="iso-8859-1" id="f_csv" jsId="f_csv" encType="multipart/form-data" action="edit2.php" method="post">
+  <div dojoType="dijit.layout.ContentPane" title="Importar dados de um arquivo CSV" selected="true">
+    <div dojoType="dijit.form.Form" enctype="multipart/form-data" accept-charset="iso-8859-1" id="f_csv" jsId="f_csv" encType="multipart/form-data" action="edit_csv.php" method="post">
     <div id="toolContainer">
     <div class="row">
     <span class="label"><label for="oauth_token_csv"><a href="https://developer.foursquare.com/docs/explore.html#req=users/self" target="_blank">OAuth token</a>:</span>
@@ -178,14 +178,14 @@
     </div>
   </div>
   <div dojoType="dijit.layout.ContentPane" title="Importar lista de um arquivo de texto">
-    <div dojoType="dijit.form.Form" enctype="multipart/form-data" accept-charset="iso-8859-1" id="f_txt" jsId="f_txt" encType="multipart/form-data" action="edit3.php" method="post">
+    <div dojoType="dijit.form.Form" enctype="multipart/form-data" accept-charset="iso-8859-1" id="f_txt" jsId="f_txt" encType="multipart/form-data" action="edit.php" method="post">
     <div id="toolcontainer">
     <div class="row">
     <span class="label"><label for="oauth_token_txt"><a href="https://developer.foursquare.com/docs/explore.html#req=users/self" target="_blank">OAuth token</a>:</span>
     <span class="formw"><input type="text" id="oauth_token_txt" name="oauth_token" required="true" dojoType="dijit.form.ValidationTextBox" maxlength="48" style="width: 34em;"/></span>
     </div>
     <div class="row">
-    <span class="label"><label for="txt">Arquivo TXT:</span>
+    <span class="label"><label for="txt">Arquivo:</span>
     <span class="button"><input type="hidden" name="MAX_FILE_SIZE" value="5000000" dojoType="dijit.form.TextBox"/><input class="browseButton" type="file" id="txt" name="txt" style="width: 9em;"/></span>
     <span class="arquivo" id="arquivo_txt">Nenhum arquivo selecionado</span>
     </div>
@@ -274,8 +274,8 @@
     </div>
     </div>
   </div>
-  <div dojoType="dijit.layout.ContentPane" title="Importar lista de uma p&aacute;gina web" selected="true">
-    <div dojoType="dijit.form.Form" enctype="multipart/form-data" accept-charset="iso-8859-1" id="f_lks" jsId="f_lks" encType="multipart/form-data" action="edit3.php" method="post">
+  <div dojoType="dijit.layout.ContentPane" title="Importar lista de uma p&aacute;gina web">
+    <div dojoType="dijit.form.Form" enctype="multipart/form-data" accept-charset="iso-8859-1" id="f_lks" jsId="f_lks" encType="multipart/form-data" action="edit.php" method="post">
     <div id="toolContainer">
     <div class="row">
     <span class="label"><label for="oauth_token_lks"><a href="https://developer.foursquare.com/docs/explore.html#req=users/self" target="_blank">OAuth token</a>:</span>
@@ -371,7 +371,7 @@
     </div>
   </div>
   <div dojoType="dijit.layout.ContentPane" title="Informar IDs ou URLs das venues">
-    <div dojoType="dijit.form.Form" enctype="multipart/form-data" accept-charset="iso-8859-1" id="f_ids" jsId="f_ids" encType="multipart/form-data" action="edit3.php" method="post">
+    <div dojoType="dijit.form.Form" enctype="multipart/form-data" accept-charset="iso-8859-1" id="f_ids" jsId="f_ids" encType="multipart/form-data" action="edit.php" method="post">
     <div id="toolContainer">
     <div class="row">
     <span class="label"><label for="oauth_token_ids"><a href="https://developer.foursquare.com/docs/explore.html#req=users/self" target="_blank">OAuth token</a>:</span>
@@ -471,8 +471,6 @@
   </div> -->
 </div>
 </div>
-
-
 <!-- Start of StatCounter Code for Default Guide
 <script type="text/javascript">
 var sc_project=7288306; 
