@@ -34,9 +34,10 @@ function validarVenues($lines) {
 
     /*** Tidysquare ***/
     } else if (stripos($line, 'venuesArray.push(venue') !== false) {
-      //echo "Line #<b>{$line_num}</b> : " . htmlspecialchars($line) . "<br />\n";
-      if (strlen($line) == 53)
-        $ret[] = substr($line, -27);
+      $l = strlen($line);
+      //echo "Line #<b>{$line_num}</b> : " . htmlspecialchars($line) . "l : " . $l . "<br />\n";
+      if (($l == 53) or ($l == 54))
+        $ret[] = substr($line, -$l + 26);
       else {
         $ret = explode('venuesArray.push(venue', $line);
         $ret = array_slice($ret, 1);
