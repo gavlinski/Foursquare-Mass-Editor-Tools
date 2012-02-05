@@ -3,6 +3,7 @@
 <title>foursquare :: Edi&ccedil;&atilde;o de venues em massa via API</title>
 <script src="js/dojo/dojo.js" djConfig="parseOnLoad: true"></script>
 <script type="text/javascript">
+  dojo.require("dijit.Dialog");
   dojo.require("dijit.form.Form");
   dojo.require("dijit.form.Button");
   dojo.require("dijit.form.CheckBox");
@@ -13,6 +14,10 @@
   dojo.require("dojox.form.Uploader");
   dojo.require("dojo.cookie");
   dojo.addOnLoad(function() {
+    dlg_csv = new dijit.Dialog({
+      title: "Arquivo CSV",
+      style: "width: 640px"
+    });
     var arquivo_csv = dojo.byId("arquivo_csv");
     var arquivo_nome = "";
     var uploader_csv = new dojox.form.Uploader({
@@ -50,6 +55,10 @@
       }
       dojo.cookie("oauth_token", dijit.byId("oauth_token_csv").value, { expires: 5 });
     });
+    dlg_txt = new dijit.Dialog({
+      title: "Arquivo de texto",
+      style: "width: 580px"
+    });
     var arquivo_txt = dojo.byId("arquivo_txt");
     var uploader_txt = new dojox.form.Uploader({
       name: "txt",
@@ -85,6 +94,10 @@
       }
       dojo.cookie("oauth_token", dijit.byId("oauth_token_txt").value, { expires: 5 });
     });
+    dlg_lks = new dijit.Dialog({
+      title: "Endere&ccedil;o de uma p&aacute;gina web",
+      style: "width: 660px"
+    });
     var form_lks = dijit.byId("f_lks");
     var oauth_lks = dijit.byId("oauth_token_lks");
     var pagina = dijit.byId("pagina");
@@ -106,6 +119,10 @@
         e.preventDefault();
       }
       dojo.cookie("oauth_token", dijit.byId("oauth_token_lks").value, { expires: 5 });
+    });
+    dlg_ids = new dijit.Dialog({
+      title: "IDs ou URLs das venues",
+      style: "width: 570px"
     });
     var form_ids = dijit.byId("f_ids");
     var oauth_ids = dijit.byId("oauth_token_ids");
@@ -142,6 +159,26 @@
       //dijit.byId("oauth_token_csv").focus();
     });
   }, 0);
+  function showDialog_csv() {
+    // set the content of the dialog:
+    dlg_csv.attr("content", "Os programas de planilha eletr&ocirc;nica, como o Microsoft Excel, BrOffice Calc e Google Spreadsheets, facilitam a cria&ccedil;&atilde;o e a edi&ccedil;&atilde;o de arquivos CSV. O arquivo CSV deve ser formatado como uma tabela e deve incluir um cabe&ccedil;alho, ou primeira linha, que defina os campos nessa tabela.</p><p>Veja algumas informa&ccedil;&otilde;es adicionais que devem ser lembradas durante a cria&ccedil;&atilde;o do arquivo:<ul><li><b>Cabe&ccedil;alho:</b> venue, name, address, crossStreet, city, state, zip, twitter, phone, url, description, ll</li><li><b>Conjunto de caracteres:</b> Europa ocidental (ISO-8859-1)</li><li><b>Delimitador de campo:</b> ;</li><li><b>Delimitador de texto:</b> &quot;</li></ul><p>O arquivo deve incluir o campo <b>venue</b> com os 24 caracteres hexadecimais que identificam cada venue.</p><p><b>Exemplo de arquivo CSV:</b></p><p style='font-family: courier, monospace;'>venue;name;address;crossStreet;city;state;zip;phone<br>&quot;4e666afcae60c9631d5e13c9&quot;;&quot;Voo Gol G3 1087&quot;;&quot;Aeroporto Salgado Filho&quot;;&quot;POA-GIG&quot;;&quot;Porto Alegre&quot;;&quot;RS&quot;;&quot;90200-310&quot;;&quot;08007040465&quot;;<br>&quot;4dda410efa76ad96d166f02c&quot;;&quot;Voo Gol G3 1241&quot;;&quot;Aeroporto Salgado Filho&quot;;&quot;POA-CGH&quot;;&quot;Porto Alegre&quot;;&quot;RS&quot;;&quot;90200-310&quot;;&quot;08007040465&quot;;</p>");
+    dlg_csv.show();
+  }
+  function showDialog_txt() {
+    // set the content of the dialog:
+    dlg_txt.attr("content", "Um arquivo de texto &eacute; uma esp&eacute;cie de arquivo simples estruturado como uma sequ&ecirc;ncia de linhas. O arquivo deve conter os identificadores de cada venue a ser editada.</p><p>Os arquivos reconhecidos s&atilde;o os seguintes:<ul><li><b>IDs ou URLs das venues:</b> arquivo TXT com os IDs ou URLs das venues</li><li><b>Resultado da pesquisa do Places:</b> arquivo HTML salvo a partir do <a href='https://foursquare.com/admin/places'>Places</a></li><li><b>Resultado da pesquisa do Tidysquare:</b> arquivo HTML salvo a partir do <a href='http://www.tidysquare.com'>Tidysquare</a></li></ul><p><b>Exemplo de arquivo TXT:</b></p><p style='font-family: courier, monospace;'>https://foursquare.com/venue/banco-do-brasil/4c701c87f23c76b0c5abe685<br>https://pt.foursquare.com/v/banco-do-brasil/4d7a895be8b7a1cdb4e3991f/<br>https://foursquare.com/v/4eadbb7902d5cf33fa8cf19e/edit<br>4e764d9888775d593e595c62</p>");
+    dlg_txt.show();
+  }
+  function showDialog_lks() {
+    // set the content of the dialog:
+    dlg_lks.attr("content", "Uma p&aacute;gina web &eacute; qualquer documento ou recurso de informa&ccedil;&atilde;o que pode ser acessado atrav&eacute;s de um navegador na Internet. A p&aacute;gina deve conter os identificadores de cada venue a ser editada.</p><p>Os principais endere&ccedil;os reconhecidos s&atilde;o os seguintes:<ul><li><b>P&aacute;ginas com links para as venues:</b> com a tag &lt;a href=&quot;.../venue/...&quot;&gt;</li><li><b>Listas de usu&aacute;rios do foursquare:</b> do tipo <span style='color: #2398c9;'>https://foursquare.com/user/list/list-name</span></li><li><b>Resultados da pesquisa:</b> do tipo <span style='color: #2398c9;'>https://foursquare.com/search?tab=venueResults&q=query&near=ll</span></li></ul><p><b>Exemplos de endere&ccedil;os:</b></p><p style='font-family: courier, monospace;'>https://foursquare.com/4sqcities/list/sampa-badge<br>https://pt.foursquare.com/search?tab=venueResults&q=via&near=Bras%C3%ADlia%2C+DF</p>");
+    dlg_lks.show();
+  }
+  function showDialog_ids() {
+    // set the content of the dialog:
+    dlg_ids.attr("content", "O conte&uacute;do copiado e colado deve conter os identificadores de cada venue a ser editada.</p><p><b>Exemplos de IDs e URLs:</b></p><p style='font-family: courier, monospace;'>https://foursquare.com/venue/banco-do-brasil/4c701c87f23c76b0c5abe685<br>https://pt.foursquare.com/v/banco-do-brasil/4d7a895be8b7a1cdb4e3991f/<br>https://foursquare.com/v/4eadbb7902d5cf33fa8cf19e/edit<br>4e764d9888775d593e595c62</p>");
+    dlg_ids.show();
+  }
 </script>
 <link rel="shortcut icon" href="favicon.ico" type="image/x-icon" />
 <link rel="stylesheet" type="text/css" href="js/dijit/themes/claro/claro.css"/>
@@ -149,8 +186,8 @@
 </head>
 <body class="claro">
 <h2>Ferramentas de edi&ccedil;&atilde;o de venues em massa</h2>
-<div style="width: 586px;">
-<p>Para ajudar a manter atualizadas as venues do foursquare, temos algumas ferramentas que permitem aos usu&aacute;rios confi&aacute;veis editar venues em massa. Obrigado por ajudar a melhorar as listagens de venues do foursquare.<p>
+<div style="width: 578px;">
+<p>Para ajudar a manter atualizadas as venues do foursquare, disponibilizamos aos superusu&aacute;rios ferramentas que permitem edit&aacute;-las em massa. Obrigado por ajudar a melhorar as listagens de venues do foursquare.<p>
 <div dojoType="dijit.layout.AccordionContainer" doLayout="false">
   <div dojoType="dijit.layout.ContentPane" title="Importar dados de um arquivo CSV">
     <div dojoType="dijit.form.Form" enctype="multipart/form-data" accept-charset="iso-8859-1" id="f_csv" jsId="f_csv" encType="multipart/form-data" action="edit_csv.php" method="post">
@@ -160,8 +197,8 @@
     <span class="formw"><input type="text" id="oauth_token_csv" name="oauth_token" required="true" dojoType="dijit.form.ValidationTextBox" maxlength="48" style="width: 34em;"/></span>
     </div>
     <div class="row">
-    <span class="label"><label for="csv">Arquivo CSV:</span>
-    <span class="button"><input type="hidden" name="MAX_FILE_SIZE" value="100000" dojoType="dijit.form.TextBox"/><input  type="file" id="csv" name="csv" style="width: 9em;"/></span>
+    <span class="label"><label for="csv"><a id="dlg_csv" href="javascript:showDialog_csv();">Arquivo</a>:</span>
+    <span class="button"><input type="hidden" name="MAX_FILE_SIZE" value="100000" dojoType="dijit.form.TextBox"/><input type="file" id="csv" name="csv" style="width: 9em;"/></span>
     <span class="arquivo" id="arquivo_csv">Nenhum arquivo selecionado</span>
     </div>
     </div>
@@ -185,7 +222,7 @@
     <span class="formw"><input type="text" id="oauth_token_txt" name="oauth_token" required="true" dojoType="dijit.form.ValidationTextBox" maxlength="48" style="width: 34em;"/></span>
     </div>
     <div class="row">
-    <span class="label"><label for="txt">Arquivo:</span>
+    <span class="label"><label for="txt"><a id="dlg_txt" href="javascript:showDialog_txt();">Arquivo</a>:</span>
     <span class="button"><input type="hidden" name="MAX_FILE_SIZE" value="5000000" dojoType="dijit.form.TextBox"/><input class="browseButton" type="file" id="txt" name="txt" style="width: 9em;"/></span>
     <span class="arquivo" id="arquivo_txt">Nenhum arquivo selecionado</span>
     </div>
@@ -282,7 +319,7 @@
     <span class="formw"><input type="text" id="oauth_token_lks" name="oauth_token" required="true" dojoType="dijit.form.ValidationTextBox" maxlength="48" style="width: 34em;"/></span>
     </div>
     <div class="row">
-    <span class="label"><label for="pagina">Endere&ccedil;o:</span>
+    <span class="label"><label for="pagina"><a id="dlg_lks" href="javascript:showDialog_lks();">Endere&ccedil;o</a>:</span>
     <span class="formw"><input type="text" id="pagina" name="pagina" required="true" dojoType="dijit.form.ValidationTextBox" style="width: 34em;"/></span>
     </div>
     <div class="row">
@@ -378,7 +415,7 @@
     <span class="formw"><input type="text" id="oauth_token_ids" name="oauth_token" required="true" dojoType="dijit.form.ValidationTextBox" maxlength="48" style="width: 34em;"/></span>
     </div>
     <div class="row">
-    <span class="label"><label for="textarea_ids">IDs ou URLs:</span>
+    <span class="label"><label for="textarea_ids"><a id="dlg_ids" href="javascript:showDialog_ids();">IDs ou URLs</a>:</span>
     <span class="textarea"><textarea id="textarea_ids" name="textarea" dojoType="dijit.form.SimpleTextarea" style="font-family: Helvetica, Verdana, Arial, sans-serif; font-size: 100%; color: #5A5858; resize: none; width: 442px;"></textarea></span>
     </div>
     <div class="row">

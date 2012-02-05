@@ -46,7 +46,7 @@ a:hover {
   margin-bottom: 15px;
   display: table;
   min-height: 0;
-  padding: 5px 10px 00px 10px;
+  padding: 5px 0px 0px 8px;
   border-radius: 5px;
   -webkit-border-radius: 5px;
   -moz-border-radius: 5px;
@@ -58,7 +58,7 @@ a:hover {
 }
 #toolContainer .row span.label {
   float: left;
-  width: 84px;
+  width: 80px;
   padding-top: 8px;
   padding-right: 5px;
 }
@@ -67,7 +67,7 @@ a:hover {
   padding-left: 3px;
   padding-bottom: 5px;
   padding-top: 5px;
-  padding-right: 2px;
+  padding-right: 10px;
 }
 #toolContainer .row span.button {
   float: left;
