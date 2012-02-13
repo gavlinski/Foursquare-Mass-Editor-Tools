@@ -91,14 +91,14 @@ function salvarVenues() {
            || (document.forms[i].elements[j].name == "phone")
            || (document.forms[i].elements[j].name == "url")
            || (document.forms[i].elements[j].name == "description")))
-        dados += "&" + document.forms[i].elements[j].name + "=" + document.forms[i].elements[j].value;
+        dados += "&" + document.forms[i].elements[j].name + "=" + document.forms[i].elements[j].value.replace(/&/g, "%26");
       else if (document.forms[i].elements[j].name == "ll") {
         ll = document.forms[i]["ll"].value;
         if (ll != null && ll != "")
           dados += "&ll=" + document.forms[i]["ll"].value;
       }
     }
-    dados += "&v=20120201";
+    dados += "&v=20120213";
     //document.getElementById("result").innerHTML += "<br>venue=" +venue + "<br>dados=" + dados + "<br>result=result" + i;
     document.getElementById("result" + i).innerHTML = "<img src='img/loading.gif' alt='Enviando dados...'>";
     xmlhttpPost(venue, dados, i);

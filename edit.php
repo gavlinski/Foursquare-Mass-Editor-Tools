@@ -397,7 +397,7 @@ function carregarVenues() {
   //document.getElementById("result").innerHTML = "Recuperando dados...";
   for (i = 0; i < document.forms.length; i++) {
     venue = document.forms[i]["venue"].value;
-    xmlhttpRequest("GET", "https://api.foursquare.com/v2/venues/" + venue + "?oauth_token=" + oauth_token + "&v=20120201", null, i);
+    xmlhttpRequest("GET", "https://api.foursquare.com/v2/venues/" + venue + "?oauth_token=" + oauth_token + "&v=20120213", null, i);
     document.getElementById("result" + i).innerHTML = "<img src='img/loading.gif' alt='Recuperando dados...'>"
   }
   //document.getElementById("result").innerHTML = "Dados recuperados!";
@@ -421,14 +421,14 @@ function salvarVenues() {
            || (document.forms[i].elements[j].name == "phone")
            || (document.forms[i].elements[j].name == "url")
            || (document.forms[i].elements[j].name == "description")))
-        dados += "&" + document.forms[i].elements[j].name + "=" + document.forms[i].elements[j].value;
+        dados += "&" + document.forms[i].elements[j].name + "=" + document.forms[i].elements[j].value.replace(/&/g, "%26");
       else if (document.forms[i].elements[j].name == "ll") {
         ll = document.forms[i]["ll"].value;
         if (ll != null && ll != "")
           dados += "&ll=" + document.forms[i]["ll"].value;
       }
     }
-    dados += "&v=20120201";
+    dados += "&v=20120213";
     //document.getElementById("result").innerHTML += "<br>venue=" +venue + "<br>dados=" + dados + "<br>result=result" + i;
     xmlhttpRequest("POST", "https://api.foursquare.com/v2/venues/" + venue + "/edit", dados, i);
     document.getElementById("result" + i).innerHTML = "<img src='img/loading.gif' alt='Enviando dados...'>";
