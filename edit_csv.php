@@ -4,7 +4,7 @@ mb_http_output("iso-8859-1");
 ob_start("mb_output_handler");
 header("Content-Type: text/html; charset=ISO-8859-1",true);
 
-define("VERSION", "CSV Venues Editor 0.5");
+define("VERSION", "CSV Venues Editor 0.6");
 define("TEMPLATE1", '<html><head><title>' . VERSION . '</title><meta http-equiv="Content-type" content="text/html; charset=ISO-8859-1"/><script src="js/dojo/dojo.js" djConfig="parseOnLoad: true"></script><script type="text/javascript">dojo.require("dijit.form.Button");</script><link rel="shortcut icon" href="favicon.ico" type="image/x-icon"/><link rel="stylesheet" type="text/css" href="js/dijit/themes/claro/claro.css"/><link rel="stylesheet" type="text/css" href="estilo.css"/></head><body class="claro">');
 define("TEMPLATE2", '<p><button dojoType="dijit.form.Button" type="button" onclick="history.go(-1)">Voltar</button></p></body></html>');
 define("ERRO01", TEMPLATE1 . '<p>O limite da API &eacute; de 500 requisi&ccedil;&otilde;es por hora por conjunto de endpoints por OAuth.</p><p>Reduza a quantidade de linhas do arquivo e tente novamente.' . TEMPLATE2);
@@ -73,7 +73,7 @@ function xmlhttpPost(venue, dados, i) {
 }
 function salvarVenues() {
   var oauth_token = "<?php echo $oauth_token;?>";
-  var venue, dados, ll;
+  var venue, dados, categoryId, ll;
   for (i = 0; i < document.forms.length; i++) {
     venue = document.forms[i]["venue"].value;
     dados = "oauth_token=" + oauth_token;
@@ -81,6 +81,7 @@ function salvarVenues() {
     //document.getElementById("result").innerHTML += dojo.toJson(form, true) + "<br>";
     for (j = 1; j < document.forms[i].elements.length; j++) {
       if ((document.forms[i].elements[j].name != "ll") &&
+          (document.forms[i].elements[j].name != "categoryId") &&
           ((document.forms[i].elements[j].name == "name")
            || (document.forms[i].elements[j].name == "address")
            || (document.forms[i].elements[j].name == "crossStreet")
@@ -92,7 +93,11 @@ function salvarVenues() {
            || (document.forms[i].elements[j].name == "url")
            || (document.forms[i].elements[j].name == "description")))
         dados += "&" + document.forms[i].elements[j].name + "=" + document.forms[i].elements[j].value.replace(/&/g, "%26");
-      else if (document.forms[i].elements[j].name == "ll") {
+      else if (document.forms[i].elements[j].name == "categoryId") {
+        categoryId = document.forms[i]["categoryId"].value;
+        if (categoryId != null && categoryId != "")
+          dados += "&categoryId=" + document.forms[i]["categoryId"].value;
+      } else if (document.forms[i].elements[j].name == "ll") {
         ll = document.forms[i]["ll"].value;
         if (ll != null && ll != "")
           dados += "&ll=" + document.forms[i]["ll"].value;
@@ -110,12 +115,12 @@ dojo.addOnLoad(function() {
   // create the dialog:
   dlg = new dijit.Dialog({
     title: "Guia de estilo",
-    style: "width: 400px"
+    style: "width: 430px"
   });
 });
 function showDialog() {
   // set the content of the dialog:
-  dlg.attr("content", "<ul><li><p>Use sempre a ortografia e as letras maiúsculas corretas.</p></li><li><p>Em redes ou lugares com vários locais, não é mais preciso adicionar um sufixo de local. Portanto, pode deixar &quot;Starbucks&quot; ou &quot;Apple Store&quot; (em vez de &quot;Starbucks - Queen Anne&quot; ou &quot;Apple Store – Cidade alta&quot;).</p></li><li><p>Sempre que possível, use abreviações: &quot;Av.&quot; em vez de &quot;Avenida&quot;, &quot;R.&quot; em vez de &quot;Rua&quot;, etc.</p></li><li>Cross Street should be like one of the following:<ul><li>na R. Main (para lugares em uma esquina)</li><li>entre a Av. 2a. e Av. 3a. (para lugares no meio de um quarteirão)</li></ul><br></li><li>A R. Cross não <b>deve</b> ter o nome repetido da rua no endereço.<ul><li>Se o local é na R. Principal, a rua transversal deve ser &quot;na Segunda Av.&quot;</li><li>A transversal não deve ser &quot;R. Principal na R. Segunda&quot;</li></ul></li><li><p>Os nomes de estados e províncias devem ser abreviados.</p></li><li><p><b>Em caso de dúvida, formate os endereços de lugares de acordo com as diretrizes postais locais.</b></p></li><li><p>Se tiver mais perguntas sobre a criação e edição de lugares no foursquare, consulte nossas <a href='https://pt.foursquare.com/info/houserules' target='_blank'>regras da casa</a> e as <a href='http://support.foursquare.com/forums/191151-venue-help' target='_blank'>perguntas frequentes sobre lugares</a>.</p></li></ul>");
+  dlg.attr("content", "<ul><li><p>Use sempre a ortografia e as letras maiúsculas corretas.</p></li><li><p>Em redes ou lugares com vários locais, não é mais preciso adicionar um sufixo de local. Portanto, pode deixar &quot;Starbucks&quot; ou &quot;Apple Store&quot; (em vez de &quot;Starbucks - Queen Anne&quot; ou &quot;Apple Store - Cidade alta&quot;).</p></li><li><p>Sempre que possível, use abreviações: &quot;Av.&quot; em vez de &quot;Avenida&quot;, &quot;R.&quot; em vez de &quot;Rua&quot;, etc.</p></li><li>Cross Street should be like one of the following:<ul><li>na R. Main (para lugares em uma esquina)</li><li>entre a Av. 2a. e Av. 3a. (para lugares no meio de um quarteirão)</li></ul><br></li><li>A R. Cross não deve ter o nome repetido da rua no endereço.<ul><li>Se o local é na R. Principal, a rua transversal deve ser &quot;na Segunda Av.&quot;</li><li>A transversal não deve ser &quot;R. Principal na R. Segunda&quot;</li></ul></li><li><p>Os nomes de Estados e províncias devem ser abreviados.</p></li><li><p>Em caso de dúvida, formate os endereços de lugares de acordo com as diretrizes postais locais.</p></li><li><p>Se tiver mais perguntas sobre a criação e edição de lugares no foursquare, consulte nossas <a href='https://pt.foursquare.com/info/houserules' target='_blank'>regras da casa</a> e as <a href='http://support.foursquare.com/forums/191151-venue-help' target='_blank'>perguntas frequentes sobre lugares</a>.</p></li></ul>");
   dlg.show();
 }
 </script>
@@ -128,6 +133,11 @@ function showDialog() {
 <p>Antes de salvar suas altera&ccedil;&otilde;es, n&atilde;o deixe de ler nosso <a href="javascript:showDialog();">guia de estilo</a> e as <a href="https://pt.foursquare.com/info/houserules" target="_blank">regras da casa</a>.<p>
 <div id="listContainer">
 <?php
+if (array_key_exists("categoryId", $file[0])) {
+  $hasCategoryId = true;
+} else {
+  $hasCategoryId = false;
+}
 if (array_key_exists("name", $file[0])) {
   $hasName = true;
 } else {
@@ -203,6 +213,15 @@ foreach ($file as $f) {
     echo str_pad($i, 3, "0", STR_PAD_LEFT);
   echo '</a>', chr(10);
 
+  $categoryId = htmlentities($f[categoryId]);
+  if ($hasCategoryId) {
+    if (($categoryId != '') && ($categoryId != ' ')) {
+      echo '<input type="text" dojoType="dijit.form.TextBox" name="categoryId" maxlength="75" value="', $categoryId, '" placeHolder="Categorias" style="width: 9em; margin-left: 5px;" onFocus="window.temp=this.value" onBlur="if (window.temp != this.value) dojo.byId(\'result', $i - 1, '\').innerHTML=\'\'" onChange="dojo.byId(\'result', $i - 1, '\').innerHTML=\'\'">', chr(10);
+    } else {
+      echo '<input type="text" dojoType="dijit.form.TextBox" name="categoryId" placeHolder="Categorias" style="width: 9em; margin-left: 5px;" disabled>', chr(10);
+    }
+  }
+
   $name = htmlentities($f[name]);
   if ($hasName) {
     echo '<input type="text" dojoType="dijit.form.TextBox" name="name" maxlength="256" value="', $name, '" placeHolder="Nome" style="width: 9em; margin-left: 5px;" onFocus="window.temp=this.value" onBlur="if (window.temp != this.value) dojo.byId(\'result', $i - 1, '\').innerHTML=\'\'" onChange="dojo.byId(\'result', $i - 1, '\').innerHTML=\'\'">', chr(10);
@@ -274,8 +293,8 @@ foreach ($file as $f) {
 }
 ?>
 </div>
-<button dojoType="dijit.form.Button" type="button" onclick="salvarVenues()" name="submitButton">Salvar</button>
-<button dojoType="dijit.form.Button" type="button" onclick="history.go(-1)" name="backButton">Voltar</button>
+<button id="submitButton" dojoType="dijit.form.Button" type="submit" name="submitButton" onclick="salvarVenues()">Salvar</button>
+<button id="backButton" dojoType="dijit.form.Button" type="button" onclick="history.go(-1)" name="backButton">Voltar</button>
 <p><div id="result"></div></p>
 </body>
 </html>
