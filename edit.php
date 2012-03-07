@@ -4,7 +4,7 @@ mb_http_output("iso-8859-1");
 ob_start("mb_output_handler");
 header("Content-Type: text/html; charset=ISO-8859-1",true);
 
-define("VERSION", "List Venues Editor 0.5");
+define("VERSION", "List Venues Editor 0.8");
 define("TEMPLATE1", '<html><head><title>' . VERSION . '</title><meta http-equiv="Content-type" content="text/html; charset=ISO-8859-1"/><script src="js/dojo/dojo.js" djConfig="parseOnLoad: true"></script><script type="text/javascript">dojo.require("dijit.form.Button");</script><link rel="shortcut icon" href="favicon.ico" type="image/x-icon"/><link rel="stylesheet" type="text/css" href="js/dijit/themes/claro/claro.css"/><link rel="stylesheet" type="text/css" href="estilo.css"/></head><body class="claro">');
 define("TEMPLATE2", '<p><button dojoType="dijit.form.Button" type="button" onclick="history.go(-1)">Voltar</button></p></body></html>');
 define("ERRO01", TEMPLATE1 . '<p>O limite da API &eacute; de 500 requisi&ccedil;&otilde;es por hora por conjunto de endpoints por OAuth.</p><p>Reduza a quantidade de linhas e tente novamente.' . TEMPLATE2);
@@ -183,6 +183,7 @@ dojo.require("dijit.form.TextBox");
 dojo.require("dijit.Tooltip");
 var total = 0;
 var venues = "";
+//var categories = "";
 function xmlhttpRequest(metodo, endpoint, dados, i) {
   var xmlhttp = new XMLHttpRequest();
   xmlhttp.onreadystatechange = function() {
@@ -218,128 +219,132 @@ function xmlhttpRequest(metodo, endpoint, dados, i) {
 }
 function atualizarTabela(resposta, i) {
   total++;
-  var linha = "";
+  var categorias, linha = "";
+  for (j = 0; j < resposta.response.venue.categories.length; j++) {
+    categorias += resposta.response.venue.categories[j].id + ",";
+  }
+  categorias = categorias.slice(0, -1);
   for (j = 1; j < document.forms[i].elements.length; j++) {
     switch (document.forms[i].elements[j].name) {
     case "name":
       document.forms[i]["name"].value = resposta.response.venue.name;
       if (total == 1) {
         if (j == 1)
-          venues = 'venue;';
+          venues = 'venue;categoryId;';
         venues = venues + 'name;';
       }
       if (j == 1)
-        linha = '"' + resposta.response.venue.id + '";';
+        linha = '"' + resposta.response.venue.id + '";"' + categorias + '";';
       linha = linha + '"' + resposta.response.venue.name + '";';
       break;
     case "address":
       document.forms[i]["address"].value = resposta.response.venue.location.address;
       if (total == 1) {
         if (j == 1)
-          venues = 'venue;';
+          venues = 'venue;categoryId;';
         venues = venues + 'address;';
       }
       if (j == 1)
-        linha = '"' + resposta.response.venue.id + '";';
+        linha = '"' + resposta.response.venue.id + '";"' + categorias + '";';
       linha = linha + '"' + resposta.response.venue.location.address + '";';
       break;
     case "crossStreet":
       document.forms[i]["crossStreet"].value = resposta.response.venue.location.crossStreet;
       if (total == 1) {
         if (j == 1)
-          venues = 'venue;';
+          venues = 'venue;categoryId;';
         venues = venues + 'crossStreet;';
       }
       if (j == 1)
-        linha = '"' + resposta.response.venue.id + '";';
+        linha = '"' + resposta.response.venue.id + '";"' + categorias + '";';
       linha = linha + '"' + resposta.response.venue.location.crossStreet + '";';
       break;
     case "city":
       document.forms[i]["city"].value = resposta.response.venue.location.city;
       if (total == 1) {
         if (j == 1)
-          venues = 'venue;';
+          venues = 'venue;categoryId;';
         venues = venues + 'city;';
       }
       if (j == 1)
-        linha = '"' + resposta.response.venue.id + '";';
+        linha = '"' + resposta.response.venue.id + '";"' + categorias + '";';
       linha = linha + '"' + resposta.response.venue.location.city + '";';
       break;
     case "state":
       document.forms[i]["state"].value = resposta.response.venue.location.state;
       if (total == 1) {
         if (j == 1)
-          venues = 'venue;';
+          venues = 'venue;categoryId;';
         venues = venues + 'state;';
       }
       if (j == 1)
-        linha = '"' + resposta.response.venue.id + '";';
+        linha = '"' + resposta.response.venue.id + '";"' + categorias + '";';
       linha = linha + '"' + resposta.response.venue.location.state + '";';
       break;
     case "zip":
       document.forms[i]["zip"].value = resposta.response.venue.location.postalCode;
       if (total == 1) {
         if (j == 1)
-          venues = 'venue;';
+          venues = 'venue;categoryId;';
         venues = venues + 'zip;';
       }
       if (j == 1)
-        linha = '"' + resposta.response.venue.id + '";';
+        linha = '"' + resposta.response.venue.id + '";"' + categorias + '";';
       linha = linha + '"' + resposta.response.venue.location.postalCode + '";';
       break;
     case "twitter":
       document.forms[i]["twitter"].value = resposta.response.venue.contact.twitter;
       if (total == 1) {
         if (j == 1)
-          venues = 'venue;';
+          venues = 'venue;categoryId;';
         venues = venues + 'twitter;';
       }
       if (j == 1)
-        linha = '"' + resposta.response.venue.id + '";';
+        linha = '"' + resposta.response.venue.id + '";"' + categorias + '";';
       linha = linha + '"' + resposta.response.venue.contact.twitter + '";';
       break;
     case "phone":
       document.forms[i]["phone"].value = resposta.response.venue.contact.phone;
       if (total == 1) {
         if (j == 1)
-          venues = 'venue;';
+          venues = 'venue;categoryId;';
         venues = venues + 'phone;';
       }
       if (j == 1)
-        linha = '"' + resposta.response.venue.id + '";';
+        linha = '"' + resposta.response.venue.id + '";"' + categorias + '";';
       linha = linha + '"' + resposta.response.venue.contact.phone + '";';
       break;
     case "url":
       document.forms[i]["url"].value = resposta.response.venue.url;
       if (total == 1) {
         if (j == 1)
-          venues = 'venue;';
+          venues = 'venue;categoryId;';
         venues = venues + 'url;';
       }
       if (j == 1)
-        linha = '"' + resposta.response.venue.id + '";';
+        linha = '"' + resposta.response.venue.id + '";"' + categorias + '";';
       linha = linha + '"' + resposta.response.venue.url + '";';
       break;
     case "description":
       document.forms[i]["description"].value = resposta.response.venue.description;
       if (total == 1) {
         if (j == 1)
-          venues = 'venue;';
+          venues = 'venue;categoryId;';
         venues = venues + 'description;';
       }
       if (j == 1)
-        linha = '"' + resposta.response.venue.id + '";';
+        linha = '"' + resposta.response.venue.id + '";"' + categorias + '";';
       linha = linha + '"' + resposta.response.venue.description + '";';
       break;
     case "ll":
       document.forms[i]["ll"].value = resposta.response.venue.location.lat + ', ' + resposta.response.venue.location.lng;
       if (total == 1) {
         if (j == 1)
-          venues = 'venue;';
+          venues = 'venue;categoryId;';
         venues = venues + 'll;';
       }
       if (j == 1)
-        linha = '"' + resposta.response.venue.id + '";';
+        linha = '"' + resposta.response.venue.id + '";"' + categorias + '";';
       linha = linha + '"' + resposta.response.venue.location.lat + ', ' + resposta.response.venue.location.lng + '";';
       break;
     default:
@@ -358,8 +363,12 @@ function atualizarTabela(resposta, i) {
       //dojo.byId("regras").blur();
     //}
   }
+  if (resposta.response.venue.categories[0] == undefined)
+    document.getElementById("c" + i).innerHTML += "<img id=cats src='http://foursquare.com/img/categories/none.png' style='height: 22px; width: 22px'>";
+  else
+    document.getElementById("c" + i).innerHTML += "<img id=cats src='" + resposta.response.venue.categories[0].icon.prefix + resposta.response.venue.categories[0].icon.sizes[0] + resposta.response.venue.categories[0].icon.name + "' style='height: 22px; width: 22px'>";
   if (total == 1)
-    venues = venues.slice(0, venues.length - 1) + '\n';
+    venues = venues.slice(0, -1) + '\n';
   venues = venues + linha.replace(/undefined/gi, "") + '\n';
   var dica = "<b>" + resposta.response.venue.name + "</b>";
   try {
@@ -446,7 +455,7 @@ dojo.addOnLoad(function() {
 });
 function showDialog() {
   // set the content of the dialog:
-  dlg.attr("content", "<ul><li><p>Use sempre a ortografia e as letras maiúsculas corretas.</p></li><li><p>Em redes ou lugares com vários locais, não é mais preciso adicionar um sufixo de local. Portanto, pode deixar &quot;Starbucks&quot; ou &quot;Apple Store&quot; (em vez de &quot;Starbucks - Queen Anne&quot; ou &quot;Apple Store – Cidade alta&quot;).</p></li><li><p>Sempre que possível, use abreviações: &quot;Av.&quot; em vez de &quot;Avenida&quot;, &quot;R.&quot; em vez de &quot;Rua&quot;, etc.</p></li><li>Cross Street should be like one of the following:<ul><li>na R. Main (para lugares em uma esquina)</li><li>entre a Av. 2a. e Av. 3a. (para lugares no meio de um quarteirão)</li></ul><br></li><li>A R. Cross não <b>deve</b> ter o nome repetido da rua no endereço.<ul><li>Se o local é na R. Principal, a rua transversal deve ser &quot;na Segunda Av.&quot;</li><li>A transversal não deve ser &quot;R. Principal na R. Segunda&quot;</li></ul></li><li><p>Os nomes de estados e províncias devem ser abreviados.</p></li><li><p><b>Em caso de dúvida, formate os endereços de lugares de acordo com as diretrizes postais locais.</b></p></li><li><p>Se tiver mais perguntas sobre a criação e edição de lugares no foursquare, consulte nossas <a href='https://pt.foursquare.com/info/houserules' target='_blank'>regras da casa</a> e as <a href='http://support.foursquare.com/forums/191151-venue-help' target='_blank'>perguntas frequentes sobre lugares</a>.</p></li></ul>");
+  dlg.attr("content", "<ul><li><p>Use sempre a ortografia e as letras maiúsculas corretas.</p></li><li><p>Em redes ou lugares com vários locais, não é mais preciso adicionar um sufixo de local. Portanto, pode deixar &quot;Starbucks&quot; ou &quot;Apple Store&quot; (em vez de &quot;Starbucks - Queen Anne&quot; ou &quot;Apple Store - Cidade alta&quot;).</p></li><li><p>Sempre que possível, use abreviações: &quot;Av.&quot; em vez de &quot;Avenida&quot;, &quot;R.&quot; em vez de &quot;Rua&quot;, etc.</p></li><li>Cross Street should be like one of the following:<ul><li>na R. Main (para lugares em uma esquina)</li><li>entre a Av. 2a. e Av. 3a. (para lugares no meio de um quarteirão)</li></ul><br></li><li>A R. Cross não deve ter o nome repetido da rua no endereço.<ul><li>Se o local é na R. Principal, a rua transversal deve ser &quot;na Segunda Av.&quot;</li><li>A transversal não deve ser &quot;R. Principal na R. Segunda&quot;</li></ul></li><li><p>Os nomes de Estados e províncias devem ser abreviados.</p></li><li><p>Em caso de dúvida, formate os endereços de lugares de acordo com as diretrizes postais locais.</p></li><li><p>Se tiver mais perguntas sobre a criação e edição de lugares no foursquare, consulte nossas <a href='https://pt.foursquare.com/info/houserules' target='_blank'>regras da casa</a> e as <a href='http://support.foursquare.com/forums/191151-venue-help' target='_blank'>perguntas frequentes sobre lugares</a>.</p></li></ul>");
   dlg.show();
 }
 //var node = dojo.byId("forms");
@@ -559,6 +568,8 @@ foreach ($file as $f) {
     echo str_pad($i, 3, "0", STR_PAD_LEFT);
   echo '</a>', chr(10);
 
+  echo '<span id="c', $i - 1, '"></span>', chr(10);
+
   if ($editName) {
     echo '<input type="text" dojoType="dijit.form.TextBox" name="name" maxlength="256" value=" " placeHolder="Nome" style="width: ', 9 + $ajusteInput, 'em; margin-left: 5px;" onFocus="window.temp=this.value" onBlur="if (window.temp != this.value) dojo.byId(\'result', $i - 1, '\').innerHTML=\'\'" onChange="dojo.byId(\'result', $i - 1, '\').innerHTML=\'\'">', chr(10);
   }
@@ -611,9 +622,9 @@ foreach ($file as $f) {
 }
 ?>
 </div>
-<button dojoType="dijit.form.Button" type="button" onclick="salvarVenues()" name="submitButton">Salvar</button>
-<button dojoType="dijit.form.Button" type="button" onclick="exportarVenues()" name="submitButton">Exportar</button>
-<button dojoType="dijit.form.Button" type="button" onclick="history.go(-1)" name="backButton">Voltar</button>
+<button id="submitButton" dojoType="dijit.form.Button" type="submit" name="submitButton" onclick="salvarVenues()">Salvar</button>
+<button id="exportButton" dojoType="dijit.form.Button" type="button" onclick="exportarVenues()" name="exportButton">Exportar</button>
+<button id="backButton" dojoType="dijit.form.Button" type="button" onclick="history.go(-1)" name="backButton">Voltar</button>
 <p><div id="result"></div></p>
 </body>
 </html>
