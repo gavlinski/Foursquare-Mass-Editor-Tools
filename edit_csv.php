@@ -115,7 +115,7 @@ dojo.addOnLoad(function() {
   // create the dialog:
   dlg = new dijit.Dialog({
     title: "Guia de estilo",
-    style: "width: 430px"
+    style: "width: 435px"
   });
 });
 function showDialog() {
@@ -133,11 +133,6 @@ function showDialog() {
 <p>Antes de salvar suas altera&ccedil;&otilde;es, n&atilde;o deixe de ler nosso <a href="javascript:showDialog();">guia de estilo</a> e as <a href="https://pt.foursquare.com/info/houserules" target="_blank">regras da casa</a>.<p>
 <div id="listContainer">
 <?php
-if (array_key_exists("categoryId", $file[0])) {
-  $hasCategoryId = true;
-} else {
-  $hasCategoryId = false;
-}
 if (array_key_exists("name", $file[0])) {
   $hasName = true;
 } else {
@@ -193,6 +188,11 @@ if (array_key_exists("ll", $file[0])) {
 } else {
   $hasLl = false;
 }
+if (array_key_exists("categoryId", $file[0])) {
+  $hasCategoryId = true;
+} else {
+  $hasCategoryId = false;
+}
 
 $ufs = array("AC", "AL", "AP", "AM", "BA", "CE", "DF", "ES", "GO", "MA", "MT", "MS", "MG", "PA", "PB", "PR", "PE", "PI", "RJ", "RN", "RS", "RO", "RR", "SC", "SP", "SE", "TO");
 
@@ -212,15 +212,6 @@ foreach ($file as $f) {
   else
     echo str_pad($i, 3, "0", STR_PAD_LEFT);
   echo '</a>', chr(10);
-
-  $categoryId = htmlentities($f['categoryId']);
-  if ($hasCategoryId) {
-    if (($categoryId != '') && ($categoryId != ' ')) {
-      echo '<input type="text" dojoType="dijit.form.TextBox" name="categoryId" maxlength="75" value="', $categoryId, '" placeHolder="Categorias" style="width: 9em; margin-left: 5px;" onFocus="window.temp=this.value" onBlur="if (window.temp != this.value) dojo.byId(\'result', $i - 1, '\').innerHTML=\'\'" onChange="dojo.byId(\'result', $i - 1, '\').innerHTML=\'\'">', chr(10);
-    } else {
-      echo '<input type="text" dojoType="dijit.form.TextBox" name="categoryId" placeHolder="Categorias" style="width: 9em; margin-left: 5px;" disabled>', chr(10);
-    }
-  }
 
   $name = htmlentities($f['name']);
   if ($hasName) {
@@ -286,6 +277,15 @@ foreach ($file as $f) {
       echo '<input type="text" dojoType="dijit.form.TextBox" name="ll" maxlength="402" value="', $ll, '" placeHolder="Lat/Long" style="width: 9em; margin-left: 5px;" onFocus="window.temp=this.value" onBlur="if (window.temp != this.value) dojo.byId(\'result', $i - 1, '\').innerHTML=\'\'" onChange="dojo.byId(\'result', $i - 1, '\').innerHTML=\'\'">', chr(10);
     } else {
       echo '<input type="text" dojoType="dijit.form.TextBox" name="ll" placeHolder="Lat/Long" style="width: 9em; margin-left: 5px;" disabled>', chr(10);
+    }
+  }
+
+  $categoryId = htmlentities($f['categoryId']);
+  if ($hasCategoryId) {
+    if (($categoryId != '') && ($categoryId != ' ')) {
+      echo '<input type="text" dojoType="dijit.form.TextBox" name="categoryId" maxlength="75" value="', $categoryId, '" placeHolder="Categorias" style="width: 9em; margin-left: 5px;" onFocus="window.temp=this.value" onBlur="if (window.temp != this.value) dojo.byId(\'result', $i - 1, '\').innerHTML=\'\'" onChange="dojo.byId(\'result', $i - 1, '\').innerHTML=\'\'">', chr(10);
+    } else {
+      echo '<input type="text" dojoType="dijit.form.TextBox" name="categoryId" placeHolder="Categorias" style="width: 9em; margin-left: 5px;" disabled>', chr(10);
     }
   }
 
