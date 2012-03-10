@@ -31,7 +31,7 @@
  	public static function open($file, $delimiter = ';'){
  		return self::csvArray($file, $delimiter);
  	}
- 	private function csvArray($file, $delimiter)
+ 	private static function csvArray($file, $delimiter)
  	{
  		$result = Array();
  		$size = filesize($file) + 1;
