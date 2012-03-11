@@ -103,7 +103,7 @@ function salvarVenues() {
           dados += "&ll=" + document.forms[i]["ll"].value;
       }
     }
-    dados += "&v=20120213";
+    dados += "&v=20120311";
     //document.getElementById("result").innerHTML += "<br>venue=" +venue + "<br>dados=" + dados + "<br>result=result" + i;
     document.getElementById("result" + i).innerHTML = "<img src='img/loading.gif' alt='Enviando dados...'>";
     xmlhttpPost(venue, dados, i);

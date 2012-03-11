@@ -17,28 +17,36 @@ h2 {
 h3 {
   font-weight: bold;
   font-size: 14px;
-  margin-top:15px;
+  margin-top: 15px;
 }
 a:link {
-  color : #2398c9;
+  color: #2398c9;
   text-decoration: none;
-  font-weight : bold;
+  font-weight: bold;
 }
 a:visited {
-  color : #2398c9;
+  color: #2398c9;
   text-decoration: none;
-  font-weight : bold;
+  font-weight: bold;
 }
 a:active {
-  color : #2398c9;
+  color: #2398c9;
   text-decoration: none;
-  font-weight : bold;
+  font-weight: bold;
 }
 a:hover {
-  color : #2398c9;
+  color: #2398c9;
   text-decoration: underline;
-  font-weight : bold;
+  font-weight: bold;
 }
+/*
+*:focus {
+  outline: none;
+}
+*::-moz-focus-inner {
+  border: none;
+}
+*/
 #toolContainer {
   min-width: 535px;
   background-color: #f9f9f9;
@@ -122,4 +130,34 @@ a:hover {
   vertical-align: middle;
   width: 16px;
   position: relative;
+}
+#catsContainer {
+  width: 357px;
+  margin-left: 3px;
+  font-size: 92%;
+  -moz-user-select: -moz-none;
+  -khtml-user-select: none;
+  -webkit-user-select: none;
+  user-select: none;
+}
+#catsContainer .categoria {
+  float: left;
+  margin-right: 4px;
+  margin-bottom: 2px;
+  cursor: pointer;
+  color: #5A5858;
+}
+#catsContainer .categoria:hover {
+  color: #000000;
+}
+#treeContainer {
+  width: 360px;
+  height: 204px;
+  font-size: 92%;
+  padding-top: 3px;
+  margin-bottom: 6px;
+  -moz-user-select: -moz-none;
+  -khtml-user-select: none;
+  -webkit-user-select: none;
+  user-select: none;
 }

@@ -99,8 +99,10 @@ function parseVenues($html) {
 
   foreach ($lines as $line_num => $line) {
     /*** Listas do usuario do foursquare ***/
-    if (stripos($line, 'ITEMS_JSON') !== false) {
-      $ret = array_slice(explode('\"venue\":{\"id\":\"', $line), 1);
+    //if (stripos($line, 'ITEMS_JSON') !== false) {
+    if (stripos($line, 'itemsJson') !== false) {
+      //$ret = array_slice(explode('\"venue\":{\"id\":\"', $line), 1);
+      $ret = array_slice(explode('"venue":{"id":"', $line), 1);
       break;
     /*** Resultados da pesquisa ***/
     } else if (stripos($line, 'fourSq.tiplists.setupSearchPageListControls([{"id":"v') !== false) {
@@ -181,9 +183,13 @@ dojo.require("dijit.form.Button");
 dojo.require("dijit.form.ComboBox");
 dojo.require("dijit.form.TextBox");
 dojo.require("dijit.Tooltip");
+dojo.require("dojo.data.ItemFileReadStore");
+dojo.require("dijit.Tree");
 var total = 0;
 var venues = "";
-//var categories = "";
+var categorias = new Array();
+var store = {};
+var timer = null;
 function xmlhttpRequest(metodo, endpoint, dados, i) {
   var xmlhttp = new XMLHttpRequest();
   xmlhttp.onreadystatechange = function() {
@@ -192,8 +198,10 @@ function xmlhttpRequest(metodo, endpoint, dados, i) {
       if (xmlhttp.status == 200)
         if (metodo == "POST")
           document.getElementById("result" + i).innerHTML = "<img src='img/ok.png' alt='" + xmlhttp.responseText + "' style='vertical-align: middle;'>";
-        else
+        else if ((metodo == "GET") && (resposta.response.categories == undefined))
           atualizarTabela(resposta, i);
+        else if (resposta.response.categories != undefined)
+          montarArvore(resposta);
       else if (xmlhttp.status == 400)
         document.getElementById("result" + i).innerHTML = "<img src='img/erro.png' alt='" + "Erro 400: Bad Request, Tipo: " + resposta.meta.errorType + ", Detalhe: " + resposta.meta.errorDetail + "'>";
       else if (xmlhttp.status == 401)
@@ -217,14 +225,132 @@ function xmlhttpRequest(metodo, endpoint, dados, i) {
   xmlhttp.send(dados);
   return false;
 }
+function Categoria(ids, nomes, icones) {
+   this.ids = ids;
+   this.nomes = nomes;
+   this.icones = icones;
+}
+function atualizarCategorias(nomes, ids, icones) {
+  document.getElementById("catsContainer").innerHTML = "";
+  for (j = 0; j < nomes.length; j++)
+    document.getElementById("catsContainer").innerHTML += "<div id='categoria" + (j + 1) + "' class='categoria' ondblclick=\"tornarCategoriaPrimaria('" + (j + 1) + "')\" onclick=\"removerCategoria('" + (j + 1) + "')\">" + nomes[j] + ",</div>";
+  document.getElementById("catsContainer").innerHTML = document.getElementById("catsContainer").innerHTML.slice(0, -7) + "</div>";
+  document.getElementById("catsIds").innerHTML = ids;
+  document.getElementById("catsIcones").innerHTML = icones;
+  //console.log(document.getElementById("catsIcones").innerHTML);
+}
+function carregarCategorias(i) {
+  var nomes = new Array();
+  var ids =  "";
+  var icones = "";
+  if (document.getElementById("cid" + i).value != "") {
+    nomes = document.getElementById("cna" + i).value.split(",", 3);
+    ids = document.getElementById("cid" + i).value;
+    icones = document.getElementById("cic" + i).value;
+  }
+  atualizarCategorias(nomes, ids, icones);
+  document.getElementById("venueIndex").innerHTML = i;
+  dijit.byId("dlg_cats").show();
+}
+function removerCategoria(i) {
+  if (timer)
+    clearTimeout(timer);
+  timer = setTimeout(function() {
+    //console.info('Remover a categoria ' + i);
+    var nomes = new Array();
+    var ids = "";
+    var icones = "";
+    if ((document.getElementById("categoria1") !== null) && (i != 1)) {
+      nomes.push(document.getElementById("categoria1").innerHTML.replace(/,/gi, ""));
+      ids += document.getElementById("catsIds").innerHTML.substr(0, 24) + ",";
+      icones += document.getElementById("catsIcones").innerHTML.split(",", 1)[0] + ",";
+    }
+    if ((document.getElementById("categoria2") !== null) && (i != 2)) {
+      nomes.push(document.getElementById("categoria2").innerHTML.replace(/,/gi, ""));
+      ids += document.getElementById("catsIds").innerHTML.substr(25, 24) + ",";
+      icones += document.getElementById("catsIcones").innerHTML.split(",", 2)[1] + ",";
+    }
+    if ((document.getElementById("categoria3") !== null) && (i != 3)) {
+      nomes.push(document.getElementById("categoria3").innerHTML);
+      ids += document.getElementById("catsIds").innerHTML.substr(50, 24) + ",";
+      icones += document.getElementById("catsIcones").innerHTML.split(",", 3)[2] + ",";
+    }
+    atualizarCategorias(nomes, ids.slice(0, -1), icones.slice(0, -1));
+  }, 250);
+}
+function tornarCategoriaPrimaria(i) {
+  clearTimeout(timer);
+  //console.info("Tornar a categoria " + i + " primaria");
+  var nomes = new Array();
+  var ids = "";
+  var icones = "";
+  nomes.push(document.getElementById("categoria" + i).innerHTML.replace(/,/gi, ""));
+  if (i == 1) {
+    ids += document.getElementById("catsIds").innerHTML.substr(0, 24) + ",";
+    icones += document.getElementById("catsIcones").innerHTML.split(",", 1)[0] + ",";
+  } else if (i == 2) {
+    ids += document.getElementById("catsIds").innerHTML.substr(25, 24) + ",";
+    icones += document.getElementById("catsIcones").innerHTML.split(",", 2)[1] + ",";
+  } else if (i == 3) {
+    ids += document.getElementById("catsIds").innerHTML.substr(50, 24) + ",";
+    icones += document.getElementById("catsIcones").innerHTML.split(",", 3)[2] + ",";
+  }
+  if ((document.getElementById("categoria1") !== null) && (i != 1)) {
+    nomes.push(document.getElementById("categoria1").innerHTML.replace(/,/gi, ""));
+    ids += document.getElementById("catsIds").innerHTML.substr(0, 24) + ",";
+    icones += document.getElementById("catsIcones").innerHTML.split(",", 1)[0] + ",";
+  }
+  if ((document.getElementById("categoria2") !== null) && (i != 2)) {
+    nomes.push(document.getElementById("categoria2").innerHTML.replace(/,/gi, ""));
+    ids += document.getElementById("catsIds").innerHTML.substr(25, 24) + ",";
+    icones += document.getElementById("catsIcones").innerHTML.split(",", 2)[1] + ",";
+  }
+  if ((document.getElementById("categoria3") !== null) && (i != 3)) {
+    nomes.push(document.getElementById("categoria3").innerHTML);
+    ids += document.getElementById("catsIds").innerHTML.substr(50, 24) + ",";
+    icones += document.getElementById("catsIcones").innerHTML.split(",", 3)[2] + ",";
+  }
+  atualizarCategorias(nomes, ids.slice(0, -1), icones.slice(0, -1));
+}
+function salvarCategorias() {
+  var i = document.getElementById("venueIndex").innerHTML;
+  var nomes = "";
+  if (document.getElementById("catsIds").innerHTML != "") {
+    nomes = document.getElementById("categoria1").innerHTML;
+    if (document.getElementById("categoria2") !== null)
+      nomes += document.getElementById("categoria2").innerHTML;
+    if (document.getElementById("categoria3") !== null)
+      nomes += document.getElementById("categoria3").innerHTML;
+    document.getElementById("cna" + i).value = nomes;
+    document.getElementById("cid" + i).value = document.getElementById("catsIds").innerHTML;
+    document.getElementById("cic" + i).value = document.getElementById("catsIcones").innerHTML;
+    document.getElementById("icone" + i).innerHTML = "<a id='catLnk" + i + "' href='#editarCategorias' onclick='carregarCategorias(" + i + ")'><img id=catImg" + i + " src='" + document.getElementById("cic" + i).value.split(",", 1)[0] + "' style='height: 22px; width: 22px; margin-left: 0px'></a>";
+    //console.log(document.getElementById("cna" + i).value);
+    //console.log(document.getElementById("cid" + i).value);
+    //console.log(document.getElementById("cic" + i).value);
+    dijit.byId('dlg_cats').hide();
+  }
+}
 function atualizarTabela(resposta, i) {
   total++;
-  var categorias, linha = "";
+  var linha = "";
+  categorias[i] = new Categoria();
   for (j = 0; j < resposta.response.venue.categories.length; j++) {
-    categorias += resposta.response.venue.categories[j].id + ",";
+    categorias[i].ids += resposta.response.venue.categories[j].id + ",";
+    categorias[i].nomes += resposta.response.venue.categories[j].name + ",";
+    categorias[i].icones += resposta.response.venue.categories[j].icon.prefix + resposta.response.venue.categories[j].icon.sizes[0] + resposta.response.venue.categories[j].icon.name + ",";
   }
-  categorias = categorias.slice(0, -1);
-  for (j = 1; j < document.forms[i].elements.length; j++) {
+  if (categorias[i].ids != undefined) {
+    categorias[i].ids = categorias[i].ids.slice(0, -1).replace(/undefined/gi, "");
+    document.getElementById("cid" + i).value = categorias[i].ids;
+    categorias[i].nomes = categorias[i].nomes.slice(0, -1).replace(/undefined/gi, "");
+    document.getElementById("cna" + i).value = categorias[i].nomes;
+    categorias[i].icones = categorias[i].icones.slice(0, -1).replace(/undefined/gi, "");
+    document.getElementById("cic" + i).value = categorias[i].icones;
+    //console.log(document.getElementById("cna" + i).value + " (" + document.getElementById("cid" + i).value + ") [" + document.getElementById("cic" + i).value + "]");
+    //console.log(categorias[i].nomes + " (" + categorias[i].ids + ") [" + categorias[i].icones + "]");
+  }
+  for (j = 1; j < document.forms[i].elements.length - 2; j++) {
     switch (document.forms[i].elements[j].name) {
     case "name":
       document.forms[i]["name"].value = resposta.response.venue.name;
@@ -234,7 +360,7 @@ function atualizarTabela(resposta, i) {
         venues = venues + 'name;';
       }
       if (j == 1)
-        linha = '"' + resposta.response.venue.id + '";"' + categorias + '";';
+        linha = '"' + resposta.response.venue.id + '";"' + categorias[i].ids + '";';
       linha = linha + '"' + resposta.response.venue.name + '";';
       break;
     case "address":
@@ -245,7 +371,7 @@ function atualizarTabela(resposta, i) {
         venues = venues + 'address;';
       }
       if (j == 1)
-        linha = '"' + resposta.response.venue.id + '";"' + categorias + '";';
+        linha = '"' + resposta.response.venue.id + '";"' + categorias[i].ids + '";';
       linha = linha + '"' + resposta.response.venue.location.address + '";';
       break;
     case "crossStreet":
@@ -256,7 +382,7 @@ function atualizarTabela(resposta, i) {
         venues = venues + 'crossStreet;';
       }
       if (j == 1)
-        linha = '"' + resposta.response.venue.id + '";"' + categorias + '";';
+        linha = '"' + resposta.response.venue.id + '";"' + categorias[i].ids + '";';
       linha = linha + '"' + resposta.response.venue.location.crossStreet + '";';
       break;
     case "city":
@@ -267,7 +393,7 @@ function atualizarTabela(resposta, i) {
         venues = venues + 'city;';
       }
       if (j == 1)
-        linha = '"' + resposta.response.venue.id + '";"' + categorias + '";';
+        linha = '"' + resposta.response.venue.id + '";"' + categorias[i].ids + '";';
       linha = linha + '"' + resposta.response.venue.location.city + '";';
       break;
     case "state":
@@ -278,7 +404,7 @@ function atualizarTabela(resposta, i) {
         venues = venues + 'state;';
       }
       if (j == 1)
-        linha = '"' + resposta.response.venue.id + '";"' + categorias + '";';
+        linha = '"' + resposta.response.venue.id + '";"' + categorias[i].ids + '";';
       linha = linha + '"' + resposta.response.venue.location.state + '";';
       break;
     case "zip":
@@ -289,7 +415,7 @@ function atualizarTabela(resposta, i) {
         venues = venues + 'zip;';
       }
       if (j == 1)
-        linha = '"' + resposta.response.venue.id + '";"' + categorias + '";';
+        linha = '"' + resposta.response.venue.id + '";"' + categorias[i].ids + '";';
       linha = linha + '"' + resposta.response.venue.location.postalCode + '";';
       break;
     case "twitter":
@@ -300,7 +426,7 @@ function atualizarTabela(resposta, i) {
         venues = venues + 'twitter;';
       }
       if (j == 1)
-        linha = '"' + resposta.response.venue.id + '";"' + categorias + '";';
+        linha = '"' + resposta.response.venue.id + '";"' + categorias[i].ids + '";';
       linha = linha + '"' + resposta.response.venue.contact.twitter + '";';
       break;
     case "phone":
@@ -311,7 +437,7 @@ function atualizarTabela(resposta, i) {
         venues = venues + 'phone;';
       }
       if (j == 1)
-        linha = '"' + resposta.response.venue.id + '";"' + categorias + '";';
+        linha = '"' + resposta.response.venue.id + '";"' + categorias[i].ids + '";';
       linha = linha + '"' + resposta.response.venue.contact.phone + '";';
       break;
     case "url":
@@ -322,7 +448,7 @@ function atualizarTabela(resposta, i) {
         venues = venues + 'url;';
       }
       if (j == 1)
-        linha = '"' + resposta.response.venue.id + '";"' + categorias + '";';
+        linha = '"' + resposta.response.venue.id + '";"' + categorias[i].ids + '";';
       linha = linha + '"' + resposta.response.venue.url + '";';
       break;
     case "description":
@@ -333,7 +459,7 @@ function atualizarTabela(resposta, i) {
         venues = venues + 'description;';
       }
       if (j == 1)
-        linha = '"' + resposta.response.venue.id + '";"' + categorias + '";';
+        linha = '"' + resposta.response.venue.id + '";"' + categorias[i].ids + '";';
       linha = linha + '"' + resposta.response.venue.description + '";';
       break;
     case "ll":
@@ -344,7 +470,7 @@ function atualizarTabela(resposta, i) {
         venues = venues + 'll;';
       }
       if (j == 1)
-        linha = '"' + resposta.response.venue.id + '";"' + categorias + '";';
+        linha = '"' + resposta.response.venue.id + '";"' + categorias[i].ids + '";';
       linha = linha + '"' + resposta.response.venue.location.lat + ', ' + resposta.response.venue.location.lng + '";';
       break;
     default:
@@ -363,13 +489,13 @@ function atualizarTabela(resposta, i) {
       //dojo.byId("regras").blur();
     //}
   }
-  if (resposta.response.venue.categories[0] == undefined)
-    document.getElementById("c" + i).innerHTML += "<img id=cats src='http://foursquare.com/img/categories/none.png' style='height: 22px; width: 22px'>";
-  else
-    document.getElementById("c" + i).innerHTML += "<img id=cats src='" + resposta.response.venue.categories[0].icon.prefix + resposta.response.venue.categories[0].icon.sizes[0] + resposta.response.venue.categories[0].icon.name + "' style='height: 22px; width: 22px'>";
   if (total == 1)
     venues = venues.slice(0, -1) + '\n';
   venues = venues + linha.replace(/undefined/gi, "") + '\n';
+  if (resposta.response.venue.categories[0] == undefined)
+    document.getElementById("icone" + i).innerHTML = "<a id='catLnk" + i + "' href='#editarCategorias' onclick='carregarCategorias(" + i + ")'><img id=catImg" + i + " src='http://foursquare.com/img/categories/none.png' style='height: 22px; width: 22px; margin-left: 0px'></a>";
+  else
+    document.getElementById("icone" + i).innerHTML = "<a id='catLnk" + i + "' href='#editarCategorias' onclick='carregarCategorias(" + i + ")'><img id=catImg" + i + " src='" + categorias[i].icones.split(",", 1)[0] + "' style='height: 22px; width: 22px; margin-left: 0px'></a>";
   var dica = "<b>" + resposta.response.venue.name + "</b>";
   try {
     if (document.forms[i]["address"].value != "")
@@ -400,26 +526,106 @@ function atualizarTabela(resposta, i) {
     label: dica
   });
 }
+function montarArvore(resposta) {
+  var restructuredData = dojo.map(resposta.response.categories, dojo.hitch(this, function(category1) {
+    var newCategory1 = {};
+    newCategory1.id = category1.id;
+    newCategory1.name = category1.name;
+    newCategory1.icon = category1.icon.prefix + category1.icon.sizes[0] + category1.icon.name;
+    newCategory1.children = dojo.map(category1.categories, dojo.hitch(this, function(idPrefix, category2) {
+      var newCategory2 = {};
+      //newCategory2.id = idPrefix + "_" + category2.id;
+      newCategory2.id = category2.id;
+      newCategory2.name = category2.name;
+      newCategory2.icon = category2.icon.prefix + category2.icon.sizes[0] + category2.icon.name;
+      if (category2.categories != "") {
+        newCategory2.children = dojo.map(category2.categories, dojo.hitch(this, function(idPrefix, category3) {
+          var newCategory3 = {};
+          //newCategory3.id = idPrefix + "_" + category3.id;
+          newCategory3.id = category3.id;
+          newCategory3.name = category3.name;
+          newCategory3.icon = category3.icon.prefix + category3.icon.sizes[0] + category3.icon.name;
+          return newCategory3;
+        }, newCategory2.id));
+      }
+    return newCategory2;
+    }, newCategory1.id));
+  return newCategory1;
+  }));
+  //JSONText = JSON.stringify(restructuredData);
+  //console.log(JSONText);
+  store = new dojo.data.ItemFileReadStore({
+    data: {
+      "identifier": "id",
+      "label": "name",
+      "items": restructuredData
+    }
+  });
+  var treeModel = new dijit.tree.ForestStoreModel({
+    store: store,
+    rootId: "root",
+    rootLabel: "Categorias",
+    childrenAttrs: ["children"]
+  });
+  new dijit.Tree({
+    model: treeModel,
+    showRoot: false,
+    onClick: treeOnClick,
+    getIconClass: function(/*dojo.data.Item*/ item, /*Boolean*/ opened) {
+      var style = document.createElement('style');
+      style.type = 'text/css';
+      style.innerHTML = '.icon' + item.id + ' { background-image: url(\'' + item.icon + '\'); background-size: 16px 16px; width: 16px; height: 16px; }';
+      document.getElementsByTagName('head')[0].appendChild(style);
+      return 'icon' + item.id;
+    }
+  }, "treeContainer");
+}
+function treeOnClick(item) {
+  if (!item.root) {
+    //console.log("Execute of node " + store.getLabel(item) + ", id=" + store.getValue(item, "id") + ", icon=" + store.getValue(item, "icon"));
+    var i = 1;
+    if (document.getElementById("categoria3") !== null)
+      //console.warn("Limite maximo de categorias");
+      return false;
+    else if (((document.getElementById("categoria2") !== null) && (document.getElementById("categoria2").innerHTML.replace(/,/gi, "") == store.getLabel(item))) || ((document.getElementById("categoria1") !== null) && (document.getElementById("categoria1").innerHTML.replace(/,/gi, "") == store.getLabel(item))))
+      //console.warn("Categoria repetida");
+      return false;
+    else if (document.getElementById("categoria2") !== null)
+      i = 3;
+    else if (document.getElementById("categoria1") !== null)
+      i = 2;
+    // Adiciona categoria
+    if (i != 1) {
+      document.getElementById("catsContainer").innerHTML = document.getElementById("catsContainer").innerHTML.slice(0, -6) + ",</div>"
+      document.getElementById("catsIds").innerHTML += ",";
+      document.getElementById("catsIcones").innerHTML += ",";
+    }
+    document.getElementById("catsContainer").innerHTML += "<div id='categoria" + i + "' class='categoria' ondblclick=\"tornarCategoriaPrimaria('" + i + "')\" onclick=\"removerCategoria('" + i + "')\">" + store.getLabel(item) + "</div>";
+    document.getElementById("catsIds").innerHTML += store.getValue(item, "id");
+    document.getElementById("catsIcones").innerHTML += store.getValue(item, "icon");
+    return true;
+  }
+}
+var oauth_token = "<?php echo $oauth_token;?>";
 function carregarVenues() {
-  var oauth_token = "<?php echo $oauth_token;?>";
-  var venue, resposta;
-  //document.getElementById("result").innerHTML = "Recuperando dados...";
+  var venue;
+  //console.info("Recuperando dados das venues...");
   for (i = 0; i < document.forms.length; i++) {
     venue = document.forms[i]["venue"].value;
-    xmlhttpRequest("GET", "https://api.foursquare.com/v2/venues/" + venue + "?oauth_token=" + oauth_token + "&v=20120213", null, i);
-    document.getElementById("result" + i).innerHTML = "<img src='img/loading.gif' alt='Recuperando dados...'>"
+    xmlhttpRequest("GET", "https://api.foursquare.com/v2/venues/" + venue + "?oauth_token=" + oauth_token + "&v=20120311", null, i);
+    document.getElementById("result" + i).innerHTML = "<img src='img/loading.gif' alt='Recuperando dados...'>";
   }
-  //document.getElementById("result").innerHTML = "Dados recuperados!";
+  //console.info("Venues recuperadas!");
 }
 function salvarVenues() {
-  var oauth_token = "<?php echo $oauth_token;?>";
   var venue, dados, ll;
-  //document.getElementById("result").innerHTML = "Enviando dados...";
+  //console.info("Enviando dados...");
   for (i = 0; i < document.forms.length; i++) {
     dados = "oauth_token=" + oauth_token;
     for (j = 1; j < document.forms[i].elements.length; j++) {
       venue = document.forms[i]["venue"].value;
       if ((document.forms[i].elements[j].name != "ll") &&
+          (document.forms[i].elements[j].name != "categoryId") &&
           ((document.forms[i].elements[j].name == "name")
            || (document.forms[i].elements[j].name == "address")
            || (document.forms[i].elements[j].name == "crossStreet")
@@ -431,32 +637,44 @@ function salvarVenues() {
            || (document.forms[i].elements[j].name == "url")
            || (document.forms[i].elements[j].name == "description")))
         dados += "&" + document.forms[i].elements[j].name + "=" + document.forms[i].elements[j].value.replace(/&/g, "%26");
-      else if (document.forms[i].elements[j].name == "ll") {
+      else if (document.forms[i].elements[j].name == "categoryId") {
+        categoryId = document.forms[i]["categoryId"].value;
+        if (categoryId != null && categoryId != "")
+          dados += "&categoryId=" + document.forms[i]["categoryId"].value;
+      } else if (document.forms[i].elements[j].name == "ll") {
         ll = document.forms[i]["ll"].value;
         if (ll != null && ll != "")
           dados += "&ll=" + document.forms[i]["ll"].value;
       }
     }
-    dados += "&v=20120213";
-    //document.getElementById("result").innerHTML += "<br>venue=" +venue + "<br>dados=" + dados + "<br>result=result" + i;
+    dados += "&v=20120311";
+    //console.group("venue=" + venue + " (" + i + ")");
+    //console.log(dados);
+    //console.groupEnd();
     xmlhttpRequest("POST", "https://api.foursquare.com/v2/venues/" + venue + "/edit", dados, i);
     document.getElementById("result" + i).innerHTML = "<img src='img/loading.gif' alt='Enviando dados...'>";
   }
-  //document.getElementById("result").innerHTML = "Dados enviados!";
+  //console.info("Dados enviados!");
 }
-var dlg;
+function carregarListaCategorias() {
+  //console.info("Recuperando dados das categorias...");
+  xmlhttpRequest("GET", "https://api.foursquare.com/v2/venues/categories" + "?oauth_token=" + oauth_token + "&v=20120221", null, i);
+  //console.info("Categorias recuperadas!");
+}
+var dlgGuia;
 dojo.addOnLoad(function() {
   // create the dialog:
-  dlg = new dijit.Dialog({
+  dlg_guia = new dijit.Dialog({
     title: "Guia de estilo",
-    style: "width: 400px"
+    style: "width: 435px"
   });
   carregarVenues();
+  carregarListaCategorias();
 });
-function showDialog() {
+function showDialog_guia() {
   // set the content of the dialog:
-  dlg.attr("content", "<ul><li><p>Use sempre a ortografia e as letras maiúsculas corretas.</p></li><li><p>Em redes ou lugares com vários locais, não é mais preciso adicionar um sufixo de local. Portanto, pode deixar &quot;Starbucks&quot; ou &quot;Apple Store&quot; (em vez de &quot;Starbucks - Queen Anne&quot; ou &quot;Apple Store - Cidade alta&quot;).</p></li><li><p>Sempre que possível, use abreviações: &quot;Av.&quot; em vez de &quot;Avenida&quot;, &quot;R.&quot; em vez de &quot;Rua&quot;, etc.</p></li><li>Cross Street should be like one of the following:<ul><li>na R. Main (para lugares em uma esquina)</li><li>entre a Av. 2a. e Av. 3a. (para lugares no meio de um quarteirão)</li></ul><br></li><li>A R. Cross não deve ter o nome repetido da rua no endereço.<ul><li>Se o local é na R. Principal, a rua transversal deve ser &quot;na Segunda Av.&quot;</li><li>A transversal não deve ser &quot;R. Principal na R. Segunda&quot;</li></ul></li><li><p>Os nomes de Estados e províncias devem ser abreviados.</p></li><li><p>Em caso de dúvida, formate os endereços de lugares de acordo com as diretrizes postais locais.</p></li><li><p>Se tiver mais perguntas sobre a criação e edição de lugares no foursquare, consulte nossas <a href='https://pt.foursquare.com/info/houserules' target='_blank'>regras da casa</a> e as <a href='http://support.foursquare.com/forums/191151-venue-help' target='_blank'>perguntas frequentes sobre lugares</a>.</p></li></ul>");
-  dlg.show();
+  dlg_guia.attr("content", "<ul><li><p>Use sempre a ortografia e as letras maiúsculas corretas.</p></li><li><p>Em redes ou lugares com vários locais, não é mais preciso adicionar um sufixo de local. Portanto, pode deixar &quot;Starbucks&quot; ou &quot;Apple Store&quot; (em vez de &quot;Starbucks - Queen Anne&quot; ou &quot;Apple Store - Cidade alta&quot;).</p></li><li><p>Sempre que possível, use abreviações: &quot;Av.&quot; em vez de &quot;Avenida&quot;, &quot;R.&quot; em vez de &quot;Rua&quot;, etc.</p></li><li>Cross Street should be like one of the following:<ul><li>na R. Main (para lugares em uma esquina)</li><li>entre a Av. 2a. e Av. 3a. (para lugares no meio de um quarteirão)</li></ul><br></li><li>A R. Cross não deve ter o nome repetido da rua no endereço.<ul><li>Se o local é na R. Principal, a rua transversal deve ser &quot;na Segunda Av.&quot;</li><li>A transversal não deve ser &quot;R. Principal na R. Segunda&quot;</li></ul></li><li><p>Os nomes de Estados e províncias devem ser abreviados.</p></li><li><p>Em caso de dúvida, formate os endereços de lugares de acordo com as diretrizes postais locais.</p></li><li><p>Se tiver mais perguntas sobre a criação e edição de lugares no foursquare, consulte nossas <a href='https://pt.foursquare.com/info/houserules' target='_blank'>regras da casa</a> e as <a href='http://support.foursquare.com/forums/191151-venue-help' target='_blank'>perguntas frequentes sobre lugares</a>.</p></li></ul>");
+  dlg_guia.show();
 }
 //var node = dojo.byId("forms");
 //dojo.connect(node, "onkeypress", function(e) {
@@ -475,7 +693,7 @@ function exportarVenues() {
 </head>
 <body class="claro">
 <h2>Editar venues!</h2>
-<p>Antes de salvar suas altera&ccedil;&otilde;es, n&atilde;o deixe de ler nosso <a id="guia" href="javascript:showDialog();">guia de estilo</a> e as <a id="regras" href="https://pt.foursquare.com/info/houserules" target="_blank">regras da casa</a>.<p>
+<p>Antes de salvar suas altera&ccedil;&otilde;es, n&atilde;o deixe de ler nosso <a id="guia" href="javascript:showDialog_guia();">guia de estilo</a> e as <a id="regras" href="https://pt.foursquare.com/info/houserules" target="_blank">regras da casa</a>.<p>
 <div id="listContainer">
 <?php
 $totalCampos = 0;
@@ -559,7 +777,7 @@ foreach ($file as $f) {
   echo '<div class="row">', chr(10), '<form name="form', $i, '" accept-charset="utf-8" encType="multipart/form-data" method="post">', chr(10);
 
   $venue = $venues[$i - 1];
-  echo '<input type="hidden" name="venue" value="', $venue, '"><a id="v', $i - 1, '" href="', $f, '" target="_blank">';
+  echo '<input type="hidden" name="venue" value="', $venue, '"><a id="v', $i - 1, '" href="', $f, '" target="_blank" style="margin-right: 5px;">';
   if (count($file) < 10)
     echo $i;
   else if (count($file) < 100)
@@ -568,7 +786,7 @@ foreach ($file as $f) {
     echo str_pad($i, 3, "0", STR_PAD_LEFT);
   echo '</a>', chr(10);
 
-  echo '<span id="c', $i - 1, '"></span>', chr(10);
+  echo '<span id="icone', $i - 1, '"><img id=catImg', i, ' src="http://foursquare.com/img/categories/none.png" style="height: 22px; width: 22px; margin-left: 0px"></span>', chr(10);
 
   if ($editName) {
     echo '<input type="text" dojoType="dijit.form.TextBox" name="name" maxlength="256" value=" " placeHolder="Nome" style="width: ', 9 + $ajusteInput, 'em; margin-left: 5px;" onFocus="window.temp=this.value" onBlur="if (window.temp != this.value) dojo.byId(\'result', $i - 1, '\').innerHTML=\'\'" onChange="dojo.byId(\'result', $i - 1, '\').innerHTML=\'\'">', chr(10);
@@ -617,7 +835,8 @@ foreach ($file as $f) {
   if ($editLl) {
     echo '<input type="text" dojoType="dijit.form.TextBox" name="ll" maxlength="402" value=" " placeHolder="Lat/Long" style="width: ', 9 + $ajusteInput, 'em; margin-left: 5px;" onFocus="window.temp=this.value" onBlur="if (window.temp != this.value) dojo.byId(\'result', $i - 1, '\').innerHTML=\'\'" onChange="dojo.byId(\'result', $i - 1, '\').innerHTML=\'\'">', chr(10);
   }
-
+  
+  echo '<input id="cid', $i - 1, '" type="hidden" name="categoryId"><input id="cna', $i - 1, '" type="hidden" name="categoryName"><input id="cic', $i - 1, '" type="hidden" name="categoryIcon">', chr(10);
   echo '<span id="result', $i - 1, '"></span>', chr(10), '</form>', chr(10), '</div>', chr(10);
 }
 ?>
@@ -625,6 +844,13 @@ foreach ($file as $f) {
 <button id="submitButton" dojoType="dijit.form.Button" type="submit" name="submitButton" onclick="salvarVenues()">Salvar</button>
 <button id="exportButton" dojoType="dijit.form.Button" type="button" onclick="exportarVenues()" name="exportButton">Exportar</button>
 <button id="backButton" dojoType="dijit.form.Button" type="button" onclick="history.go(-1)" name="backButton">Voltar</button>
-<p><div id="result"></div></p>
+<br><br>
+<div data-dojo-type="dijit.Dialog" id="dlg_cats" data-dojo-props='title:"Categorias"'>
+<div id="catsContainer"></div>
+<div id="treeContainer"></div>
+<button id="saveCatsButton" dojoType="dijit.form.Button" type="button" onclick="salvarCategorias()" name="saveCatsButton">Adicionar</button>
+<button data-dojo-type="dijit.form.Button" type="button" data-dojo-props="onClick:function(){dijit.byId('dlg_cats').hide();}">Cancelar</button>
+<br><div id="venueIndex" style="display: none"></div><div id="catsIds" style="display: none"></div><div id="catsIcones" style="display: none"></div>
+</div>
 </body>
 </html>
