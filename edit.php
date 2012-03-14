@@ -4,7 +4,7 @@ mb_http_output("iso-8859-1");
 ob_start("mb_output_handler");
 header("Content-Type: text/html; charset=ISO-8859-1",true);
 
-define("VERSION", "List Venues Editor 0.8");
+define("VERSION", "List Venues Editor 0.9");
 define("TEMPLATE1", '<html><head><title>' . VERSION . '</title><meta http-equiv="Content-type" content="text/html; charset=ISO-8859-1"/><script src="js/dojo/dojo.js" djConfig="parseOnLoad: true"></script><script type="text/javascript">dojo.require("dijit.form.Button");</script><link rel="shortcut icon" href="favicon.ico" type="image/x-icon"/><link rel="stylesheet" type="text/css" href="js/dijit/themes/claro/claro.css"/><link rel="stylesheet" type="text/css" href="estilo.css"/></head><body class="claro">');
 define("TEMPLATE2", '<p><button dojoType="dijit.form.Button" type="button" onclick="history.go(-1)">Voltar</button></p></body></html>');
 define("ERRO01", TEMPLATE1 . '<p>O limite da API &eacute; de 500 requisi&ccedil;&otilde;es por hora por conjunto de endpoints por OAuth.</p><p>Reduza a quantidade de linhas e tente novamente.' . TEMPLATE2);
@@ -14,9 +14,11 @@ define("ERRO99", '<html><head><title>' . VERSION . '</title><meta http-equiv="Co
 
 $oauth_token = $_POST["oauth_token"];
 
-$arquivo = $_FILES['txts']['tmp_name'][0];
-$pagina = $_POST["pagina"];
-if ($_POST["textarea"] != "")
+if (isset($_FILES['txts']['tmp_name'][0]))
+  $arquivo = $_FILES['txts']['tmp_name'][0];
+if (isset($_POST["pagina"]))
+  $pagina = $_POST["pagina"];
+if ((isset($_POST["textarea"])) && ($_POST["textarea"] != ""))
   $lista = explode("\n", $_POST["textarea"]);
 
 function validarVenues($lines) {
@@ -150,11 +152,11 @@ function parseVenues($html) {
   return $ret;
 }
 
-if (is_uploaded_file($arquivo)) {
+if ((isset($arquivo)) && (is_uploaded_file($arquivo))) {
   $campos = $_POST["campos"];
   $file = validarVenues(file($arquivo));
 
-} else if ($pagina != "")  {
+} else if ((isset($pagina)) && ($pagina != "")) {
   $campos = $_POST["campos2"];
   $file = parseVenues($pagina);
   if (sizeof($file) == 0) {
@@ -324,7 +326,7 @@ function salvarCategorias() {
     document.getElementById("cna" + i).value = nomes;
     document.getElementById("cid" + i).value = document.getElementById("catsIds").innerHTML;
     document.getElementById("cic" + i).value = document.getElementById("catsIcones").innerHTML;
-    document.getElementById("icone" + i).innerHTML = "<a id='catLnk" + i + "' href='#editarCategorias' onclick='carregarCategorias(" + i + ")'><img id=catImg" + i + " src='" + document.getElementById("cic" + i).value.split(",", 1)[0] + "' style='height: 22px; width: 22px; margin-left: 0px'></a>";
+    document.getElementById("icone" + i).innerHTML = "<a id='catLnk" + i + "' href='javascript:carregarCategorias(" + i + ")'><img id=catImg" + i + " src='" + document.getElementById("cic" + i).value.split(",", 1)[0] + "' style='height: 22px; width: 22px; margin-left: 0px'></a>";
     //console.log(document.getElementById("cna" + i).value);
     //console.log(document.getElementById("cid" + i).value);
     //console.log(document.getElementById("cic" + i).value);
@@ -493,37 +495,37 @@ function atualizarTabela(resposta, i) {
     venues = venues.slice(0, -1) + '\n';
   venues = venues + linha.replace(/undefined/gi, "") + '\n';
   if (resposta.response.venue.categories[0] == undefined)
-    document.getElementById("icone" + i).innerHTML = "<a id='catLnk" + i + "' href='#editarCategorias' onclick='carregarCategorias(" + i + ")'><img id=catImg" + i + " src='http://foursquare.com/img/categories/none.png' style='height: 22px; width: 22px; margin-left: 0px'></a>";
+    document.getElementById("icone" + i).innerHTML = "<a id='catLnk" + i + "' href='javascript:carregarCategorias(" + i + ")'><img id=catImg" + i + " src='http://foursquare.com/img/categories/none.png' style='height: 22px; width: 22px; margin-left: 0px'></a>";
   else
-    document.getElementById("icone" + i).innerHTML = "<a id='catLnk" + i + "' href='#editarCategorias' onclick='carregarCategorias(" + i + ")'><img id=catImg" + i + " src='" + categorias[i].icones.split(",", 1)[0] + "' style='height: 22px; width: 22px; margin-left: 0px'></a>";
-  var dica = "<b>" + resposta.response.venue.name + "</b>";
+    document.getElementById("icone" + i).innerHTML = "<a id='catLnk" + i + "' href='javascript:carregarCategorias(" + i + ")'><img id=catImg" + i + " src='" + categorias[i].icones.split(",", 1)[0] + "' style='height: 22px; width: 22px; margin-left: 0px'></a>";
+  var dicaVenue = "<b>" + resposta.response.venue.name + "</b>";
   try {
     if (document.forms[i]["address"].value != "")
-      dica += "<br>" + document.forms[i]["address"].value;
+      dicaVenue += "<br>" + document.forms[i]["address"].value;
   } catch(err) { }
   try {
     if (document.forms[i]["crossStreet"].value != "")
-      dica += " (" + document.forms[i]["crossStreet"].value + ")";
+      dicaVenue += " (" + document.forms[i]["crossStreet"].value + ")";
   } catch(err) { }
   try {
     if (document.forms[i]["city"].value != "") {
-      dica += "<br>" + document.forms[i]["city"].value;
+      dicaVenue += "<br>" + document.forms[i]["city"].value;
       if (document.forms[i]["state"].value != "") {
-        dica += ", " + document.forms[i]["state"].value;
+        dicaVenue += ", " + document.forms[i]["state"].value;
         if (document.forms[i]["zip"].value != "")
-          dica += " " + document.forms[i]["zip"].value;
+          dicaVenue += " " + document.forms[i]["zip"].value;
       }
     } else if (document.forms[i]["state"].value != "") {
-      dica += document.forms[i]["state"].value;
+      dicaVenue += document.forms[i]["state"].value;
       if (document.forms[i]["zip"].value != "")
-        dica += " " + document.forms[i]["zip"].value;
+        dicaVenue += " " + document.forms[i]["zip"].value;
     } else if (document.forms[i]["zip"].value != "") {
-      dica += document.forms[i]["zip"].value;
+      dicaVenue += document.forms[i]["zip"].value;
     }
   } catch(err) { }
   new dijit.Tooltip({
     connectId: ["v" + i],
-    label: dica
+    label: dicaVenue
   });
 }
 function montarArvore(resposta) {
@@ -693,7 +695,7 @@ function exportarVenues() {
 </head>
 <body class="claro">
 <h2>Editar venues!</h2>
-<p>Antes de salvar suas altera&ccedil;&otilde;es, n&atilde;o deixe de ler nosso <a id="guia" href="javascript:showDialog_guia();">guia de estilo</a> e as <a id="regras" href="https://pt.foursquare.com/info/houserules" target="_blank">regras da casa</a>.<p>
+<p>Antes de salvar suas altera&ccedil;&otilde;es, n&atilde;o deixe de ler nosso <a id="guia" href="javascript:showDialog_guia();;">guia de estilo</a> e as <a id="regras" href="https://pt.foursquare.com/info/houserules" target="_blank">regras da casa</a>.<p>
 <div id="listContainer">
 <?php
 $totalCampos = 0;
@@ -786,7 +788,7 @@ foreach ($file as $f) {
     echo str_pad($i, 3, "0", STR_PAD_LEFT);
   echo '</a>', chr(10);
 
-  echo '<span id="icone', $i - 1, '"><img id=catImg', i, ' src="http://foursquare.com/img/categories/none.png" style="height: 22px; width: 22px; margin-left: 0px"></span>', chr(10);
+  echo '<span id="icone', $i - 1, '"><img id=catImg', $i, ' src="http://foursquare.com/img/categories/none.png" style="height: 22px; width: 22px; margin-left: 0px"></span>', chr(10);
 
   if ($editName) {
     echo '<input type="text" dojoType="dijit.form.TextBox" name="name" maxlength="256" value=" " placeHolder="Nome" style="width: ', 9 + $ajusteInput, 'em; margin-left: 5px;" onFocus="window.temp=this.value" onBlur="if (window.temp != this.value) dojo.byId(\'result', $i - 1, '\').innerHTML=\'\'" onChange="dojo.byId(\'result', $i - 1, '\').innerHTML=\'\'">', chr(10);
@@ -848,7 +850,7 @@ foreach ($file as $f) {
 <div data-dojo-type="dijit.Dialog" id="dlg_cats" data-dojo-props='title:"Categorias"'>
 <div id="catsContainer"></div>
 <div id="treeContainer"></div>
-<button id="saveCatsButton" dojoType="dijit.form.Button" type="button" onclick="salvarCategorias()" name="saveCatsButton">Adicionar</button>
+<button id="saveCatsButton" dojoType="dijit.form.Button" type="button" onclick="salvarCategorias()" name="saveCatsButton">Salvar</button>
 <button data-dojo-type="dijit.form.Button" type="button" data-dojo-props="onClick:function(){dijit.byId('dlg_cats').hide();}">Cancelar</button>
 <br><div id="venueIndex" style="display: none"></div><div id="catsIds" style="display: none"></div><div id="catsIcones" style="display: none"></div>
 </div>
