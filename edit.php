@@ -19,7 +19,14 @@ if (isset($_FILES['txts']['tmp_name'][0]))
 if (isset($_POST["pagina"]))
   $pagina = $_POST["pagina"];
 if ((isset($_POST["textarea"])) && ($_POST["textarea"] != ""))
-  $lista = explode("\n", $_POST["textarea"]);
+  $lista = filtrarArray(explode("\n", $_POST["textarea"]));
+
+function filtrarArray($array) {
+  foreach ($array as $i => $value)
+    if (strlen($value) < 25)
+      unset($array[$i]);
+  return array_values($array);
+}
 
 function validarVenues($lines) {
   $ret = array();
@@ -50,7 +57,7 @@ function validarVenues($lines) {
   if (count($ret) > 0) {
     foreach ($ret as &$r) {
       $venues[$i] = substr($r, 0, 24);
-      $r = str_pad($venues[$i], 53, "https://foursquare.com/venue/", STR_PAD_LEFT);
+      $r = "https://foursquare.com/v/" . $venues[$i];
       $i++;
     }
     /*** break the reference with the last element ***/
@@ -77,7 +84,7 @@ function validarVenues($lines) {
         $venues[$i] = substr($line, strrpos($line, "/") + 1, 24);
       } else {
         $venues[$i] = $line;
-        $line = str_pad($line, 54, "https://foursquare.com/venue/", STR_PAD_LEFT);
+        $line = "https://foursquare.com/v/" . $line;
         //$line = "" + $venues[$i];
       }
       $i++;
@@ -113,7 +120,7 @@ function parseVenues($html) {
     }
   }
 
-  /*** Paginas normais com a tag <a href="https://foursquare.com/venue/..."></a> ***/
+  /*** Paginas normais com a tag <a href="https://foursquare.com/venue/..."></a> ou <a href="https://foursquare.com/v/..."></a> ***/
   if ($ret == null) {
     /*** a new dom object ***/
     $dom = new domDocument;
@@ -129,16 +136,16 @@ function parseVenues($html) {
     
     /*** loop over the links ***/
     foreach ($links as $tag) {
-      if (stripos($tag->getAttribute('href'), "/venue/") !== false ) {
-        $venues[$i] = substr($tag->getAttribute('href'), 7, 24);
-        $ret[$i] = str_pad($tag->getAttribute('href'), 53, "https://foursquare.com", STR_PAD_LEFT);
+      if ((stripos($tag->getAttribute('href'), "/venue/") !== false) || (stripos($tag->getAttribute('href'), "/v/") !== false)) {
+        $venues[$i] = substr($tag->getAttribute('href'), -24);
+        $ret[$i] = "https://foursquare.com" . $tag->getAttribute('href');
         $i++;
       }
     }
   } else {
     foreach ($ret as &$r) {
       $venues[$i] = substr($r, 0, 24);
-      $r = str_pad($venues[$i], 53, "https://foursquare.com/venue/", STR_PAD_LEFT);
+      $r = "https://foursquare.com/v/" . $venues[$i];
       $i++;
     }
     /*** break the reference with the last element ***/
@@ -154,7 +161,7 @@ function parseVenues($html) {
 
 if ((isset($arquivo)) && (is_uploaded_file($arquivo))) {
   $campos = $_POST["campos"];
-  $file = validarVenues(file($arquivo));
+  $file = validarVenues(filtrarArray(file($arquivo)));
 
 } else if ((isset($pagina)) && ($pagina != "")) {
   $campos = $_POST["campos2"];
