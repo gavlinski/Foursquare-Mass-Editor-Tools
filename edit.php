@@ -197,29 +197,38 @@ function xmlhttpRequest(metodo, endpoint, dados, i) {
   xmlhttp.onreadystatechange = function() {
     if (xmlhttp.readyState == 4) {
       var resposta = JSON.parse(xmlhttp.responseText);
-      if (xmlhttp.status == 200)
+      if (xmlhttp.status == 200) {
         if (metodo == "POST")
           document.getElementById("result" + i).innerHTML = "<img src='img/ok.png' alt='" + xmlhttp.responseText + "' style='vertical-align: middle;'>";
         else if ((metodo == "GET") && (resposta.response.categories == undefined))
           atualizarTabela(resposta, i);
         else if (resposta.response.categories != undefined)
           montarArvore(resposta);
-      else if (xmlhttp.status == 400)
-        document.getElementById("result" + i).innerHTML = "<img src='img/erro.png' alt='" + "Erro 400: Bad Request, Tipo: " + resposta.meta.errorType + ", Detalhe: " + resposta.meta.errorDetail + "'>";
-      else if (xmlhttp.status == 401)
-        document.getElementById("result" + i).innerHTML = "<img src='img/erro.png' alt='" + "Erro 401: Unauthorized, Tipo: " + resposta.meta.errorType + ", Detalhe: " + resposta.meta.errorDetail + "'>";
-      else if (xmlhttp.status == 403)
-        document.getElementById("result" + i).innerHTML = "<img src='img/erro.png' alt='" + "Erro 403: Forbidden" + "'>";
-      else if (xmlhttp.status == 404)
-        document.getElementById("result" + i).innerHTML = "<img src='img/erro.png' alt='" + "Erro 404: Not Found" + "'>";
-      else if (xmlhttp.status == 405)
-        document.getElementById("result" + i).innerHTML = "<img src='img/erro.png' alt='" + "Erro 405: Method Not Allowed" + "'>";
-      else if (xmlhttp.status == 409)
-        document.getElementById("result" + i).innerHTML = "<img src='img/erro.png' alt='" + "Erro 409: Conflict" + "'>";
-      else if (xmlhttp.status == 500)
-        document.getElementById("result" + i).innerHTML = "<img src='img/erro.png' alt='" + "Erro 500: Internal Server Error" + "'>";
-      else
-        document.getElementById(result).innerHTML = "<img src='img/erro.png' alt='" + "Erro desconhecido: " + xmlhttp.status + "'>";
+      } else if (xmlhttp.status == 400) {
+        document.getElementById("result" + i).innerHTML = "<img src='img/erro.png' alt='Erro 400: Bad Request, Tipo: " + resposta.meta.errorType + ", Detalhe: " + resposta.meta.errorDetail + "'>";
+        createTooltip("result" + i, "<span style=\"font-size: 92%\">Erro 400: Bad Request, Tipo: " + resposta.meta.errorType + ",<br>Detalhe: " + resposta.meta.errorDetail + "</span>");
+      } else if (xmlhttp.status == 401) {
+        document.getElementById("result" + i).innerHTML = "<img src='img/erro.png' alt='Erro 401: Unauthorized, Tipo: " + resposta.meta.errorType + ", Detalhe: " + resposta.meta.errorDetail + "'>";
+        createTooltip("result" + i, "<span style=\"font-size: 92%\">Erro 401: Unauthorized, Tipo: " + resposta.meta.errorType + ",<br>Detalhe: " + resposta.meta.errorDetail + "</span>");
+      } else if (xmlhttp.status == 403) {
+        document.getElementById("result" + i).innerHTML = "<img src='img/erro.png' alt='Erro 403: Forbidden, Tipo: " + resposta.meta.errorType + ", Detalhe: " + resposta.meta.errorDetail + "'>";
+        createTooltip("result" + i, "<span style=\"font-size: 92%\">Erro 403: Forbidden, Tipo: " + resposta.meta.errorType + ",<br>Detalhe: " + resposta.meta.errorDetail + "</span>");
+      } else if (xmlhttp.status == 404) {
+        document.getElementById("result" + i).innerHTML = "<img src='img/erro.png' alt='Erro 404: Not Found'>";
+        createTooltip("result" + i, "<span style=\"font-size: 92%\">Erro 404: Not Found</span>");
+      } else if (xmlhttp.status == 405) {
+        document.getElementById("result" + i).innerHTML = "<img src='img/erro.png' alt='Erro 405: Method Not Allowed'>";
+        createTooltip("result" + i, "<span style=\"font-size: 92%\">Erro 405: Method Not Allowed</span>");
+      } else if (xmlhttp.status == 409) {
+        document.getElementById("result" + i).innerHTML = "<img src='img/erro.png' alt='Erro 409: Conflict'>";
+        createTooltip("result" + i, "<span style=\"font-size: 92%\">Erro 409: Conflict</span>");
+      } else if (xmlhttp.status == 500) {
+        document.getElementById("result" + i).innerHTML = "<img src='img/erro.png' alt='Erro 500: Internal Server Error'>";
+        createTooltip("result" + i, "<span style=\"font-size: 92%\">Erro 500: Internal Server Error</span>");
+      } else {
+        document.getElementById(result).innerHTML = "<img src='img/erro.png' alt='Erro desconhecido: " + xmlhttp.status + "'>";
+        createTooltip("result" + i, "<span style=\"font-size: 92%\">Erro desconhecido: " + xmlhttp.status + "</span>");
+      }
     }
   }
   xmlhttp.open(metodo, endpoint, true);
@@ -241,7 +250,7 @@ function atualizarCategorias(nomes, ids, icones) {
   document.getElementById("catsIcones").innerHTML = icones;
   //console.log(document.getElementById("catsIcones").innerHTML);
 }
-function carregarCategorias(i) {
+function editarCategorias(i) {
   var nomes = new Array();
   var ids =  "";
   var icones = "";
@@ -326,12 +335,32 @@ function salvarCategorias() {
     document.getElementById("cna" + i).value = nomes;
     document.getElementById("cid" + i).value = document.getElementById("catsIds").innerHTML;
     document.getElementById("cic" + i).value = document.getElementById("catsIcones").innerHTML;
-    document.getElementById("icone" + i).innerHTML = "<a id='catLnk" + i + "' href='javascript:carregarCategorias(" + i + ")'><img id=catImg" + i + " src='" + document.getElementById("cic" + i).value.split(",", 1)[0] + "' style='height: 22px; width: 22px; margin-left: 0px'></a>";
+    document.getElementById("icone" + i).innerHTML = "<a id='catLnk" + i + "' href='javascript:editarCategorias(" + i + ")'><img id=catImg" + i + " src='" + document.getElementById("cic" + i).value.split(",", 1)[0] + "' style='height: 22px; width: 22px; margin-left: 0px'></a>";
     //console.log(document.getElementById("cna" + i).value);
     //console.log(document.getElementById("cid" + i).value);
     //console.log(document.getElementById("cic" + i).value);
     dijit.byId('dlg_cats').hide();
+    createTooltip("catLnk" + i, "<span style=\"font-size: 92%\">" + nomes.replace(/,/gi, ", ") + "</span>");
   }
+}
+function createTooltip(target_id, content) {
+  var obj = document.getElementById('tt_' + target_id);
+  if (obj != null)
+    obj.parentNode.removeChild(obj);
+  var tooltip = new dijit.Tooltip({
+    connectId: [target_id],
+    label: content
+  });
+  tooltip.domNode.id = 'tt_' + target_id;
+  document.body.appendChild(tooltip.domNode);
+}
+function formattedTime(unix_timestamp) {
+  var date = new Date(unix_timestamp * 1000);
+  var dia = date.getDate();
+  if (dia < 10)
+    dia = "0" + dia;
+  var mes = new Array("01", "02", "03", "04", "05", "06", "07", "08", "09", "10", "11", "12");
+  return dia + "/" + mes[date.getMonth()] + "/" + date.getFullYear();
 }
 function atualizarTabela(resposta, i) {
   total++;
@@ -495,10 +524,10 @@ function atualizarTabela(resposta, i) {
     venues = venues.slice(0, -1) + '\n';
   venues = venues + linha.replace(/undefined/gi, "") + '\n';
   if (resposta.response.venue.categories[0] == undefined)
-    document.getElementById("icone" + i).innerHTML = "<a id='catLnk" + i + "' href='javascript:carregarCategorias(" + i + ")'><img id=catImg" + i + " src='http://foursquare.com/img/categories/none.png' style='height: 22px; width: 22px; margin-left: 0px'></a>";
+    document.getElementById("icone" + i).innerHTML = "<a id='catLnk" + i + "' href='javascript:editarCategorias(" + i + ")'><img id=catImg" + i + " src='http://foursquare.com/img/categories/none.png' style='height: 22px; width: 22px; margin-left: 0px'></a>";
   else
-    document.getElementById("icone" + i).innerHTML = "<a id='catLnk" + i + "' href='javascript:carregarCategorias(" + i + ")'><img id=catImg" + i + " src='" + categorias[i].icones.split(",", 1)[0] + "' style='height: 22px; width: 22px; margin-left: 0px'></a>";
-  var dicaVenue = "<b>" + resposta.response.venue.name + "</b>";
+    document.getElementById("icone" + i).innerHTML = "<a id='catLnk" + i + "' href='javascript:editarCategorias(" + i + ")'><img id=catImg" + i + " src='" + categorias[i].icones.split(",", 1)[0] + "' style='height: 22px; width: 22px; margin-left: 0px'></a>";
+  var dicaVenue = "<span style=\"font-size: 92%\"><b>" + resposta.response.venue.name + "</b>";
   try {
     if (document.forms[i]["address"].value != "")
       dicaVenue += "<br>" + document.forms[i]["address"].value;
@@ -523,10 +552,9 @@ function atualizarTabela(resposta, i) {
       dicaVenue += document.forms[i]["zip"].value;
     }
   } catch(err) { }
-  new dijit.Tooltip({
-    connectId: ["v" + i],
-    label: dicaVenue
-  });
+  dicaVenue += "<br><span style=\"color: #999999;\">Criada em " + formattedTime(resposta.response.venue.createdAt) + "</span></span>";
+  createTooltip("v" + i, dicaVenue);
+  createTooltip("catLnk" + i, "<span style=\"font-size: 92%\">" + categorias[i].nomes.replace(/,/gi, ", ") + "</span>");
 }
 function montarArvore(resposta) {
   var restructuredData = dojo.map(resposta.response.categories, dojo.hitch(this, function(category1) {
@@ -850,7 +878,7 @@ foreach ($file as $f) {
 <div data-dojo-type="dijit.Dialog" id="dlg_cats" data-dojo-props='title:"Categorias"'>
 <div id="catsContainer"></div>
 <div id="treeContainer"></div>
-<button id="saveCatsButton" dojoType="dijit.form.Button" type="button" onclick="salvarCategorias()" name="saveCatsButton">Salvar</button>
+<button id="saveCatsButton" dojoType="dijit.form.Button" type="button" onclick="salvarCategorias()" name="saveCatsButton">Confirmar</button>
 <button data-dojo-type="dijit.form.Button" type="button" data-dojo-props="onClick:function(){dijit.byId('dlg_cats').hide();}">Cancelar</button>
 <br><div id="venueIndex" style="display: none"></div><div id="catsIds" style="display: none"></div><div id="catsIcones" style="display: none"></div>
 </div>
