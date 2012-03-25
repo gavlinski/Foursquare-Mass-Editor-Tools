@@ -62,7 +62,7 @@ dojo.addOnLoad(function() {
     name: "txt",
     multiple: false,
     label: "Escolher arquivo",
-    style: "width: 9em;",
+    style: "width: 9em; height: 1.55em",
     onChange: function(data) {
       arquivo_txt.innerHTML = data[0].name + " (" + Math.ceil(data[0].size * .001) + " kB)";
     }
