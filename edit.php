@@ -2,9 +2,9 @@
 mb_internal_encoding("UTF-8");
 mb_http_output("iso-8859-1");
 ob_start("mb_output_handler");
-header("Content-Type: text/html; charset=ISO-8859-1",true);
+header("Content-Type: text/html; charset=ISO-8859-1", true);
 
-define("VERSION", "List Venues Editor 0.9");
+define("VERSION", "List Venues Editor 1.0");
 define("TEMPLATE1", '<html><head><title>' . VERSION . '</title><meta http-equiv="Content-type" content="text/html; charset=ISO-8859-1"/><script src="js/dojo/dojo.js" djConfig="parseOnLoad: true"></script><script type="text/javascript">dojo.require("dijit.form.Button");</script><link rel="shortcut icon" href="favicon.ico" type="image/x-icon"/><link rel="stylesheet" type="text/css" href="js/dijit/themes/claro/claro.css"/><link rel="stylesheet" type="text/css" href="estilo.css"/></head><body class="claro">');
 define("TEMPLATE2", '<p><button dojoType="dijit.form.Button" type="button" onclick="history.go(-1)">Voltar</button></p></body></html>');
 define("ERRO01", TEMPLATE1 . '<p>O limite da API &eacute; de 500 requisi&ccedil;&otilde;es por hora por conjunto de endpoints por OAuth.</p><p>Reduza a quantidade de linhas e tente novamente.' . TEMPLATE2);
@@ -22,10 +22,14 @@ if ((isset($_POST["textarea"])) && ($_POST["textarea"] != ""))
   $lista = explode("\n", $_POST["textarea"]);
 
 function filtrarArray($array) {
-  foreach ($array as $i => $value)
+  //array_walk($array, 'trim_value');
+  foreach ($array as $i => &$value) {
+    $value = trim($value);
     if (strlen($value) < 24)
       unset($array[$i]);
-  return array_values($array);
+  }
+  unset($value);
+  return array_values(array_unique($array));
 }
 
 function validarVenues($lines) {
@@ -101,7 +105,11 @@ function validarVenues($lines) {
 }
 
 function parseVenues($html) {
-  $lines = file($html);
+  try {
+    $lines = file($html);
+  } catch (Exception $e) {
+    echo "Exceção pega: ",  $e->getMessage(), "\n";
+  } 
   $ret = array();
   global $venues;
   $venues = array();
@@ -184,7 +192,7 @@ if ((isset($arquivo)) && (is_uploaded_file($arquivo))) {
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
 <html dir="ltr">
 <head>
-<title><?php echo VERSION;?></title>
+<title>foursquare</title>
 <meta http-equiv="Content-type" content="text/html; charset=ISO-8859-1" />
 <script src="js/dojo/dojo.js" djConfig="parseOnLoad: true"></script>
 <script type="text/javascript">var oauth_token = "<?= $oauth_token ?>";</script>
@@ -194,7 +202,7 @@ if ((isset($arquivo)) && (is_uploaded_file($arquivo))) {
 <link rel="stylesheet" type="text/css" href="estilo.css"/>
 </head>
 <body class="claro">
-<h2>Editar venues!</h2>
+<h2>Editar venues</h2>
 <p>Antes de salvar suas altera&ccedil;&otilde;es, n&atilde;o deixe de ler nosso <a id="guia" href="javascript:showDialog_guia();">guia de estilo</a> e as <a id="regras" href="https://pt.foursquare.com/info/houserules" target="_blank">regras da casa</a>.<p>
 <div id="listContainer">
 <?php
@@ -291,25 +299,25 @@ foreach ($file as $f) {
   echo '<span id="icone', $i - 1, '"><img id=catImg', $i, ' src="http://foursquare.com/img/categories/none.png" style="height: 22px; width: 22px; margin-left: 0px"></span>', chr(10);
 
   if ($editName) {
-    echo '<input type="text" dojoType="dijit.form.TextBox" name="name" maxlength="256" value=" " placeHolder="Nome" style="width: ', 9 + $ajusteInput, 'em; margin-left: 5px;" onFocus="window.temp=this.value" onBlur="if (window.temp != this.value) dojo.byId(\'result', $i - 1, '\').innerHTML=\'\'" onChange="dojo.byId(\'result', $i - 1, '\').innerHTML=\'\'">', chr(10);
+    echo '<input type="text" dojoType="dijit.form.TextBox" name="name" maxlength="256" value=" " placeHolder="Nome" style="width: ', 9 + $ajusteInput, 'em; margin-left: 5px;" onfocus="this.oldvalue = this.value" onchange="verificarAlteracao(this, ', $i - 1, ')">', chr(10);
   } else {
     echo '<input type="hidden" name="name">', chr(10);
   }
 
   if ($editAddress) {
-    echo '<input type="text" dojoType="dijit.form.TextBox" name="address" maxlength="128" value=" " placeHolder="Endere&ccedil;o" style="width: ', 9 + $ajusteInput, 'em; margin-left: 5px;" onFocus="window.temp=this.value" onBlur="if (window.temp != this.value) dojo.byId(\'result', $i - 1, '\').innerHTML=\'\'" onChange="dojo.byId(\'result', $i - 1, '\').innerHTML=\'\'">', chr(10);
+    echo '<input type="text" dojoType="dijit.form.TextBox" name="address" maxlength="128" value=" " placeHolder="Endere&ccedil;o" style="width: ', 9 + $ajusteInput, 'em; margin-left: 5px;" onfocus="this.oldvalue = this.value" onchange="verificarAlteracao(this, ', $i - 1, ')">', chr(10);
   }
 
   if ($editCross) {
-    echo '<input type="text" dojoType="dijit.form.TextBox" name="crossStreet" maxlength="51" value=" " placeHolder="Rua Cross" style="width: ', 9 + $ajusteInput, 'em; margin-left: 5px;" onFocus="window.temp=this.value" onBlur="if (window.temp != this.value) dojo.byId(\'result', $i - 1, '\').innerHTML=\'\'" onChange="dojo.byId(\'result', $i - 1, '\').innerHTML=\'\'">', chr(10);
+    echo '<input type="text" dojoType="dijit.form.TextBox" name="crossStreet" maxlength="51" value=" " placeHolder="Rua Cross" style="width: ', 9 + $ajusteInput, 'em; margin-left: 5px;" onfocus="this.oldvalue = this.value" onchange="verificarAlteracao(this, ', $i - 1, ')">', chr(10);
   }
 
   if ($editCity) {
-    echo '<input type="text" dojoType="dijit.form.TextBox" name="city" maxlength="31" value=" " placeHolder="Cidade" style="width: ', 9 + $ajusteInput, 'em; margin-left: 5px;" onFocus="window.temp=this.value" onBlur="if (window.temp != this.value) dojo.byId(\'result', $i - 1, '\').innerHTML=\'\'" onChange="dojo.byId(\'result', $i - 1, '\').innerHTML=\'\'">', chr(10);
+    echo '<input type="text" dojoType="dijit.form.TextBox" name="city" maxlength="31" value=" " placeHolder="Cidade" style="width: ', 7 + $ajusteInput, 'em; margin-left: 5px;" onfocus="this.oldvalue = this.value" onchange="verificarAlteracao(this, ', $i - 1, ')">', chr(10);
   }
 
   if ($editState) {
-    echo '<select dojoType="dijit.form.ComboBox" name="state" style="width: 4em; margin-left: 5px;" onFocus="window.temp=this.value" onBlur="if (window.temp != this.value) dojo.byId(\'result', $i - 1, '\').innerHTML=\'\'" onChange="dojo.byId(\'result', $i - 1, '\').innerHTML=\'\'"><option value=""></option>';
+    echo '<select dojoType="dijit.form.ComboBox" name="state" style="width: 4em; margin-left: 5px;" onfocus="this.oldvalue = this.value" onchange="verificarAlteracao(this, ', $i - 1, ')"><option value=""></option>';
     for ($j = 0; $j <= 26; $j++) {
       echo '<option value="', $ufs[$j], '">', $ufs[$j], '</option>';
     }
@@ -317,27 +325,27 @@ foreach ($file as $f) {
   }
 
   if ($editZip) {
-    echo '<input type="text" dojoType="dijit.form.TextBox" name="zip" maxlength="13" value=" " placeHolder="CEP" style="width: 6em; margin-left: 5px;" onFocus="window.temp=this.value" onBlur="if (window.temp != this.value) dojo.byId(\'result', $i - 1, '\').innerHTML=\'\'" onChange="dojo.byId(\'result', $i - 1, '\').innerHTML=\'\'">', chr(10);
+    echo '<input type="text" dojoType="dijit.form.TextBox" name="zip" maxlength="13" value=" " placeHolder="CEP" style="width: 6em; margin-left: 5px;" onfocus="this.oldvalue = this.value" onchange="verificarAlteracao(this, ', $i - 1, ')">', chr(10);
   }
 
   if ($editTwitter) {
-    echo '<input type="text" dojoType="dijit.form.TextBox" name="twitter" maxlength="51" value=" " placeHolder="Twitter" style="width: ', 8 + $ajusteInput, 'em; margin-left: 5px;" onFocus="window.temp=this.value" onBlur="if (window.temp != this.value) dojo.byId(\'result', $i - 1, '\').innerHTML=\'\'" onChange="dojo.byId(\'result', $i - 1, '\').innerHTML=\'\'">', chr(10);
+    echo '<input type="text" dojoType="dijit.form.TextBox" name="twitter" maxlength="51" value=" " placeHolder="Twitter" style="width: ', 7 + $ajusteInput, 'em; margin-left: 5px;" onfocus="this.oldvalue = this.value" onchange="verificarAlteracao(this, ', $i - 1, ')">', chr(10);
   }
 
   if ($editPhone) {
-    echo '<input type="text" dojoType="dijit.form.TextBox" name="phone" maxlength="21" value=" " placeHolder="Telefone" style="width: 8em; margin-left: 5px;" onFocus="window.temp=this.value" onBlur="if (window.temp != this.value) dojo.byId(\'result', $i - 1, '\').innerHTML=\'\'" onChange="dojo.byId(\'result', $i - 1, '\').innerHTML=\'\'">', chr(10);
+    echo '<input type="text" dojoType="dijit.form.TextBox" name="phone" maxlength="21" value=" " placeHolder="Telefone" style="width: 8em; margin-left: 5px;" onfocus="this.oldvalue = this.value" onchange="verificarAlteracao(this, ', $i - 1, ')">', chr(10);
   }
 
   if ($editUrl) {
-    echo '<input type="text" dojoType="dijit.form.TextBox" name="url" maxlength="256" value=" " placeHolder="Website" style="width: ', 9 + $ajusteInput, 'em; margin-left: 5px;" onFocus="window.temp=this.value" onBlur="if (window.temp != this.value) dojo.byId(\'result', $i - 1, '\').innerHTML=\'\'" onChange="dojo.byId(\'result', $i - 1, '\').innerHTML=\'\'">', chr(10);
+    echo '<input type="text" dojoType="dijit.form.TextBox" name="url" maxlength="256" value=" " placeHolder="Website" style="width: ', 9 + $ajusteInput, 'em; margin-left: 5px;" onfocus="this.oldvalue = this.value" onchange="verificarAlteracao(this, ', $i - 1, ')">', chr(10);
   }
 
   if ($editDesc) {
-    echo '<input type="text" dojoType="dijit.form.TextBox" name="description" maxlength="300" value=" " placeHolder="Descri&ccedil;&atilde;o" style="width: ', 9 + $ajusteInput, 'em; margin-left: 5px;" onFocus="window.temp=this.value" onBlur="if (window.temp != this.value) dojo.byId(\'result', $i - 1, '\').innerHTML=\'\'" onChange="dojo.byId(\'result', $i - 1, '\').innerHTML=\'\'">', chr(10);
+    echo '<input type="text" dojoType="dijit.form.TextBox" name="description" maxlength="300" value=" " placeHolder="Descri&ccedil;&atilde;o" style="width: ', 9 + $ajusteInput, 'em; margin-left: 5px;" onfocus="this.oldvalue = this.value" onchange="verificarAlteracao(this, ', $i - 1, ')">', chr(10);
   }
 
   if ($editLl) {
-    echo '<input type="text" dojoType="dijit.form.TextBox" name="ll" maxlength="402" value=" " placeHolder="Lat/Long" style="width: ', 9 + $ajusteInput, 'em; margin-left: 5px;" onFocus="window.temp=this.value" onBlur="if (window.temp != this.value) dojo.byId(\'result', $i - 1, '\').innerHTML=\'\'" onChange="dojo.byId(\'result', $i - 1, '\').innerHTML=\'\'">', chr(10);
+    echo '<input type="text" dojoType="dijit.form.TextBox" name="ll" maxlength="402" value=" " placeHolder="Lat/Long" style="width: ', 9 + $ajusteInput, 'em; margin-left: 5px;" onfocus="this.oldvalue = this.value" onchange="verificarAlteracao(this, ', $i - 1, ')">', chr(10);
   }
   
   echo '<input type="hidden" id="cid', $i - 1, '" name="categoryId"><input type="hidden" id="cna', $i - 1, '" name="categoryName"><input type="hidden" id="cic', $i - 1, '" name="categoryIcon"><input type="hidden" id="vdt', $i - 1, '" name="createdAt">', chr(10);
@@ -345,10 +353,11 @@ foreach ($file as $f) {
 }
 ?>
 </div>
-<button id="submitButton" dojoType="dijit.form.Button" type="submit" name="submitButton" onclick="salvarVenues()">Salvar</button>
-<button id="exportButton" dojoType="dijit.form.Button" type="button" onclick="exportarVenues()" name="exportButton">Exportar</button>
-<button id="backButton" dojoType="dijit.form.Button" type="button" onclick="history.go(-1)" name="backButton">Voltar</button>
-<br><br>
+<div>
+<button id="submitButton" dojoType="dijit.form.Button" type="submit" name="submitButton" onclick="salvarVenues()" style="float: left; padding-right: 3px; margin-left: 0px;">Salvar</button>
+<button id="cancelButton" dojoType="dijit.form.Button" type="button" onclick="history.go(-1)" name="cancelButton" style="float: left; padding-right: 3px;">Cancelar</button>
+<div id="dropdownButtonContainer" style="float: left; margin-bottom: 15px"></div>
+</div>
 <div data-dojo-type="dijit.Dialog" id="dlg_cats" data-dojo-props='title:"Categorias"'>
 <div id="catsContainer"></div>
 <div id="treeContainer"></div>

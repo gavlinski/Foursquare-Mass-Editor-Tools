@@ -5,56 +5,59 @@ dojo.require("dijit.form.TextBox");
 dojo.require("dijit.Tooltip");
 dojo.require("dojo.data.ItemFileReadStore");
 dojo.require("dijit.Tree");
+dojo.require("dijit.Menu");
 var total = 0;
 var venues = "";
 var categorias = new Array();
 var store = {};
 var timer = null;
+function atualizarResultado(linha, imagem, item, dica) {
+  document.getElementById(linha).innerHTML = imagem;
+  createTooltip(item, dica);
+  total++;
+  if (total == document.forms.length)
+    dijit.byId("submitButton").setAttribute('disabled', false);
+}
 function xmlhttpRequest(metodo, endpoint, dados, i) {
   var xmlhttp = new XMLHttpRequest();
   xmlhttp.onreadystatechange = function() {
     if (xmlhttp.readyState == 4) {
-      var resposta = JSON.parse(xmlhttp.responseText);
+			try {
+				var resposta = JSON.parse(xmlhttp.responseText);
+      } catch(err) {
+        return false;
+      }
       if (xmlhttp.status == 200) {
         if (metodo == "POST") {
           document.getElementById("info" + i).innerHTML = document.getElementById("info" + i).innerHTML.replace(/%0A/gi, "");
           var dicaVenue = atualizarDicaVenue(i);
-          createTooltip("venLnk" + i, dicaVenue);
-          document.getElementById("result" + i).innerHTML = "<img src='img/ok.png' alt='" + xmlhttp.responseText + "' style='vertical-align: middle;'>";
+          atualizarResultado("result" + i, "<img src='img/ok.png' alt='" + xmlhttp.responseText + "' style='vertical-align: middle;'>", "venLnk" + i, dicaVenue);
         } else if ((metodo == "GET") && (resposta.response.categories == undefined)) {
           atualizarTabela(resposta, i);
         } else if (resposta.response.categories != undefined) {
           montarArvore(resposta);
         }
       } else if (xmlhttp.status == 400) {
-        document.getElementById("result" + i).innerHTML = "<img src='img/erro.png' alt='Erro 400: Bad Request, Tipo: " + resposta.meta.errorType + ", Detalhe: " + resposta.meta.errorDetail + "'>";
-        createTooltip("result" + i, "<span style=\"font-size: 92%\">Erro 400: Bad Request, Tipo: " + resposta.meta.errorType + ",<br>Detalhe: " + resposta.meta.errorDetail + "</span>");
+        atualizarResultado("result" + i, "<img src='img/erro.png' alt='Erro 400: Bad Request, Tipo: " + resposta.meta.errorType + ", Detalhe: " + resposta.meta.errorDetail + "'>", "result" + i, "<span style=\"font-size: 12px\">Erro 400: Bad Request, Tipo: " + resposta.meta.errorType + ",<br>Detalhe: " + resposta.meta.errorDetail + "</span>");
       } else if (xmlhttp.status == 401) {
-        document.getElementById("result" + i).innerHTML = "<img src='img/erro.png' alt='Erro 401: Unauthorized, Tipo: " + resposta.meta.errorType + ", Detalhe: " + resposta.meta.errorDetail + "'>";
-        createTooltip("result" + i, "<span style=\"font-size: 92%\">Erro 401: Unauthorized, Tipo: " + resposta.meta.errorType + ",<br>Detalhe: " + resposta.meta.errorDetail + "</span>");
+        atualizarResultado("result" + i, "<img src='img/erro.png' alt='Erro 401: Unauthorized, Tipo: " + resposta.meta.errorType + ", Detalhe: " + resposta.meta.errorDetail + "'>", "result" + i, "<span style=\"font-size: 12px\">Erro 401: Unauthorized, Tipo: " + resposta.meta.errorType + ",<br>Detalhe: " + resposta.meta.errorDetail + "</span>");
       } else if (xmlhttp.status == 403) {
-        document.getElementById("result" + i).innerHTML = "<img src='img/erro.png' alt='Erro 403: Forbidden, Tipo: " + resposta.meta.errorType + ", Detalhe: " + resposta.meta.errorDetail + "'>";
-        createTooltip("result" + i, "<span style=\"font-size: 92%\">Erro 403: Forbidden, Tipo: " + resposta.meta.errorType + ",<br>Detalhe: " + resposta.meta.errorDetail + "</span>");
+        atualizarResultado("result" + i, "<img src='img/erro.png' alt='Erro 403: Forbidden, Tipo: " + resposta.meta.errorType + ", Detalhe: " + resposta.meta.errorDetail + "'>", "result" + i, "<span style=\"font-size: 12px\">Erro 403: Forbidden, Tipo: " + resposta.meta.errorType + ",<br>Detalhe: " + resposta.meta.errorDetail + "</span>");
       } else if (xmlhttp.status == 404) {
-        document.getElementById("result" + i).innerHTML = "<img src='img/erro.png' alt='Erro 404: Not Found'>";
-        createTooltip("result" + i, "<span style=\"font-size: 92%\">Erro 404: Not Found</span>");
+        atualizarResultado("result" + i, "<img src='img/erro.png' alt='Erro 404: Not Found'>", "result" + i, "<span style=\"font-size: 12px\">Erro 404: Not Found</span>");
       } else if (xmlhttp.status == 405) {
-        document.getElementById("result" + i).innerHTML = "<img src='img/erro.png' alt='Erro 405: Method Not Allowed'>";
-        createTooltip("result" + i, "<span style=\"font-size: 92%\">Erro 405: Method Not Allowed</span>");
+        atualizarResultado("result" + i, "<img src='img/erro.png' alt='Erro 405: Method Not Allowed'>", "result" + i, "<span style=\"font-size: 12px\">Erro 405: Method Not Allowed</span>");
       } else if (xmlhttp.status == 409) {
-        document.getElementById("result" + i).innerHTML = "<img src='img/erro.png' alt='Erro 409: Conflict'>";
-        createTooltip("result" + i, "<span style=\"font-size: 92%\">Erro 409: Conflict</span>");
+        atualizarResultado("result" + i, "<img src='img/erro.png' alt='Erro 409: Conflict'>", "result" + i, "<span style=\"font-size: 12px\">Erro 409: Conflict</span>");
       } else if (xmlhttp.status == 500) {
-        document.getElementById("result" + i).innerHTML = "<img src='img/erro.png' alt='Erro 500: Internal Server Error'>";
-        createTooltip("result" + i, "<span style=\"font-size: 92%\">Erro 500: Internal Server Error</span>");
+        atualizarResultado("result" + i, "<img src='img/erro.png' alt='Erro 500: Internal Server Error'>", "result" + i, "<span style=\"font-size: 12px\">Erro 500: Internal Server Error</span>");
       } else {
-        document.getElementById(result).innerHTML = "<img src='img/erro.png' alt='Erro desconhecido: " + xmlhttp.status + "'>";
-        createTooltip("result" + i, "<span style=\"font-size: 92%\">Erro desconhecido: " + xmlhttp.status + "</span>");
+        atualizarResultado("result" + i, "<img src='img/erro.png' alt='Erro desconhecido: " + xmlhttp.status + "'>", "result" + i, "<span style=\"font-size: 12px\">Erro desconhecido: " + xmlhttp.status + "</span>");
       }
     }
   }
   xmlhttp.open(metodo, endpoint, true);
-  xmlhttp.setRequestHeader("Content-type","application/x-www-form-urlencoded");
+  xmlhttp.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
   xmlhttp.send(dados);
   return false;
 }
@@ -162,7 +165,7 @@ function salvarCategorias() {
     //console.log(document.getElementById("cid" + i).value);
     //console.log(document.getElementById("cic" + i).value);
     dijit.byId('dlg_cats').hide();
-    createTooltip("catLnk" + i, "<span style=\"font-size: 92%\">" + nomes.replace(/,/gi, ", ") + "</span>");
+    createTooltip("catLnk" + i, "<span style=\"font-size: 12px\">" + nomes.replace(/,/gi, ", ") + "</span>");
   }
 }
 function createTooltip(target_id, content) {
@@ -185,7 +188,7 @@ function formattedTime(unix_timestamp) {
   return dia + "/" + mes[date.getMonth()] + "/" + date.getFullYear();
 }
 function atualizarDicaVenue(i) {
-  var dica = "<span style=\"font-size: 92%\"><b>" + document.forms[i]["name"].value + "</b>";
+  var dica = "<span style=\"font-size: 12px\"><b>" + document.forms[i]["name"].value + "</b>";
   try {
     if (document.forms[i]["address"].value != "")
       dica += "<br>" + document.forms[i]["address"].value;
@@ -379,7 +382,7 @@ function atualizarTabela(resposta, i) {
     document.getElementById("icone" + i).innerHTML = "<a id='catLnk" + i + "' href='javascript:editarCategorias(" + i + ")'><img id=catImg" + i + " src='http://foursquare.com/img/categories/none.png' style='height: 22px; width: 22px; margin-left: 0px'></a>";
   } else {
     document.getElementById("icone" + i).innerHTML = "<a id='catLnk" + i + "' href='javascript:editarCategorias(" + i + ")'><img id=catImg" + i + " src='" + categorias[i].icones.split(",", 1)[0] + "' style='height: 22px; width: 22px; margin-left: 0px'></a>";
-    createTooltip("catLnk" + i, "<span style=\"font-size: 92%\">" + categorias[i].nomes.replace(/,/gi, ", ") + "</span>");
+    createTooltip("catLnk" + i, "<span style=\"font-size: 12px\">" + categorias[i].nomes.replace(/,/gi, ", ") + "</span>");
   }
   document.forms[i]["createdAt"].value = formattedTime(resposta.response.venue.createdAt);
   var dicaVenue = atualizarDicaVenue(i);
@@ -470,12 +473,14 @@ function carregarVenues() {
   //console.info("Recuperando dados das venues...");
   for (i = 0; i < document.forms.length; i++) {
     venue = document.forms[i]["venue"].value;
-    xmlhttpRequest("GET", "https://api.foursquare.com/v2/venues/" + venue + "?oauth_token=" + oauth_token + "&v=20120311", null, i);
+    xmlhttpRequest("GET", "https://api.foursquare.com/v2/venues/" + venue + "?oauth_token=" + oauth_token + "&v=20120325", null, i);
     document.getElementById("result" + i).innerHTML = "<img src='img/loading.gif' alt='Recuperando dados...'>";
   }
   //console.info("Venues recuperadas!");
 }
 function salvarVenues() {
+  total = 0;
+  dijit.byId("submitButton").setAttribute("disabled", true);
   var venue, dados, ll;
   //console.info("Enviando dados...");
   for (i = 0; i < document.forms.length; i++) {
@@ -505,7 +510,7 @@ function salvarVenues() {
           dados += "&ll=" + document.forms[i]["ll"].value;
       }
     }
-    dados += "&v=20120311";
+    dados += "&v=20120325";
     //console.group("venue=" + venue + " (" + i + ")");
     //console.log(dados);
     //console.groupEnd();
@@ -516,7 +521,7 @@ function salvarVenues() {
 }
 function carregarListaCategorias() {
   //console.info("Recuperando dados das categorias...");
-  xmlhttpRequest("GET", "https://api.foursquare.com/v2/venues/categories" + "?oauth_token=" + oauth_token + "&v=20120221", null, i);
+  xmlhttpRequest("GET", "https://api.foursquare.com/v2/venues/categories" + "?oauth_token=" + oauth_token + "&v=20120325", null, i);
   //console.info("Categorias recuperadas!");
 }
 var dlgGuia;
@@ -526,12 +531,30 @@ dojo.addOnLoad(function() {
     title: "Guia de estilo",
     style: "width: 435px"
   });
+  var menu = new dijit.Menu({
+    style: "display: none;"
+  });
+  var menuItem1 = new dijit.MenuItem({
+    label: "Exportar",
+    id: "menuItemExportar",
+    onClick: function() {
+    	window.location.href = "data:application/csv;charset=iso-8859-1," + encodeURIComponent(venues);
+		}
+  });
+  menu.addChild(menuItem1);
+  var button = new dijit.form.DropDownButton({
+    label: "Mais...",
+    name: "menuButton",
+    dropDown: menu,
+    id: "progButton"
+  });
+  dojo.byId("dropdownButtonContainer").appendChild(button.domNode);
   carregarVenues();
   carregarListaCategorias();
 });
 function showDialog_guia() {
   // set the content of the dialog:
-  dlg.attr("content", "<ul><li><p>Use sempre a ortografia e as letras mai&uacute;sculas corretas.</p></li><li><p>Em redes ou venues com v&aacute;rios locais, n&atilde;o &eacute; preciso adicionar um sufixo de local. Portanto, pode deixar &quot;Starbucks&quot; ou &quot;Apple Store&quot; (em vez de &quot;Starbucks - Queen Anne&quot; ou &quot;Apple Store - Cidade Alta&quot;).</p></li><li><p>Sempre que poss&iacute;vel, use abrevia&ccedil;&otilde;es: &quot;Av.&quot; em vez de &quot;Avenida&quot;, &quot;R.&quot; em vez de &quot;Rua&quot;, etc.</p></li><li>A Rua Cross deve ser preenchida da seguinte forma:<ul><li>R. Bela Cintra (para venues em uma esquina)</li><li>R. Bela Cintra x R. Haddock Lobo (para venues entre duas quadras)</li></ul><br></li><li>Na Rua Cross tamb&eacute;m podem ser inclu&iacute;dos:<ul><li>Bairro, complemento, ponto de refer&ecirc;ncia ou via de acesso (quando relevante)</li><li>Bloco, piso, loja ou setor (para subvenues)</li></ul></li><li><p>Os nomes de Estados e prov&iacute;ncias devem ser abreviados.</p></li><li><p>Em caso de d&uacute;vida, formate os endere&ccedil;os das venues de acordo com as diretrizes postais locais.</p></li><li><p>Se tiver mais perguntas sobre a cria&ccedil;&atilde;o e edi&ccedil;&atilde;o de venues no foursquare, consulte nossas <a href='https://pt.foursquare.com/info/houserules' target='_blank'>regras da casa</a> e as <a href='http://support.foursquare.com/forums/191151-venue-help' target='_blank'>perguntas frequentes sobre venues</a>.</p></li></ul>");
+  dlg_guia.attr("content", "<ul><li><p>Use sempre a ortografia e as letras mai&uacute;sculas corretas.</p></li><li><p>Em redes ou venues com v&aacute;rios locais, n&atilde;o &eacute; preciso adicionar um sufixo de local. Portanto, pode deixar &quot;Starbucks&quot; ou &quot;Apple Store&quot; (em vez de &quot;Starbucks - Queen Anne&quot; ou &quot;Apple Store - Cidade Alta&quot;).</p></li><li><p>Sempre que poss&iacute;vel, use abrevia&ccedil;&otilde;es: &quot;Av.&quot; em vez de &quot;Avenida&quot;, &quot;R.&quot; em vez de &quot;Rua&quot;, etc.</p></li><li>A Rua Cross deve ser preenchida da seguinte forma:<ul><li>R. Bela Cintra (para venues em uma esquina)</li><li>R. Bela Cintra x R. Haddock Lobo (para venues entre duas quadras)</li></ul><br></li><li>Na Rua Cross tamb&eacute;m podem ser inclu&iacute;dos:<ul><li>Bairro, complemento, ponto de refer&ecirc;ncia ou via de acesso (quando relevante)</li><li>Bloco, piso, loja ou setor (para subvenues)</li></ul></li><li><p>Os nomes de Estados e prov&iacute;ncias devem ser abreviados.</p></li><li><p>Em caso de d&uacute;vida, formate os endere&ccedil;os das venues de acordo com as diretrizes postais locais.</p></li><li><p>Se tiver mais perguntas sobre a cria&ccedil;&atilde;o e edi&ccedil;&atilde;o de venues no foursquare, consulte nossas <a href='https://pt.foursquare.com/info/houserules' target='_blank'>regras da casa</a> e as <a href='http://support.foursquare.com/forums/191151-venue-help' target='_blank'>perguntas frequentes sobre venues</a>.</p></li></ul>");
   dlg_guia.show();
 }
 //var node = dojo.byId("forms");
@@ -541,6 +564,9 @@ function showDialog_guia() {
     //dojo.stopEvent(e);
   //}
 //});
-function exportarVenues() {
-  window.location.href = "data:application/csv;charset=iso-8859-1," + encodeURIComponent(venues);
+function verificarAlteracao(textbox, i) {
+  if (textbox.oldvalue != " ") {
+     dojo.byId("result" + i).innerHTML = "";
+     dijit.byId("menuItemExportar").setAttribute("disabled", true);
+  }
 }
