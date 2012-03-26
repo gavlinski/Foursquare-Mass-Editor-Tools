@@ -4,13 +4,17 @@ dojo.require("dijit.form.ComboBox");
 dojo.require("dijit.form.TextBox");
 dojo.require("dijit.Tooltip");
 var total = 0;
+var timer;
 function atualizarResultado(linha, imagem, dica) {
   document.getElementById(linha).innerHTML = imagem;
   if (dica != "")
     createTooltip(linha, dica);
   total++;
-  if (total == document.forms.length)
+  if (total == document.forms.length) {
     dijit.byId("submitButton").setAttribute('disabled', false);
+    if (timer)
+    	clearTimeout(timer);
+  }
 }
 function xmlhttpPost(venue, dados, i) {
   var xmlhttp = new XMLHttpRequest();
@@ -98,6 +102,9 @@ function salvarVenues() {
 		document.getElementById("result" + i).innerHTML = "<img src='img/loading.gif' alt='Enviando dados...'>";
   }
   //console.info("Dados enviados!");
+  timer = setTimeout(function() {
+  	dijit.byId("submitButton").setAttribute('disabled', false);
+  }, 120000);
 }
 var dlg_guia;
 dojo.addOnLoad(function() {
@@ -114,6 +121,6 @@ function showDialog_guia() {
 }
 function verificarAlteracao(textbox, i) {
   if (textbox.oldvalue != " ") {
-     dojo.byId("result" + i).innerHTML = "";
+  	dojo.byId("result" + i).innerHTML = "";
   }
 }

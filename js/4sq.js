@@ -10,13 +10,16 @@ var total = 0;
 var venues = "";
 var categorias = new Array();
 var store = {};
-var timer = null;
+var timer;
 function atualizarResultado(linha, imagem, item, dica) {
   document.getElementById(linha).innerHTML = imagem;
   createTooltip(item, dica);
   total++;
-  if (total == document.forms.length)
+  if (total == document.forms.length) {
     dijit.byId("submitButton").setAttribute('disabled', false);
+    if (timer)
+    	clearTimeout(timer);
+  }
 }
 function xmlhttpRequest(metodo, endpoint, dados, i) {
   var xmlhttp = new XMLHttpRequest();
@@ -166,6 +169,7 @@ function salvarCategorias() {
     //console.log(document.getElementById("cic" + i).value);
     dijit.byId('dlg_cats').hide();
     createTooltip("catLnk" + i, "<span style=\"font-size: 12px\">" + nomes.replace(/,/gi, ", ") + "</span>");
+    dijit.byId("menuItemExportar").setAttribute("disabled", true);
   }
 }
 function createTooltip(target_id, content) {
@@ -518,6 +522,9 @@ function salvarVenues() {
     document.getElementById("result" + i).innerHTML = "<img src='img/loading.gif' alt='Enviando dados...'>";
   }
   //console.info("Dados enviados!");
+  timer = setTimeout(function() {
+  	dijit.byId("submitButton").setAttribute('disabled', false);
+  }, 120000);
 }
 function carregarListaCategorias() {
   //console.info("Recuperando dados das categorias...");
@@ -566,7 +573,7 @@ function showDialog_guia() {
 //});
 function verificarAlteracao(textbox, i) {
   if (textbox.oldvalue != " ") {
-     dojo.byId("result" + i).innerHTML = "";
-     dijit.byId("menuItemExportar").setAttribute("disabled", true);
+    dojo.byId("result" + i).innerHTML = "";
+    dijit.byId("menuItemExportar").setAttribute("disabled", true);
   }
 }
