@@ -80,10 +80,10 @@ dojo.addOnLoad(function() {
         e.preventDefault();
         alert("O arquivo precisa ser escolhido");
         uploader_txt.inputNode.focus();
-      } else if (dojo.query('input:checked', 'f_txt').length == 0) {
-        e.preventDefault();
-        alert("Selecione pelo menos um dos campos");
-        dijit.byId("nome1").focus();
+      //} else if (dojo.query('input:checked', 'f_txt').length == 0) {
+        //e.preventDefault();
+        //alert("Selecione pelo menos um dos campos");
+        //dijit.byId("nome1").focus();
       //} else {
         //alert("Ready to submit data: " + dojo.toJson(form_txt.attr("value")));
       }
@@ -109,10 +109,10 @@ dojo.addOnLoad(function() {
         e.preventDefault();
         alert("O OAuth token deve possuir 48 caracteres");
         oauth_lks.focus();
-      } else if (dojo.query('input:checked', 'f_lks').length == 0) {
-        e.preventDefault();
-        alert("Selecione pelo menos um dos campos");
-        dijit.byId("nome2").focus();
+      //} else if (dojo.query('input:checked', 'f_lks').length == 0) {
+        //e.preventDefault();
+        //alert("Selecione pelo menos um dos campos");
+        //dijit.byId("nome2").focus();
       //} else {
         //alert("Ready to submit data: " + dojo.toJson(form_lks.attr("value")));
       }
@@ -142,10 +142,10 @@ dojo.addOnLoad(function() {
         e.preventDefault();
         alert("Informe pelo menos uma venue");
         textarea_ids.focus();
-      } else if (dojo.query('input:checked', 'f_ids').length == 0) {
-        e.preventDefault();
-        alert("Selecione pelo menos um dos campos");
-        dijit.byId("nome3").focus();
+      //} else if (dojo.query('input:checked', 'f_ids').length == 0) {
+        //e.preventDefault();
+        //alert("Selecione pelo menos um dos campos");
+        //dijit.byId("nome3").focus();
       //} else {
         //alert("Ready to submit data: " + dojo.toJson(form_ids.attr("value")));
       }
@@ -184,8 +184,8 @@ dojo.ready(function() {
         dijit.byId("descricao" + i).attr("checked", (campos[9] === 'true'));
         dijit.byId("latlong"  + i).attr("checked", (campos[10] === 'true'));
       }
-    }
-    if ((dojo.query('input:checked', 'f_txt').length == 0) && (dojo.query('input:checked', 'f_lks').length == 0) && (dojo.query('input:checked', 'f_ids').length == 0))
+      dijit.byId("accordion").selectChild(dojo.cookie("accordion"), false);
+    } else {
       for (i = 1; i < 4; i++) {
         dijit.byId("nome" + i).attr("checked", true);
         dijit.byId("endereco" + i).attr("checked", true);
@@ -195,10 +195,9 @@ dojo.ready(function() {
         dijit.byId("cep" + i).attr("checked", true);
         dijit.byId("twitter" + i).attr("checked", true);
         dijit.byId("telefone" + i).attr("checked", true);
-        dijit.byId("accordion").selectChild("dijit_layout_ContentPane_3", false);
       }
-    else
-      dijit.byId("accordion").selectChild(dojo.cookie("accordion"), false);
+      dijit.byId("accordion").selectChild("dijit_layout_ContentPane_3", false);
+    } 
   });
 }, 0);
 function showDialog_csv() {

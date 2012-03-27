@@ -205,71 +205,73 @@ if ((isset($arquivo)) && (is_uploaded_file($arquivo))) {
 <?php
 $totalCampos = 0;
 
-if (in_array("nome", $campos)) {
-  $editName = true;
-  $totalCampos++;
-} else {
-  $editName = false;
-}
-if (in_array("endereco", $campos)) {
-  $editAddress = true;
-  $totalCampos++;
-} else {
-  $editAddress = false;
-}
-if (in_array("ruacross", $campos)) {
-  $editCross = true;
-  $totalCampos++;
-} else {
-  $editCross = false;
-}
-if (in_array("cidade", $campos)) {
-  $editCity = true;
-  $totalCampos++;
-} else {
+if ($campos != null) {
+	if (in_array("nome", $campos)) {
+	  $editName = true;
+	  $totalCampos++;
+	} else {
+	  $editName = false;
+	}
+	if (in_array("endereco", $campos)) {
+	  $editAddress = true;
+	  $totalCampos++;
+	} else {
+	  $editAddress = false;
+	}
+	if (in_array("ruacross", $campos)) {
+	  $editCross = true;
+	  $totalCampos++;
+	} else {
+	  $editCross = false;
+	}
+	if (in_array("cidade", $campos)) {
+	  $editCity = true;
+	  $totalCampos++;
+	} else {
   $editCity = false;
-}
-if (in_array("estado", $campos)) {
-  $editState = true;
-  $totalCampos++;
-} else {
-  $editState = false;
-}
-if (in_array("cep", $campos)) {
-  $editZip = true;
-  $totalCampos++;
-} else {
-  $editZip = false;
-}
-if (in_array("twitter", $campos)) {
-  $editTwitter = true;
-  $totalCampos++;
-} else {
-  $editTwitter = false;
-}
-if (in_array("telefone", $campos)) {
-  $editPhone = true;
-  $totalCampos++;
-} else {
-  $editPhone = false;
-}
-if (in_array("website", $campos)) {
-  $editUrl = true;
-  $totalCampos++;
-} else {
-  $editUrl = false;
-}
-if (in_array("descricao", $campos)) {
-  $editDesc = true;
-  $totalCampos++;
-} else {
-  $editDesc = false;
-}
-if (in_array("latlong", $campos)) {
-  $editLl = true;
-  $totalCampos++;
-} else {
-  $editLl = false;
+	}
+	if (in_array("estado", $campos)) {
+	  $editState = true;
+	  $totalCampos++;
+	} else {
+	  $editState = false;
+	}
+	if (in_array("cep", $campos)) {
+	  $editZip = true;
+	  $totalCampos++;
+	} else {
+	  $editZip = false;
+	}
+	if (in_array("twitter", $campos)) {
+	  $editTwitter = true;
+	  $totalCampos++;
+	} else {
+	  $editTwitter = false;
+	}
+	if (in_array("telefone", $campos)) {
+	  $editPhone = true;
+	  $totalCampos++;
+	} else {
+	  $editPhone = false;
+	}
+	if (in_array("website", $campos)) {
+	  $editUrl = true;
+	  $totalCampos++;
+	} else {
+	  $editUrl = false;
+	}
+	if (in_array("descricao", $campos)) {
+	  $editDesc = true;
+	  $totalCampos++;
+	} else {
+	  $editDesc = false;
+	}
+	if (in_array("latlong", $campos)) {
+	  $editLl = true;
+	  $totalCampos++;
+	} else {
+	  $editLl = false;
+	}
 }
 
 $ajusteInput = 11 - $totalCampos;
