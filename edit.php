@@ -22,7 +22,6 @@ if ((isset($_POST["textarea"])) && ($_POST["textarea"] != ""))
   $lista = explode("\n", $_POST["textarea"]);
 
 function filtrarArray($array) {
-  //array_walk($array, 'trim_value');
   foreach ($array as $i => &$value) {
     $value = trim($value);
     if (strlen($value) < 24)
@@ -49,8 +48,10 @@ function validarVenues($lines) {
     } else if (stripos($line, 'venuesArray.push(venue') !== false) {
       $l = strlen($line);
       //echo "Line #<b>{$line_num}</b> : " . htmlspecialchars($line) . "l : " . $l . "<br />\n";
-      if (($l == 53) or ($l == 54))
-        $ret[] = substr($line, -$l + 26);
+      //if (($l == 53) or ($l == 54))
+      if ($l == 48)
+        //$ret[] = substr($line, -$l + 26);
+        $ret[] = substr($line, -26);
       else {
         $ret = explode('venuesArray.push(venue', $line);
         $ret = array_slice($ret, 1);
@@ -160,12 +161,8 @@ function parseVenues($html) {
     /*** break the reference with the last element ***/
     unset($r);
   }
-
-  //print_r($file);
-  //echo '<br><br>';
-  //print_r($venues);
-  //exit;
-  return $ret;
+  $venues = array_values(array_unique($venues));
+  return array_values(array_unique($ret));
 }
 
 if ((isset($arquivo)) && (is_uploaded_file($arquivo))) {
