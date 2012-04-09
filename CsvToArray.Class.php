@@ -39,35 +39,38 @@
  	 * @param integer $capture_limit_in_kb
  	 * @return integer
  	 */
- 	private static function count_lines($file, $capture_limit_in_kb = 10) {
-    // read in file
-    $fh = fopen($file, 'r');
-        $contents = fread($fh, ($capture_limit_in_kb * 1024)); // in KB
-    fclose($fh);
-    
-    // specify allowed line endings
-    $line_endings = array(
-        'rn'         => "\r\n",
-        'n'         => "\n",
-        'r'         => "\r",
-        'nr'         => "\n\r"
-    );
-    
-    // loop and count each line ending instance
-    foreach ($line_endings as $key => $value) {
-        $line_result[$key] = substr_count($contents, $value);
-    }
-    
-    // sort by largest array value
-    asort($line_result);
-    
-    return end($line_result);
+ 	private static function count_lines($file, $capture_limit_in_kb = 500) {
+		// read in file
+		$fh = fopen($file, 'r');
+			$contents = fread($fh, ($capture_limit_in_kb * 1024)); // in kB
+			
+			// remove blank lines from the beginning and end
+			$contents = preg_replace("`\A[ \t]*\r?\n|\r?\n[ \t]*\Z`", "", $contents);
+		fclose($fh);
+
+		// specify allowed line endings
+		$line_endings = array(
+			'rn' => "\r\n",
+			'n' => "\n",
+			'r' => "\r",
+			'nr' => "\n\r"
+		);
+
+		// loop and count each line ending instance
+		foreach ($line_endings as $key => $value) {
+			$line_result[$key] = substr_count($contents, $value);
+		}
+
+		// sort by largest array value
+		asort($line_result);
+
+		return end($line_result);
 	}
  	
  	private static function csvArray($file, $delimiter) {
  		$result = Array();
  		$size = filesize($file) + 1;
- 		$count = self::count_lines($file, 10) - 1;
+ 		$count = self::count_lines($file, 500);
  		$file = fopen($file, 'r');
  		$keys = fgetcsv($file, $size, $delimiter);
  		

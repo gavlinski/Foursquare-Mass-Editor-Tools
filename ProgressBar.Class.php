@@ -12,7 +12,7 @@ class ProgressBar {
 	var $pbarid;
 	var $tbarid;
 	var $textid;
-	var $decimals = 1;
+	var $decimals = 0;
 
 	function __construct($percentDone = 0) {
 		$this->pbid = 'pb';
