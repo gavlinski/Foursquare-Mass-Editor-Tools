@@ -13,7 +13,7 @@
 <p>Para ajudar a manter atualizadas as venues do foursquare, disponibilizamos aos superusu&aacute;rios ferramentas que permitem edit&aacute;-las em massa. Obrigado por ajudar a melhorar as listagens de venues do foursquare.<p>
 <div id="accordion" dojoType="dijit.layout.AccordionContainer" doLayout="false">
   <div dojoType="dijit.layout.ContentPane" title="Importar dados de um arquivo CSV">
-    <div dojoType="dijit.form.Form" enctype="multipart/form-data" accept-charset="iso-8859-1" id="f_csv" jsId="f_csv" encType="multipart/form-data" action="edit_csv.php" method="post">
+    <div dojoType="dijit.form.Form" enctype="multipart/form-data" accept-charset="iso-8859-1" id="f_csv" jsId="f_csv" encType="multipart/form-data" action="load_csv.php" method="post">
     <div id="toolContainer">
     <div class="row">
     <span class="label"><label for="oauth_token_csv"><a href="https://developer.foursquare.com/docs/explore.html#req=users/self" target="_blank">OAuth token</a>:</span>
@@ -38,7 +38,7 @@
     </div>
   </div>
   <div dojoType="dijit.layout.ContentPane" title="Importar lista de um arquivo de texto">
-    <div dojoType="dijit.form.Form" enctype="multipart/form-data" accept-charset="iso-8859-1" id="f_txt" jsId="f_txt" encType="multipart/form-data" action="edit.php" method="post">
+    <div dojoType="dijit.form.Form" enctype="multipart/form-data" accept-charset="iso-8859-1" id="f_txt" jsId="f_txt" encType="multipart/form-data" action="load.php" method="post">
     <div id="toolcontainer">
     <div class="row">
     <span class="label"><label for="oauth_token_txt"><a href="https://developer.foursquare.com/docs/explore.html#req=users/self" target="_blank">OAuth token</a>:</span>
@@ -135,7 +135,7 @@
     </div>
   </div>
   <div dojoType="dijit.layout.ContentPane" title="Importar lista de uma p&aacute;gina web">
-    <div dojoType="dijit.form.Form" enctype="multipart/form-data" accept-charset="iso-8859-1" id="f_lks" jsId="f_lks" encType="multipart/form-data" action="edit.php" method="post">
+    <div dojoType="dijit.form.Form" enctype="multipart/form-data" accept-charset="iso-8859-1" id="f_lks" jsId="f_lks" encType="multipart/form-data" action="load.php" method="post">
     <div id="toolContainer">
     <div class="row">
     <span class="label"><label for="oauth_token_lks"><a href="https://developer.foursquare.com/docs/explore.html#req=users/self" target="_blank">OAuth token</a>:</span>
@@ -231,7 +231,7 @@
     </div>
   </div>
   <div dojoType="dijit.layout.ContentPane" title="Informar IDs ou URLs das venues" selected="true">
-    <div dojoType="dijit.form.Form" enctype="multipart/form-data" accept-charset="iso-8859-1" id="f_ids" jsId="f_ids" encType="multipart/form-data" action="edit.php" method="post">
+    <div dojoType="dijit.form.Form" enctype="multipart/form-data" accept-charset="iso-8859-1" id="f_ids" jsId="f_ids" encType="multipart/form-data" action="load.php" method="post">
     <div id="toolContainer">
     <div class="row">
     <span class="label"><label for="oauth_token_ids"><a href="https://developer.foursquare.com/docs/explore.html#req=users/self" target="_blank">OAuth token</a>:</span>

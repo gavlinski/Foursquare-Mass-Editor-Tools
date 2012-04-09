@@ -1,202 +1,40 @@
 <?php
-mb_internal_encoding("UTF-8");
-mb_http_output("iso-8859-1");
-ob_start("mb_output_handler");
-header("Content-Type: text/html; charset=ISO-8859-1", true);
 
-define("VERSION", "List Venues Editor 1.0");
-define("TEMPLATE1", '<html><head><title>Superuser Tools - foursquare</title><meta http-equiv="Content-type" content="text/html; charset=ISO-8859-1"/><script src="js/dojo/dojo.js" djConfig="parseOnLoad: true"></script><script type="text/javascript">dojo.require("dijit.form.Button");</script><link rel="shortcut icon" href="favicon.ico" type="image/x-icon"/><link rel="stylesheet" type="text/css" href="js/dijit/themes/claro/claro.css"/><link rel="stylesheet" type="text/css" href="estilo.css"/></head><body class="claro">');
-define("TEMPLATE2", '<p><button dojoType="dijit.form.Button" type="button" onclick="history.go(-1)">Voltar</button></p></body></html>');
-define("ERRO01", TEMPLATE1 . '<p>O limite da API &eacute; de 500 requisi&ccedil;&otilde;es por hora por conjunto de endpoints por OAuth.</p><p>Reduza a quantidade de linhas e tente novamente.' . TEMPLATE2);
-define("ERRO02", TEMPLATE1 . '<p>Erro na leitura do endere&ccedil;os de uma das venues!</p><p>Verifique o arquivo ou a lista e tente novamente.' . TEMPLATE2);
-define("ERRO03", TEMPLATE1 . '<p>Nenhuma venue encontrada no endere&ccedil;o especificado.</p><p>Verifique a p&aacute;gina e tente novamente.' . TEMPLATE2);
-define("ERRO99", '<html><head><title>' . VERSION . '</title><meta http-equiv="Content-type" content="text/html; charset=ISO-8859-1" /><link rel="shortcut icon" href="favicon.ico" type="image/x-icon"/><link rel="stylesheet" type="text/css" href="estilo.css"/></head><body><p>Erro na leitura dos dados!</body></html>');
+/**
+ * List Venues Editor
+ *
+ * Edita venues de acordo com os campos e dados recebidos do load.php
+ *
+ * @category   Foursquare
+ * @package    Foursquare-Mass-Editor-Tools
+ * @author     Elio Gavlinski <gavlinski@gmail.com>
+ * @copyright  Copyleft (c) 2011-2012
+ * @version    1.1
+ * @link       https://github.com/gavlinski/Foursquare-Mass-Editor-Tools/blob/master/edit.php
+ * @since      File available since Release 0.5
+ */
 
-$oauth_token = $_POST["oauth_token"];
-
-if (isset($_FILES['txts']['tmp_name'][0]))
-  $arquivo = $_FILES['txts']['tmp_name'][0];
-if (isset($_POST["pagina"]))
-  $pagina = $_POST["pagina"];
-if ((isset($_POST["textarea"])) && ($_POST["textarea"] != ""))
-  $lista = explode("\n", $_POST["textarea"]);
-
-function filtrarArray($array) {
-  foreach ($array as $i => &$value) {
-    $value = trim($value);
-    if (strlen($value) < 24)
-      unset($array[$i]);
-  }
-  unset($value);
-  return array_values(array_unique($array));
-}
-
-function validarVenues($lines) {
-  $ret = array();
-  global $venues;
-  $venues = array();
-  $i = 0;
-
-  foreach ($lines as $line_num => $line) {
-    /*** Places ***/
-    $pos = stripos($line, ' "id": "');
-    if ($pos !== false) {
-      //echo "Line #<b>{$line_num}</b> : " . htmlspecialchars($line) . " at position <b>" . $pos . "</b><br />\n";
-      $ret[] = substr($line, $pos + 8);
-
-    /*** Tidysquare ***/
-    } else if (stripos($line, 'venuesArray.push(venue') !== false) {
-      $l = strlen($line);
-      //echo "Line #<b>{$line_num}</b> : " . htmlspecialchars($line) . "l : " . $l . "<br />\n";
-      //if (($l == 53) or ($l == 54))
-      if ($l == 48)
-        //$ret[] = substr($line, -$l + 26);
-        $ret[] = substr($line, -26);
-      else {
-        $ret = explode('venuesArray.push(venue', $line);
-        $ret = array_slice($ret, 1);
-      }
-    }
-  }
-
-  if (count($ret) > 0) {
-    foreach ($ret as &$r) {
-      $venues[$i] = substr($r, 0, 24);
-      $r = "https://foursquare.com/v/" . $venues[$i];
-      $i++;
-    }
-    /*** break the reference with the last element ***/
-    unset($r);
-    //print_r($ret);
-    //echo '<br><br>';
-    //print_r($venues);
-    //exit;
-    return $ret;
-  } else if (count($lines) > 500) {
-    echo ERRO01;
-    exit;
-  } else {
-    foreach ($lines as &$line) {
-      $line = trim($line);
-      if ((stripos($line, "foursquare.com/v") === false) && (strlen($line) > 25)) {
-        echo ERRO02;
-        exit;
-      }
-      if (strlen($line) > 25) {
-        $l = strlen($line) - 2;
-        if ($line[$l] === "/")
-          $line = substr($line, 0, $l);
-        $line = str_replace("/edit", "", $line);
-        $venues[$i] = substr($line, strrpos($line, "/") + 1, 24);
-      } else {
-        $venues[$i] = $line;
-        $line = "https://foursquare.com/v/" . $line;
-        //$line = "" + $venues[$i];
-      }
-      $i++;
-    }
-    /*** break the reference with the last element ***/
-    unset($line);
-    //print_r($lines);
-    //echo '<br><br>';
-    //print_r($venues);
-    //exit;
-    return $lines;
-  }
-}
-
-function parseVenues($html) {
-  try {
-    $lines = file($html);
-  } catch (Exception $e) {
-    echo "Exceção pega: ",  $e->getMessage(), "\n";
-  } 
-  $ret = array();
-  global $venues;
-  $venues = array();
-  $i = 0;
-
-  foreach ($lines as $line_num => $line) {
-    /*** Listas do usuario do foursquare ***/
-    //if (stripos($line, 'ITEMS_JSON') !== false) {
-    if (stripos($line, 'itemsJson') !== false) {
-      //$ret = array_slice(explode('\"venue\":{\"id\":\"', $line), 1);
-      $ret = array_slice(explode('"venue":{"id":"', $line), 1);
-      break;
-    /*** Resultados da pesquisa ***/
-    } else if (stripos($line, 'fourSq.tiplists.setupSearchPageListControls([{"id":"v') !== false) {
-      $ret = array_slice(explode('"id":"v', $line), 1);
-      break;
-    }
-  }
-
-  /*** Paginas normais com a tag <a href="https://foursquare.com/venue/..."></a> ou <a href="https://foursquare.com/v/..."></a> ***/
-  if ($ret == null) {
-    /*** a new dom object ***/
-    $dom = new domDocument;
-
-    /*** get the HTML (suppress errors) ***/
-    @$dom->loadHTML(file_get_contents($html));
-
-    /*** remove silly white space ***/
-    $dom->preserveWhiteSpace = false;
-
-    /*** get the links from the HTML ***/
-    $links = $dom->getElementsByTagName('a');
-    
-    /*** loop over the links ***/
-    foreach ($links as $tag) {
-      if ((stripos($tag->getAttribute('href'), "/venue/") !== false) || (stripos($tag->getAttribute('href'), "/v/") !== false)) {
-        $venues[$i] = substr($tag->getAttribute('href'), -24);
-        $ret[$i] = "https://foursquare.com" . $tag->getAttribute('href');
-        $i++;
-      }
-    }
-  } else {
-    foreach ($ret as &$r) {
-      $venues[$i] = substr($r, 0, 24);
-      $r = "https://foursquare.com/v/" . $venues[$i];
-      $i++;
-    }
-    /*** break the reference with the last element ***/
-    unset($r);
-  }
-  $venues = array_values(array_unique($venues));
-  return array_values(array_unique($ret));
-}
-
-if ((isset($arquivo)) && (is_uploaded_file($arquivo))) {
-  $campos = $_POST["campos"];
-  $file = validarVenues(filtrarArray(file($arquivo)));
-
-} else if ((isset($pagina)) && ($pagina != "")) {
-  $campos = $_POST["campos2"];
-  $file = parseVenues(trim($pagina));
-  if (sizeof($file) == 0) {
-    echo ERRO03;
-    exit;
-  }
-
-} else if (isset($lista)) {
-  $campos = $_POST["campos3"];
-  $file = validarVenues(filtrarArray($lista));
-
+session_start();
+if (isset($_SESSION["oauth_token"])) {
+	$oauth_token = $_SESSION["oauth_token"];
+	$file = $_SESSION["file"];
+	$venues = $_SESSION["venues"];
+	$campos = $_SESSION["campos"];
 } else {
-  echo ERRO99;
-  exit();
+  header('Location: index.html'); /* Redirect browser */
 }
 ?>
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
-<html dir="ltr">
+<html>
 <head>
-<title>foursquare</title>
-<meta http-equiv="Content-type" content="text/html; charset=ISO-8859-1" />
+<title>Superuser Tools - foursquare</title>
+<meta http-equiv="Content-type" content="text/html; charset=ISO-8859-1"/>
+<link rel="shortcut icon" href="favicon.ico" type="image/x-icon"/>
+<link rel="stylesheet" type="text/css" href="js/dijit/themes/claro/claro.css"/>
+<link rel="stylesheet" type="text/css" href="estilo.css"/>
 <script src="js/dojo/dojo.js" djConfig="parseOnLoad: true"></script>
 <script type="text/javascript">var oauth_token = "<?= $oauth_token ?>";</script>
 <script type="text/javascript" src="js/4sq.js"></script>
-<link rel="shortcut icon" href="favicon.ico" type="image/x-icon" />
-<link rel="stylesheet" type="text/css" href="js/dijit/themes/claro/claro.css"/>
-<link rel="stylesheet" type="text/css" href="estilo.css"/>
 </head>
 <body class="claro">
 <h2>Editar venues</h2>
@@ -353,9 +191,9 @@ foreach ($file as $f) {
 ?>
 </div>
 <div>
-<button id="submitButton" dojoType="dijit.form.Button" type="submit" name="submitButton" onclick="salvarVenues()" style="float: left; padding-right: 3px; margin-left: 0px;">Salvar</button>
+<button id="submitButton" dojoType="dijit.form.Button" type="submit" name="submitButton" onclick="salvarVenues()" style="float: left; padding-right: 3px; margin-left: 0px; margin-bottom: 15px">Salvar</button>
 <button id="cancelButton" dojoType="dijit.form.Button" type="button" onclick="history.go(-1)" name="cancelButton" style="float: left; padding-right: 3px;">Cancelar</button>
-<div id="dropdownButtonContainer" style="float: left; margin-bottom: 15px"></div>
+<div id="dropdownButtonContainer" style="float: left"></div>
 </div>
 <div data-dojo-type="dijit.Dialog" id="dlg_cats" data-dojo-props='title:"Categorias"'>
 <div id="catsContainer"></div>

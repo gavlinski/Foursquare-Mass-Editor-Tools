@@ -1,46 +1,38 @@
 <?php
-mb_internal_encoding("UTF-8");
-mb_http_output("iso-8859-1");
-ob_start("mb_output_handler");
-header("Content-Type: text/html; charset=ISO-8859-1", true);
 
-define("VERSION", "CSV Venues Editor 1.0");
-define("TEMPLATE1", '<html><head><title>Superuser Tools - foursquare</title><meta http-equiv="Content-type" content="text/html; charset=ISO-8859-1"/><script src="js/dojo/dojo.js" djConfig="parseOnLoad: true"></script><script type="text/javascript">dojo.require("dijit.form.Button");</script><link rel="shortcut icon" href="favicon.ico" type="image/x-icon"/><link rel="stylesheet" type="text/css" href="js/dijit/themes/claro/claro.css"/><link rel="stylesheet" type="text/css" href="estilo.css"/></head><body class="claro">');
-define("TEMPLATE2", '<p><button dojoType="dijit.form.Button" type="button" onclick="history.go(-1)">Voltar</button></p></body></html>');
-define("ERRO01", TEMPLATE1 . '<p>O limite da API &eacute; de 500 requisi&ccedil;&otilde;es por hora por conjunto de endpoints por OAuth.</p><p>Reduza a quantidade de linhas do arquivo e tente novamente.' . TEMPLATE2);
-define("ERRO02", TEMPLATE1 . '<p>A coluna "venue" &eacute; obrigat&oacute;ria para a edi&ccedil;&atilde;o!</p><p>Verifique o arquivo CSV e tente novamente.' . TEMPLATE2);
-define("ERRO99", '<html><head><title>' . VERSION . '</title><meta http-equiv="Content-type" content="text/html; charset=ISO-8859-1" /><link rel="shortcut icon" href="favicon.ico" type="image/x-icon"/><link rel="stylesheet" type="text/css" href="estilo.css"/></head><body><p>Erro na leitura dos dados!</body></html>');
+/**
+ * CSV Venues Editor
+ *
+ * Edita venues de acordo com os dados recebidos do load_csv.php
+ *
+ * @category   Foursquare
+ * @package    Foursquare-Mass-Editor-Tools
+ * @author     Elio Gavlinski <gavlinski@gmail.com>
+ * @copyright  Copyleft (c) 2011-2012
+ * @version    1.1
+ * @link       https://github.com/gavlinski/Foursquare-Mass-Editor-Tools/blob/master/edit_csv.php
+ * @since      File available since Release 0.3
+ */
 
-$oauth_token = $_POST["oauth_token"];
-$csv = $_FILES['csvs']['tmp_name'][0];
-
-if (is_uploaded_file($csv)) {
-  require "CsvToArray.Class.php";
-  $file = CsvToArray::open($csv);
-  if (count($file) > 500) {
-    echo ERRO01;
-    exit;
-  }
-  if (array_key_exists("venue", $file[0]) == false) {
-    echo ERRO02;
-    exit;
-  }
+session_start();
+if (isset($_SESSION["oauth_token"])) {
+	$oauth_token = $_SESSION["oauth_token"];
+	$file = $_SESSION["file"];
 } else {
-  echo ERRO99;
-  exit();
+  header('Location: index.html'); /* Redirect browser */
 }
 ?>
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
-<html dir="ltr">
+<html>
 <head>
-<title>foursquare</title>
-<meta http-equiv="Content-type" content="text/html; charset=ISO-8859-1" />
+<title>Superuser Tools - foursquare</title>
+<meta http-equiv="Content-type" content="text/html; charset=ISO-8859-1"/>
+<link rel="shortcut icon" href="favicon.ico" type="image/x-icon"/>
+<link rel="stylesheet" type="text/css" href="js/dijit/themes/claro/claro.css"/>
+<link rel="stylesheet" type="text/css" href="estilo.css"/>
 <script src="js/dojo/dojo.js" djConfig="parseOnLoad: true"></script>
 <script type="text/javascript">var oauth_token = "<?= $oauth_token ?>";</script>
 <script type="text/javascript" src="js/4sq_csv.js"></script>
-<link rel="shortcut icon" href="favicon.ico" type="image/x-icon" />
-<link rel="stylesheet" type="text/css" href="js/dijit/themes/claro/claro.css"/>
-<link rel="stylesheet" type="text/css" href="estilo.css"/>
 </head>
 <body class="claro">
 <h2>Editar venues</h2>
@@ -208,7 +200,7 @@ foreach ($file as $f) {
 ?>
 </div>
 <div>
-<button id="submitButton" dojoType="dijit.form.Button" type="submit" name="submitButton" onclick="salvarVenues()" style="float: left; padding-right: 3px; margin-left: 0px;">Salvar</button>
+<button id="submitButton" dojoType="dijit.form.Button" type="submit" name="submitButton" onclick="salvarVenues()" style="float: left; padding-right: 3px; margin-left: 0px; margin-bottom: 15px">Salvar</button>
 <button id="cancelButton" dojoType="dijit.form.Button" type="button" onclick="history.go(-1)" name="cancelButton" style="float: left">Cancelar</button>
 </div>
 </body>

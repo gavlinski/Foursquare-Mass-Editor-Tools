@@ -1,3 +1,4 @@
+//dojo.require("dijit.ProgressBar");
 dojo.require("dijit.Dialog");
 dojo.require("dijit.form.Button");
 dojo.require("dijit.form.ComboBox");
