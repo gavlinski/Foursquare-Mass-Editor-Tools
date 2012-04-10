@@ -8,7 +8,8 @@ dojo.require("dojo.data.ItemFileReadStore");
 dojo.require("dijit.Tree");
 dojo.require("dijit.Menu");
 var total = 0;
-var venues = "";
+var csv = "";
+var txt = "";
 var categorias = new Array();
 var store = {};
 var timer;
@@ -170,7 +171,7 @@ function salvarCategorias() {
     //console.log(document.getElementById("cic" + i).value);
     dijit.byId('dlg_cats').hide();
     createTooltip("catLnk" + i, "<span style=\"font-size: 12px\">" + nomes.replace(/,/gi, ", ") + "</span>");
-    dijit.byId("menuItemExportar").setAttribute("disabled", true);
+    dijit.byId("menuItemExportarCSV").setAttribute("disabled", true);
   }
 }
 function createTooltip(target_id, content) {
@@ -247,8 +248,8 @@ function atualizarTabela(resposta, i) {
       //document.forms[i]["name"].value = resposta.response.venue.name;
       if (total == 1) {
         if (j == 1)
-          venues = 'venue;categoryId;';
-        venues = venues + 'name;';
+          csv = 'venue;categoryId;';
+        csv = csv + 'name;';
       }
       if (j == 1)
         linha = '"' + resposta.response.venue.id + '";"' + categorias[i].ids + '";';
@@ -258,8 +259,8 @@ function atualizarTabela(resposta, i) {
       document.forms[i]["address"].value = resposta.response.venue.location.address;
       if (total == 1) {
         if (j == 1)
-          venues = 'venue;categoryId;';
-        venues = venues + 'address;';
+          csv = 'venue;categoryId;';
+        csv = csv + 'address;';
       }
       if (j == 1)
         linha = '"' + resposta.response.venue.id + '";"' + categorias[i].ids + '";';
@@ -269,8 +270,8 @@ function atualizarTabela(resposta, i) {
       document.forms[i]["crossStreet"].value = resposta.response.venue.location.crossStreet;
       if (total == 1) {
         if (j == 1)
-          venues = 'venue;categoryId;';
-        venues = venues + 'crossStreet;';
+          csv = 'venue;categoryId;';
+        csv = csv + 'crossStreet;';
       }
       if (j == 1)
         linha = '"' + resposta.response.venue.id + '";"' + categorias[i].ids + '";';
@@ -280,8 +281,8 @@ function atualizarTabela(resposta, i) {
       document.forms[i]["city"].value = resposta.response.venue.location.city;
       if (total == 1) {
         if (j == 1)
-          venues = 'venue;categoryId;';
-        venues = venues + 'city;';
+          csv = 'venue;categoryId;';
+        csv = csv + 'city;';
       }
       if (j == 1)
         linha = '"' + resposta.response.venue.id + '";"' + categorias[i].ids + '";';
@@ -291,8 +292,8 @@ function atualizarTabela(resposta, i) {
       document.forms[i]["state"].value = resposta.response.venue.location.state;
       if (total == 1) {
         if (j == 1)
-          venues = 'venue;categoryId;';
-        venues = venues + 'state;';
+          csv = 'venue;categoryId;';
+        csv = csv + 'state;';
       }
       if (j == 1)
         linha = '"' + resposta.response.venue.id + '";"' + categorias[i].ids + '";';
@@ -302,8 +303,8 @@ function atualizarTabela(resposta, i) {
       document.forms[i]["zip"].value = resposta.response.venue.location.postalCode;
       if (total == 1) {
         if (j == 1)
-          venues = 'venue;categoryId;';
-        venues = venues + 'zip;';
+          csv = 'venue;categoryId;';
+        csv = csv + 'zip;';
       }
       if (j == 1)
         linha = '"' + resposta.response.venue.id + '";"' + categorias[i].ids + '";';
@@ -313,8 +314,8 @@ function atualizarTabela(resposta, i) {
       document.forms[i]["twitter"].value = resposta.response.venue.contact.twitter;
       if (total == 1) {
         if (j == 1)
-          venues = 'venue;categoryId;';
-        venues = venues + 'twitter;';
+          csv = 'venue;categoryId;';
+        csv = csv + 'twitter;';
       }
       if (j == 1)
         linha = '"' + resposta.response.venue.id + '";"' + categorias[i].ids + '";';
@@ -324,8 +325,8 @@ function atualizarTabela(resposta, i) {
       document.forms[i]["phone"].value = resposta.response.venue.contact.phone;
       if (total == 1) {
         if (j == 1)
-          venues = 'venue;categoryId;';
-        venues = venues + 'phone;';
+          csv = 'venue;categoryId;';
+        csv = csv + 'phone;';
       }
       if (j == 1)
         linha = '"' + resposta.response.venue.id + '";"' + categorias[i].ids + '";';
@@ -335,8 +336,8 @@ function atualizarTabela(resposta, i) {
       document.forms[i]["url"].value = resposta.response.venue.url;
       if (total == 1) {
         if (j == 1)
-          venues = 'venue;categoryId;';
-        venues = venues + 'url;';
+          csv = 'venue;categoryId;';
+        csv = csv + 'url;';
       }
       if (j == 1)
         linha = '"' + resposta.response.venue.id + '";"' + categorias[i].ids + '";';
@@ -346,8 +347,8 @@ function atualizarTabela(resposta, i) {
       document.forms[i]["description"].value = resposta.response.venue.description;
       if (total == 1) {
         if (j == 1)
-          venues = 'venue;categoryId;';
-        venues = venues + 'description;';
+          csv = 'venue;categoryId;';
+        csv = csv + 'description;';
       }
       if (j == 1)
         linha = '"' + resposta.response.venue.id + '";"' + categorias[i].ids + '";';
@@ -357,8 +358,8 @@ function atualizarTabela(resposta, i) {
       document.forms[i]["ll"].value = resposta.response.venue.location.lat + ', ' + resposta.response.venue.location.lng;
       if (total == 1) {
         if (j == 1)
-          venues = 'venue;categoryId;';
-        venues = venues + 'll;';
+          csv = 'venue;categoryId;';
+        csv = csv + 'll;';
       }
       if (j == 1)
         linha = '"' + resposta.response.venue.id + '";"' + categorias[i].ids + '";';
@@ -381,8 +382,9 @@ function atualizarTabela(resposta, i) {
     //}
   }
   if (total == 1)
-    venues = venues.slice(0, -1) + '\n';
-  venues = venues + linha.replace(/undefined/gi, "") + '\n';
+    csv = csv.slice(0, -1) + '\n';
+  csv = csv + linha.replace(/undefined/gi, "") + '\n';
+  txt = txt + resposta.response.venue.id + '%0A';
   if (resposta.response.venue.categories[0] == undefined) {
     document.getElementById("icone" + i).innerHTML = "<a id='catLnk" + i + "' href='javascript:editarCategorias(" + i + ")'><img id=catImg" + i + " src='http://foursquare.com/img/categories/none.png' style='height: 22px; width: 22px; margin-left: 0px'></a>";
   } else {
@@ -542,12 +544,28 @@ dojo.addOnLoad(function() {
   var menu = new dijit.Menu({
     style: "display: none;"
   });
-  var menuItem1 = new dijit.MenuItem({
-    label: "Exportar",
-    id: "menuItemExportar",
+  var subMenu1 = new dijit.Menu({
+    style: "display: none;"
+  });
+  var subMenuItem1 = new dijit.MenuItem({
+    label: "Arquivo CSV",
+    id: "menuItemExportarCSV",
     onClick: function() {
-    	window.location.href = "data:application/csv;charset=iso-8859-1," + encodeURIComponent(venues);
+    	window.location.href = "data:text/csv;charset=iso-8859-1," + escape(csv);
 		}
+  });
+  subMenu1.addChild(subMenuItem1);
+  var subMenuItem2 = new dijit.MenuItem({
+    label: "Arquivo TXT",
+    id: "menuItemExportarTXT",
+    onClick: function() {
+    	window.open("data:text/plain;charset=iso-8859-1," + txt);
+		}
+  });
+  subMenu1.addChild(subMenuItem2);
+  var menuItem1 = new dijit.PopupMenuItem({
+    label: "Exportar",
+    popup: subMenu1
   });
   menu.addChild(menuItem1);
   var button = new dijit.form.DropDownButton({
@@ -575,6 +593,6 @@ function showDialog_guia() {
 function verificarAlteracao(textbox, i) {
   if (textbox.oldvalue != " ") {
     dojo.byId("result" + i).innerHTML = "";
-    dijit.byId("menuItemExportar").setAttribute("disabled", true);
+    dijit.byId("menuItemExportarCSV").setAttribute("disabled", true);
   }
 }
