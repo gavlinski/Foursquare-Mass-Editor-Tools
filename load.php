@@ -131,6 +131,11 @@ function validarVenues($lines) {
         $ret = explode('venuesArray.push(venue', $line);
         $ret = array_slice($ret, 1);
       }
+      
+    /*** 4sqmap - Foursquare Maps and Statistics ***/
+    } else if (stripos($line, 'https://foursquare.com/venue/') !== false) {
+    	//echo "Line #<b>{$line_num}</b> : " . htmlspecialchars($line) . " at position <b>" . stripos($line, 'https://foursquare.com/venue/') . "</b><br />\n";
+    	$ret = array_merge($ret, array_slice(explode('https://foursquare.com/venue/', $line), 1));
     }
   }
 
@@ -149,8 +154,8 @@ function validarVenues($lines) {
     //echo '<br><br>';
     //print_r($venues);
     //exit;
-    $_SESSION["venues"] = $venues;
-    return $ret;
+    $_SESSION["venues"] = array_values(array_unique($venues));
+    return array_values(array_unique($ret));;
   } else if (count($lines) > 500) {
     $p->hide();
     echo ERRO01;
