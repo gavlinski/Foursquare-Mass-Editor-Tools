@@ -110,7 +110,11 @@ foreach ($file as $f) {
   echo '<div class="row">', chr(10), '<form name="form', $i, '" accept-charset="utf-8" encType="multipart/form-data" method="post">', chr(10);
 
   $venue = $f['venue'];
-  echo '<input type="hidden" name="venue" value="', $venue, '"><a href="https://foursquare.com/v/', $venue, '" target="_blank">';
+  echo '<input type="hidden" name="venue" value="', $venue, '"><a href="https://foursquare.com/v/', $venue, '" target="_blank"';
+  if ($hasCategoryId) {
+    echo ' style="margin-right: 5px;"';
+  }
+  echo '>';
   if (count($file) < 10)
     echo $i;
   else if (count($file) < 100)
@@ -118,6 +122,10 @@ foreach ($file as $f) {
   else
     echo str_pad($i, 3, "0", STR_PAD_LEFT);
   echo '</a>', chr(10);
+  
+  if ($hasCategoryId) {
+    echo '<span id="icone', $i - 1, '"><img id=catImg', $i, ' src="http://foursquare.com/img/categories/none.png" style="height: 22px; width: 22px; margin-left: 0px"></span>', chr(10);
+  }
 
   $name = htmlentities($f['name']);
   if ($hasName) {
@@ -179,20 +187,20 @@ foreach ($file as $f) {
 
   $ll = $f['ll'];
   if ($hasLl) {
-    if (($ll != '') && ($ll != ' ')) {
+    //if (($ll != '') && ($ll != ' ')) {
       echo '<input type="text" dojoType="dijit.form.TextBox" name="ll" maxlength="402" value="', $ll, '" placeHolder="Lat/Long" style="width: 9em; margin-left: 5px;" onfocus="this.oldvalue = this.value" onchange="verificarAlteracao(this, ', $i - 1, ')">', chr(10);
-    } else {
-      echo '<input type="text" dojoType="dijit.form.TextBox" name="ll" placeHolder="Lat/Long" style="width: 9em; margin-left: 5px;" disabled>', chr(10);
-    }
+    //} else {
+      //echo '<input type="text" dojoType="dijit.form.TextBox" name="ll" placeHolder="Lat/Long" style="width: 9em; margin-left: 5px;" disabled>', chr(10);
+    //}
   }
 
   $categoryId = htmlentities($f['categoryId']);
   if ($hasCategoryId) {
-    if (($categoryId != '') && ($categoryId != ' ')) {
+    //if (($categoryId != '') && ($categoryId != ' ')) {
       echo '<input type="text" dojoType="dijit.form.TextBox" name="categoryId" maxlength="75" value="', $categoryId, '" placeHolder="Categorias" style="width: 9em; margin-left: 5px;" onfocus="this.oldvalue = this.value" onchange="verificarAlteracao(this, ', $i - 1, ')">', chr(10);
-    } else {
-      echo '<input type="text" dojoType="dijit.form.TextBox" name="categoryId" placeHolder="Categorias" style="width: 9em; margin-left: 5px;" disabled>', chr(10);
-    }
+    //} else {
+      //echo '<input type="text" dojoType="dijit.form.TextBox" name="categoryId" placeHolder="Categorias" style="width: 9em; margin-left: 5px;" disabled>', chr(10);
+    //}
   }
 
   echo '<span id="result', $i - 1, '"></span>', chr(10), '</form>', chr(10), '</div>', chr(10);

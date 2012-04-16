@@ -7,22 +7,28 @@ dojo.require("dijit.Tooltip");
 dojo.require("dojo.data.ItemFileReadStore");
 dojo.require("dijit.Tree");
 dojo.require("dijit.Menu");
+
 var total = 0;
 var csv = "";
 var txt = "";
 var categorias = new Array();
 var store = {};
 var timer;
+var linhasEditadas = new Array();
+var totalLinhasEditadas = 0;
+
 function atualizarResultado(linha, imagem, item, dica) {
   document.getElementById(linha).innerHTML = imagem;
   createTooltip(item, dica);
-  total++;
-  if (total == document.forms.length) {
+  totalLinhasEditadas++;
+  if (totalLinhasEditadas == linhasEditadas.length) {
+    linhasEditadas = [];
     dijit.byId("submitButton").setAttribute('disabled', false);
     if (timer)
     	clearTimeout(timer);
   }
 }
+
 function xmlhttpRequest(metodo, endpoint, dados, i) {
   var xmlhttp = new XMLHttpRequest();
   xmlhttp.onreadystatechange = function() {
@@ -40,6 +46,7 @@ function xmlhttpRequest(metodo, endpoint, dados, i) {
         } else if ((metodo == "GET") && (resposta.response.categories == undefined)) {
           atualizarTabela(resposta, i);
         } else if (resposta.response.categories != undefined) {
+          //console.info("Categorias recuperadas!");
           montarArvore(resposta);
         }
       } else if (xmlhttp.status == 400) {
@@ -66,11 +73,13 @@ function xmlhttpRequest(metodo, endpoint, dados, i) {
   xmlhttp.send(dados);
   return false;
 }
+
 function Categoria(ids, nomes, icones) {
    this.ids = ids;
    this.nomes = nomes;
    this.icones = icones;
 }
+
 function atualizarCategorias(nomes, ids, icones) {
   document.getElementById("catsContainer").innerHTML = "";
   for (j = 0; j < nomes.length; j++)
@@ -80,6 +89,7 @@ function atualizarCategorias(nomes, ids, icones) {
   document.getElementById("catsIcones").innerHTML = icones;
   //console.log(document.getElementById("catsIcones").innerHTML);
 }
+
 function editarCategorias(i) {
   var nomes = new Array();
   var ids =  "";
@@ -93,10 +103,11 @@ function editarCategorias(i) {
   document.getElementById("venueIndex").innerHTML = i;
   dijit.byId("dlg_cats").show();
 }
+
 function removerCategoria(i) {
   if (timer)
     clearTimeout(timer);
-  timer = setTimeout(function() {
+  timer = setTimeout(function remover() {
     //console.info('Remover a categoria ' + i);
     var nomes = new Array();
     var ids = "";
@@ -119,6 +130,7 @@ function removerCategoria(i) {
     atualizarCategorias(nomes, ids.slice(0, -1), icones.slice(0, -1));
   }, 250);
 }
+
 function tornarCategoriaPrimaria(i) {
   clearTimeout(timer);
   //console.info("Tornar a categoria " + i + " primaria");
@@ -153,6 +165,7 @@ function tornarCategoriaPrimaria(i) {
   }
   atualizarCategorias(nomes, ids.slice(0, -1), icones.slice(0, -1));
 }
+
 function salvarCategorias() {
   var i = document.getElementById("venueIndex").innerHTML;
   var nomes = "";
@@ -174,6 +187,7 @@ function salvarCategorias() {
     dijit.byId("menuItemExportarCSV").setAttribute("disabled", true);
   }
 }
+
 function createTooltip(target_id, content) {
   var obj = document.getElementById('tt_' + target_id);
   if (obj != null)
@@ -185,6 +199,7 @@ function createTooltip(target_id, content) {
   tooltip.domNode.id = 'tt_' + target_id;
   document.body.appendChild(tooltip.domNode);
 }
+
 function formattedTime(unix_timestamp) {
   var date = new Date(unix_timestamp * 1000);
   var dia = date.getDate();
@@ -193,6 +208,7 @@ function formattedTime(unix_timestamp) {
   var mes = new Array("01", "02", "03", "04", "05", "06", "07", "08", "09", "10", "11", "12");
   return dia + "/" + mes[date.getMonth()] + "/" + date.getFullYear();
 }
+
 function atualizarDicaVenue(i) {
   var dica = "<span style=\"font-size: 12px\"><b>" + document.forms[i]["name"].value + "</b>";
   try {
@@ -222,8 +238,16 @@ function atualizarDicaVenue(i) {
   dica += "<br><span style=\"color: #999999;\">Criada em " + document.forms[i]["createdAt"].value + "</span></span>";
   return dica;
 }
+
 function atualizarTabela(resposta, i) {
   total++;
+  if (total == document.forms.length) {
+    /*** Necessário adicionar 1 segundo de atraso após término do carregamento ***/
+    timer = setTimeout(function limparLinhasEditadas() {
+      linhasEditadas = [];
+      dijit.byId("submitButton").setAttribute('disabled', false);
+    }, 1000);
+  }
   var linha = "";
   categorias[i] = new Categoria();
   for (j = 0; j < resposta.response.venue.categories.length; j++) {
@@ -242,7 +266,8 @@ function atualizarTabela(resposta, i) {
     //console.log(categorias[i].nomes + " (" + categorias[i].ids + ") [" + categorias[i].icones + "]");
   }
   document.forms[i]["name"].value = resposta.response.venue.name;
-  for (j = 1; j < document.forms[i].elements.length - 2; j++) {
+  var colunas = document.forms[i].elements.length - 2;
+  for (j = 1; j < colunas; j++) {
     switch (document.forms[i].elements[j].name) {
     case "name":
       //document.forms[i]["name"].value = resposta.response.venue.name;
@@ -395,20 +420,21 @@ function atualizarTabela(resposta, i) {
   var dicaVenue = atualizarDicaVenue(i);
   createTooltip("venLnk" + i, dicaVenue);
 }
+
 function montarArvore(resposta) {
-  var restructuredData = dojo.map(resposta.response.categories, dojo.hitch(this, function(category1) {
+  var restructuredData = dojo.map(resposta.response.categories, dojo.hitch(this, function categoriasPrimarias(category1) {
     var newCategory1 = {};
     newCategory1.id = category1.id;
     newCategory1.name = category1.name;
     newCategory1.icon = category1.icon.prefix + category1.icon.sizes[0] + category1.icon.name;
-    newCategory1.children = dojo.map(category1.categories, dojo.hitch(this, function(idPrefix, category2) {
+    newCategory1.children = dojo.map(category1.categories, dojo.hitch(this, function categoriasSecundarias(idPrefix, category2) {
       var newCategory2 = {};
       //newCategory2.id = idPrefix + "_" + category2.id;
       newCategory2.id = category2.id;
       newCategory2.name = category2.name;
       newCategory2.icon = category2.icon.prefix + category2.icon.sizes[0] + category2.icon.name;
       if (category2.categories != "") {
-        newCategory2.children = dojo.map(category2.categories, dojo.hitch(this, function(idPrefix, category3) {
+        newCategory2.children = dojo.map(category2.categories, dojo.hitch(this, function categoriasTerciarias(idPrefix, category3) {
           var newCategory3 = {};
           //newCategory3.id = idPrefix + "_" + category3.id;
           newCategory3.id = category3.id;
@@ -449,6 +475,7 @@ function montarArvore(resposta) {
     }
   }, "treeContainer");
 }
+
 function treeOnClick(item) {
   if (!item.root) {
     //console.log("Execute of node " + store.getLabel(item) + ", id=" + store.getValue(item, "id") + ", icon=" + store.getValue(item, "icon"));
@@ -475,67 +502,69 @@ function treeOnClick(item) {
     return true;
   }
 }
+
 function carregarVenues() {
   var venue;
   //console.info("Recuperando dados das venues...");
-  for (i = 0; i < document.forms.length; i++) {
+  var linhas = document.forms.length;
+  for (i = 0; i < linhas; i++) {
     venue = document.forms[i]["venue"].value;
-    xmlhttpRequest("GET", "https://api.foursquare.com/v2/venues/" + venue + "?oauth_token=" + oauth_token + "&v=20120325", null, i);
+    xmlhttpRequest("GET", "https://api.foursquare.com/v2/venues/" + venue + "?oauth_token=" + oauth_token + "&v=20120416", null, i);
     document.getElementById("result" + i).innerHTML = "<img src='img/loading.gif' alt='Recuperando dados...'>";
   }
   //console.info("Venues recuperadas!");
 }
+
 function salvarVenues() {
-  total = 0;
-  dijit.byId("submitButton").setAttribute("disabled", true);
-  var venue, dados, ll;
-  //console.info("Enviando dados...");
-  for (i = 0; i < document.forms.length; i++) {
-    dados = "oauth_token=" + oauth_token;
-    for (j = 1; j < document.forms[i].elements.length; j++) {
-      venue = document.forms[i]["venue"].value;
-      if ((document.forms[i].elements[j].name != "ll") &&
-          (document.forms[i].elements[j].name != "categoryId") &&
-          ((document.forms[i].elements[j].name == "name")
-           || (document.forms[i].elements[j].name == "address")
-           || (document.forms[i].elements[j].name == "crossStreet")
-           || (document.forms[i].elements[j].name == "city")
-           || (document.forms[i].elements[j].name == "state")
-           || (document.forms[i].elements[j].name == "zip")
-           || (document.forms[i].elements[j].name == "twitter")
-           || (document.forms[i].elements[j].name == "phone")
-           || (document.forms[i].elements[j].name == "url")
-           || (document.forms[i].elements[j].name == "description")))
-        dados += "&" + document.forms[i].elements[j].name + "=" + document.forms[i].elements[j].value.replace(/&/g, "%26");
-      else if (document.forms[i].elements[j].name == "categoryId") {
-        categoryId = document.forms[i]["categoryId"].value;
-        if (categoryId != null && categoryId != "")
-          dados += "&categoryId=" + document.forms[i]["categoryId"].value;
-      } else if (document.forms[i].elements[j].name == "ll") {
-        ll = document.forms[i]["ll"].value;
-        if (ll != null && ll != "")
-          dados += "&ll=" + document.forms[i]["ll"].value;
+  for (i = 0; i < document.forms.length; i++)
+    dojo.byId("result" + i).innerHTML = "";
+  if (linhasEditadas.length > 0) {
+    totalLinhasEditadas = 0;
+    dijit.byId("submitButton").setAttribute("disabled", true);
+    var venue, dados, ll, elementName;
+    //console.info("Enviando dados...");
+    //var linhas = document.forms.length;
+    linhasEditadas.sort();
+    for (l = 0; l < linhasEditadas.length; l++) {
+      i = linhasEditadas[l];
+      dados = "oauth_token=" + oauth_token;
+      var colunas = document.forms[i].elements.length;
+      for (j = 1; j < colunas; j++) {
+        venue = document.forms[i]["venue"].value;
+        elementName = document.forms[i].elements[j].name;
+        if ((elementName != "ll") && (elementName != "categoryId") &&
+            ((elementName == "name") || (elementName == "address") || (elementName == "crossStreet") || (elementName == "city") || (elementName == "state") || (elementName == "zip") || (elementName == "twitter") || (elementName == "phone") || (elementName == "url") || (elementName == "description")))
+          dados += "&" + elementName + "=" + document.forms[i].elements[j].value.replace(/&/g, "%26");
+        else if (elementName == "categoryId") {
+          categoryId = document.forms[i]["categoryId"].value;
+          if (categoryId != null && categoryId != "")
+            dados += "&categoryId=" + document.forms[i]["categoryId"].value;
+        } else if (elementName == "ll") {
+          ll = document.forms[i]["ll"].value;
+          if (ll != null && ll != "")
+            dados += "&ll=" + document.forms[i]["ll"].value;
+        }
       }
+      dados += "&v=20120416";
+      //console.group("venue=" + venue + " (" + i + ")");
+      //console.log(dados);
+      //console.groupEnd();
+      xmlhttpRequest("POST", "https://api.foursquare.com/v2/venues/" + venue + "/edit", dados, i);
+      document.getElementById("result" + i).innerHTML = "<img src='img/loading.gif' alt='Enviando dados...'>";
     }
-    dados += "&v=20120325";
-    //console.group("venue=" + venue + " (" + i + ")");
-    //console.log(dados);
-    //console.groupEnd();
-    xmlhttpRequest("POST", "https://api.foursquare.com/v2/venues/" + venue + "/edit", dados, i);
-    document.getElementById("result" + i).innerHTML = "<img src='img/loading.gif' alt='Enviando dados...'>";
+    //console.info("Dados enviados!");
+    timer = setTimeout(function reabilitarSalvar() {
+  	  dijit.byId("submitButton").setAttribute('disabled', false);
+    }, 60000);
   }
-  //console.info("Dados enviados!");
-  timer = setTimeout(function() {
-  	dijit.byId("submitButton").setAttribute('disabled', false);
-  }, 120000);
 }
+
 function carregarListaCategorias() {
   //console.info("Recuperando dados das categorias...");
-  xmlhttpRequest("GET", "https://api.foursquare.com/v2/venues/categories" + "?oauth_token=" + oauth_token + "&v=20120325", null, i);
-  //console.info("Categorias recuperadas!");
+  xmlhttpRequest("GET", "https://api.foursquare.com/v2/venues/categories" + "?oauth_token=" + oauth_token + "&v=20120416", null, null);
 }
 var dlgGuia;
-dojo.addOnLoad(function() {
+dojo.addOnLoad(function inicializar() {
   // create the dialog:
   dlg_guia = new dijit.Dialog({
     title: "Guia de estilo",
@@ -578,9 +607,10 @@ dojo.addOnLoad(function() {
   carregarVenues();
   carregarListaCategorias();
 });
+
 function showDialog_guia() {
   // set the content of the dialog:
-  dlg_guia.attr("content", "<ul><li><p>Use sempre a ortografia e as letras mai&uacute;sculas corretas.</p></li><li><p>Em redes ou venues com v&aacute;rios locais, n&atilde;o &eacute; preciso adicionar um sufixo de local. Portanto, pode deixar &quot;Starbucks&quot; ou &quot;Apple Store&quot; (em vez de &quot;Starbucks - Queen Anne&quot; ou &quot;Apple Store - Cidade Alta&quot;).</p></li><li><p>Sempre que poss&iacute;vel, use abrevia&ccedil;&otilde;es: &quot;Av.&quot; em vez de &quot;Avenida&quot;, &quot;R.&quot; em vez de &quot;Rua&quot;, etc.</p></li><li>A Rua Cross deve ser preenchida da seguinte forma:<ul><li>R. Bela Cintra (para venues em uma esquina)</li><li>R. Bela Cintra x R. Haddock Lobo (para venues entre duas quadras)</li></ul><br></li><li>Na Rua Cross tamb&eacute;m podem ser inclu&iacute;dos:<ul><li>Bairro, complemento, ponto de refer&ecirc;ncia ou via de acesso (quando relevante)</li><li>Bloco, piso, loja ou setor (para subvenues)</li></ul></li><li><p>Os nomes de Estados e prov&iacute;ncias devem ser abreviados.</p></li><li><p>Em caso de d&uacute;vida, formate os endere&ccedil;os das venues de acordo com as diretrizes postais locais.</p></li><li><p>Se tiver mais perguntas sobre a cria&ccedil;&atilde;o e edi&ccedil;&atilde;o de venues no foursquare, consulte nossas <a href='https://pt.foursquare.com/info/houserules' target='_blank'>regras da casa</a> e as <a href='http://support.foursquare.com/forums/191151-venue-help' target='_blank'>perguntas frequentes sobre venues</a>.</p></li></ul>");
+  dlg_guia.attr("content", "<ul><li><p>Use sempre a ortografia e as letras mai&uacute;sculas corretas.</p></li><li><p>Em redes ou venues com v&aacute;rios locais, n&atilde;o &eacute; preciso adicionar um sufixo de local. Portanto, pode deixar &quot;Starbucks&quot; ou &quot;Apple Store&quot; (em vez de &quot;Starbucks - Queen Anne&quot; ou &quot;Apple Store - Cidade Alta&quot;).</p></li><li><p>Sempre que poss&iacute;vel, use abrevia&ccedil;&otilde;es nos endere&ccedil;os: &quot;Av.&quot; em vez de &quot;Avenida&quot;, &quot;R.&quot; em vez de &quot;Rua&quot;, etc.</p></li><li>A Rua Cross deve ser preenchida da seguinte forma:<ul><li>R. Bela Cintra (para venues em uma esquina)</li><li>R. Bela Cintra x R. Haddock Lobo (para venues entre duas quadras)</li></ul><br></li><li>Na Rua Cross tamb&eacute;m podem ser inclu&iacute;dos:<ul><li>Bairro, complemento, ponto de refer&ecirc;ncia ou via de acesso (quando relevante)</li><li>Bloco, piso, loja ou setor (para subvenues)</li></ul></li><li><p>Os nomes de Estados e prov&iacute;ncias devem ser abreviados.</p></li><li><p>Em caso de d&uacute;vida, formate os endere&ccedil;os das venues de acordo com as diretrizes postais locais.</p></li><li><p>Se tiver mais perguntas sobre a cria&ccedil;&atilde;o e edi&ccedil;&atilde;o de venues no foursquare, consulte nossas <a href='https://pt.foursquare.com/info/houserules' target='_blank'>regras da casa</a> e as <a href='http://support.foursquare.com/forums/191151-venue-help' target='_blank'>perguntas frequentes sobre venues</a>.</p></li></ul>");
   dlg_guia.show();
 }
 //var node = dojo.byId("forms");
@@ -590,9 +620,16 @@ function showDialog_guia() {
     //dojo.stopEvent(e);
   //}
 //});
+
 function verificarAlteracao(textbox, i) {
   if (textbox.oldvalue != " ") {
     dojo.byId("result" + i).innerHTML = "";
     dijit.byId("menuItemExportarCSV").setAttribute("disabled", true);
+    if ((total == document.forms.length) && (linhasEditadas.indexOf(i) == -1)) {
+      linhasEditadas.push(i);
+    }
+    //console.debug(textbox.style);
+    //var domNode = dijit.byId(textbox.id).domNode;
+    //dojo.style(domNode, "background", "#FFFFE0");
   }
 }

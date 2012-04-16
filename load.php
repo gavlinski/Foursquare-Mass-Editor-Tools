@@ -20,7 +20,7 @@ $_SESSION["oauth_token"] = $_POST["oauth_token"];
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
 <html>
 <head>
-<title>Superuser Tools - foursquare</title>
+<title>Carregando...</title>
 <meta http-equiv="content-type" content="text/html; charset=ISO-8859-1"/>
 <meta http-equiv="cache-control" content="no-cache"/>
 <meta http-equiv="pragma" content="no-cache">

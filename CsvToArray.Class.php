@@ -94,6 +94,10 @@
 			usleep(100000*0.1);
  			$result[] = $row;
  		}
+ 		
+ 		// Necessário caso o campo descrição possua quebra(s) de linha
+ 		$p->setProgressBarProgress(100);
+ 		
  		fclose($file);
  		return $result;
  	}
