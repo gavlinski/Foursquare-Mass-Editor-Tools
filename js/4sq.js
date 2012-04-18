@@ -9,8 +9,8 @@ dojo.require("dijit.Tree");
 dojo.require("dijit.Menu");
 
 var total = 0;
-var csv = "";
-var txt = "";
+var csv = new Array();
+var txt = new Array();
 var categorias = new Array();
 var store = {};
 var timer;
@@ -179,9 +179,12 @@ function salvarCategorias() {
     document.getElementById("cid" + i).value = document.getElementById("catsIds").innerHTML;
     document.getElementById("cic" + i).value = document.getElementById("catsIcones").innerHTML;
     document.getElementById("icone" + i).innerHTML = "<a id='catLnk" + i + "' href='javascript:editarCategorias(" + i + ")'><img id=catImg" + i + " src='" + document.getElementById("cic" + i).value.split(",", 1)[0] + "' style='height: 22px; width: 22px; margin-left: 0px'></a>";
+    var index = csv[0].indexOf("categoryId")
+    csv[parseInt(i) + 1][index] = document.getElementById("cid" + i).value;
     //console.log(document.getElementById("cna" + i).value);
     //console.log(document.getElementById("cid" + i).value);
     //console.log(document.getElementById("cic" + i).value);
+    //console.log(csv[parseInt(i) + 1][2], csv[parseInt(i) + 1][index]);
     dijit.byId('dlg_cats').hide();
     createTooltip("catLnk" + i, "<span style=\"font-size: 12px\">" + nomes.replace(/,/gi, ", ") + "</span>");
     dijit.byId("menuItemExportarCSV").setAttribute("disabled", true);
@@ -273,122 +276,122 @@ function atualizarTabela(resposta, i) {
       //document.forms[i]["name"].value = resposta.response.venue.name;
       if (total == 1) {
         if (j == 1)
-          csv = 'venue;categoryId;';
-        csv = csv + 'name;';
+          csv[0] = ["venue", "categoryId"];
+        csv[0] = csv[0].concat("name");
       }
       if (j == 1)
-        linha = '"' + resposta.response.venue.id + '";"' + categorias[i].ids + '";';
-      linha = linha + '"' + resposta.response.venue.name + '";';
+        linha = resposta.response.venue.id + '&&' + categorias[i].ids;
+      linha += '&&"' + resposta.response.venue.name + '"';
       break;
     case "address":
       document.forms[i]["address"].value = resposta.response.venue.location.address;
       if (total == 1) {
         if (j == 1)
-          csv = 'venue;categoryId;';
-        csv = csv + 'address;';
+          csv[0] = ["venue", "categoryId"];
+        csv[0] = csv[0].concat("address");
       }
       if (j == 1)
-        linha = '"' + resposta.response.venue.id + '";"' + categorias[i].ids + '";';
-      linha = linha + '"' + resposta.response.venue.location.address + '";';
+        linha = resposta.response.venue.id + '&&' + categorias[i].ids;
+      linha += '&&"' + resposta.response.venue.location.address + '"';
       break;
     case "crossStreet":
       document.forms[i]["crossStreet"].value = resposta.response.venue.location.crossStreet;
       if (total == 1) {
         if (j == 1)
-          csv = 'venue;categoryId;';
-        csv = csv + 'crossStreet;';
+          csv[0] = ["venue", "categoryId"];
+        csv[0] = csv[0].concat("crossStreet");
       }
       if (j == 1)
-        linha = '"' + resposta.response.venue.id + '";"' + categorias[i].ids + '";';
-      linha = linha + '"' + resposta.response.venue.location.crossStreet + '";';
+        linha = resposta.response.venue.id + '&&' + categorias[i].ids;
+      linha += '&&"' + resposta.response.venue.location.crossStreet + '"';
       break;
     case "city":
       document.forms[i]["city"].value = resposta.response.venue.location.city;
       if (total == 1) {
         if (j == 1)
-          csv = 'venue;categoryId;';
-        csv = csv + 'city;';
+          csv[0] = ["venue", "categoryId"];
+        csv[0] = csv[0].concat("city");
       }
       if (j == 1)
-        linha = '"' + resposta.response.venue.id + '";"' + categorias[i].ids + '";';
-      linha = linha + '"' + resposta.response.venue.location.city + '";';
+        linha = resposta.response.venue.id + '&&' + categorias[i].ids;
+      linha += '&&"' + resposta.response.venue.location.city + '"';
       break;
     case "state":
       document.forms[i]["state"].value = resposta.response.venue.location.state;
       if (total == 1) {
         if (j == 1)
-          csv = 'venue;categoryId;';
-        csv = csv + 'state;';
+          csv[0] = ["venue", "categoryId"];
+        csv[0] = csv[0].concat("state");
       }
       if (j == 1)
-        linha = '"' + resposta.response.venue.id + '";"' + categorias[i].ids + '";';
-      linha = linha + '"' + resposta.response.venue.location.state + '";';
+        linha = resposta.response.venue.id + '&&' + categorias[i].ids;
+      linha += '&&"' + resposta.response.venue.location.state + '"';
       break;
     case "zip":
       document.forms[i]["zip"].value = resposta.response.venue.location.postalCode;
       if (total == 1) {
         if (j == 1)
-          csv = 'venue;categoryId;';
-        csv = csv + 'zip;';
+          csv[0] = ["venue", "categoryId"];
+        csv[0] = csv[0].concat("zip");
       }
       if (j == 1)
-        linha = '"' + resposta.response.venue.id + '";"' + categorias[i].ids + '";';
-      linha = linha + '"' + resposta.response.venue.location.postalCode + '";';
+        linha = resposta.response.venue.id + '&&' + categorias[i].ids;
+      linha += '&&"' + resposta.response.venue.location.postalCode + '"';
       break;
     case "twitter":
       document.forms[i]["twitter"].value = resposta.response.venue.contact.twitter;
       if (total == 1) {
         if (j == 1)
-          csv = 'venue;categoryId;';
-        csv = csv + 'twitter;';
+          csv[0] = ["venue", "categoryId"];
+        csv[0] = csv[0].concat("twitter");
       }
       if (j == 1)
-        linha = '"' + resposta.response.venue.id + '";"' + categorias[i].ids + '";';
-      linha = linha + '"' + resposta.response.venue.contact.twitter + '";';
+        linha = resposta.response.venue.id + '&&' + categorias[i].ids;
+      linha += '&&"' + resposta.response.venue.contact.twitter + '"';
       break;
     case "phone":
       document.forms[i]["phone"].value = resposta.response.venue.contact.phone;
       if (total == 1) {
         if (j == 1)
-          csv = 'venue;categoryId;';
-        csv = csv + 'phone;';
+          csv[0] = ["venue", "categoryId"];
+        csv[0] = csv[0].concat("phone");
       }
       if (j == 1)
-        linha = '"' + resposta.response.venue.id + '";"' + categorias[i].ids + '";';
-      linha = linha + '"' + resposta.response.venue.contact.phone + '";';
+        linha = resposta.response.venue.id + '&&' + categorias[i].ids;
+      linha += '&&"' + resposta.response.venue.contact.phone + '"';
       break;
     case "url":
       document.forms[i]["url"].value = resposta.response.venue.url;
       if (total == 1) {
         if (j == 1)
-          csv = 'venue;categoryId;';
-        csv = csv + 'url;';
+          csv[0] = ["venue", "categoryId"];
+        csv[0] = csv[0].concat("url");
       }
       if (j == 1)
-        linha = '"' + resposta.response.venue.id + '";"' + categorias[i].ids + '";';
-      linha = linha + '"' + resposta.response.venue.url + '";';
+        linha = resposta.response.venue.id + '&&' + categorias[i].ids;
+      linha += '&&"' + resposta.response.venue.url + '"';
       break;
     case "description":
       document.forms[i]["description"].value = resposta.response.venue.description;
       if (total == 1) {
         if (j == 1)
-          csv = 'venue;categoryId;';
-        csv = csv + 'description;';
+          csv[0] = ["venue", "categoryId"];
+        csv[0] = csv[0].concat("description");
       }
       if (j == 1)
-        linha = '"' + resposta.response.venue.id + '";"' + categorias[i].ids + '";';
-      linha = linha + '"' + resposta.response.venue.description + '";';
+        linha = resposta.response.venue.id + '&&' + categorias[i].ids;
+      linha += '&&"' + resposta.response.venue.description + '"';
       break;
     case "ll":
       document.forms[i]["ll"].value = resposta.response.venue.location.lat + ', ' + resposta.response.venue.location.lng;
       if (total == 1) {
         if (j == 1)
-          csv = 'venue;categoryId;';
-        csv = csv + 'll;';
+          csv[0] = ["venue", "categoryId"];
+        csv[0] = csv[0].concat("ll");
       }
       if (j == 1)
-        linha = '"' + resposta.response.venue.id + '";"' + categorias[i].ids + '";';
-      linha = linha + '"' + resposta.response.venue.location.lat + ', ' + resposta.response.venue.location.lng + '";';
+        linha = resposta.response.venue.id + '&&' + categorias[i].ids;
+      linha += '&&"' + resposta.response.venue.location.lat + ', ' + resposta.response.venue.location.lng + '"';
       break;
     default:
       break;
@@ -406,10 +409,8 @@ function atualizarTabela(resposta, i) {
       //dojo.byId("regras").blur();
     //}
   }
-  if (total == 1)
-    csv = csv.slice(0, -1) + '\n';
-  csv = csv + linha.replace(/undefined/gi, "") + '\n';
-  txt = txt + resposta.response.venue.id + '%0A';
+  csv[i + 1] = linha.replace(/undefined/gi, "").split("&&");
+  txt[i + 1] = resposta.response.venue.id + '%0A';
   if (resposta.response.venue.categories[0] == undefined) {
     document.getElementById("icone" + i).innerHTML = "<a id='catLnk" + i + "' href='javascript:editarCategorias(" + i + ")'><img id=catImg" + i + " src='http://foursquare.com/img/categories/none.png' style='height: 22px; width: 22px; margin-left: 0px'></a>";
   } else {
@@ -533,9 +534,12 @@ function salvarVenues() {
         venue = document.forms[i]["venue"].value;
         elementName = document.forms[i].elements[j].name;
         if ((elementName != "ll") && (elementName != "categoryId") &&
-            ((elementName == "name") || (elementName == "address") || (elementName == "crossStreet") || (elementName == "city") || (elementName == "state") || (elementName == "zip") || (elementName == "twitter") || (elementName == "phone") || (elementName == "url") || (elementName == "description")))
+            ((elementName == "name") || (elementName == "address") || (elementName == "crossStreet") || (elementName == "city") || (elementName == "state") || (elementName == "zip") || (elementName == "twitter") || (elementName == "phone") || (elementName == "url")))
           dados += "&" + elementName + "=" + document.forms[i].elements[j].value.replace(/&/g, "%26");
-        else if (elementName == "categoryId") {
+        else if (elementName == "description") {
+          var index = csv[0].indexOf("description")
+          dados += "&description=" + csv[i + 1][index].slice(1, -1).replace(/&/g, "%26");
+        } else if (elementName == "categoryId") {
           categoryId = document.forms[i]["categoryId"].value;
           if (categoryId != null && categoryId != "")
             dados += "&categoryId=" + document.forms[i]["categoryId"].value;
@@ -580,7 +584,11 @@ dojo.addOnLoad(function inicializar() {
     label: "Arquivo CSV",
     id: "menuItemExportarCSV",
     onClick: function() {
-    	window.location.href = "data:text/csv;charset=iso-8859-1," + escape(csv);
+      var arq = [];
+      for (i = 0; i < csv.length; i++) {
+        arq[i] = csv[i].join(";");
+      }
+    	window.location.href = "data:text/csv;charset=iso-8859-1," + escape(arq.join("\r\n"));
 		}
   });
   subMenu1.addChild(subMenuItem1);
@@ -588,7 +596,7 @@ dojo.addOnLoad(function inicializar() {
     label: "Arquivo TXT",
     id: "menuItemExportarTXT",
     onClick: function() {
-    	window.open("data:text/plain;charset=iso-8859-1," + txt);
+    	window.open("data:text/plain;charset=iso-8859-1," + txt.join("\r\n"));
 		}
   });
   subMenu1.addChild(subMenuItem2);
@@ -622,12 +630,13 @@ function showDialog_guia() {
 //});
 
 function verificarAlteracao(textbox, i) {
-  if (textbox.oldvalue != " ") {
+  var index = csv[0].indexOf(textbox.name)
+  if (csv[i + 1][index].slice(1, -1) != textbox.value) {
+    //console.info("changed: " + textbox.name + ", old value: " + csv[i + 1][index].slice(1, -1) + ", new value: " + textbox.value);
+    csv[i + 1][index] = '"' + textbox.value + '"';
     dojo.byId("result" + i).innerHTML = "";
-    dijit.byId("menuItemExportarCSV").setAttribute("disabled", true);
-    if ((total == document.forms.length) && (linhasEditadas.indexOf(i) == -1)) {
+    if (linhasEditadas.indexOf(i) == -1)
       linhasEditadas.push(i);
-    }
     //console.debug(textbox.style);
     //var domNode = dijit.byId(textbox.id).domNode;
     //dojo.style(domNode, "background", "#FFFFE0");

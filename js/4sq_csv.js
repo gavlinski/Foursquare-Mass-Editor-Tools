@@ -164,7 +164,7 @@ dojo.addOnLoad(function() {
     title: "Guia de estilo",
     style: "width: 435px"
   });
-  if ("categoryId" in document.forms)
+  if (dojo.query('#icone0').length != 0)
     carregarListaCategorias();
 });
 
@@ -175,8 +175,8 @@ function showDialog_guia() {
 }
 
 function verificarAlteracao(textbox, i) {
-  if (textbox.oldvalue != " ")
-  	dojo.byId("result" + i).innerHTML = "";
+	dojo.byId("result" + i).innerHTML = "";
+  //console.info("changed: " + textbox.name + ", new value: " + textbox.value);
   if (textbox.name == "categoryId")
     salvarCategoria(i);
 }

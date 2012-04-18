@@ -33,7 +33,7 @@ define("LINKS", '<link rel="shortcut icon" href="favicon.ico" type="image/x-icon
 define("HBODY", '</head>
 <body class="claro">
 ');
-define("CARREGANDO", LINKS . HBODY . '<div id="carregando">Carregando&hellip;</div>
+define("CARREGANDO", LINKS . HBODY . '<div id="carregando">Carregando venues&hellip;</div>
 ');
 define("TEMPLATE1", '<script src="js/dojo/dojo.js" djConfig="parseOnLoad: true"></script>
 <script type="text/javascript">dojo.require("dijit.form.Button");</script>
