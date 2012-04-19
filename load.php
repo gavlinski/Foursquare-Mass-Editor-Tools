@@ -103,7 +103,7 @@ function validarVenues($lines) {
   $venues = array();
   $i = 0;
   
-  require_once 'ProgressBar.class.php';
+  require_once 'ProgressBar.Class.php';
 
 	echo CARREGANDO;
 	$p = new ProgressBar();
@@ -203,7 +203,7 @@ function parseVenues($html) {
   $i = 0;
 
   if ($lines) {
-	  require_once 'ProgressBar.class.php';
+	  require_once 'ProgressBar.Class.php';
 
 		echo CARREGANDO;
 		$p = new ProgressBar();

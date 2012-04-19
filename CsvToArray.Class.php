@@ -38,7 +38,7 @@
  		$file = fopen($file, 'r');
  		$keys = fgetcsv($file, $size, $delimiter);
  		
- 		require_once 'ProgressBar.class.php';
+ 		require_once 'ProgressBar.Class.php';
 
 		echo CARREGANDO;
 		$p = new ProgressBar();
