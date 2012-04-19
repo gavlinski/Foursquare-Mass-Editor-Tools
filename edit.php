@@ -202,5 +202,10 @@ foreach ($file as $f) {
 <button data-dojo-type="dijit.form.Button" type="button" data-dojo-props="onClick:function(){dijit.byId('dlg_cats').hide();}">Cancelar</button>
 <br><div id="venueIndex" style="display: none"></div><div id="catsIds" style="display: none"></div><div id="catsIcones" style="display: none"></div>
 </div>
+<div data-dojo-type="dijit.Dialog" id="dlg_save" data-dojo-props='title:"Salvando venues..."'>
+<div dojoType="dijit.ProgressBar" style="width:300px" jsId="jsProgress"
+id="saveProgress">
+</div>
+</div>
 </body>
 </html>

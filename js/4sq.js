@@ -1,4 +1,4 @@
-//dojo.require("dijit.ProgressBar");
+dojo.require("dijit.ProgressBar");
 dojo.require("dijit.Dialog");
 dojo.require("dijit.form.Button");
 dojo.require("dijit.form.ComboBox");
@@ -16,16 +16,28 @@ var store = {};
 var timer;
 var linhasEditadas = new Array();
 var totalLinhasEditadas = 0;
+var totalLinhasSalvas = 0;
 
 function atualizarResultado(linha, imagem, item, dica) {
   document.getElementById(linha).innerHTML = imagem;
   createTooltip(item, dica);
   totalLinhasEditadas++;
+  dijit.byId("saveProgress").update({maximum: linhasEditadas.length, progress: totalLinhasEditadas});
   if (totalLinhasEditadas == linhasEditadas.length) {
     linhasEditadas = [];
     dijit.byId("submitButton").setAttribute('disabled', false);
-    if (timer)
+    if (timer) {
     	clearTimeout(timer);
+    	if (totalLinhasSalvas == 0)
+    	  dijit.byId("dlg_save").set("title", "Nenhuma venue editada");
+    	else if (totalLinhasSalvas == 1)
+        dijit.byId("dlg_save").set("title", "1 venue editada com sucesso");
+      else
+        dijit.byId("dlg_save").set("title", totalLinhasSalvas + " venues editadas com sucesso");
+      timer = setTimeout(function fecharPbSalvar() {
+  	    dijit.byId("dlg_save").hide();
+      }, 5000);
+    } 
   }
 }
 
@@ -42,6 +54,7 @@ function xmlhttpRequest(metodo, endpoint, dados, i) {
         if (metodo == "POST") {
           document.getElementById("info" + i).innerHTML = document.getElementById("info" + i).innerHTML.replace(/%0A/gi, "");
           var dicaVenue = atualizarDicaVenue(i);
+          totalLinhasSalvas++;
           atualizarResultado("result" + i, "<img src='img/ok.png' alt='" + xmlhttp.responseText + "' style='vertical-align: middle;'>", "venLnk" + i, dicaVenue);
         } else if ((metodo == "GET") && (resposta.response.categories == undefined)) {
           atualizarTabela(resposta, i);
@@ -520,7 +533,9 @@ function salvarVenues() {
   for (i = 0; i < document.forms.length; i++)
     dojo.byId("result" + i).innerHTML = "";
   if (linhasEditadas.length > 0) {
+    dijit.byId("dlg_save").show();
     totalLinhasEditadas = 0;
+    totalLinhasSalvas = 0;
     dijit.byId("submitButton").setAttribute("disabled", true);
     var venue, dados, ll, elementName;
     //console.info("Enviando dados...");
