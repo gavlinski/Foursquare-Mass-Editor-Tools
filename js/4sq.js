@@ -194,6 +194,9 @@ function salvarCategorias() {
     document.getElementById("icone" + i).innerHTML = "<a id='catLnk" + i + "' href='javascript:editarCategorias(" + i + ")'><img id=catImg" + i + " src='" + document.getElementById("cic" + i).value.split(",", 1)[0] + "' style='height: 22px; width: 22px; margin-left: 0px'></a>";
     var index = csv[0].indexOf("categoryId")
     csv[parseInt(i) + 1][index] = document.getElementById("cid" + i).value;
+    dojo.byId("result" + i).innerHTML = "";
+    if (linhasEditadas.indexOf(i) == -1)
+      linhasEditadas.push(i);
     //console.log(document.getElementById("cna" + i).value);
     //console.log(document.getElementById("cid" + i).value);
     //console.log(document.getElementById("cic" + i).value);
@@ -533,9 +536,11 @@ function salvarVenues() {
   for (i = 0; i < document.forms.length; i++)
     dojo.byId("result" + i).innerHTML = "";
   if (linhasEditadas.length > 0) {
-    dijit.byId("dlg_save").show();
     totalLinhasEditadas = 0;
     totalLinhasSalvas = 0;
+    dijit.byId("saveProgress").update({maximum: linhasEditadas.length, progress: totalLinhasEditadas});
+    dijit.byId("dlg_save").set("title", "Salvando venues...");
+    dijit.byId("dlg_save").show();
     dijit.byId("submitButton").setAttribute("disabled", true);
     var venue, dados, ll, elementName;
     //console.info("Enviando dados...");
