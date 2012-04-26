@@ -124,7 +124,7 @@ foreach ($file as $f) {
   echo '</a>', chr(10);
   
   if ($hasCategoryId) {
-    echo '<span id="icone', $i - 1, '"><img id=catImg', $i, ' src="http://foursquare.com/img/categories/none.png" style="height: 22px; width: 22px; margin-left: 0px"></span>', chr(10);
+    echo '<span id="icone', $i - 1, '"><img id=catImg', $i, ' src="https://foursquare.com/img/categories/none.png" style="height: 22px; width: 22px; margin-left: 0px"></span>', chr(10);
   }
 
   if ($hasName) {

@@ -99,7 +99,7 @@ function salvarCategoria(i) {
         nomes += categorias[categoryId[j]].nome + ", ";
     createTooltip("catImg" + i, "<span style=\"font-size: 12px\">" + nomes.slice(0, -2) + "</span>");
   } else {
-    document.getElementById("icone" + i).innerHTML = "<img id=catImg" + i + " src='http://foursquare.com/img/categories/none.png' style='height: 22px; width: 22px; margin-left: 0px'>";
+    document.getElementById("icone" + i).innerHTML = "<img id=catImg" + i + " src='https://foursquare.com/img/categories/none.png' style='height: 22px; width: 22px; margin-left: 0px'>";
   }
 }
 
