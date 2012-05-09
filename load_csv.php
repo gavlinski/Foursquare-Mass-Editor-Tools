@@ -9,7 +9,7 @@
  * @package    Foursquare-Mass-Editor-Tools
  * @author     Elio Gavlinski <gavlinski@gmail.com>
  * @copyright  Copyleft (c) 2011-2012
- * @version    1.1
+ * @version    1.2
  * @link       https://github.com/gavlinski/Foursquare-Mass-Editor-Tools/blob/master/load_csv.php
  * @since      File available since Release 1.1
  */
@@ -60,8 +60,12 @@ define("ERRO99", '<meta http-equiv="refresh" content="5; url=index.html">
 define("EDIT", '<script type="text/javascript">
 	window.location = "edit_csv.php"
 </script>;');
+define("FLAG", '<script type="text/javascript">
+	window.location = "flag_csv.php"
+</script>;');
 
 $csv = $_FILES['csvs']['tmp_name'][0];
+$filename = $_FILES['csvs']['name'][0];
 
 if (is_uploaded_file($csv)) {
   require "CsvToArray.Class.php";
@@ -75,7 +79,10 @@ if (is_uploaded_file($csv)) {
     exit;
   }
   $_SESSION["file"] = $file;
-  echo EDIT;
+  if (stripos($filename, "delete") !== false)
+    echo FLAG;
+  else
+    echo EDIT;
 } else {
   echo ERRO99;
   exit();

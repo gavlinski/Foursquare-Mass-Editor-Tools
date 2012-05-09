@@ -3,7 +3,7 @@
 /**
  * List Venues Editor
  *
- * Edita venues de acordo com os campos e dados recebidos do load.php
+ * Edição de venues a partir dos campos e dados recebidos do load.php
  *
  * @category   Foursquare
  * @package    Foursquare-Mass-Editor-Tools
@@ -191,7 +191,7 @@ foreach ($file as $f) {
 ?>
 </div>
 <div>
-<button id="submitButton" dojoType="dijit.form.Button" type="submit" name="submitButton" onclick="salvarVenues()" style="float: left; padding-right: 3px; margin-left: 0px; margin-bottom: 15px" disabled>Salvar</button>
+<button id="saveButton" dojoType="dijit.form.Button" type="submit" name="saveButton" onclick="salvarVenues()" style="float: left; padding-right: 3px; margin-left: 0px; margin-bottom: 15px" disabled>Salvar</button>
 <button id="cancelButton" dojoType="dijit.form.Button" type="button" onclick="history.go(-1)" name="cancelButton" style="float: left; padding-right: 3px;">Cancelar</button>
 <div id="dropdownButtonContainer" style="float: left"></div>
 </div>

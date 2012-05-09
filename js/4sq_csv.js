@@ -3,6 +3,7 @@ dojo.require("dijit.form.Button");
 dojo.require("dijit.form.ComboBox");
 dojo.require("dijit.form.TextBox");
 dojo.require("dijit.Tooltip");
+dojo.require("dijit.Menu");
 
 var total = 0;
 var timer;
@@ -14,7 +15,10 @@ function atualizarResultado(linha, imagem, dica) {
     createTooltip(linha, dica);
   total++;
   if (total == document.forms.length) {
-    dijit.byId("submitButton").setAttribute('disabled', false);
+    if (dijit.byId("flagButton"))
+      dijit.byId("flagButton").setAttribute('disabled', false);
+    else 
+      dijit.byId("saveButton").setAttribute('disabled', false);
     if (timer)
     	clearTimeout(timer);
   }
@@ -114,7 +118,7 @@ function atualizarCategorias() {
 
 function salvarVenues() {
   total = 0;
-  dijit.byId("submitButton").setAttribute("disabled", true);
+  dijit.byId("saveButton").setAttribute("disabled", true);
   var venue, dados, categoryId, ll, elementName;
   //console.info("Enviando dados...");
   var totalLinhas = document.forms.length;
@@ -148,7 +152,28 @@ function salvarVenues() {
   }
   //console.info("Dados enviados!");
   timer = setTimeout(function() {
-  	dijit.byId("submitButton").setAttribute('disabled', false);
+  	dijit.byId("saveButton").setAttribute('disabled', false);
+  }, 120000);
+}
+
+function sinalizarVenues(problema) {
+  total = 0;
+  dijit.byId("flagButton").setAttribute("disabled", true);
+  var venue, dados;
+  //console.info("Enviando dados...");
+  var totalLinhas = document.forms.length;
+  for (i = 0; i < totalLinhas; i++) {
+    venue = document.forms[i]["venue"].value;
+    dados = "oauth_token=" + oauth_token + "&problem=" + problema + "&v=20120501";
+    //console.group("venue=" + venue + " (" + i + ")");
+    //console.log(dados);
+    //console.groupEnd();
+		xmlhttpRequest("POST", "https://api.foursquare.com/v2/venues/" + venue + "/flag", dados, i);
+		document.getElementById("result" + i).innerHTML = "<img src='img/loading.gif' alt='Enviando dados...'>";
+  }
+  //console.info("Dados enviados!");
+  timer = setTimeout(function() {
+  	dijit.byId("flagButton").setAttribute('disabled', false);
   }, 120000);
 }
 
@@ -164,6 +189,32 @@ dojo.addOnLoad(function() {
     title: "Guia de estilo",
     style: "width: 435px"
   });
+  if (dojo.query('#dropdownButtonContainer').length != 0) {
+    var menu = new dijit.Menu({
+      style: "display: none;"
+    });
+    var menuItem1 = new dijit.MenuItem({
+      label: "Inappropriate",
+      onClick: function() {
+        sinalizarVenues("inappropriate");
+      }
+    });
+    menu.addChild(menuItem1);
+    var menuItem2 = new dijit.MenuItem({
+      label: "Doesn't exist",
+      onClick: function() {
+        sinalizarVenues("doesnt_exist");
+      }
+    });
+    menu.addChild(menuItem2);
+    var button = new dijit.form.DropDownButton({
+      label: "Flag",
+      name: "menuButton",
+      dropDown: menu,
+      id: "flagButton"
+    });
+    dojo.byId("dropdownButtonContainer").appendChild(button.domNode);
+  }
   if (dojo.query('#icone0').length != 0)
     carregarListaCategorias();
 });

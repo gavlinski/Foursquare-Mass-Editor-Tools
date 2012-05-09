@@ -25,7 +25,7 @@ function atualizarResultado(linha, imagem, item, dica) {
   dijit.byId("saveProgress").update({maximum: linhasEditadas.length, progress: totalLinhasEditadas});
   if (totalLinhasEditadas == linhasEditadas.length) {
     linhasEditadas = [];
-    dijit.byId("submitButton").setAttribute('disabled', false);
+    dijit.byId("saveButton").setAttribute('disabled', false);
     if (timer) {
     	clearTimeout(timer);
     	if (totalLinhasSalvas == 0)
@@ -264,7 +264,7 @@ function atualizarTabela(resposta, i) {
     /*** Necessário adicionar 1 segundo de atraso após término do carregamento ***/
     timer = setTimeout(function limparLinhasEditadas() {
       linhasEditadas = [];
-      dijit.byId("submitButton").setAttribute('disabled', false);
+      dijit.byId("saveButton").setAttribute('disabled', false);
     }, 1000);
   }
   var linha = "";
@@ -541,7 +541,7 @@ function salvarVenues() {
     dijit.byId("saveProgress").update({maximum: linhasEditadas.length, progress: totalLinhasEditadas});
     dijit.byId("dlg_save").set("title", "Salvando venues...");
     dijit.byId("dlg_save").show();
-    dijit.byId("submitButton").setAttribute("disabled", true);
+    dijit.byId("saveButton").setAttribute("disabled", true);
     var venue, dados, ll, elementName;
     //console.info("Enviando dados...");
     //var linhas = document.forms.length;
@@ -578,7 +578,7 @@ function salvarVenues() {
     }
     //console.info("Dados enviados!");
     timer = setTimeout(function reabilitarSalvar() {
-  	  dijit.byId("submitButton").setAttribute('disabled', false);
+  	  dijit.byId("saveButton").setAttribute('disabled', false);
     }, 60000);
   }
 }
@@ -605,8 +605,10 @@ dojo.addOnLoad(function inicializar() {
     id: "menuItemExportarCSV",
     onClick: function() {
       var arq = [];
+      var j = 0;
       for (i = 0; i < csv.length; i++) {
-        arq[i] = csv[i].join(";");
+        if (csv[i] != undefined)
+          arq[j++] = csv[i].join(";");
       }
     	window.location.href = "data:text/csv;charset=iso-8859-1," + escape(arq.join("\r\n"));
 		}
