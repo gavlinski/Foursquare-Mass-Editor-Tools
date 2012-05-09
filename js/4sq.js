@@ -28,12 +28,16 @@ function atualizarResultado(linha, imagem, item, dica) {
     dijit.byId("saveButton").setAttribute('disabled', false);
     if (timer) {
     	clearTimeout(timer);
-    	if (totalLinhasSalvas == 0)
-    	  dijit.byId("dlg_save").set("title", "Nenhuma venue editada");
+    	var title = totalLinhasSalvas + " de " + totalLinhasEditadas + " venue";
+    	if (totalLinhasEditadas > 1)
+        title += "s";
+      if (totalLinhasSalvas == 0)
+        title += " editadas";
     	else if (totalLinhasSalvas == 1)
-        dijit.byId("dlg_save").set("title", "1 venue editada com sucesso");
+    	  title += " editada com sucesso";
       else
-        dijit.byId("dlg_save").set("title", totalLinhasSalvas + " venues editadas com sucesso");
+        title += " editadas com sucesso";
+      dijit.byId("dlg_save").set("title", title);
       timer = setTimeout(function fecharPbSalvar() {
   	    dijit.byId("dlg_save").hide();
       }, 5000);
@@ -195,8 +199,8 @@ function salvarCategorias() {
     var index = csv[0].indexOf("categoryId")
     csv[parseInt(i) + 1][index] = document.getElementById("cid" + i).value;
     dojo.byId("result" + i).innerHTML = "";
-    if (linhasEditadas.indexOf(i) == -1)
-      linhasEditadas.push(i);
+    if (linhasEditadas.indexOf(parseInt(i)) == -1)
+      linhasEditadas.push(parseInt(i));
     //console.log(document.getElementById("cna" + i).value);
     //console.log(document.getElementById("cid" + i).value);
     //console.log(document.getElementById("cic" + i).value);
