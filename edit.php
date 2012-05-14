@@ -121,7 +121,7 @@ $i = 0;
 foreach ($file as $f) {
   $i++;
 
-  echo '<div class="row">', chr(10), '<form name="form', $i, '" accept-charset="utf-8" encType="multipart/form-data" method="post">', chr(10);
+  echo '<div id="linha', $i - 1, '" class="row">', chr(10), '<form name="form', $i, '" accept-charset="utf-8" encType="multipart/form-data" method="post">', chr(10);
 
   $venue = $venues[$i - 1];
   echo '<input type="hidden" name="venue" value="', $venue, '"><span id="info', $i - 1, '"><a id="venLnk', $i - 1, '" href="', $f, '" target="_blank" style="margin-right: 5px;">';

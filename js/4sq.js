@@ -16,15 +16,16 @@ var store = {};
 var timer;
 var linhasEditadas = new Array();
 var totalLinhasEditadas = 0;
+var totalLinhasParaSalvar = 0;
 var totalLinhasSalvas = 0;
 
 function atualizarResultado(linha, imagem, item, dica) {
   document.getElementById(linha).innerHTML = imagem;
   createTooltip(item, dica);
+  linhasEditadas.splice(linha, 1);
   totalLinhasEditadas++;
-  dijit.byId("saveProgress").update({maximum: linhasEditadas.length, progress: totalLinhasEditadas});
-  if (totalLinhasEditadas == linhasEditadas.length) {
-    linhasEditadas = [];
+  dijit.byId("saveProgress").update({maximum: totalLinhasParaSalvar, progress: totalLinhasEditadas});
+  if (linhasEditadas.length == 0) {
     dijit.byId("saveButton").setAttribute('disabled', false);
     if (timer) {
     	clearTimeout(timer);
@@ -67,6 +68,15 @@ function xmlhttpRequest(metodo, endpoint, dados, i) {
           montarArvore(resposta);
         }
       } else if (xmlhttp.status == 400) {
+      	if (metodo == "GET") {
+          dojo.query('#linha' + i + ' input').forEach(
+            function(inputElem) {
+              if ((inputElem.type == 'text') && ((inputElem.value == ' ') || (inputElem.value == '')))
+                //console.log(inputElem);
+                dijit.byId(inputElem.id).setAttribute("disabled", true);
+            }
+          )
+      	}
         atualizarResultado("result" + i, "<img src='img/erro.png' alt='Erro 400: Bad Request, Tipo: " + resposta.meta.errorType + ", Detalhe: " + resposta.meta.errorDetail + "'>", "result" + i, "<span style=\"font-size: 12px\">Erro 400: Bad Request, Tipo: " + resposta.meta.errorType + ",<br>Detalhe: " + resposta.meta.errorDetail + "</span>");
       } else if (xmlhttp.status == 401) {
         atualizarResultado("result" + i, "<img src='img/erro.png' alt='Erro 401: Unauthorized, Tipo: " + resposta.meta.errorType + ", Detalhe: " + resposta.meta.errorDetail + "'>", "result" + i, "<span style=\"font-size: 12px\">Erro 401: Unauthorized, Tipo: " + resposta.meta.errorType + ",<br>Detalhe: " + resposta.meta.errorDetail + "</span>");
@@ -548,9 +558,8 @@ function salvarVenues() {
     dijit.byId("saveButton").setAttribute("disabled", true);
     var venue, dados, ll, elementName;
     //console.info("Enviando dados...");
-    //var linhas = document.forms.length;
-    linhasEditadas.sort();
-    for (l = 0; l < linhasEditadas.length; l++) {
+    totalLinhasParaSalvar = linhasEditadas.length;
+    for (l = 0; l < totalLinhasParaSalvar; l++) {
       i = linhasEditadas[l];
       dados = "oauth_token=" + oauth_token;
       var colunas = document.forms[i].elements.length;
