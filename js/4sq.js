@@ -217,7 +217,7 @@ function salvarCategorias() {
     //console.log(csv[parseInt(i) + 1][2], csv[parseInt(i) + 1][index]);
     dijit.byId('dlg_cats').hide();
     createTooltip("catLnk" + i, "<span style=\"font-size: 12px\">" + nomes.replace(/,/gi, ", ") + "</span>");
-    dijit.byId("menuItemExportarCSV").setAttribute("disabled", true);
+    //dijit.byId("menuItemExportarCSV").setAttribute("disabled", true);
   }
 }
 
