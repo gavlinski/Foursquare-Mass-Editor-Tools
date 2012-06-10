@@ -142,9 +142,12 @@ function validarVenues($lines) {
   if (count($ret) > 0) {
     $size = count($ret);
     foreach ($ret as &$r) {
-      $venues[$i] = substr($r, 0, 24);
-      $r = "https://foursquare.com/v/" . $venues[$i];
-      $i++;
+      $vid = substr($r, 0, 24);
+      if (!in_array($vid, $venues)) { 
+        $venues[$i] = $vid;
+        $r = "https://foursquare.com/v/" . $venues[$i];
+        $i++;
+      }
       $p->setProgressBarProgress($i*100/$size);
 			usleep(100000*0.1);
     }
@@ -154,8 +157,8 @@ function validarVenues($lines) {
     //echo '<br><br>';
     //print_r($venues);
     //exit;
-    $_SESSION["venues"] = array_values(array_unique($venues));
-    return array_values(array_unique($ret));;
+    $_SESSION["venues"] = $venues;
+    return $ret;
   } else if (count($lines) > 500) {
     $p->hide();
     echo ERRO01;
@@ -244,9 +247,12 @@ function parseVenues($html) {
     	$j = 0;
     	foreach ($links as $tag) {
     	  if ((stripos($tag->getAttribute('href'), "/venue/") !== false) || (stripos($tag->getAttribute('href'), "/v/") !== false)) {
-      	  $venues[$i] = substr($tag->getAttribute('href'), -24);
-       		$ret[$i] = "https://foursquare.com" . $tag->getAttribute('href');
-        	$i++;
+    	    $vid = substr($tag->getAttribute('href'), -24);
+    	    if (!in_array($vid, $venues)) { 
+            $venues[$i] = $vid;
+       		  $ret[$i] = "https://foursquare.com" . $tag->getAttribute('href');
+        	  $i++;
+          }
       	}
       	$j++;
       	$p->setProgressBarProgress($j*100/$size);
@@ -264,8 +270,8 @@ function parseVenues($html) {
     	/*** break the reference with the last element ***/
     	unset($r);
   	}
-  	$_SESSION["venues"] = array_values(array_unique($venues));
-  	return array_values(array_unique($ret));
+  	$_SESSION["venues"] = $venues;
+  	return $ret;
 	} else {
 	 return false;
 	}
