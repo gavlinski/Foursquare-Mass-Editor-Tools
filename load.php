@@ -9,7 +9,7 @@
  * @package    Foursquare-Mass-Editor-Tools
  * @author     Elio Gavlinski <gavlinski@gmail.com>
  * @copyright  Copyleft (c) 2011-2012
- * @version    1.1
+ * @version    1.2
  * @link       https://github.com/gavlinski/Foursquare-Mass-Editor-Tools/blob/master/load.php
  * @since      File available since Release 1.1
  */
@@ -47,7 +47,7 @@ define("ERRO01", TEMPLATE1 . '<p>O limite da API &eacute; de 500 requisi&ccedil;
 define("ERRO02", TEMPLATE1 . '<p>Erro na leitura do ID ou URL de uma das venues.</p>
 <p>Verifique o arquivo ou a lista e tente novamente.</p>
 ' . TEMPLATE2);
-define("ERRO03", LINKS . HBODY . TEMPLATE1 . '<p>Nenhuma venue encontrada no endere&ccedil;o especificado.</p>
+define("ERRO03", TEMPLATE1 . '<p>Nenhuma venue encontrada no endere&ccedil;o informado.</p>
 <p>Verifique a p&aacute;gina e tente novamente.</p>
 ' . TEMPLATE2);
 define("ERRO99", '<meta http-equiv="refresh" content="5; url=index.html">
@@ -270,10 +270,16 @@ function parseVenues($html) {
     	/*** break the reference with the last element ***/
     	unset($r);
   	}
+  	if ($ret == null)
+  	  $p->hide();
+  	else if (count($ret) > 500)
+  	  $ret = array_slice($ret, 0, 500);
   	$_SESSION["venues"] = $venues;
   	return $ret;
 	} else {
-	 return false;
+    echo LINKS . HBODY;
+    print('<script type="text/javascript">document.title = "Erro";</script>'."\r");
+    return false;
 	}
 }
 ?>

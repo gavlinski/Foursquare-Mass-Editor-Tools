@@ -69,7 +69,7 @@ class ProgressBar {
 	}
 	
 	function hide() {
-		print('<script type="text/javascript">'."\r".'document.getElementById("'.$this->pbid.'").style.display = "none";'."\r".'document.getElementById("carregando").style.display = "none";'."\r".'</script>'."\r");
+		print('<script type="text/javascript">'."\r".'document.getElementById("'.$this->pbid.'").style.display = "none";'."\r".'document.getElementById("carregando").style.display = "none";'."\r".'document.title = "Erro";'."\r".'</script>'."\r");
 		$this->flush();
 	}
 
