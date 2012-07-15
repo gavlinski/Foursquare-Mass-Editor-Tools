@@ -411,6 +411,8 @@ function atualizarTabela(resposta, i) {
       if (j == 1)
         linha = resposta.response.venue.id + '&&' + categorias[i].ids;
       linha += '&&"' + resposta.response.venue.description + '"';
+      if (resposta.response.venue.verified == true)
+        dijit.byId(dojo.query("input[name=description]")[i].id).setDisabled(true);
       break;
     case "ll":
       document.forms[i]["ll"].value = resposta.response.venue.location.lat + ', ' + resposta.response.venue.location.lng;
@@ -569,7 +571,7 @@ function salvarVenues() {
         if ((elementName != "ll") && (elementName != "categoryId") &&
             ((elementName == "name") || (elementName == "address") || (elementName == "crossStreet") || (elementName == "city") || (elementName == "state") || (elementName == "zip") || (elementName == "twitter") || (elementName == "phone") || (elementName == "url")))
           dados += "&" + elementName + "=" + document.forms[i].elements[j].value.replace(/&/g, "%26");
-        else if (elementName == "description") {
+        else if ((elementName == "description") && (document.forms[i]["description"].disabled == false)) {
           var index = csv[0].indexOf("description")
           dados += "&description=" + csv[i + 1][index].slice(1, -1).replace(/&/g, "%26");
         } else if (elementName == "categoryId") {
