@@ -48,7 +48,7 @@ define("TEMPLATE2", '<p><button dojoType="dijit.form.Button" type="button" oncli
 define("ERRO01", TEMPLATE1 . '<p>O limite da API &eacute; de 500 requisi&ccedil;&otilde;es por hora por conjunto de endpoints por OAuth.</p>
 <p>Reduza a quantidade de linhas do arquivo e tente novamente.</p>
 '. TEMPLATE2);
-define("ERRO02", TEMPLATE1 . '<p>A coluna "venue" &eacute; obrigat&oacute;ria para a edi&ccedil;&atilde;o!</p>
+define("ERRO02", TEMPLATE1 . '<p>Erro na leitura do cabe&ccedil;alho ou conjunto de caracteres inv&aacute;lido.</p>
 <p>Verifique o arquivo CSV e tente novamente.</p>
 ' . TEMPLATE2);
 define("ERRO99", '<meta http-equiv="refresh" content="5; url=index.html">
