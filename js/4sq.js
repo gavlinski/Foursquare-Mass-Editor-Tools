@@ -298,9 +298,11 @@ function atualizarTabela(resposta, i) {
     //console.log(categorias[i].nomes + " (" + categorias[i].ids + ") [" + categorias[i].icones + "]");
   }
   document.forms[i]["name"].value = resposta.response.venue.name;
-  var colunas = document.forms[i].elements.length - 2;
+  var colunas = document.forms[i].elements.length - 4;
+  var elementName;
   for (j = 1; j < colunas; j++) {
-    switch (document.forms[i].elements[j].name) {
+    elementName = document.forms[i].elements[j].name;
+    switch (elementName) {
     case "name":
       //document.forms[i]["name"].value = resposta.response.venue.name;
       if (total == 1) {
@@ -439,11 +441,16 @@ function atualizarTabela(resposta, i) {
       //dojo.byId("regras").focus();
       //dojo.byId("regras").blur();
     //}
+    if (resposta.response.venue.categories[0].id == "4bf58dd8d48988d103941735")
+      dijit.byId(dojo.query("input[name=" + elementName + "]")[i].id).setDisabled(true);
   }
   csv[i + 1] = linha.replace(/undefined/gi, "").split("&&");
   txt[i + 1] = resposta.response.venue.id + '%0A';
   if (resposta.response.venue.categories[0] == undefined) {
     document.getElementById("icone" + i).innerHTML = "<a id='catLnk" + i + "' href='javascript:editarCategorias(" + i + ")'><img id=catImg" + i + " src='https://foursquare.com/img/categories/none.png' style='height: 22px; width: 22px; margin-left: 0px'></a>";
+  } else if (resposta.response.venue.categories[0].id == "4bf58dd8d48988d103941735") {
+    document.getElementById("icone" + i).innerHTML = "<img id=catLnk" + i + " src='" + categorias[i].icones.split(",", 1)[0] + "' style='height: 22px; width: 22px; margin-left: 0px'>";
+    createTooltip("catLnk" + i, "<span style=\"font-size: 12px\">" + categorias[i].nomes.replace(/,/gi, ", ") + "</span>");
   } else {
     document.getElementById("icone" + i).innerHTML = "<a id='catLnk" + i + "' href='javascript:editarCategorias(" + i + ")'><img id=catImg" + i + " src='" + categorias[i].icones.split(",", 1)[0] + "' style='height: 22px; width: 22px; margin-left: 0px'></a>";
     createTooltip("catLnk" + i, "<span style=\"font-size: 12px\">" + categorias[i].nomes.replace(/,/gi, ", ") + "</span>");
