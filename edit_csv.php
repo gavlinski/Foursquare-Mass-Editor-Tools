@@ -100,8 +100,6 @@ if (array_key_exists("categoryId", $file[0])) {
   $hasCategoryId = false;
 }
 
-$ufs = array("AC", "AL", "AP", "AM", "BA", "CE", "DF", "ES", "GO", "MA", "MT", "MS", "MG", "PA", "PB", "PR", "PE", "PI", "RJ", "RN", "RS", "RO", "RR", "SC", "SP", "SE", "TO");
-
 $i = 0;
 
 foreach ($file as $f) {
@@ -148,16 +146,8 @@ foreach ($file as $f) {
   }
 
   if ($hasState) {
-    $state = $f['state'];
-    echo '<select dojoType="dijit.form.ComboBox" name="state" style="width: 4em; margin-left: 5px;" onchange="verificarAlteracao(this, ', $i - 1, ')">', chr(10);
-    $key = array_search($state, $ufs);
-    for ($j = 0; $j <= 26; $j++) {
-      if ($key == $j) {
-        echo '<option value="', $state, '" selected>', $state, '</option>';
-      }
-      echo '<option value="', $ufs[$j], '">', $ufs[$j], '</option>';
-    }
-    echo chr(10), '</select>', chr(10);
+    $state = htmlentities($f['state']);
+    echo '<input type="text" dojoType="dijit.form.TextBox" name="state" maxlength="2" value="', $state, '" placeHolder="UF" style="width: 2.5em; margin-left: 5px;" onchange="verificarAlteracao(this, ', $i - 1, ')">', chr(10);
   }
 
   if ($hasZip) {

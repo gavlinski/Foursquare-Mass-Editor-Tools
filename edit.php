@@ -114,8 +114,6 @@ if ($campos != null) {
 
 $ajusteInput = 11 - $totalCampos;
 
-$ufs = array("AC", "AL", "AP", "AM", "BA", "CE", "DF", "ES", "GO", "MA", "MT", "MS", "MG", "PA", "PB", "PR", "PE", "PI", "RJ", "RN", "RS", "RO", "RR", "SC", "SP", "SE", "TO");
-
 $i = 0;
 
 foreach ($file as $f) {
@@ -154,11 +152,7 @@ foreach ($file as $f) {
   }
 
   if ($editState) {
-    echo '<select dojoType="dijit.form.ComboBox" name="state" style="width: 4em; margin-left: 5px;" onchange="verificarAlteracao(this, ', $i - 1, ')"><option value=""></option>';
-    for ($j = 0; $j <= 26; $j++) {
-      echo '<option value="', $ufs[$j], '">', $ufs[$j], '</option>';
-    }
-    echo '</select>', chr(10);
+    echo '<input type="text" dojoType="dijit.form.TextBox" name="state" maxlength="2" value=" " placeHolder="UF" style="width: 2.5em; margin-left: 5px;" onchange="verificarAlteracao(this, ', $i - 1, ')">', chr(10);  
   }
 
   if ($editZip) {

@@ -1,7 +1,6 @@
 dojo.require("dijit.ProgressBar");
 dojo.require("dijit.Dialog");
 dojo.require("dijit.form.Button");
-dojo.require("dijit.form.ComboBox");
 dojo.require("dijit.form.TextBox");
 dojo.require("dijit.Tooltip");
 dojo.require("dojo.data.ItemFileReadStore");
