@@ -416,7 +416,7 @@ function atualizarTabela(resposta, i) {
         dijit.byId(dojo.query("input[name=description]")[i].id).setDisabled(true);
       break;
     case "ll":
-      document.forms[i]["ll"].value = resposta.response.venue.location.lat + ', ' + resposta.response.venue.location.lng;
+      document.forms[i]["ll"].value = (resposta.response.venue.location.lat + ', ' + resposta.response.venue.location.lng).replace(/undefined/gi, "0.0");
       if (total == 1) {
         if (j == 1)
           csv[0] = ["venue", "categoryId"];
@@ -441,7 +441,7 @@ function atualizarTabela(resposta, i) {
       //dojo.byId("regras").focus();
       //dojo.byId("regras").blur();
     //}
-    if (resposta.response.venue.categories[0].id == "4bf58dd8d48988d103941735")
+    if ((resposta.response.venue.categories[0] != undefined) && (resposta.response.venue.categories[0].id == "4bf58dd8d48988d103941735"))
       dijit.byId(dojo.query("input[name=" + elementName + "]")[i].id).setDisabled(true);
   }
   csv[i + 1] = linha.replace(/undefined/gi, "").split("&&");
