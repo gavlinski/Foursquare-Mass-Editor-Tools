@@ -1,7 +1,6 @@
 dojo.require("dijit.ProgressBar");
 dojo.require("dijit.Dialog");
 dojo.require("dijit.form.Button");
-dojo.require("dijit.form.ComboBox");
 dojo.require("dijit.form.TextBox");
 dojo.require("dijit.Tooltip");
 dojo.require("dojo.data.ItemFileReadStore");
@@ -299,9 +298,11 @@ function atualizarTabela(resposta, i) {
     //console.log(categorias[i].nomes + " (" + categorias[i].ids + ") [" + categorias[i].icones + "]");
   }
   document.forms[i]["name"].value = resposta.response.venue.name;
-  var colunas = document.forms[i].elements.length - 2;
+  var colunas = document.forms[i].elements.length - 4;
+  var elementName;
   for (j = 1; j < colunas; j++) {
-    switch (document.forms[i].elements[j].name) {
+    elementName = document.forms[i].elements[j].name;
+    switch (elementName) {
     case "name":
       //document.forms[i]["name"].value = resposta.response.venue.name;
       if (total == 1) {
@@ -411,9 +412,11 @@ function atualizarTabela(resposta, i) {
       if (j == 1)
         linha = resposta.response.venue.id + '&&' + categorias[i].ids;
       linha += '&&"' + resposta.response.venue.description + '"';
+      if (resposta.response.venue.verified == true)
+        dijit.byId(dojo.query("input[name=description]")[i].id).setDisabled(true);
       break;
     case "ll":
-      document.forms[i]["ll"].value = resposta.response.venue.location.lat + ', ' + resposta.response.venue.location.lng;
+      document.forms[i]["ll"].value = (resposta.response.venue.location.lat + ', ' + resposta.response.venue.location.lng).replace(/undefined/gi, "0.0");
       if (total == 1) {
         if (j == 1)
           csv[0] = ["venue", "categoryId"];
@@ -438,11 +441,16 @@ function atualizarTabela(resposta, i) {
       //dojo.byId("regras").focus();
       //dojo.byId("regras").blur();
     //}
+    if ((resposta.response.venue.categories[0] != undefined) && (resposta.response.venue.categories[0].id == "4bf58dd8d48988d103941735"))
+      dijit.byId(dojo.query("input[name=" + elementName + "]")[i].id).setDisabled(true);
   }
   csv[i + 1] = linha.replace(/undefined/gi, "").split("&&");
   txt[i + 1] = resposta.response.venue.id + '%0A';
   if (resposta.response.venue.categories[0] == undefined) {
     document.getElementById("icone" + i).innerHTML = "<a id='catLnk" + i + "' href='javascript:editarCategorias(" + i + ")'><img id=catImg" + i + " src='https://foursquare.com/img/categories_v2/none_bg_32.png' style='height: 22px; width: 22px; margin-left: 0px'></a>";
+  } else if (resposta.response.venue.categories[0].id == "4bf58dd8d48988d103941735") {
+    document.getElementById("icone" + i).innerHTML = "<img id=catLnk" + i + " src='" + categorias[i].icones.split(",", 1)[0] + "' style='height: 22px; width: 22px; margin-left: 0px'>";
+    createTooltip("catLnk" + i, "<span style=\"font-size: 12px\">" + categorias[i].nomes.replace(/,/gi, ", ") + "</span>");
   } else {
     document.getElementById("icone" + i).innerHTML = "<a id='catLnk" + i + "' href='javascript:editarCategorias(" + i + ")'><img id=catImg" + i + " src='" + categorias[i].icones.split(",", 1)[0] + "' style='height: 22px; width: 22px; margin-left: 0px'></a>";
     createTooltip("catLnk" + i, "<span style=\"font-size: 12px\">" + categorias[i].nomes.replace(/,/gi, ", ") + "</span>");
@@ -569,7 +577,7 @@ function salvarVenues() {
         if ((elementName != "ll") && (elementName != "categoryId") &&
             ((elementName == "name") || (elementName == "address") || (elementName == "crossStreet") || (elementName == "city") || (elementName == "state") || (elementName == "zip") || (elementName == "twitter") || (elementName == "phone") || (elementName == "url")))
           dados += "&" + elementName + "=" + document.forms[i].elements[j].value.replace(/&/g, "%26");
-        else if (elementName == "description") {
+        else if ((elementName == "description") && (document.forms[i]["description"].disabled == false)) {
           var index = csv[0].indexOf("description")
           dados += "&description=" + csv[i + 1][index].slice(1, -1).replace(/&/g, "%26");
         } else if (elementName == "categoryId") {
@@ -650,6 +658,19 @@ dojo.addOnLoad(function inicializar() {
   carregarVenues();
   carregarListaCategorias();
 });
+
+function deCode(str) {
+  var convertstr;
+  convertstr = str.replace(/\&\#(\d+)\;/g, function(p1, p2) {
+    return String.fromCharCode(p2)
+  });
+  return convertstr;
+}
+
+window.onbeforeunload = function() {
+  if (linhasEditadas.length > 0)
+    return deCode("As altera&#231;&#245;es ser&#227;o perdidas se voc&#234; sair desta p&#225;gina sem clicar no bot&#227;o Salvar.");
+}
 
 function showDialog_guia() {
   // set the content of the dialog:
