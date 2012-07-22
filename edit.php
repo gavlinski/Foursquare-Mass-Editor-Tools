@@ -152,7 +152,7 @@ foreach ($file as $f) {
   }
 
   if ($editState) {
-    echo '<input type="text" dojoType="dijit.form.TextBox" name="state" maxlength="2" value=" " placeHolder="UF" style="width: 2.5em; margin-left: 5px;" onchange="verificarAlteracao(this, ', $i - 1, ')">', chr(10);  
+    echo '<input type="text" dojoType="dijit.form.TextBox" name="state" maxlength="30" value=" " placeHolder="UF" style="width: 2.5em; margin-left: 5px;" onchange="verificarAlteracao(this, ', $i - 1, ')">', chr(10);  
   }
 
   if ($editZip) {
