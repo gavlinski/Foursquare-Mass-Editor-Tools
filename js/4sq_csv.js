@@ -81,12 +81,12 @@ function createTooltip(target_id, content) {
 
 function montarTabela(resposta) {
   dojo.map(resposta.response.categories, dojo.hitch(this, function(category1) {
-    categorias[category1.id] = {"nome": category1.name, "icone": category1.icon.prefix + category1.icon.sizes[0] + category1.icon.name};
+    categorias[category1.id] = {"nome": category1.name, "icone": category1.icon.prefix + "bg_32" + category1.icon.suffix};
     dojo.map(category1.categories, dojo.hitch(this, function(category2) {
-      categorias[category2.id] = {"nome": category2.name, "icone": category2.icon.prefix + category2.icon.sizes[0] + category2.icon.name};
+      categorias[category2.id] = {"nome": category2.name, "icone": category2.icon.prefix + "bg_32" + category2.icon.suffix};
       if (category2.categories != "") {
         dojo.map(category2.categories, dojo.hitch(this, function(category3) {
-          categorias[category3.id] = {"nome": category3.name, "icone": category3.icon.prefix + category3.icon.sizes[0] + category3.icon.name};
+          categorias[category3.id] = {"nome": category3.name, "icone": category3.icon.prefix + "bg_32" + category3.icon.suffix};
         }));
       }
     }));
@@ -103,7 +103,7 @@ function salvarCategoria(i) {
         nomes += categorias[categoryId[j]].nome + ", ";
     createTooltip("catImg" + i, "<span style=\"font-size: 12px\">" + nomes.slice(0, -2) + "</span>");
   } else {
-    document.getElementById("icone" + i).innerHTML = "<img id=catImg" + i + " src='https://foursquare.com/img/categories/none.png' style='height: 22px; width: 22px; margin-left: 0px'>";
+    document.getElementById("icone" + i).innerHTML = "<img id=catImg" + i + " src='https://foursquare.com/img/categories_v2/none_bg_32.png' style='height: 22px; width: 22px; margin-left: 0px'>";
   }
 }
 
@@ -143,7 +143,7 @@ function salvarVenues() {
           dados += "&ll=" + document.forms[i]["ll"].value;
       }
     }
-    dados += "&v=20120416";
+    dados += "&v=20120722";
     //console.group("venue=" + venue + " (" + i + ")");
     //console.log(dados);
     //console.groupEnd();
@@ -164,7 +164,7 @@ function sinalizarVenues(problema) {
   var totalLinhas = document.forms.length;
   for (i = 0; i < totalLinhas; i++) {
     venue = document.forms[i]["venue"].value;
-    dados = "oauth_token=" + oauth_token + "&problem=" + problema + "&v=20120501";
+    dados = "oauth_token=" + oauth_token + "&problem=" + problema + "&v=20120722";
     //console.group("venue=" + venue + " (" + i + ")");
     //console.log(dados);
     //console.groupEnd();
@@ -179,7 +179,7 @@ function sinalizarVenues(problema) {
 
 function carregarListaCategorias() {
   //console.info("Recuperando dados das categorias...");
-  xmlhttpRequest("GET", "https://api.foursquare.com/v2/venues/categories" + "?oauth_token=" + oauth_token + "&v=20120416", null, null);
+  xmlhttpRequest("GET", "https://api.foursquare.com/v2/venues/categories" + "?oauth_token=" + oauth_token + "&v=20120722", null, null);
 }
 
 var dlg_guia;

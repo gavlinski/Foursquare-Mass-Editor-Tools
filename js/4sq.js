@@ -286,7 +286,7 @@ function atualizarTabela(resposta, i) {
   for (j = 0; j < resposta.response.venue.categories.length; j++) {
     categorias[i].ids += resposta.response.venue.categories[j].id + ",";
     categorias[i].nomes += resposta.response.venue.categories[j].name + ",";
-    categorias[i].icones += resposta.response.venue.categories[j].icon.prefix + resposta.response.venue.categories[j].icon.sizes[0] + resposta.response.venue.categories[j].icon.name + ",";
+    categorias[i].icones += resposta.response.venue.categories[j].icon.prefix + "bg_32" + resposta.response.venue.categories[j].icon.suffix + ",";
   }
   if (categorias[i].ids != undefined) {
     categorias[i].ids = categorias[i].ids.slice(0, -1).replace(/undefined/gi, "");
@@ -442,7 +442,7 @@ function atualizarTabela(resposta, i) {
   csv[i + 1] = linha.replace(/undefined/gi, "").split("&&");
   txt[i + 1] = resposta.response.venue.id + '%0A';
   if (resposta.response.venue.categories[0] == undefined) {
-    document.getElementById("icone" + i).innerHTML = "<a id='catLnk" + i + "' href='javascript:editarCategorias(" + i + ")'><img id=catImg" + i + " src='https://foursquare.com/img/categories/none.png' style='height: 22px; width: 22px; margin-left: 0px'></a>";
+    document.getElementById("icone" + i).innerHTML = "<a id='catLnk" + i + "' href='javascript:editarCategorias(" + i + ")'><img id=catImg" + i + " src='https://foursquare.com/img/categories_v2/none_bg_32.png' style='height: 22px; width: 22px; margin-left: 0px'></a>";
   } else {
     document.getElementById("icone" + i).innerHTML = "<a id='catLnk" + i + "' href='javascript:editarCategorias(" + i + ")'><img id=catImg" + i + " src='" + categorias[i].icones.split(",", 1)[0] + "' style='height: 22px; width: 22px; margin-left: 0px'></a>";
     createTooltip("catLnk" + i, "<span style=\"font-size: 12px\">" + categorias[i].nomes.replace(/,/gi, ", ") + "</span>");
@@ -457,20 +457,20 @@ function montarArvore(resposta) {
     var newCategory1 = {};
     newCategory1.id = category1.id;
     newCategory1.name = category1.name;
-    newCategory1.icon = category1.icon.prefix + category1.icon.sizes[0] + category1.icon.name;
+    newCategory1.icon = category1.icon.prefix + "bg_32" + category1.icon.suffix;
     newCategory1.children = dojo.map(category1.categories, dojo.hitch(this, function categoriasSecundarias(idPrefix, category2) {
       var newCategory2 = {};
       //newCategory2.id = idPrefix + "_" + category2.id;
       newCategory2.id = category2.id;
       newCategory2.name = category2.name;
-      newCategory2.icon = category2.icon.prefix + category2.icon.sizes[0] + category2.icon.name;
+      newCategory2.icon = category2.icon.prefix + "bg_32" + category2.icon.suffix;
       if (category2.categories != "") {
         newCategory2.children = dojo.map(category2.categories, dojo.hitch(this, function categoriasTerciarias(idPrefix, category3) {
           var newCategory3 = {};
           //newCategory3.id = idPrefix + "_" + category3.id;
           newCategory3.id = category3.id;
           newCategory3.name = category3.name;
-          newCategory3.icon = category3.icon.prefix + category3.icon.sizes[0] + category3.icon.name;
+          newCategory3.icon = category3.icon.prefix + "bg_32" + category3.icon.suffix;
           return newCategory3;
         }, newCategory2.id));
       }
@@ -540,7 +540,7 @@ function carregarVenues() {
   var linhas = document.forms.length;
   for (i = 0; i < linhas; i++) {
     venue = document.forms[i]["venue"].value;
-    xmlhttpRequest("GET", "https://api.foursquare.com/v2/venues/" + venue + "?oauth_token=" + oauth_token + "&v=20120416", null, i);
+    xmlhttpRequest("GET", "https://api.foursquare.com/v2/venues/" + venue + "?oauth_token=" + oauth_token + "&v=20120722", null, i);
     document.getElementById("result" + i).innerHTML = "<img src='img/loading.gif' alt='Recuperando dados...'>";
   }
   //console.info("Venues recuperadas!");
@@ -582,7 +582,7 @@ function salvarVenues() {
             dados += "&ll=" + document.forms[i]["ll"].value;
         }
       }
-      dados += "&v=20120416";
+      dados += "&v=20120722";
       //console.group("venue=" + venue + " (" + i + ")");
       //console.log(dados);
       //console.groupEnd();
@@ -598,7 +598,7 @@ function salvarVenues() {
 
 function carregarListaCategorias() {
   //console.info("Recuperando dados das categorias...");
-  xmlhttpRequest("GET", "https://api.foursquare.com/v2/venues/categories" + "?oauth_token=" + oauth_token + "&v=20120416", null, null);
+  xmlhttpRequest("GET", "https://api.foursquare.com/v2/venues/categories" + "?oauth_token=" + oauth_token + "&v=20120722", null, null);
 }
 var dlgGuia;
 dojo.addOnLoad(function inicializar() {
