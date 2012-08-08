@@ -1,7 +1,9 @@
 dojo.require("dijit.ProgressBar");
 dojo.require("dijit.Dialog");
 dojo.require("dijit.form.Button");
+dojo.require("dijit.form.CheckBox");
 dojo.require("dijit.form.TextBox");
+dojo.require("dijit.form.ToggleButton");
 dojo.require("dijit.Tooltip");
 dojo.require("dojo.data.ItemFileReadStore");
 dojo.require("dijit.Tree");
@@ -300,129 +302,130 @@ function atualizarTabela(resposta, i) {
   document.forms[i]["name"].value = resposta.response.venue.name;
   var colunas = document.forms[i].elements.length - 4;
   var elementName;
-  for (j = 1; j < colunas; j++) {
+  for (j = 2; j < colunas; j++) {
     elementName = document.forms[i].elements[j].name;
+    //console.log(elementName);
     switch (elementName) {
     case "name":
       //document.forms[i]["name"].value = resposta.response.venue.name;
       if (total == 1) {
-        if (j == 1)
+        if (j == 2)
           csv[0] = ["venue", "categoryId"];
         csv[0] = csv[0].concat("name");
       }
-      if (j == 1)
+      if (j == 2)
         linha = resposta.response.venue.id + '&&' + categorias[i].ids;
       linha += '&&"' + resposta.response.venue.name + '"';
       break;
     case "address":
       document.forms[i]["address"].value = resposta.response.venue.location.address;
       if (total == 1) {
-        if (j == 1)
+        if (j == 2)
           csv[0] = ["venue", "categoryId"];
         csv[0] = csv[0].concat("address");
       }
-      if (j == 1)
+      if (j == 2)
         linha = resposta.response.venue.id + '&&' + categorias[i].ids;
       linha += '&&"' + resposta.response.venue.location.address + '"';
       break;
     case "crossStreet":
       document.forms[i]["crossStreet"].value = resposta.response.venue.location.crossStreet;
       if (total == 1) {
-        if (j == 1)
+        if (j == 2)
           csv[0] = ["venue", "categoryId"];
         csv[0] = csv[0].concat("crossStreet");
       }
-      if (j == 1)
+      if (j == 2)
         linha = resposta.response.venue.id + '&&' + categorias[i].ids;
       linha += '&&"' + resposta.response.venue.location.crossStreet + '"';
       break;
     case "city":
       document.forms[i]["city"].value = resposta.response.venue.location.city;
       if (total == 1) {
-        if (j == 1)
+        if (j == 2)
           csv[0] = ["venue", "categoryId"];
         csv[0] = csv[0].concat("city");
       }
-      if (j == 1)
+      if (j == 2)
         linha = resposta.response.venue.id + '&&' + categorias[i].ids;
       linha += '&&"' + resposta.response.venue.location.city + '"';
       break;
     case "state":
       document.forms[i]["state"].value = resposta.response.venue.location.state;
       if (total == 1) {
-        if (j == 1)
+        if (j == 2)
           csv[0] = ["venue", "categoryId"];
         csv[0] = csv[0].concat("state");
       }
-      if (j == 1)
+      if (j == 2)
         linha = resposta.response.venue.id + '&&' + categorias[i].ids;
       linha += '&&"' + resposta.response.venue.location.state + '"';
       break;
     case "zip":
       document.forms[i]["zip"].value = resposta.response.venue.location.postalCode;
       if (total == 1) {
-        if (j == 1)
+        if (j == 2)
           csv[0] = ["venue", "categoryId"];
         csv[0] = csv[0].concat("zip");
       }
-      if (j == 1)
+      if (j == 2)
         linha = resposta.response.venue.id + '&&' + categorias[i].ids;
       linha += '&&"' + resposta.response.venue.location.postalCode + '"';
       break;
     case "twitter":
       document.forms[i]["twitter"].value = resposta.response.venue.contact.twitter;
       if (total == 1) {
-        if (j == 1)
+        if (j == 2)
           csv[0] = ["venue", "categoryId"];
         csv[0] = csv[0].concat("twitter");
       }
-      if (j == 1)
+      if (j == 2)
         linha = resposta.response.venue.id + '&&' + categorias[i].ids;
       linha += '&&"' + resposta.response.venue.contact.twitter + '"';
       break;
     case "phone":
       document.forms[i]["phone"].value = resposta.response.venue.contact.phone;
       if (total == 1) {
-        if (j == 1)
+        if (j == 2)
           csv[0] = ["venue", "categoryId"];
         csv[0] = csv[0].concat("phone");
       }
-      if (j == 1)
+      if (j == 2)
         linha = resposta.response.venue.id + '&&' + categorias[i].ids;
       linha += '&&"' + resposta.response.venue.contact.phone + '"';
       break;
     case "url":
       document.forms[i]["url"].value = resposta.response.venue.url;
       if (total == 1) {
-        if (j == 1)
+        if (j == 2)
           csv[0] = ["venue", "categoryId"];
         csv[0] = csv[0].concat("url");
       }
-      if (j == 1)
+      if (j == 2)
         linha = resposta.response.venue.id + '&&' + categorias[i].ids;
       linha += '&&"' + resposta.response.venue.url + '"';
       break;
     case "description":
       document.forms[i]["description"].value = resposta.response.venue.description;
       if (total == 1) {
-        if (j == 1)
+        if (j == 2)
           csv[0] = ["venue", "categoryId"];
         csv[0] = csv[0].concat("description");
       }
-      if (j == 1)
+      if (j == 2)
         linha = resposta.response.venue.id + '&&' + categorias[i].ids;
       linha += '&&"' + resposta.response.venue.description + '"';
       if (resposta.response.venue.verified == true)
-        dijit.byId(dojo.query("input[name=description]")[i].id).setDisabled(true);
+        dijit.byId(dojo.query("input[name=description]")[i].id).attr("readOnly", true);
       break;
     case "ll":
       document.forms[i]["ll"].value = (resposta.response.venue.location.lat + ', ' + resposta.response.venue.location.lng).replace(/undefined/gi, "0.0");
       if (total == 1) {
-        if (j == 1)
+        if (j == 2)
           csv[0] = ["venue", "categoryId"];
         csv[0] = csv[0].concat("ll");
       }
-      if (j == 1)
+      if (j == 2)
         linha = resposta.response.venue.id + '&&' + categorias[i].ids;
       linha += '&&"' + resposta.response.venue.location.lat + ', ' + resposta.response.venue.location.lng + '"';
       break;
@@ -442,7 +445,7 @@ function atualizarTabela(resposta, i) {
       //dojo.byId("regras").blur();
     //}
     if ((resposta.response.venue.categories[0] != undefined) && (resposta.response.venue.categories[0].id == "4bf58dd8d48988d103941735"))
-      dijit.byId(dojo.query("input[name=" + elementName + "]")[i].id).setDisabled(true);
+      dijit.byId(dojo.query("input[name=" + elementName + "]")[i].id).attr("readOnly", true);
   }
   csv[i + 1] = linha.replace(/undefined/gi, "").split("&&");
   txt[i + 1] = resposta.response.venue.id + '%0A';
@@ -577,7 +580,7 @@ function salvarVenues() {
         if ((elementName != "ll") && (elementName != "categoryId") &&
             ((elementName == "name") || (elementName == "address") || (elementName == "crossStreet") || (elementName == "city") || (elementName == "state") || (elementName == "zip") || (elementName == "twitter") || (elementName == "phone") || (elementName == "url")))
           dados += "&" + elementName + "=" + document.forms[i].elements[j].value.replace(/&/g, "%26");
-        else if ((elementName == "description") && (document.forms[i]["description"].disabled == false)) {
+        else if ((elementName == "description") && (document.forms[i]["description"].readOnly == false)) {
           var index = csv[0].indexOf("description")
           dados += "&description=" + csv[i + 1][index].slice(1, -1).replace(/&/g, "%26");
         } else if (elementName == "categoryId") {

@@ -159,6 +159,12 @@ a:hover {
   margin-bottom: 10px;
   white-space: nowrap;
 }
+#listContainer .selectbox {
+  float: left;
+  margin-right: 5px;
+  margin-top: 3px;
+  position: absolute;
+}
 #listContainer img {
   height: 16px;
   margin-left: 5px;

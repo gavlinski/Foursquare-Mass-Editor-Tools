@@ -120,9 +120,11 @@ foreach ($file as $f) {
   $i++;
 
   echo '<div id="linha', $i - 1, '" class="row">', chr(10), '<form name="form', $i, '" accept-charset="utf-8" encType="multipart/form-data" method="post">', chr(10);
+  
+  echo '<div class="selectbox"><input name="selecao" dojoType="dijit.form.CheckBox" value="', $venue, '"></div>', chr(10);
 
   $venue = $venues[$i - 1];
-  echo '<input type="hidden" name="venue" value="', $venue, '"><span id="info', $i - 1, '"><a id="venLnk', $i - 1, '" href="', $f, '" target="_blank" style="margin-right: 5px;">';
+  echo '<input type="hidden" name="venue" value="', $venue, '"><span id="info', $i - 1, '"><a id="venLnk', $i - 1, '" href="', $f, '" target="_blank" style="margin-left: 23px; margin-right: 5px; vertical-align: -1px;">';
   if (count($file) < 10)
     echo $i;
   else if (count($file) < 100)
@@ -192,6 +194,13 @@ foreach ($file as $f) {
 <div data-dojo-type="dijit.Dialog" id="dlg_cats" data-dojo-props='title:"Categorias"'>
 <div id="catsContainer"></div>
 <div id="treeContainer"></div>
+<button id="toggle1" checked data-dojo-type="dijit.form.ToggleButton" data-dojo-props='
+  onChange:function(val){
+    console.log("toggled button checked="+val);
+    this.set("label", val ? "toggle me off" : "toggle me on");
+	}, iconClass:"dijitCheckBoxIcon"'>
+	Toggle me off
+</button>
 <button id="saveCatsButton" dojoType="dijit.form.Button" type="button" onclick="salvarCategorias()" name="saveCatsButton">Confirmar</button>
 <button data-dojo-type="dijit.form.Button" type="button" data-dojo-props="onClick:function(){dijit.byId('dlg_cats').hide();}">Cancelar</button>
 <br><div id="venueIndex" style="display: none"></div><div id="catsIds" style="display: none"></div><div id="catsIcones" style="display: none"></div>
