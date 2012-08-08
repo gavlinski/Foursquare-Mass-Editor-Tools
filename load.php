@@ -217,7 +217,7 @@ function parseVenues($html) {
   	foreach ($lines as $line_num => $line) {
     	/*** Listas do usuario do foursquare ***/
     	//if (stripos($line, 'ITEMS_JSON') !== false) {
-    	if (stripos($line, 'itemsJson') !== false) {
+    	if (stripos($line, 'listJson') !== false) {
 				//$ret = array_slice(explode('\"venue\":{\"id\":\"', $line), 1);
     	  $ret = array_slice(explode('"venue":{"id":"', $line), 1);
       	break;
