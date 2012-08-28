@@ -194,13 +194,6 @@ foreach ($file as $f) {
 <div data-dojo-type="dijit.Dialog" id="dlg_cats" data-dojo-props='title:"Categorias"'>
 <div id="catsContainer"></div>
 <div id="treeContainer"></div>
-<button id="toggle1" checked data-dojo-type="dijit.form.ToggleButton" data-dojo-props='
-  onChange:function(val){
-    console.log("toggled button checked="+val);
-    this.set("label", val ? "toggle me off" : "toggle me on");
-	}, iconClass:"dijitCheckBoxIcon"'>
-	Toggle me off
-</button>
 <button id="saveCatsButton" dojoType="dijit.form.Button" type="button" onclick="salvarCategorias()" name="saveCatsButton">Confirmar</button>
 <button data-dojo-type="dijit.form.Button" type="button" data-dojo-props="onClick:function(){dijit.byId('dlg_cats').hide();}">Cancelar</button>
 <br><div id="venueIndex" style="display: none"></div><div id="catsIds" style="display: none"></div><div id="catsIcones" style="display: none"></div>

@@ -621,10 +621,74 @@ dojo.addOnLoad(function inicializar() {
   var menu = new dijit.Menu({
     style: "display: none;"
   });
+  
   var subMenu1 = new dijit.Menu({
     style: "display: none;"
   });
-  var subMenuItem1 = new dijit.MenuItem({
+  var subMenu1Item1 = new dijit.MenuItem({
+    label: "Todas",
+    id: "menuItemSelecionarTodas",
+    onClick: function() {
+      dojo.query("input[name=selecao]").forEach("dijit.byId(item.id).setChecked(true)");
+      //onClick: dijit.byId(dojo.query("input[name=selecao]")[1].id).setChecked(true);
+    }
+  });
+  subMenu1.addChild(subMenu1Item1);
+  var subMenu1Item2 = new dijit.MenuItem({
+    label: "Nenhuma",
+    id: "menuItemSelecionarNenhuma",
+    onClick: function() {
+      dojo.query("input[name=selecao]").forEach("dijit.byId(item.id).setChecked(false)");
+    }
+  });
+  subMenu1.addChild(subMenu1Item2);
+  var menuItem1 = new dijit.PopupMenuItem({
+    label: "Selecionar",
+    popup: subMenu1
+  });
+  menu.addChild(menuItem1);
+  
+  menu.addChild(new dijit.MenuSeparator);
+
+  var subMenu2 = new dijit.Menu({
+    style: "display: none;"
+  });
+  var subMenu2Item1 = new dijit.MenuItem({
+    label: "Duplicadas",
+    id: "menuItemSinalizarDuplicate"
+  });
+  subMenu2.addChild(subMenu2Item1);
+  subMenu2.addChild(new dijit.MenuSeparator);
+  var subMenu2Item2 = new dijit.MenuItem({
+    label: "N&atilde;o existe",
+    id: "menuItemSinalizarDoesnt_exist"
+  });
+  subMenu2.addChild(subMenu2Item2);
+  var subMenu2Item3 = new dijit.MenuItem({
+    label: "Fechada",
+    id: "menuItemSinalizarClosed"
+  });
+  subMenu2.addChild(subMenu2Item3);
+  var subMenu2Item4 = new dijit.MenuItem({
+    label: "Inadequada",
+    id: "menuItemSinalizarInappropriate"
+  });
+  subMenu2.addChild(subMenu2Item4);
+  var subMenu2Item5 = new dijit.MenuItem({
+    label: "J&aacute; terminou",
+    id: "menuItemSinalizarEvent_over"
+  });
+  subMenu2.addChild(subMenu2Item5);
+  var menuItem2 = new dijit.PopupMenuItem({
+    label: "Sinalizar",
+    popup: subMenu2
+  });
+  menu.addChild(menuItem2);
+  
+  var subMenu3 = new dijit.Menu({
+    style: "display: none;"
+  });
+  var subMenu3Item1 = new dijit.MenuItem({
     label: "Arquivo CSV",
     id: "menuItemExportarCSV",
     onClick: function() {
@@ -637,22 +701,22 @@ dojo.addOnLoad(function inicializar() {
     	window.location.href = "data:text/csv;charset=iso-8859-1," + escape(arq.join("\r\n"));
 		}
   });
-  subMenu1.addChild(subMenuItem1);
-  var subMenuItem2 = new dijit.MenuItem({
+  subMenu3.addChild(subMenu3Item1);
+  var subMenu3Item2 = new dijit.MenuItem({
     label: "Arquivo TXT",
     id: "menuItemExportarTXT",
     onClick: function() {
     	window.open("data:text/plain;charset=iso-8859-1," + txt.join("\r\n"));
 		}
   });
-  subMenu1.addChild(subMenuItem2);
-  var menuItem1 = new dijit.PopupMenuItem({
+  subMenu3.addChild(subMenu3Item2);
+  var menuItem3 = new dijit.PopupMenuItem({
     label: "Exportar",
-    popup: subMenu1
+    popup: subMenu3
   });
-  menu.addChild(menuItem1);
+  menu.addChild(menuItem3);  
   var button = new dijit.form.DropDownButton({
-    label: "Mais...",
+    label: "Mais",
     name: "menuButton",
     dropDown: menu,
     id: "progButton"
