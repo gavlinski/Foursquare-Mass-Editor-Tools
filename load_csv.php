@@ -64,8 +64,8 @@ define("FLAG", '<script type="text/javascript">
 	window.location = "flag_csv.php"
 </script>;');
 
-$csv = $_FILES['csvs']['tmp_name'][0];
-$filename = $_FILES['csvs']['name'][0];
+$csv = $_FILES['csv']['tmp_name'];
+$filename = $_FILES['csv']['name'];
 
 if (is_uploaded_file($csv)) {
   require "CsvToArray.Class.php";
