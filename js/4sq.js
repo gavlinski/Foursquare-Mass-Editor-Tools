@@ -656,7 +656,11 @@ dojo.addOnLoad(function inicializar() {
   });
   var subMenu2Item1 = new dijit.MenuItem({
     label: "Duplicadas",
-    id: "menuItemSinalizarDuplicate"
+    id: "menuItemSinalizarDuplicate",
+    onClick: function() {
+      //sinalizarVenues("duplicate");
+      dojo.query("input[name=selecao]:checked").forEach("console.log(dijit.byId(item.id).value)");
+    }
   });
   subMenu2.addChild(subMenu2Item1);
   subMenu2.addChild(new dijit.MenuSeparator);

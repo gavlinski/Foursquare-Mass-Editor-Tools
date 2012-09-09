@@ -120,10 +120,10 @@ foreach ($file as $f) {
   $i++;
 
   echo '<div id="linha', $i - 1, '" class="row">', chr(10), '<form name="form', $i, '" accept-charset="utf-8" encType="multipart/form-data" method="post">', chr(10);
-  
+
+  $venue = $venues[$i - 1];  
   echo '<div class="selectbox"><input name="selecao" dojoType="dijit.form.CheckBox" value="', $venue, '"></div>', chr(10);
 
-  $venue = $venues[$i - 1];
   echo '<input type="hidden" name="venue" value="', $venue, '"><span id="info', $i - 1, '"><a id="venLnk', $i - 1, '" href="', $f, '" target="_blank" style="margin-left: 23px; margin-right: 5px; vertical-align: -1px;">';
   if (count($file) < 10)
     echo $i;
