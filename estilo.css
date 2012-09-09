@@ -80,9 +80,8 @@ a:hover {
 }
 #toolContainer .row span.button {
   float: left;
-  padding-left: 3px;
   padding-bottom: 2px;
-  padding-top: 5px;
+  padding-top: 2px;
 }
 #toolContainer .row span.arquivo {
   float: left;
@@ -186,8 +185,8 @@ a:hover {
   color: #000000;
 }
 #treeContainer {
-  width: 360px;
-  height: 207px;
+  width: 375px;
+  height: 200px;
   font-size: 12px;
   padding-top: 3px;
   margin-bottom: 6px;

@@ -15,19 +15,13 @@ dojo.addOnLoad(function() {
   });
   var arquivo_csv = dojo.byId("arquivo_csv");
   var arquivo_nome = "";
-  var uploader_csv = new dojox.form.Uploader({
-    name: "csv",
-    multiple: false,
-    label: "Escolher arquivo",
-    style: "width: 9em;",
-    onChange: function(data) {
-      arquivo_csv.innerHTML = data[0].name + " (" + Math.ceil(data[0].size * .001) + " kB)";
-      arquivo_nome = data[0].name;
-    }
-  },
-  "csv");
+  var uploader_csv = dijit.byId("uploader_csv");
   var form_csv = dijit.byId("f_csv");
   var oauth_csv = dijit.byId("oauth_token_csv");
+  dojo.connect(uploader_csv, "onChange", function (data) {
+    arquivo_csv.innerHTML = data[0].name + " (" + Math.ceil(data[0].size * .001) + " kB)";
+    arquivo_nome = data[0].name;
+  });
   dojo.connect(form_csv, "onSubmit", function(e) {
     if (form_csv.validate()) {
       if (oauth_csv.get("value").length != 48) {
@@ -42,8 +36,8 @@ dojo.addOnLoad(function() {
         e.preventDefault();
         alert("O arquivo deve ser do tipo CSV");
         uploader_csv.inputNode.focus();
-      //} else {
-        //alert("Ready to submit data: " + dojo.toJson(form_csv.attr("value")));
+      } else {
+        alert("Ready to submit data: " + dojo.toJson(form_csv.attr("value")));
       }
     } else {
       e.preventDefault();
@@ -58,18 +52,12 @@ dojo.addOnLoad(function() {
     style: "width: 570px"
   });
   var arquivo_txt = dojo.byId("arquivo_txt");
-  var uploader_txt = new dojox.form.Uploader({
-    name: "txt",
-    multiple: false,
-    label: "Escolher arquivo",
-    style: "width: 9em; height: 1.55em",
-    onChange: function(data) {
-      arquivo_txt.innerHTML = data[0].name + " (" + Math.ceil(data[0].size * .001) + " kB)";
-    }
-  },
-  "txt");
+  var uploader_txt = dijit.byId("uploader_txt");
   var form_txt = dijit.byId("f_txt");
   var oauth_txt = dijit.byId("oauth_token_txt");
+  dojo.connect(uploader_txt, "onChange", function (data) {
+    arquivo_txt.innerHTML = data[0].name + " (" + Math.ceil(data[0].size * .001) + " kB)";
+  });
   dojo.connect(form_txt, "onSubmit", function(e) {
     if (form_txt.validate()) {
       if (oauth_txt.get("value").length != 48) {

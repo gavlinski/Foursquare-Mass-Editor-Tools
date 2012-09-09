@@ -501,7 +501,7 @@ function montarArvore(resposta) {
     rootLabel: "Categorias",
     childrenAttrs: ["children"]
   });
-  new dijit.Tree({
+  var treeContainer = new dijit.Tree({
     model: treeModel,
     showRoot: false,
     onClick: treeOnClick,
@@ -513,6 +513,7 @@ function montarArvore(resposta) {
       return 'icon' + item.id;
     }
   }, "treeContainer");
+  treeContainer.startup();
 }
 
 function treeOnClick(item) {
