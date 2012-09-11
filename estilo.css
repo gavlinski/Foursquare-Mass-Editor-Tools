@@ -47,6 +47,9 @@ a:hover {
   border: none;
 }
 */
+.dj_webkit .dijitTextBoxDisabled input {
+  color: gray;
+}
 #toolContainer {
   min-width: 535px;
   background-color: #f9f9f9;

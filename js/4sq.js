@@ -47,6 +47,20 @@ function atualizarResultado(linha, imagem, item, dica) {
   }
 }
 
+function desabilitarLinha(i, categoria) {
+  dojo.query('#linha' + i + ' input').forEach(
+    function(inputElem) {
+      if (inputElem.type == 'text') //&& ((inputElem.value == ' ') || (inputElem.value == '')))
+        //console.log(inputElem);
+        dijit.byId(inputElem.id).setDisabled(true);
+      if (categoria == 0)
+        document.getElementById("icone" + i).innerHTML = "<img id=catImg" + i + " src='https://foursquare.com/img/categories_v2/none_bg_32.png' style='height: 22px; width: 22px; margin-left: 0px'>";
+      else
+        document.getElementById("icone" + i).innerHTML = "<img id=catImg" + i + " src='" + document.getElementById("cic" + i).value.split(",", 1)[0] + "' style='height: 22px; width: 22px; margin-left: 0px'>";
+    }
+  )
+}
+
 function xmlhttpRequest(metodo, endpoint, dados, i) {
   var xmlhttp = new XMLHttpRequest();
   xmlhttp.onreadystatechange = function() {
@@ -70,13 +84,7 @@ function xmlhttpRequest(metodo, endpoint, dados, i) {
         }
       } else if (xmlhttp.status == 400) {
       	if (metodo == "GET") {
-          dojo.query('#linha' + i + ' input').forEach(
-            function(inputElem) {
-              if ((inputElem.type == 'text') && ((inputElem.value == ' ') || (inputElem.value == '')))
-                //console.log(inputElem);
-                dijit.byId(inputElem.id).setAttribute("disabled", true);
-            }
-          )
+          desabilitarLinha(i, 0);
       	}
         atualizarResultado("result" + i, "<img src='img/erro.png' alt='Erro 400: Bad Request, Tipo: " + resposta.meta.errorType + ", Detalhe: " + resposta.meta.errorDetail + "'>", "result" + i, "<span style=\"font-size: 12px\">Erro 400: Bad Request, Tipo: " + resposta.meta.errorType + ",<br>Detalhe: " + resposta.meta.errorDetail + "</span>");
       } else if (xmlhttp.status == 401) {
@@ -433,19 +441,11 @@ function atualizarTabela(resposta, i) {
       break;
     }
     if (document.forms[i].elements[j].value == "undefined") {
-      document.forms[i].elements[j].value = "";
-      var x = window.scrollX, y = window.scrollY;
-      document.forms[i].elements[j].focus();
-      document.forms[i].elements[j].blur();
-      window.scrollTo(x, y);
+      dijit.byId(dojo.query("input[name=" + elementName + "]")[i].id).set("value", "");
     }
     document.getElementById("result" + i).innerHTML = "";
-    //if (total == document.forms.length) {
-      //dojo.byId("regras").focus();
-      //dojo.byId("regras").blur();
-    //}
     if ((resposta.response.venue.categories[0] != undefined) && (resposta.response.venue.categories[0].id == "4bf58dd8d48988d103941735"))
-      dijit.byId(dojo.query("input[name=" + elementName + "]")[i].id).attr("readOnly", true);
+      dijit.byId(dojo.query("input[name=" + elementName + "]")[i].id).setDisabled(true);
   }
   csv[i + 1] = linha.replace(/undefined/gi, "").split("&&");
   txt[i + 1] = resposta.response.venue.id + '%0A';
