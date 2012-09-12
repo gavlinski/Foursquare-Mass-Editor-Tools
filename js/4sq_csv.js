@@ -9,7 +9,7 @@ var timer;
 var categorias = new Array();
 
 function atualizarResultado(linha, imagem, dica) {
-  document.getElementById(linha).innerHTML = imagem;
+  dojo.byId(linha).innerHTML = imagem;
   if (dica != "")
     createTooltip(linha, dica);
   total++;
@@ -67,7 +67,7 @@ function xmlhttpRequest(metodo, endpoint, dados, i) {
 }
 
 function createTooltip(target_id, content) {
-  var obj = document.getElementById('tt_' + target_id);
+  var obj = dojo.byId('tt_' + target_id);
   if (obj != null)
     obj.parentNode.removeChild(obj);
   var tooltip = new dijit.Tooltip({
@@ -95,14 +95,14 @@ function montarTabela(resposta) {
 function salvarCategoria(i) {
   categoryId = document.forms[i]["categoryId"].value.split(",", 3);
   if ((categoryId[0] != "") && (categoryId[0] != " ") && (categoryId[0] in categorias)) {
-    document.getElementById("icone" + i).innerHTML = "<img id=catImg" + i + " src='" + categorias[categoryId[0]].icone + "' style='height: 22px; width: 22px; margin-left: 0px'>";
+    dojo.byId("icone" + i).innerHTML = "<img id=catImg" + i + " src='" + categorias[categoryId[0]].icone + "' style='height: 22px; width: 22px; margin-left: 0px'>";
     nomes = "";
     for (j = 0; j < categoryId.length; j++)
       if (categoryId[j] in categorias)
         nomes += categorias[categoryId[j]].nome + ", ";
     createTooltip("catImg" + i, "<span style=\"font-size: 12px\">" + nomes.slice(0, -2) + "</span>");
   } else {
-    document.getElementById("icone" + i).innerHTML = "<img id=catImg" + i + " src='https://foursquare.com/img/categories_v2/none_bg_32.png' style='height: 22px; width: 22px; margin-left: 0px'>";
+    dojo.byId("icone" + i).innerHTML = "<img id=catImg" + i + " src='https://foursquare.com/img/categories_v2/none_bg_32.png' style='height: 22px; width: 22px; margin-left: 0px'>";
   }
 }
 
@@ -147,7 +147,7 @@ function salvarVenues() {
     //console.log(dados);
     //console.groupEnd();
 		xmlhttpRequest("POST", "https://api.foursquare.com/v2/venues/" + venue + "/edit", dados, i);
-		document.getElementById("result" + i).innerHTML = "<img src='img/loading.gif' alt='Enviando dados...'>";
+		dojo.byId("result" + i).innerHTML = "<img src='img/loading.gif' alt='Enviando dados...'>";
   }
   //console.info("Dados enviados!");
   timer = setTimeout(function() {
@@ -168,7 +168,7 @@ function sinalizarVenues(problema) {
     //console.log(dados);
     //console.groupEnd();
 		xmlhttpRequest("POST", "https://api.foursquare.com/v2/venues/" + venue + "/flag", dados, i);
-		document.getElementById("result" + i).innerHTML = "<img src='img/loading.gif' alt='Enviando dados...'>";
+		dojo.byId("result" + i).innerHTML = "<img src='img/loading.gif' alt='Enviando dados...'>";
   }
   //console.info("Dados enviados!");
   timer = setTimeout(function() {

@@ -21,7 +21,7 @@ var totalLinhasParaSalvar = 0;
 var totalLinhasSalvas = 0;
 
 function atualizarResultado(linha, imagem, item, dica) {
-  document.getElementById(linha).innerHTML = imagem;
+  dojo.byId(linha).innerHTML = imagem;
   createTooltip(item, dica);
   linhasEditadas.splice(linha, 1);
   totalLinhasEditadas++;
@@ -54,9 +54,11 @@ function desabilitarLinha(i, categoria) {
         //console.log(inputElem);
         dijit.byId(inputElem.id).setDisabled(true);
       if (categoria == 0)
-        document.getElementById("icone" + i).innerHTML = "<img id=catImg" + i + " src='https://foursquare.com/img/categories_v2/none_bg_32.png' style='height: 22px; width: 22px; margin-left: 0px'>";
-      else
-        document.getElementById("icone" + i).innerHTML = "<img id=catImg" + i + " src='" + document.getElementById("cic" + i).value.split(",", 1)[0] + "' style='height: 22px; width: 22px; margin-left: 0px'>";
+        dojo.byId("icone" + i).innerHTML = "<img id=catImg" + i + " src='https://foursquare.com/img/categories_v2/none_bg_32.png' style='height: 22px; width: 22px; margin-left: 0px'>";
+      else {
+        dojo.byId("icone" + i).innerHTML = "<img id=catImg" + i + " src='" + dojo.byId("cic" + i).value.split(",", 1)[0] + "' style='height: 22px; width: 22px; margin-left: 0px'>";
+        createTooltip("catImg" + i, "<span style=\"font-size: 12px\">" + dojo.byId("cna" + i).value.replace(/,/gi, ", ") + "</span>");
+      } 
     }
   )
 }
@@ -72,7 +74,7 @@ function xmlhttpRequest(metodo, endpoint, dados, i) {
       }
       if (xmlhttp.status == 200) {
         if (metodo == "POST") {
-          document.getElementById("info" + i).innerHTML = document.getElementById("info" + i).innerHTML.replace(/%0A/gi, "");
+          dojo.byId("info" + i).innerHTML = dojo.byId("info" + i).innerHTML.replace(/%0A/gi, "");
           var dicaVenue = atualizarDicaVenue(i);
           totalLinhasSalvas++;
           atualizarResultado("result" + i, "<img src='img/ok.png' alt='" + xmlhttp.responseText + "' style='vertical-align: middle;'>", "venLnk" + i, dicaVenue);
@@ -117,26 +119,26 @@ function Categoria(ids, nomes, icones) {
 }
 
 function atualizarCategorias(nomes, ids, icones) {
-  document.getElementById("catsContainer").innerHTML = "";
+  dojo.byId("catsContainer").innerHTML = "";
   for (j = 0; j < nomes.length; j++)
-    document.getElementById("catsContainer").innerHTML += "<div id='categoria" + (j + 1) + "' class='categoria' ondblclick=\"tornarCategoriaPrimaria('" + (j + 1) + "')\" onclick=\"removerCategoria('" + (j + 1) + "')\">" + nomes[j] + ",</div>";
-  document.getElementById("catsContainer").innerHTML = document.getElementById("catsContainer").innerHTML.slice(0, -7) + "</div>";
-  document.getElementById("catsIds").innerHTML = ids;
-  document.getElementById("catsIcones").innerHTML = icones;
-  //console.log(document.getElementById("catsIcones").innerHTML);
+    dojo.byId("catsContainer").innerHTML += "<div id='categoria" + (j + 1) + "' class='categoria' ondblclick=\"tornarCategoriaPrimaria('" + (j + 1) + "')\" onclick=\"removerCategoria('" + (j + 1) + "')\">" + nomes[j] + ",</div>";
+  dojo.byId("catsContainer").innerHTML = dojo.byId("catsContainer").innerHTML.slice(0, -7) + "</div>";
+  dojo.byId("catsIds").innerHTML = ids;
+  dojo.byId("catsIcones").innerHTML = icones;
+  //console.log(dojo.byId("catsIcones").innerHTML);
 }
 
 function editarCategorias(i) {
   var nomes = new Array();
   var ids =  "";
   var icones = "";
-  if (document.getElementById("cid" + i).value != "") {
-    nomes = document.getElementById("cna" + i).value.split(",", 3);
-    ids = document.getElementById("cid" + i).value;
-    icones = document.getElementById("cic" + i).value;
+  if (dojo.byId("cid" + i).value != "") {
+    nomes = dojo.byId("cna" + i).value.split(",", 3);
+    ids = dojo.byId("cid" + i).value;
+    icones = dojo.byId("cic" + i).value;
   }
   atualizarCategorias(nomes, ids, icones);
-  document.getElementById("venueIndex").innerHTML = i;
+  dojo.byId("venueIndex").innerHTML = i;
   dijit.byId("dlg_cats").show();
 }
 
@@ -148,20 +150,20 @@ function removerCategoria(i) {
     var nomes = new Array();
     var ids = "";
     var icones = "";
-    if ((document.getElementById("categoria1") !== null) && (i != 1)) {
-      nomes.push(document.getElementById("categoria1").innerHTML.replace(/,/gi, ""));
-      ids += document.getElementById("catsIds").innerHTML.substr(0, 24) + ",";
-      icones += document.getElementById("catsIcones").innerHTML.split(",", 1)[0] + ",";
+    if ((dojo.byId("categoria1") !== null) && (i != 1)) {
+      nomes.push(dojo.byId("categoria1").innerHTML.replace(/,/gi, ""));
+      ids += dojo.byId("catsIds").innerHTML.substr(0, 24) + ",";
+      icones += dojo.byId("catsIcones").innerHTML.split(",", 1)[0] + ",";
     }
-    if ((document.getElementById("categoria2") !== null) && (i != 2)) {
-      nomes.push(document.getElementById("categoria2").innerHTML.replace(/,/gi, ""));
-      ids += document.getElementById("catsIds").innerHTML.substr(25, 24) + ",";
-      icones += document.getElementById("catsIcones").innerHTML.split(",", 2)[1] + ",";
+    if ((dojo.byId("categoria2") !== null) && (i != 2)) {
+      nomes.push(dojo.byId("categoria2").innerHTML.replace(/,/gi, ""));
+      ids += dojo.byId("catsIds").innerHTML.substr(25, 24) + ",";
+      icones += dojo.byId("catsIcones").innerHTML.split(",", 2)[1] + ",";
     }
-    if ((document.getElementById("categoria3") !== null) && (i != 3)) {
-      nomes.push(document.getElementById("categoria3").innerHTML);
-      ids += document.getElementById("catsIds").innerHTML.substr(50, 24) + ",";
-      icones += document.getElementById("catsIcones").innerHTML.split(",", 3)[2] + ",";
+    if ((dojo.byId("categoria3") !== null) && (i != 3)) {
+      nomes.push(dojo.byId("categoria3").innerHTML);
+      ids += dojo.byId("catsIds").innerHTML.substr(50, 24) + ",";
+      icones += dojo.byId("catsIcones").innerHTML.split(",", 3)[2] + ",";
     }
     atualizarCategorias(nomes, ids.slice(0, -1), icones.slice(0, -1));
   }, 250);
@@ -173,56 +175,56 @@ function tornarCategoriaPrimaria(i) {
   var nomes = new Array();
   var ids = "";
   var icones = "";
-  nomes.push(document.getElementById("categoria" + i).innerHTML.replace(/,/gi, ""));
+  nomes.push(dojo.byId("categoria" + i).innerHTML.replace(/,/gi, ""));
   if (i == 1) {
-    ids += document.getElementById("catsIds").innerHTML.substr(0, 24) + ",";
-    icones += document.getElementById("catsIcones").innerHTML.split(",", 1)[0] + ",";
+    ids += dojo.byId("catsIds").innerHTML.substr(0, 24) + ",";
+    icones += dojo.byId("catsIcones").innerHTML.split(",", 1)[0] + ",";
   } else if (i == 2) {
-    ids += document.getElementById("catsIds").innerHTML.substr(25, 24) + ",";
-    icones += document.getElementById("catsIcones").innerHTML.split(",", 2)[1] + ",";
+    ids += dojo.byId("catsIds").innerHTML.substr(25, 24) + ",";
+    icones += dojo.byId("catsIcones").innerHTML.split(",", 2)[1] + ",";
   } else if (i == 3) {
-    ids += document.getElementById("catsIds").innerHTML.substr(50, 24) + ",";
-    icones += document.getElementById("catsIcones").innerHTML.split(",", 3)[2] + ",";
+    ids += dojo.byId("catsIds").innerHTML.substr(50, 24) + ",";
+    icones += dojo.byId("catsIcones").innerHTML.split(",", 3)[2] + ",";
   }
-  if ((document.getElementById("categoria1") !== null) && (i != 1)) {
-    nomes.push(document.getElementById("categoria1").innerHTML.replace(/,/gi, ""));
-    ids += document.getElementById("catsIds").innerHTML.substr(0, 24) + ",";
-    icones += document.getElementById("catsIcones").innerHTML.split(",", 1)[0] + ",";
+  if ((dojo.byId("categoria1") !== null) && (i != 1)) {
+    nomes.push(dojo.byId("categoria1").innerHTML.replace(/,/gi, ""));
+    ids += dojo.byId("catsIds").innerHTML.substr(0, 24) + ",";
+    icones += dojo.byId("catsIcones").innerHTML.split(",", 1)[0] + ",";
   }
-  if ((document.getElementById("categoria2") !== null) && (i != 2)) {
-    nomes.push(document.getElementById("categoria2").innerHTML.replace(/,/gi, ""));
-    ids += document.getElementById("catsIds").innerHTML.substr(25, 24) + ",";
-    icones += document.getElementById("catsIcones").innerHTML.split(",", 2)[1] + ",";
+  if ((dojo.byId("categoria2") !== null) && (i != 2)) {
+    nomes.push(dojo.byId("categoria2").innerHTML.replace(/,/gi, ""));
+    ids += dojo.byId("catsIds").innerHTML.substr(25, 24) + ",";
+    icones += dojo.byId("catsIcones").innerHTML.split(",", 2)[1] + ",";
   }
-  if ((document.getElementById("categoria3") !== null) && (i != 3)) {
-    nomes.push(document.getElementById("categoria3").innerHTML);
-    ids += document.getElementById("catsIds").innerHTML.substr(50, 24) + ",";
-    icones += document.getElementById("catsIcones").innerHTML.split(",", 3)[2] + ",";
+  if ((dojo.byId("categoria3") !== null) && (i != 3)) {
+    nomes.push(dojo.byId("categoria3").innerHTML);
+    ids += dojo.byId("catsIds").innerHTML.substr(50, 24) + ",";
+    icones += dojo.byId("catsIcones").innerHTML.split(",", 3)[2] + ",";
   }
   atualizarCategorias(nomes, ids.slice(0, -1), icones.slice(0, -1));
 }
 
 function salvarCategorias() {
-  var i = document.getElementById("venueIndex").innerHTML;
+  var i = dojo.byId("venueIndex").innerHTML;
   var nomes = "";
-  if (document.getElementById("catsIds").innerHTML != "") {
-    nomes = document.getElementById("categoria1").innerHTML;
-    if (document.getElementById("categoria2") !== null)
-      nomes += document.getElementById("categoria2").innerHTML;
-    if (document.getElementById("categoria3") !== null)
-      nomes += document.getElementById("categoria3").innerHTML;
-    document.getElementById("cna" + i).value = nomes;
-    document.getElementById("cid" + i).value = document.getElementById("catsIds").innerHTML;
-    document.getElementById("cic" + i).value = document.getElementById("catsIcones").innerHTML;
-    document.getElementById("icone" + i).innerHTML = "<a id='catLnk" + i + "' href='javascript:editarCategorias(" + i + ")'><img id=catImg" + i + " src='" + document.getElementById("cic" + i).value.split(",", 1)[0] + "' style='height: 22px; width: 22px; margin-left: 0px'></a>";
+  if (dojo.byId("catsIds").innerHTML != "") {
+    nomes = dojo.byId("categoria1").innerHTML;
+    if (dojo.byId("categoria2") !== null)
+      nomes += dojo.byId("categoria2").innerHTML;
+    if (dojo.byId("categoria3") !== null)
+      nomes += dojo.byId("categoria3").innerHTML;
+    dojo.byId("cna" + i).value = nomes;
+    dojo.byId("cid" + i).value = dojo.byId("catsIds").innerHTML;
+    dojo.byId("cic" + i).value = dojo.byId("catsIcones").innerHTML;
+    dojo.byId("icone" + i).innerHTML = "<a id='catLnk" + i + "' href='javascript:editarCategorias(" + i + ")'><img id=catImg" + i + " src='" + dojo.byId("cic" + i).value.split(",", 1)[0] + "' style='height: 22px; width: 22px; margin-left: 0px'></a>";
     var index = csv[0].indexOf("categoryId")
-    csv[parseInt(i) + 1][index] = document.getElementById("cid" + i).value;
+    csv[parseInt(i) + 1][index] = dojo.byId("cid" + i).value;
     dojo.byId("result" + i).innerHTML = "";
     if (linhasEditadas.indexOf(parseInt(i)) == -1)
       linhasEditadas.push(parseInt(i));
-    //console.log(document.getElementById("cna" + i).value);
-    //console.log(document.getElementById("cid" + i).value);
-    //console.log(document.getElementById("cic" + i).value);
+    //console.log(dojo.byId("cna" + i).value);
+    //console.log(dojo.byId("cid" + i).value);
+    //console.log(dojo.byId("cic" + i).value);
     //console.log(csv[parseInt(i) + 1][2], csv[parseInt(i) + 1][index]);
     dijit.byId('dlg_cats').hide();
     createTooltip("catLnk" + i, "<span style=\"font-size: 12px\">" + nomes.replace(/,/gi, ", ") + "</span>");
@@ -231,7 +233,7 @@ function salvarCategorias() {
 }
 
 function createTooltip(target_id, content) {
-  var obj = document.getElementById('tt_' + target_id);
+  var obj = dojo.byId('tt_' + target_id);
   if (obj != null)
     obj.parentNode.removeChild(obj);
   var tooltip = new dijit.Tooltip({
@@ -299,12 +301,12 @@ function atualizarTabela(resposta, i) {
   }
   if (categorias[i].ids != undefined) {
     categorias[i].ids = categorias[i].ids.slice(0, -1).replace(/undefined/gi, "");
-    document.getElementById("cid" + i).value = categorias[i].ids;
+    dojo.byId("cid" + i).value = categorias[i].ids;
     categorias[i].nomes = categorias[i].nomes.slice(0, -1).replace(/undefined/gi, "");
-    document.getElementById("cna" + i).value = categorias[i].nomes;
+    dojo.byId("cna" + i).value = categorias[i].nomes;
     categorias[i].icones = categorias[i].icones.slice(0, -1).replace(/undefined/gi, "");
-    document.getElementById("cic" + i).value = categorias[i].icones;
-    //console.log(document.getElementById("cna" + i).value + " (" + document.getElementById("cid" + i).value + ") [" + document.getElementById("cic" + i).value + "]");
+    dojo.byId("cic" + i).value = categorias[i].icones;
+    //console.log(dojo.byId("cna" + i).value + " (" + dojo.byId("cid" + i).value + ") [" + dojo.byId("cic" + i).value + "]");
     //console.log(categorias[i].nomes + " (" + categorias[i].ids + ") [" + categorias[i].icones + "]");
   }
   document.forms[i]["name"].value = resposta.response.venue.name;
@@ -443,19 +445,19 @@ function atualizarTabela(resposta, i) {
     if (document.forms[i].elements[j].value == "undefined") {
       dijit.byId(dojo.query("input[name=" + elementName + "]")[i].id).set("value", "");
     }
-    document.getElementById("result" + i).innerHTML = "";
+    dojo.byId("result" + i).innerHTML = "";
     if ((resposta.response.venue.categories[0] != undefined) && (resposta.response.venue.categories[0].id == "4bf58dd8d48988d103941735"))
       dijit.byId(dojo.query("input[name=" + elementName + "]")[i].id).setDisabled(true);
   }
   csv[i + 1] = linha.replace(/undefined/gi, "").split("&&");
   txt[i + 1] = resposta.response.venue.id + '%0A';
   if (resposta.response.venue.categories[0] == undefined) {
-    document.getElementById("icone" + i).innerHTML = "<a id='catLnk" + i + "' href='javascript:editarCategorias(" + i + ")'><img id=catImg" + i + " src='https://foursquare.com/img/categories_v2/none_bg_32.png' style='height: 22px; width: 22px; margin-left: 0px'></a>";
+    dojo.byId("icone" + i).innerHTML = "<a id='catLnk" + i + "' href='javascript:editarCategorias(" + i + ")'><img id=catImg" + i + " src='https://foursquare.com/img/categories_v2/none_bg_32.png' style='height: 22px; width: 22px; margin-left: 0px'></a>";
   } else if (resposta.response.venue.categories[0].id == "4bf58dd8d48988d103941735") {
-    document.getElementById("icone" + i).innerHTML = "<img id=catLnk" + i + " src='" + categorias[i].icones.split(",", 1)[0] + "' style='height: 22px; width: 22px; margin-left: 0px'>";
+    dojo.byId("icone" + i).innerHTML = "<img id=catLnk" + i + " src='" + categorias[i].icones.split(",", 1)[0] + "' style='height: 22px; width: 22px; margin-left: 0px'>";
     createTooltip("catLnk" + i, "<span style=\"font-size: 12px\">" + categorias[i].nomes.replace(/,/gi, ", ") + "</span>");
   } else {
-    document.getElementById("icone" + i).innerHTML = "<a id='catLnk" + i + "' href='javascript:editarCategorias(" + i + ")'><img id=catImg" + i + " src='" + categorias[i].icones.split(",", 1)[0] + "' style='height: 22px; width: 22px; margin-left: 0px'></a>";
+    dojo.byId("icone" + i).innerHTML = "<a id='catLnk" + i + "' href='javascript:editarCategorias(" + i + ")'><img id=catImg" + i + " src='" + categorias[i].icones.split(",", 1)[0] + "' style='height: 22px; width: 22px; margin-left: 0px'></a>";
     createTooltip("catLnk" + i, "<span style=\"font-size: 12px\">" + categorias[i].nomes.replace(/,/gi, ", ") + "</span>");
   }
   document.forms[i]["createdAt"].value = formattedTime(resposta.response.venue.createdAt);
@@ -523,25 +525,25 @@ function treeOnClick(item) {
   if (!item.root) {
     //console.log("Execute of node " + store.getLabel(item) + ", id=" + store.getValue(item, "id") + ", icon=" + store.getValue(item, "icon"));
     var i = 1;
-    if (document.getElementById("categoria3") !== null)
+    if (dojo.byId("categoria3") !== null)
       //console.warn("Limite maximo de categorias");
       return false;
-    else if (((document.getElementById("categoria2") !== null) && (document.getElementById("categoria2").innerHTML.replace(/,/gi, "") == store.getLabel(item))) || ((document.getElementById("categoria1") !== null) && (document.getElementById("categoria1").innerHTML.replace(/,/gi, "") == store.getLabel(item))))
+    else if (((dojo.byId("categoria2") !== null) && (dojo.byId("categoria2").innerHTML.replace(/,/gi, "") == store.getLabel(item))) || ((dojo.byId("categoria1") !== null) && (dojo.byId("categoria1").innerHTML.replace(/,/gi, "") == store.getLabel(item))))
       //console.warn("Categoria repetida");
       return false;
-    else if (document.getElementById("categoria2") !== null)
+    else if (dojo.byId("categoria2") !== null)
       i = 3;
-    else if (document.getElementById("categoria1") !== null)
+    else if (dojo.byId("categoria1") !== null)
       i = 2;
     // Adiciona categoria
     if (i != 1) {
-      document.getElementById("catsContainer").innerHTML = document.getElementById("catsContainer").innerHTML.slice(0, -6) + ",</div>"
-      document.getElementById("catsIds").innerHTML += ",";
-      document.getElementById("catsIcones").innerHTML += ",";
+      dojo.byId("catsContainer").innerHTML = dojo.byId("catsContainer").innerHTML.slice(0, -6) + ",</div>"
+      dojo.byId("catsIds").innerHTML += ",";
+      dojo.byId("catsIcones").innerHTML += ",";
     }
-    document.getElementById("catsContainer").innerHTML += "<div id='categoria" + i + "' class='categoria' ondblclick=\"tornarCategoriaPrimaria('" + i + "')\" onclick=\"removerCategoria('" + i + "')\">" + store.getLabel(item) + "</div>";
-    document.getElementById("catsIds").innerHTML += store.getValue(item, "id");
-    document.getElementById("catsIcones").innerHTML += store.getValue(item, "icon");
+    dojo.byId("catsContainer").innerHTML += "<div id='categoria" + i + "' class='categoria' ondblclick=\"tornarCategoriaPrimaria('" + i + "')\" onclick=\"removerCategoria('" + i + "')\">" + store.getLabel(item) + "</div>";
+    dojo.byId("catsIds").innerHTML += store.getValue(item, "id");
+    dojo.byId("catsIcones").innerHTML += store.getValue(item, "icon");
     return true;
   }
 }
@@ -553,7 +555,7 @@ function carregarVenues() {
   for (i = 0; i < linhas; i++) {
     venue = document.forms[i]["venue"].value;
     xmlhttpRequest("GET", "https://api.foursquare.com/v2/venues/" + venue + "?oauth_token=" + oauth_token + "&v=20120722", null, i);
-    document.getElementById("result" + i).innerHTML = "<img src='img/loading.gif' alt='Recuperando dados...'>";
+    dojo.byId("result" + i).innerHTML = "<img src='img/loading.gif' alt='Recuperando dados...'>";
   }
   //console.info("Venues recuperadas!");
 }
@@ -599,7 +601,7 @@ function salvarVenues() {
       //console.log(dados);
       //console.groupEnd();
       xmlhttpRequest("POST", "https://api.foursquare.com/v2/venues/" + venue + "/edit", dados, i);
-      document.getElementById("result" + i).innerHTML = "<img src='img/loading.gif' alt='Enviando dados...'>";
+      dojo.byId("result" + i).innerHTML = "<img src='img/loading.gif' alt='Enviando dados...'>";
     }
     //console.info("Dados enviados!");
     timer = setTimeout(function reabilitarSalvar() {
@@ -666,7 +668,10 @@ dojo.addOnLoad(function inicializar() {
   subMenu2.addChild(new dijit.MenuSeparator);
   var subMenu2Item2 = new dijit.MenuItem({
     label: "N&atilde;o existe",
-    id: "menuItemSinalizarDoesnt_exist"
+    id: "menuItemSinalizarDoesnt_exist",
+    onClick: function() {
+      dojo.query("input[name=selecao]:checked").forEach("desabilitarLinha(dijit.byId(item.id).value, 1)");
+    }
   });
   subMenu2.addChild(subMenu2Item2);
   var subMenu2Item3 = new dijit.MenuItem({
