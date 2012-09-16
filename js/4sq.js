@@ -279,7 +279,8 @@ function atualizarDicaVenue(i) {
       dica += document.forms[i]["zip"].value;
     }
   } catch(err) { }
-  dica += "<br><span style=\"color: #999999;\">Criada em " + document.forms[i]["createdAt"].value + "</span></span>";
+  dica += "<br><span style=\"color: #999999;\"><img src=\"img/maps.png\" width=\"8\" height=\"10\" style=\"opacity: 0.4\"> " + document.forms[i]["checkinsCount"].value + "<img src=\"img/person.png\" width=\"10\" height=\"10\" style=\"opacity: 0.4; margin-left: 7px\"> " + document.forms[i]["usersCount"].value + "<img src=\"img/comment.png\" width=\"10\" height=\"10\" style=\"opacity: 0.4; margin-left: 7px; margin-right: 1px\"> " + document.forms[i]["tipCount"].value + "<img src=\"img/camera.png\" width=\"10\" height=\"9\" style=\"opacity: 0.4; margin-left: 7px\"> " + document.forms[i]["photosCount"].value;
+  dica += "<br>Criada em " + document.forms[i]["createdAt"].value + "</span></span>";
   return dica;
 }
 
@@ -310,7 +311,7 @@ function atualizarTabela(resposta, i) {
     //console.log(categorias[i].nomes + " (" + categorias[i].ids + ") [" + categorias[i].icones + "]");
   }
   document.forms[i]["name"].value = resposta.response.venue.name;
-  var colunas = document.forms[i].elements.length - 4;
+  var colunas = document.forms[i].elements.length - 8;
   var elementName;
   for (j = 2; j < colunas; j++) {
     elementName = document.forms[i].elements[j].name;
@@ -461,6 +462,10 @@ function atualizarTabela(resposta, i) {
     createTooltip("catLnk" + i, "<span style=\"font-size: 12px\">" + categorias[i].nomes.replace(/,/gi, ", ") + "</span>");
   }
   document.forms[i]["createdAt"].value = formattedTime(resposta.response.venue.createdAt);
+  document.forms[i]["checkinsCount"].value = resposta.response.venue.stats.checkinsCount;
+  document.forms[i]["usersCount"].value = resposta.response.venue.stats.usersCount;
+  document.forms[i]["tipCount"].value = resposta.response.venue.stats.tipCount;
+  document.forms[i]["photosCount"].value = resposta.response.venue.photos.count;
   var dicaVenue = atualizarDicaVenue(i);
   createTooltip("venLnk" + i, dicaVenue);
 }
@@ -576,8 +581,8 @@ function salvarVenues() {
     for (l = 0; l < totalLinhasParaSalvar; l++) {
       i = linhasEditadas[l];
       dados = "oauth_token=" + oauth_token;
-      var colunas = document.forms[i].elements.length;
-      for (j = 1; j < colunas; j++) {
+      var colunas = document.forms[i].elements.length - 8;
+      for (j = 2; j < colunas; j++) {
         venue = document.forms[i]["venue"].value;
         elementName = document.forms[i].elements[j].name;
         if ((elementName != "ll") && (elementName != "categoryId") &&

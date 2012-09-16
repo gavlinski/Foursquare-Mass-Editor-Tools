@@ -173,6 +173,13 @@ a:hover {
   vertical-align: middle;
   width: 16px;
   position: relative;
+  opacity: 1;
+  transition: opacity .25s ease-in-out;
+  -moz-transition: opacity .25s ease-in-out;
+  -webkit-transition: opacity .25s ease-in-out;
+}
+#listContainer img:hover {
+  opacity: 0.6;
 }
 #catsContainer {
   width: 357px;
