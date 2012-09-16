@@ -211,3 +211,45 @@ a:hover {
   -webkit-user-select: none;
   user-select: none;
 }
+.flagIcon {
+  background-image: url(img/flag.png);
+  width: 10px;
+  height: 10px;
+  margin-left: 2px;
+  margin-right: 2px;
+}
+.doesnt_existIcon {
+  background-image: url(img/doesnt_exist.png);
+  width: 10px;
+  height: 10px;
+  margin-left: 2px;
+  margin-right: 2px;
+}
+.closedIcon {
+  background-image: url(img/closed.png);
+  width: 10px;
+  height: 10px;
+  margin-left: 2px;
+  margin-right: 2px;
+}
+.inappropriateIcon {
+  background-image: url(img/inappropriate.png);
+  width: 10px;
+  height: 10px;
+  margin-left: 2px;
+  margin-right: 2px;
+}
+.event_overIcon {
+  background-image: url(img/event_over.png);
+  width: 10px;
+  height: 10px;
+  margin-left: 2px;
+  margin-right: 2px;
+}
+.exportIcon {
+  background-image: url(img/export.png);
+  width: 10px;
+  height: 10px;
+  margin-left: 2px;
+  margin-right: 2px;
+}

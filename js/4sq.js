@@ -19,6 +19,7 @@ var linhasEditadas = new Array();
 var totalLinhasEditadas = 0;
 var totalLinhasParaSalvar = 0;
 var totalLinhasSalvas = 0;
+var totalLinhasSelecionadas = 0;
 
 function atualizarResultado(linha, imagem, item, dica) {
   dojo.byId(linha).innerHTML = imagem;
@@ -581,7 +582,7 @@ function salvarVenues() {
     for (l = 0; l < totalLinhasParaSalvar; l++) {
       i = linhasEditadas[l];
       dados = "oauth_token=" + oauth_token;
-      var colunas = document.forms[i].elements.length - 8;
+      var colunas = document.forms[i].elements.length - 7;
       for (j = 2; j < colunas; j++) {
         venue = document.forms[i]["venue"].value;
         elementName = document.forms[i].elements[j].name;
@@ -665,8 +666,8 @@ dojo.addOnLoad(function inicializar() {
     label: "Duplicadas",
     id: "menuItemSinalizarDuplicate",
     onClick: function() {
-      //sinalizarVenues("duplicate");
-      dojo.query("input[name=selecao]:checked").forEach("console.log(dijit.byId(item.id).value)");
+      sinalizarVenues("duplicate");
+      //dojo.query("input[name=selecao]:checked").forEach("console.log(dijit.byId(item.id).value)");
     }
   });
   subMenu2.addChild(subMenu2Item1);
@@ -674,6 +675,7 @@ dojo.addOnLoad(function inicializar() {
   var subMenu2Item2 = new dijit.MenuItem({
     label: "N&atilde;o existe",
     id: "menuItemSinalizarDoesnt_exist",
+    iconClass: "doesnt_existIcon",
     onClick: function() {
       dojo.query("input[name=selecao]:checked").forEach("desabilitarLinha(dijit.byId(item.id).value, 1)");
     }
@@ -681,21 +683,25 @@ dojo.addOnLoad(function inicializar() {
   subMenu2.addChild(subMenu2Item2);
   var subMenu2Item3 = new dijit.MenuItem({
     label: "Fechada",
-    id: "menuItemSinalizarClosed"
+    id: "menuItemSinalizarClosed",
+    iconClass: "closedIcon"
   });
   subMenu2.addChild(subMenu2Item3);
   var subMenu2Item4 = new dijit.MenuItem({
     label: "Inadequada",
-    id: "menuItemSinalizarInappropriate"
+    id: "menuItemSinalizarInappropriate",
+    iconClass: "inappropriateIcon"
   });
   subMenu2.addChild(subMenu2Item4);
   var subMenu2Item5 = new dijit.MenuItem({
     label: "J&aacute; terminou",
-    id: "menuItemSinalizarEvent_over"
+    id: "menuItemSinalizarEvent_over",
+    iconClass: "event_overIcon"
   });
   subMenu2.addChild(subMenu2Item5);
   var menuItem2 = new dijit.PopupMenuItem({
     label: "Sinalizar",
+    iconClass: "flagIcon",
     popup: subMenu2
   });
   menu.addChild(menuItem2);
@@ -727,6 +733,7 @@ dojo.addOnLoad(function inicializar() {
   subMenu3.addChild(subMenu3Item2);
   var menuItem3 = new dijit.PopupMenuItem({
     label: "Exportar",
+    iconClass: "exportIcon",
     popup: subMenu3
   });
   menu.addChild(menuItem3);  
