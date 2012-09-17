@@ -701,7 +701,9 @@ dojo.addOnLoad(function inicializar() {
   subMenu2.addChild(subMenu2Item5);
   var menuItem2 = new dijit.PopupMenuItem({
     label: "Sinalizar",
+    id: "menuSinalizar",
     iconClass: "flagIcon",
+    disabled: true,
     popup: subMenu2
   });
   menu.addChild(menuItem2);
@@ -786,4 +788,10 @@ function verificarAlteracao(textbox, i) {
     //var domNode = dijit.byId(textbox.id).domNode;
     //dojo.style(domNode, "background", "#FFFFE0");
   }
+}
+
+function atualizarItensMenuMais(linha) {
+  (linha) ? totalLinhasSelecionadas++ : totalLinhasSelecionadas--;
+  (totalLinhasSelecionadas > 0) ? dijit.byId("menuSinalizar").setAttribute("disabled", false) : dijit.byId("menuSinalizar").setAttribute("disabled", true);
+  (totalLinhasSelecionadas > 1) ? dijit.byId("menuItemSinalizarDuplicate").setAttribute("disabled", false) : dijit.byId("menuItemSinalizarDuplicate").setAttribute("disabled", true);
 }
