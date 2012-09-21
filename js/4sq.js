@@ -15,11 +15,16 @@ var txt = new Array();
 var categorias = new Array();
 var store = {};
 var timer;
+
 var linhasEditadas = new Array();
 var totalLinhasEditadas = 0;
 var totalLinhasParaSalvar = 0;
 var totalLinhasSalvas = 0;
+
+var linhasSelecionadas = new Array();
 var totalLinhasSelecionadas = 0;
+var totalLinhasParaSinalizar = 0;
+var totalLinhasSinalizadas = 0;
 
 function atualizarResultado(linha, imagem, item, dica) {
   dojo.byId(linha).innerHTML = imagem;
@@ -48,13 +53,13 @@ function atualizarResultado(linha, imagem, item, dica) {
   }
 }
 
-function desabilitarLinha(i, categoria) {
+function desabilitarLinha(i) {
   dojo.query('#linha' + i + ' input').forEach(
     function(inputElem) {
       if (inputElem.type == 'text') //&& ((inputElem.value == ' ') || (inputElem.value == '')))
         //console.log(inputElem);
         dijit.byId(inputElem.id).setDisabled(true);
-      if (categoria == 0)
+      if (dojo.byId("cid" + i).value == "")
         dojo.byId("icone" + i).innerHTML = "<img id=catImg" + i + " src='https://foursquare.com/img/categories_v2/none_bg_32.png' style='height: 22px; width: 22px; margin-left: 0px'>";
       else {
         dojo.byId("icone" + i).innerHTML = "<img id=catImg" + i + " src='" + dojo.byId("cic" + i).value.split(",", 1)[0] + "' style='height: 22px; width: 22px; margin-left: 0px'>";
@@ -87,7 +92,7 @@ function xmlhttpRequest(metodo, endpoint, dados, i) {
         }
       } else if (xmlhttp.status == 400) {
       	if (metodo == "GET") {
-          desabilitarLinha(i, 0);
+          desabilitarLinha(i);
       	}
         atualizarResultado("result" + i, "<img src='img/erro.png' alt='Erro 400: Bad Request, Tipo: " + resposta.meta.errorType + ", Detalhe: " + resposta.meta.errorDetail + "'>", "result" + i, "<span style=\"font-size: 12px\">Erro 400: Bad Request, Tipo: " + resposta.meta.errorType + ",<br>Detalhe: " + resposta.meta.errorDetail + "</span>");
       } else if (xmlhttp.status == 401) {
@@ -458,6 +463,8 @@ function atualizarTabela(resposta, i) {
   } else if (resposta.response.venue.categories[0].id == "4bf58dd8d48988d103941735") {
     dojo.byId("icone" + i).innerHTML = "<img id=catLnk" + i + " src='" + categorias[i].icones.split(",", 1)[0] + "' style='height: 22px; width: 22px; margin-left: 0px'>";
     createTooltip("catLnk" + i, "<span style=\"font-size: 12px\">" + categorias[i].nomes.replace(/,/gi, ", ") + "</span>");
+  } else if (resposta.response.venue.id != document.forms[i]["venue"].value) {
+    desabilitarLinha(i);
   } else {
     dojo.byId("icone" + i).innerHTML = "<a id='catLnk" + i + "' href='javascript:editarCategorias(" + i + ")'><img id=catImg" + i + " src='" + categorias[i].icones.split(",", 1)[0] + "' style='height: 22px; width: 22px; margin-left: 0px'></a>";
     createTooltip("catLnk" + i, "<span style=\"font-size: 12px\">" + categorias[i].nomes.replace(/,/gi, ", ") + "</span>");
@@ -571,14 +578,14 @@ function salvarVenues() {
     dojo.byId("result" + i).innerHTML = "";
   if (linhasEditadas.length > 0) {
     totalLinhasEditadas = 0;
+    totalLinhasParaSalvar = linhasEditadas.length;
     totalLinhasSalvas = 0;
-    dijit.byId("saveProgress").update({maximum: linhasEditadas.length, progress: totalLinhasEditadas});
+    dijit.byId("saveProgress").update({maximum: totalLinhasParaSalvar, progress: totalLinhasEditadas});
     dijit.byId("dlg_save").set("title", "Salvando venues...");
     dijit.byId("dlg_save").show();
     dijit.byId("saveButton").setAttribute("disabled", true);
-    var venue, dados, ll, elementName;
+    var venue, dados, ll, elementName, i;
     //console.info("Enviando dados...");
-    totalLinhasParaSalvar = linhasEditadas.length;
     for (l = 0; l < totalLinhasParaSalvar; l++) {
       i = linhasEditadas[l];
       dados = "oauth_token=" + oauth_token;
@@ -667,7 +674,6 @@ dojo.addOnLoad(function inicializar() {
     id: "menuItemSinalizarDuplicate",
     onClick: function() {
       sinalizarVenues("duplicate");
-      //dojo.query("input[name=selecao]:checked").forEach("console.log(dijit.byId(item.id).value)");
     }
   });
   subMenu2.addChild(subMenu2Item1);
@@ -677,26 +683,36 @@ dojo.addOnLoad(function inicializar() {
     id: "menuItemSinalizarDoesnt_exist",
     iconClass: "doesnt_existIcon",
     onClick: function() {
-      dojo.query("input[name=selecao]:checked").forEach("desabilitarLinha(dijit.byId(item.id).value, 1)");
+      dojo.query("input[name=selecao]:checked").forEach("desabilitarLinha(dijit.byId(item.id).value)");
+      //sinalizarVenues("doesnt_exist");
     }
   });
   subMenu2.addChild(subMenu2Item2);
   var subMenu2Item3 = new dijit.MenuItem({
     label: "Fechada",
     id: "menuItemSinalizarClosed",
-    iconClass: "closedIcon"
+    iconClass: "closedIcon",
+    onClick: function() {
+      sinalizarVenues("closed");
+    }
   });
   subMenu2.addChild(subMenu2Item3);
   var subMenu2Item4 = new dijit.MenuItem({
     label: "Inadequada",
     id: "menuItemSinalizarInappropriate",
-    iconClass: "inappropriateIcon"
+    iconClass: "inappropriateIcon",
+    onClick: function() {
+      sinalizarVenues("inappropriate");
+    }
   });
   subMenu2.addChild(subMenu2Item4);
   var subMenu2Item5 = new dijit.MenuItem({
     label: "J&aacute; terminou",
     id: "menuItemSinalizarEvent_over",
-    iconClass: "event_overIcon"
+    iconClass: "event_overIcon",
+    onClick: function() {
+      sinalizarVenues("event_over");
+    }
   });
   subMenu2.addChild(subMenu2Item5);
   var menuItem2 = new dijit.PopupMenuItem({
@@ -790,7 +806,8 @@ function verificarAlteracao(textbox, i) {
   }
 }
 
-function atualizarItensMenuMais(linha) {
+function atualizarItensMenuMais(i, linha) {
+  dojo.byId("result" + i).innerHTML = "";
   (linha) ? totalLinhasSelecionadas++ : totalLinhasSelecionadas--;
   (totalLinhasSelecionadas > 0) ? dijit.byId("menuSinalizar").setAttribute("disabled", false) : dijit.byId("menuSinalizar").setAttribute("disabled", true);
   (totalLinhasSelecionadas > 1) ? dijit.byId("menuItemSinalizarDuplicate").setAttribute("disabled", false) : dijit.byId("menuItemSinalizarDuplicate").setAttribute("disabled", true);
