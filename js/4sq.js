@@ -9,6 +9,8 @@ dojo.require("dojo.data.ItemFileReadStore");
 dojo.require("dijit.Tree");
 dojo.require("dijit.Menu");
 
+var dataVersionamento = "20120924";
+
 var total = 0;
 var csv = new Array();
 var txt = new Array();
@@ -607,7 +609,7 @@ function carregarVenues() {
   var linhas = document.forms.length;
   for (i = 0; i < linhas; i++) {
     venue = document.forms[i]["venue"].value;
-    xmlhttpRequest("GET", "https://api.foursquare.com/v2/venues/" + venue + "?oauth_token=" + oauth_token + "&v=20120722", null, i);
+    xmlhttpRequest("GET", "https://api.foursquare.com/v2/venues/" + venue + "?oauth_token=" + oauth_token + "&v=" + dataVersionamento, null, i);
     dojo.byId("result" + i).innerHTML = "<img src='img/loading.gif' alt='Recuperando dados...'>";
   }
   //console.info("Venues recuperadas!");
@@ -649,7 +651,7 @@ function salvarVenues() {
             dados += "&ll=" + document.forms[i]["ll"].value;
         }
       }
-      dados += "&v=20120722";
+      dados += "&v=" + dataVersionamento;
       //console.group("venue=" + venue + " (" + i + ")");
       //console.log(dados);
       //console.groupEnd();
@@ -699,7 +701,7 @@ function sinalizarVenues(problema) {
   for (l = 0; l < totalLinhasParaSinalizar; l++) {
     i = linhasSelecionadas[l].value;
     venue = document.forms[i]["venue"].value;
-    dados = "oauth_token=" + oauth_token + "&problem=" + problema + "&v=20120917";
+    dados = "oauth_token=" + oauth_token + "&problem=" + problema + "&v=" + dataVersionamento;
     if (problema == "duplicate")
       dados += "&venueId=" + venueId;
     //console.group("venue=" + venue + " (" + i + ")");
@@ -725,7 +727,7 @@ function selecionarTodas(valor) {
 
 function carregarListaCategorias() {
   //console.info("Recuperando dados das categorias...");
-  xmlhttpRequest("GET", "https://api.foursquare.com/v2/venues/categories" + "?oauth_token=" + oauth_token + "&v=20120722", null, null);
+  xmlhttpRequest("GET", "https://api.foursquare.com/v2/venues/categories" + "?oauth_token=" + oauth_token + "&v=" + dataVersionamento, null, null);
 }
 var dlgGuia;
 dojo.addOnLoad(function inicializar() {

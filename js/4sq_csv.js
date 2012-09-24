@@ -4,6 +4,8 @@ dojo.require("dijit.form.TextBox");
 dojo.require("dijit.Tooltip");
 dojo.require("dijit.Menu");
 
+var dataVersionamento = "20120924";
+
 var total = 0;
 var timer;
 var categorias = new Array();
@@ -142,7 +144,7 @@ function salvarVenues() {
           dados += "&ll=" + document.forms[i]["ll"].value;
       }
     }
-    dados += "&v=20120722";
+    dados += "&v=" + dataVersionamento;
     //console.group("venue=" + venue + " (" + i + ")");
     //console.log(dados);
     //console.groupEnd();
@@ -163,7 +165,7 @@ function sinalizarVenues(problema) {
   var totalLinhas = document.forms.length;
   for (i = 0; i < totalLinhas; i++) {
     venue = document.forms[i]["venue"].value;
-    dados = "oauth_token=" + oauth_token + "&problem=" + problema + "&v=20120722";
+    dados = "oauth_token=" + oauth_token + "&problem=" + problema + "&v=" + dataVersionamento;
     //console.group("venue=" + venue + " (" + i + ")");
     //console.log(dados);
     //console.groupEnd();
@@ -178,7 +180,7 @@ function sinalizarVenues(problema) {
 
 function carregarListaCategorias() {
   //console.info("Recuperando dados das categorias...");
-  xmlhttpRequest("GET", "https://api.foursquare.com/v2/venues/categories" + "?oauth_token=" + oauth_token + "&v=20120722", null, null);
+  xmlhttpRequest("GET", "https://api.foursquare.com/v2/venues/categories" + "?oauth_token=" + oauth_token + "&v=" + dataVersionamento, null, null);
 }
 
 var dlg_guia;
