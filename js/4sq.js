@@ -25,11 +25,12 @@ var linhasSelecionadas = new Array();
 var totalLinhasSelecionadas = 0;
 var totalLinhasParaSinalizar = 0;
 var totalLinhasSinalizadas = 0;
+var linhaVenueComMaisCheckins = 0;
 
-function atualizarResultado(linha, imagem, item, dica) {
-  dojo.byId(linha).innerHTML = imagem;
+function atualizarEditadas(i, imagem, item, dica) {
+  dojo.byId("result" + i).innerHTML = imagem;
   createTooltip(item, dica);
-  linhasEditadas.splice(linha, 1);
+  linhasEditadas.splice(linhasEditadas.indexOf(i), 1);
   totalLinhasEditadas++;
   dijit.byId("saveProgress").update({maximum: totalLinhasParaSalvar, progress: totalLinhasEditadas});
   if (linhasEditadas.length == 0) {
@@ -53,11 +54,42 @@ function atualizarResultado(linha, imagem, item, dica) {
   }
 }
 
+function atualizarSinalizadas(i, imagem, item, dica) {
+  dojo.byId("result" + i).innerHTML = imagem;
+  createTooltip(item, dica);
+  desabilitarLinha(i);
+  linhasSelecionadas.splice(linhasSelecionadas.indexOf(parseInt(i)), 1);
+  totalLinhasSinalizadas++;
+  dijit.byId("saveProgress").update({maximum: totalLinhasParaSinalizar, progress: totalLinhasSinalizadas});
+  if (linhasSelecionadas.length == 0) {
+    dijit.byId("menuSinalizar").setAttribute('disabled', false);
+    if (timer) {
+    	clearTimeout(timer);
+    	var title = totalLinhasSalvas + " de " + totalLinhasSinalizadas + " venue";
+    	if (totalLinhasSinalizadas > 1)
+        title += "s";
+      if (totalLinhasSalvas == 0)
+        title += " sinalizadas";
+    	else if (totalLinhasSalvas == 1)
+    	  title += " sinalizada com sucesso";
+      else
+        title += " sinalizadas com sucesso";
+      dijit.byId("dlg_save").set("title", title);
+      dijit.byId(dojo.query("input[name=selecao]")[linhaVenueComMaisCheckins].id).setChecked(false);
+      timer = setTimeout(function fecharPbSalvar() {
+  	    dijit.byId("dlg_save").hide();
+      }, 3000);
+    } 
+  }
+}
+
 function desabilitarLinha(i) {
   dojo.query('#linha' + i + ' input').forEach(
     function(inputElem) {
-      if (inputElem.type == 'text') //&& ((inputElem.value == ' ') || (inputElem.value == '')))
-        //console.log(inputElem);
+      //console.log(inputElem);
+      if ((inputElem.type == 'checkbox') && (dijit.byId(inputElem.id).get("checked") == true))
+        dijit.byId(inputElem.id).setChecked(false);
+      if ((inputElem.type == 'text') || (inputElem.type == 'checkbox')) //&& ((inputElem.value == ' ') || (inputElem.value == '')))
         dijit.byId(inputElem.id).setDisabled(true);
       if (dojo.byId("cid" + i).value == "")
         dojo.byId("icone" + i).innerHTML = "<img id=catImg" + i + " src='https://foursquare.com/img/categories_v2/none_bg_32.png' style='height: 22px; width: 22px; margin-left: 0px'>";
@@ -66,7 +98,10 @@ function desabilitarLinha(i) {
         createTooltip("catImg" + i, "<span style=\"font-size: 12px\">" + dojo.byId("cna" + i).value.replace(/,/gi, ", ") + "</span>");
       } 
     }
-  )
+  );
+  var linhaEditada = linhasEditadas.indexOf(parseInt(i));
+  if (linhaEditada != -1)
+    linhasEditadas.splice(linhaEditada, 1);
 }
 
 function xmlhttpRequest(metodo, endpoint, dados, i) {
@@ -80,10 +115,16 @@ function xmlhttpRequest(metodo, endpoint, dados, i) {
       }
       if (xmlhttp.status == 200) {
         if (metodo == "POST") {
-          dojo.byId("info" + i).innerHTML = dojo.byId("info" + i).innerHTML.replace(/%0A/gi, "");
-          var dicaVenue = atualizarDicaVenue(i);
-          totalLinhasSalvas++;
-          atualizarResultado("result" + i, "<img src='img/ok.png' alt='" + xmlhttp.responseText + "' style='vertical-align: middle;'>", "venLnk" + i, dicaVenue);
+          if (endpoint.substr(-4) == "edit") {
+            dojo.byId("info" + i).innerHTML = dojo.byId("info" + i).innerHTML.replace(/%0A/gi, "");
+            var dicaVenue = atualizarDicaVenue(i);
+            createTooltip("venLnk" + i, dicaVenue);
+            totalLinhasSalvas++;
+            atualizarEditadas(i, "<img src='img/ok.png' alt='" + xmlhttp.responseText + "' style='vertical-align: middle;'>", "result" + i, "<span style=\"font-size: 12px\">Editada com sucesso</span>");
+          } else if (endpoint.substr(-4) == "flag") {
+            totalLinhasSalvas++;
+            atualizarSinalizadas(i, "<img src='img/ok.png' alt='" + xmlhttp.responseText + "' style='vertical-align: middle;'>", "result" + i, "<span style=\"font-size: 12px\">Sinalizada com sucesso</span>");
+          }
         } else if ((metodo == "GET") && (resposta.response.categories == undefined)) {
           atualizarTabela(resposta, i);
         } else if (resposta.response.categories != undefined) {
@@ -94,21 +135,21 @@ function xmlhttpRequest(metodo, endpoint, dados, i) {
       	if (metodo == "GET") {
           desabilitarLinha(i);
       	}
-        atualizarResultado("result" + i, "<img src='img/erro.png' alt='Erro 400: Bad Request, Tipo: " + resposta.meta.errorType + ", Detalhe: " + resposta.meta.errorDetail + "'>", "result" + i, "<span style=\"font-size: 12px\">Erro 400: Bad Request, Tipo: " + resposta.meta.errorType + ",<br>Detalhe: " + resposta.meta.errorDetail + "</span>");
+        atualizarEditadas(i, "<img src='img/erro.png' alt='Erro 400: Bad Request, Tipo: " + resposta.meta.errorType + ", Detalhe: " + resposta.meta.errorDetail + "'>", "result" + i, "<span style=\"font-size: 12px\">Erro 400: Bad Request, Tipo: " + resposta.meta.errorType + ",<br>Detalhe: " + resposta.meta.errorDetail + "</span>");
       } else if (xmlhttp.status == 401) {
-        atualizarResultado("result" + i, "<img src='img/erro.png' alt='Erro 401: Unauthorized, Tipo: " + resposta.meta.errorType + ", Detalhe: " + resposta.meta.errorDetail + "'>", "result" + i, "<span style=\"font-size: 12px\">Erro 401: Unauthorized, Tipo: " + resposta.meta.errorType + ",<br>Detalhe: " + resposta.meta.errorDetail + "</span>");
+        atualizarEditadas(i, "<img src='img/erro.png' alt='Erro 401: Unauthorized, Tipo: " + resposta.meta.errorType + ", Detalhe: " + resposta.meta.errorDetail + "'>", "result" + i, "<span style=\"font-size: 12px\">Erro 401: Unauthorized, Tipo: " + resposta.meta.errorType + ",<br>Detalhe: " + resposta.meta.errorDetail + "</span>");
       } else if (xmlhttp.status == 403) {
-        atualizarResultado("result" + i, "<img src='img/erro.png' alt='Erro 403: Forbidden, Tipo: " + resposta.meta.errorType + ", Detalhe: " + resposta.meta.errorDetail + "'>", "result" + i, "<span style=\"font-size: 12px\">Erro 403: Forbidden, Tipo: " + resposta.meta.errorType + ",<br>Detalhe: " + resposta.meta.errorDetail + "</span>");
+        atualizarEditadas(i, "<img src='img/erro.png' alt='Erro 403: Forbidden, Tipo: " + resposta.meta.errorType + ", Detalhe: " + resposta.meta.errorDetail + "'>", "result" + i, "<span style=\"font-size: 12px\">Erro 403: Forbidden, Tipo: " + resposta.meta.errorType + ",<br>Detalhe: " + resposta.meta.errorDetail + "</span>");
       } else if (xmlhttp.status == 404) {
-        atualizarResultado("result" + i, "<img src='img/erro.png' alt='Erro 404: Not Found'>", "result" + i, "<span style=\"font-size: 12px\">Erro 404: Not Found</span>");
+        atualizarEditadas(i, "<img src='img/erro.png' alt='Erro 404: Not Found'>", "result" + i, "<span style=\"font-size: 12px\">Erro 404: Not Found</span>");
       } else if (xmlhttp.status == 405) {
-        atualizarResultado("result" + i, "<img src='img/erro.png' alt='Erro 405: Method Not Allowed'>", "result" + i, "<span style=\"font-size: 12px\">Erro 405: Method Not Allowed</span>");
+        atualizarEditadas(i, "<img src='img/erro.png' alt='Erro 405: Method Not Allowed'>", "result" + i, "<span style=\"font-size: 12px\">Erro 405: Method Not Allowed</span>");
       } else if (xmlhttp.status == 409) {
-        atualizarResultado("result" + i, "<img src='img/erro.png' alt='Erro 409: Conflict'>", "result" + i, "<span style=\"font-size: 12px\">Erro 409: Conflict</span>");
+        atualizarEditadas(i, "<img src='img/erro.png' alt='Erro 409: Conflict'>", "result" + i, "<span style=\"font-size: 12px\">Erro 409: Conflict</span>");
       } else if (xmlhttp.status == 500) {
-        atualizarResultado("result" + i, "<img src='img/erro.png' alt='Erro 500: Internal Server Error'>", "result" + i, "<span style=\"font-size: 12px\">Erro 500: Internal Server Error</span>");
+        atualizarEditadas(i, "<img src='img/erro.png' alt='Erro 500: Internal Server Error'>", "result" + i, "<span style=\"font-size: 12px\">Erro 500: Internal Server Error</span>");
       } else {
-        atualizarResultado("result" + i, "<img src='img/erro.png' alt='Erro desconhecido: " + xmlhttp.status + "'>", "result" + i, "<span style=\"font-size: 12px\">Erro desconhecido: " + xmlhttp.status + "</span>");
+        atualizarEditadas(i, "<img src='img/erro.png' alt='Erro desconhecido: " + xmlhttp.status + "'>", "result" + i, "<span style=\"font-size: 12px\">Erro desconhecido: " + xmlhttp.status + "</span>");
       }
     }
   }
@@ -449,13 +490,12 @@ function atualizarTabela(resposta, i) {
     default:
       break;
     }
-    if (document.forms[i].elements[j].value == "undefined") {
+    if (document.forms[i].elements[j].value == "undefined")
       dijit.byId(dojo.query("input[name=" + elementName + "]")[i].id).set("value", "");
-    }
-    dojo.byId("result" + i).innerHTML = "";
-    if ((resposta.response.venue.categories[0] != undefined) && (resposta.response.venue.categories[0].id == "4bf58dd8d48988d103941735"))
-      dijit.byId(dojo.query("input[name=" + elementName + "]")[i].id).setDisabled(true);
   }
+  dojo.byId("result" + i).innerHTML = "";
+  if ((resposta.response.venue.categories[0] != undefined) && (resposta.response.venue.categories[0].id == "4bf58dd8d48988d103941735"))
+    desabilitarLinha(i);
   csv[i + 1] = linha.replace(/undefined/gi, "").split("&&");
   txt[i + 1] = resposta.response.venue.id + '%0A';
   if (resposta.response.venue.categories[0] == undefined) {
@@ -623,6 +663,66 @@ function salvarVenues() {
   }
 }
 
+function sinalizarVenues(problema) {
+  for (i = 0; i < document.forms.length; i++)
+    dojo.byId("result" + i).innerHTML = "";
+  //dojo.query("input[name=selecao]:checked").forEach("console.log(dijit.byId(item.id).value)");
+  linhasSelecionadas = dojo.query("input[name=selecao]:checked");
+  totalLinhasSinalizadas = 0;
+  if (problema == "duplicate") {
+    /*** Verifica qual a venue que possui mais check-ins ***/
+    var linhaComMaisCheckins = 0;
+    var checkinsCount = parseInt(dojo.byId("vcc" + linhasSelecionadas[linhaComMaisCheckins].value).value);
+    var venueId = document.forms[linhasSelecionadas[linhaComMaisCheckins].value]["venue"].value;
+    var checkins = 0;
+    for (l = 1; l < totalLinhasSelecionadas; l++) {
+      checkins = parseInt(dojo.byId("vcc" + linhasSelecionadas[l].value).value);
+      if (checkins > checkinsCount) {
+        linhaComMaisCheckins = l;
+        checkinsCount = checkins;
+        venueId = document.forms[linhasSelecionadas[linhaComMaisCheckins].value]["venue"].value;
+      }
+    }
+    linhaVenueComMaisCheckins = parseInt(linhasSelecionadas[linhaComMaisCheckins].value);
+    linhasSelecionadas.splice(linhaComMaisCheckins, 1);
+    totalLinhasParaSinalizar = totalLinhasSelecionadas - 1;
+  } else {
+    totalLinhasParaSinalizar = totalLinhasSelecionadas;
+  }
+  totalLinhasSalvas = 0;
+  dijit.byId("saveProgress").update({maximum: totalLinhasParaSinalizar, progress: totalLinhasSinalizadas});
+  dijit.byId("dlg_save").set("title", "Sinalizando venues...");
+  dijit.byId("dlg_save").show();
+  dijit.byId("menuSinalizar").setAttribute("disabled", true);
+  var venue, dados;
+  //console.info("Enviando dados...");
+  for (l = 0; l < totalLinhasParaSinalizar; l++) {
+    i = linhasSelecionadas[l].value;
+    venue = document.forms[i]["venue"].value;
+    dados = "oauth_token=" + oauth_token + "&problem=" + problema + "&v=20120917";
+    if (problema == "duplicate")
+      dados += "&venueId=" + venueId;
+    //console.group("venue=" + venue + " (" + i + ")");
+    //console.log(dados);
+    //console.groupEnd();
+    xmlhttpRequest("POST", "https://api.foursquare.com/v2/venues/" + venue + "/flag", dados, i);
+    dojo.byId("result" + i).innerHTML = "<img src='img/loading.gif' alt='Enviando dados...'>";
+    }
+  //console.info("Dados enviados!");
+  timer = setTimeout(function reabilitarSinalizar() {
+  	dijit.byId("menuSinalizar").setAttribute('disabled', false);
+  }, 60000);
+}
+
+function selecionarTodas(valor) {
+  dojo.query("input[name=selecao]").forEach(
+    function(inputElem) {
+      if (inputElem.disabled != true)
+        dijit.byId(inputElem.id).setChecked(valor);
+    }
+  );
+}
+
 function carregarListaCategorias() {
   //console.info("Recuperando dados das categorias...");
   xmlhttpRequest("GET", "https://api.foursquare.com/v2/venues/categories" + "?oauth_token=" + oauth_token + "&v=20120722", null, null);
@@ -645,8 +745,7 @@ dojo.addOnLoad(function inicializar() {
     label: "Todas",
     id: "menuItemSelecionarTodas",
     onClick: function() {
-      dojo.query("input[name=selecao]").forEach("dijit.byId(item.id).setChecked(true)");
-      //onClick: dijit.byId(dojo.query("input[name=selecao]")[1].id).setChecked(true);
+      selecionarTodas(true);
     }
   });
   subMenu1.addChild(subMenu1Item1);
@@ -654,7 +753,7 @@ dojo.addOnLoad(function inicializar() {
     label: "Nenhuma",
     id: "menuItemSelecionarNenhuma",
     onClick: function() {
-      dojo.query("input[name=selecao]").forEach("dijit.byId(item.id).setChecked(false)");
+      selecionarTodas(false);
     }
   });
   subMenu1.addChild(subMenu1Item2);
@@ -683,8 +782,8 @@ dojo.addOnLoad(function inicializar() {
     id: "menuItemSinalizarDoesnt_exist",
     iconClass: "doesnt_existIcon",
     onClick: function() {
-      dojo.query("input[name=selecao]:checked").forEach("desabilitarLinha(dijit.byId(item.id).value)");
-      //sinalizarVenues("doesnt_exist");
+      //dojo.query("input[name=selecao]:checked").forEach("desabilitarLinha(dijit.byId(item.id).value)");
+      sinalizarVenues("doesnt_exist");
     }
   });
   subMenu2.addChild(subMenu2Item2);
@@ -806,9 +905,8 @@ function verificarAlteracao(textbox, i) {
   }
 }
 
-function atualizarItensMenuMais(i, linha) {
-  dojo.byId("result" + i).innerHTML = "";
-  (linha) ? totalLinhasSelecionadas++ : totalLinhasSelecionadas--;
+function atualizarItensMenuMais(i) {
+  totalLinhasSelecionadas = dojo.query("input[name=selecao]:checked").length;
   (totalLinhasSelecionadas > 0) ? dijit.byId("menuSinalizar").setAttribute("disabled", false) : dijit.byId("menuSinalizar").setAttribute("disabled", true);
   (totalLinhasSelecionadas > 1) ? dijit.byId("menuItemSinalizarDuplicate").setAttribute("disabled", false) : dijit.byId("menuItemSinalizarDuplicate").setAttribute("disabled", true);
 }
