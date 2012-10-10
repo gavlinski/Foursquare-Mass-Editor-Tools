@@ -149,7 +149,7 @@ function validarVenues($lines) {
         $i++;
       }
       $p->setProgressBarProgress($i*100/$size);
-			usleep(100000*0.1);
+			usleep(10000*0.1);
     }
     /*** break the reference with the last element ***/
     unset($r);
@@ -185,7 +185,7 @@ function validarVenues($lines) {
       }
       $i++;
       $p->setProgressBarProgress($i*100/$size);
-			usleep(100000*0.1);
+			usleep(10000*0.1);
     }
     /*** break the reference with the last element ***/
     unset($line);
@@ -247,7 +247,10 @@ function parseVenues($html) {
     	$j = 0;
     	foreach ($links as $tag) {
     	  if ((stripos($tag->getAttribute('href'), "/venue/") !== false) || (stripos($tag->getAttribute('href'), "/v/") !== false)) {
-    	    $vid = substr($tag->getAttribute('href'), -24);
+    	    if (substr_count($tag->getAttribute('href'), "/") == 2)
+    	      $vid = substr($tag->getAttribute('href'), 3, 24);
+    	    else
+    	      $vid = substr($tag->getAttribute('href'), -24);
     	    if (!in_array($vid, $venues)) { 
             $venues[$i] = $vid;
        		  $ret[$i] = "https://foursquare.com" . $tag->getAttribute('href');
@@ -256,7 +259,7 @@ function parseVenues($html) {
       	}
       	$j++;
       	$p->setProgressBarProgress($j*100/$size);
-				usleep(100000*0.1);
+				usleep(10000*0.1);
     	}
   	} else {
   	  $size = count($ret);
@@ -265,7 +268,7 @@ function parseVenues($html) {
       	$r = "https://foursquare.com/v/" . $venues[$i];
       	$i++;
 				$p->setProgressBarProgress($i*100/$size);
-				usleep(100000*0.1);
+				usleep(10000*0.1);
     	}
     	/*** break the reference with the last element ***/
     	unset($r);
