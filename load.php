@@ -60,8 +60,8 @@ define("EDIT", '<script type="text/javascript">
 	window.location = "edit.php"
 </script>;');
 
-if (isset($_FILES['txts']['tmp_name'][0])) {
-  $arquivo = $_FILES['txts']['tmp_name'][0];
+if (isset($_FILES['txt']['tmp_name'])) {
+  $arquivo = $_FILES['txt']['tmp_name'];
   if (is_uploaded_file($arquivo)) {
   	$_SESSION["file"] = validarVenues(filtrarArray(file($arquivo)));
   	$_SESSION["campos"] = $_POST["campos"];

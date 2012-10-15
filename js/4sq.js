@@ -344,7 +344,6 @@ function atualizarTabela(resposta, i) {
       linhasEditadas = [];
       dijit.byId("saveButton").setAttribute('disabled', false);
     }, 1000);
-    csv[0] = csv[0].concat("createdAt;checkins;users;tips;photos;closed");
   }
   var linha = "";
   categorias[i] = new Categoria();
@@ -524,6 +523,9 @@ function atualizarTabela(resposta, i) {
   var dicaVenue = atualizarDicaVenue(i);
   createTooltip("venLnk" + i, dicaVenue);
   csv[i + 1] = csv[i + 1].concat(document.forms[i]["createdAt"].value + ";" + document.forms[i]["checkinsCount"].value + ";" + document.forms[i]["usersCount"].value + ";" + document.forms[i]["tipCount"].value + ";" + document.forms[i]["photosCount"].value + ";" + document.forms[i]["isClosed"].value);
+  if (total == document.forms.length) {
+    csv[0] = csv[0].concat("createdAt;checkins;users;tips;photos;closed");
+  }
 }
 
 function montarArvore(resposta) {
