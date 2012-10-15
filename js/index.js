@@ -36,8 +36,8 @@ dojo.addOnLoad(function() {
         e.preventDefault();
         alert("O arquivo deve ser do tipo CSV");
         uploader_csv.inputNode.focus();
-      } else {
-        alert("Ready to submit data: " + dojo.toJson(form_csv.attr("value")));
+      //} else {
+        //alert("Ready to submit data: " + dojo.toJson(form_csv.attr("value")));
       }
     } else {
       e.preventDefault();

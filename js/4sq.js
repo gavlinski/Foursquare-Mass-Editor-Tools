@@ -344,6 +344,7 @@ function atualizarTabela(resposta, i) {
       linhasEditadas = [];
       dijit.byId("saveButton").setAttribute('disabled', false);
     }, 1000);
+    csv[0] = csv[0].concat("createdAt;checkins;users;tips;photos;closed");
   }
   var linha = "";
   categorias[i] = new Categoria();
@@ -502,7 +503,7 @@ function atualizarTabela(resposta, i) {
   if ((resposta.response.venue.categories[0] != undefined) && (resposta.response.venue.categories[0].id == "4bf58dd8d48988d103941735"))
     desabilitarLinha(i);
   csv[i + 1] = linha.replace(/undefined/gi, "").split("&&");
-  txt[i + 1] = resposta.response.venue.id + '%0A';
+  txt[i + 1] = "https://foursquare.com/v/" + resposta.response.venue.id + '%0A';
   if (resposta.response.venue.categories[0] == undefined) {
     dojo.byId("icone" + i).innerHTML = "<a id='catLnk" + i + "' href='javascript:editarCategorias(" + i + ")'><img id=catImg" + i + " src='https://foursquare.com/img/categories_v2/none_bg_32.png' style='height: 22px; width: 22px; margin-left: 0px'></a>";
   } else if (resposta.response.venue.categories[0].id == "4bf58dd8d48988d103941735") {
@@ -522,6 +523,7 @@ function atualizarTabela(resposta, i) {
   (resposta.response.venue.closed == undefined) ? document.forms[i]["isClosed"].value = false : document.forms[i]["isClosed"].value = true;
   var dicaVenue = atualizarDicaVenue(i);
   createTooltip("venLnk" + i, dicaVenue);
+  csv[i + 1] = csv[i + 1].concat(document.forms[i]["createdAt"].value + ";" + document.forms[i]["checkinsCount"].value + ";" + document.forms[i]["usersCount"].value + ";" + document.forms[i]["tipCount"].value + ";" + document.forms[i]["photosCount"].value + ";" + document.forms[i]["isClosed"].value);
 }
 
 function montarArvore(resposta) {
