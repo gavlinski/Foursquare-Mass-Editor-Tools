@@ -35,7 +35,11 @@ function atualizarEditadas(i, imagem, item, dica) {
   linhasEditadas.splice(linhasEditadas.indexOf(i), 1);
   totalLinhasEditadas++;
   dijit.byId("saveProgress").update({maximum: totalLinhasParaSalvar, progress: totalLinhasEditadas});
-  if (linhasEditadas.length == 0) {
+  if (linhasEditadas.length > 1)
+    dijit.byId("dlg_save").set("title", "Salvando " + linhasEditadas.length + " venues...");
+  else if (linhasEditadas.length == 1)
+    dijit.byId("dlg_save").set("title", "Salvando 1 venue...");
+  else if (linhasEditadas.length == 0) {
     dijit.byId("saveButton").setAttribute('disabled', false);
     if (timer) {
     	clearTimeout(timer);
@@ -51,7 +55,7 @@ function atualizarEditadas(i, imagem, item, dica) {
       dijit.byId("dlg_save").set("title", title);
       timer = setTimeout(function fecharPbSalvar() {
   	    dijit.byId("dlg_save").hide();
-      }, 5000);
+      }, 3000);
     } 
   }
 }
@@ -63,7 +67,11 @@ function atualizarSinalizadas(i, imagem, item, dica) {
   linhasSelecionadas.splice(linhasSelecionadas.indexOf(parseInt(i)), 1);
   totalLinhasSinalizadas++;
   dijit.byId("saveProgress").update({maximum: totalLinhasParaSinalizar, progress: totalLinhasSinalizadas});
-  if (linhasSelecionadas.length == 0) {
+  if (linhasSelecionadas.length > 1)
+    dijit.byId("dlg_save").set("title", "Sinalizando " + linhasSelecionadas.length + " venues...");
+  else if (linhasSelecionadas.length == 1)
+    dijit.byId("dlg_save").set("title", "Sinalizando 1 venue...");
+  else if (linhasSelecionadas.length == 0) {
     dijit.byId("menuSinalizar").setAttribute('disabled', false);
     if (timer) {
     	clearTimeout(timer);
@@ -631,7 +639,7 @@ function salvarVenues() {
     totalLinhasParaSalvar = linhasEditadas.length;
     totalLinhasSalvas = 0;
     dijit.byId("saveProgress").update({maximum: totalLinhasParaSalvar, progress: totalLinhasEditadas});
-    dijit.byId("dlg_save").set("title", "Salvando venues...");
+    (totalLinhasParaSalvar > 1) ? dijit.byId("dlg_save").set("title", "Salvando " + totalLinhasParaSalvar + " venues...") : dijit.byId("dlg_save").set("title", "Salvando 1 venue...");
     dijit.byId("dlg_save").show();
     dijit.byId("saveButton").setAttribute("disabled", true);
     var venue, dados, ll, elementName, i;
@@ -701,7 +709,7 @@ function sinalizarVenues(problema) {
   }
   totalLinhasSalvas = 0;
   dijit.byId("saveProgress").update({maximum: totalLinhasParaSinalizar, progress: totalLinhasSinalizadas});
-  dijit.byId("dlg_save").set("title", "Sinalizando venues...");
+  (totalLinhasParaSinalizar > 1) ? dijit.byId("dlg_save").set("title", "Sinalizando " + totalLinhasParaSinalizar + " venues...") : dijit.byId("dlg_save").set("title", "Sinalizando 1 venue...");
   dijit.byId("dlg_save").show();
   dijit.byId("menuSinalizar").setAttribute("disabled", true);
   var venue, dados;

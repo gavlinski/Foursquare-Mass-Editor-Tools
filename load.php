@@ -149,7 +149,7 @@ function validarVenues($lines) {
         $i++;
       }
       $p->setProgressBarProgress($i*100/$size);
-			usleep(10000*0.1);
+			usleep(100000*0.1);
     }
     /*** break the reference with the last element ***/
     unset($r);
@@ -185,7 +185,7 @@ function validarVenues($lines) {
       }
       $i++;
       $p->setProgressBarProgress($i*100/$size);
-			usleep(10000*0.1);
+			usleep(100000*0.1);
     }
     /*** break the reference with the last element ***/
     unset($line);
@@ -259,7 +259,7 @@ function parseVenues($html) {
       	}
       	$j++;
       	$p->setProgressBarProgress($j*100/$size);
-				usleep(10000*0.1);
+				usleep(100000*0.1);
     	}
   	} else {
   	  $size = count($ret);
@@ -268,7 +268,7 @@ function parseVenues($html) {
       	$r = "https://foursquare.com/v/" . $venues[$i];
       	$i++;
 				$p->setProgressBarProgress($i*100/$size);
-				usleep(10000*0.1);
+				usleep(100000*0.1);
     	}
     	/*** break the reference with the last element ***/
     	unset($r);
