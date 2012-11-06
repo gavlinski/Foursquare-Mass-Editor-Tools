@@ -1,116 +1,116 @@
 body, html {
-  font-family: Arial, Helvetica, Verdana, sans-serif;
-  font-size: 13px;
-  color: #5a5858;
+	font-family: Arial, Helvetica, Verdana, sans-serif;
+	font-size: 13px;
+	color: #5a5858;
 }
 h1 {
-  color: #444444;
-  font-weight: bold;
-  margin-bottom: 12px;
+	color: #444444;
+	font-weight: bold;
+	margin-bottom: 12px;
 }
 h2 {
-  color: #444444;
-  font-size: 20px;
-  font-weight: bold;
-  margin-bottom: 5px;
+	color: #444444;
+	font-size: 20px;
+	font-weight: bold;
+	margin-bottom: 5px;
 }
 h3 {
-  font-weight: bold;
-  font-size: 14px;
-  margin-top: 15px;
+	font-weight: bold;
+	font-size: 14px;
+	margin-top: 15px;
 }
 a:link {
-  color: #2398c9;
-  text-decoration: none;
-  font-weight: bold;
+	color: #2398c9;
+	text-decoration: none;
+	font-weight: bold;
 }
 a:visited {
-  color: #2398c9;
-  text-decoration: none;
-  font-weight: bold;
+	color: #2398c9;
+	text-decoration: none;
+	font-weight: bold;
 }
 a:active {
-  color: #2398c9;
-  text-decoration: none;
-  font-weight: bold;
+	color: #2398c9;
+	text-decoration: none;
+	font-weight: bold;
 }
 a:hover {
-  color: #2398c9;
-  text-decoration: underline;
-  font-weight: bold;
+	color: #2398c9;
+	text-decoration: underline;
+	font-weight: bold;
 }
 /*
 *:focus {
-  outline: none;
+	outline: none;
 }
 *::-moz-focus-inner {
-  border: none;
+	border: none;
 }
 */
 .dj_webkit .dijitTextBoxDisabled input {
-  color: gray;
+	color: gray;
 }
 #toolContainer {
-  min-width: 535px;
-  background-color: #f9f9f9;
-  border: 1px solid #cccccc;
-  margin-bottom: 15px;
-  display: table;
-  min-height: 0;
-  padding: 5px 0px 0px 3px;
-  border-radius: 5px;
-  -webkit-border-radius: 5px;
-  -moz-border-radius: 5px;
+	min-width: 535px;
+	background-color: #f9f9f9;
+	border: 1px solid #cccccc;
+	margin-bottom: 15px;
+	display: table;
+	min-height: 0;
+	padding: 5px 0px 0px 3px;
+	border-radius: 5px;
+	-webkit-border-radius: 5px;
+	-moz-border-radius: 5px;
 }
 #toolContainer .row {
-  clear: both;
-  overflow: hidden;
-  white-space: nowrap;
+	clear: both;
+	overflow: hidden;
+	white-space: nowrap;
 }
 #toolContainer .row span.label {
-  float: left;
-  width: 80px;
-  padding-left: 5px;
-  padding-top: 8px;
-  padding-right: 5px;
+	float: left;
+	width: 80px;
+	padding-left: 5px;
+	padding-top: 8px;
+	padding-right: 5px;
 }
 #toolContainer .row span.formw {
-  float: left;
-  padding-left: 3px;
-  padding-bottom: 5px;
-  padding-top: 5px;
-  padding-right: 10px;
+	float: left;
+	padding-left: 3px;
+	padding-bottom: 5px;
+	padding-top: 5px;
+	padding-right: 10px;
 }
 #toolContainer .row span.button {
-  float: left;
-  padding-bottom: 2px;
-  padding-top: 2px;
+	float: left;
+	padding-bottom: 2px;
+	padding-top: 2px;
 }
 #toolContainer .row span.arquivo {
-  float: left;
-  padding-top: 8px;
-  padding-left: 12px;
-  padding-bottom: 15px;
+	float: left;
+	padding-top: 8px;
+	padding-left: 12px;
+	padding-bottom: 15px;
 }
 .dijitButton.continue .dijitButtonNode {
-  margin-left: -3px;
-  line-height: 17px;
+	margin-left: -3px;
+	line-height: 17px;
 }
 #toolContainer .row span.checkboxes {
-  float: left;
-  padding-left: 3px;
-  padding-bottom: 8px;
+	float: left;
+	padding-left: 3px;
+	padding-bottom: 8px;
 }
 .checkbox {
-  float: left;
-  margin-top: 1px;
-  margin-bottom: 2px;
+	float: left;
+	margin-top: 1px;
+	margin-bottom: 2px;
 }
 #toolContainer .row span.textarea {
-  float: left;
-  padding-left: 3px;
-  padding-bottom: 8px;
-  padding-top: 5px;
+	float: left;
+	padding-left: 3px;
+	padding-bottom: 8px;
+	padding-top: 5px;
 }
 .pb_container {
 	position: relative;
@@ -132,8 +132,8 @@ a:hover {
 	background: #ffffff url("js/dijit/themes/claro/images/progressBarEmpty.png") repeat-none left;
 }
 .pb_indeterminate {
-  float: left;
-  height: 1.3em;
+	float: left;
+	height: 1.3em;
 	background: #efefef url("js/dijit/themes/claro/images/progressBarAnim.gif") repeat-x top;
 }
 .pb_text {
@@ -143,113 +143,113 @@ a:hover {
 	color: #000000;
 }
 #listContainer {
-  width: 1px;
-  display: table;
-  min-height: 0;
-  background-color: #F7F6F6;
-  border: 1px solid #cccccc;
-  font-size: 12px;
-  margin-bottom: 15px;
-  border-radius: 5px;
-  -webkit-border-radius: 5px;
-  -moz-border-radius: 5px;
+	width: 1px;
+	display: table;
+	min-height: 0;
+	background-color: #F7F6F6;
+	border: 1px solid #cccccc;
+	font-size: 12px;
+	margin-bottom: 15px;
+	border-radius: 5px;
+	-webkit-border-radius: 5px;
+	-moz-border-radius: 5px;
 }
 #listContainer .row {
-  margin-top: 10px;
-  margin-left: 10px;
-  margin-right: 10px;
-  margin-bottom: 10px;
-  white-space: nowrap;
+	margin-top: 10px;
+	margin-left: 10px;
+	margin-right: 10px;
+	margin-bottom: 10px;
+	white-space: nowrap;
 }
 #listContainer .selectbox {
-  float: left;
-  margin-right: 5px;
-  margin-top: 3px;
-  position: absolute;
+	float: left;
+	margin-right: 5px;
+	margin-top: 3px;
+	position: absolute;
 }
 #listContainer img {
-  height: 16px;
-  margin-left: 5px;
-  vertical-align: middle;
-  width: 16px;
-  position: relative;
-  opacity: 1;
-  transition: opacity .25s ease-in-out;
-  -moz-transition: opacity .25s ease-in-out;
-  -webkit-transition: opacity .25s ease-in-out;
+	height: 16px;
+	margin-left: 5px;
+	vertical-align: middle;
+	width: 16px;
+	position: relative;
+	opacity: 1;
+	transition: opacity .25s ease-in-out;
+	-moz-transition: opacity .25s ease-in-out;
+	-webkit-transition: opacity .25s ease-in-out;
 }
 #listContainer img:hover {
-  opacity: 0.6;
+	opacity: 0.6;
 }
 #catsContainer {
-  width: 357px;
-  margin-left: 3px;
-  font-size: 12px;
-  -moz-user-select: -moz-none;
-  -khtml-user-select: none;
-  -webkit-user-select: none;
-  user-select: none;
+	width: 357px;
+	margin-left: 3px;
+	font-size: 12px;
+	-moz-user-select: -moz-none;
+	-khtml-user-select: none;
+	-webkit-user-select: none;
+	user-select: none;
 }
 #catsContainer .categoria {
-  float: left;
-  margin-right: 4px;
-  margin-bottom: 2px;
-  cursor: pointer;
-  color: #5A5858;
+	float: left;
+	margin-right: 4px;
+	margin-bottom: 2px;
+	cursor: pointer;
+	color: #5A5858;
 }
 #catsContainer .categoria:hover {
-  color: #000000;
+	color: #000000;
 }
 #treeContainer {
-  width: 375px;
-  height: 200px;
-  font-size: 12px;
-  padding-top: 3px;
-  margin-bottom: 6px;
-  -moz-user-select: -moz-none;
-  -khtml-user-select: none;
-  -webkit-user-select: none;
-  user-select: none;
+	width: 375px;
+	height: 200px;
+	font-size: 12px;
+	padding-top: 3px;
+	margin-bottom: 6px;
+	-moz-user-select: -moz-none;
+	-khtml-user-select: none;
+	-webkit-user-select: none;
+	user-select: none;
 }
 .flagIcon {
-  background-image: url(img/flag.png);
-  width: 10px;
-  height: 10px;
-  margin-left: 2px;
-  margin-right: 2px;
+	background-image: url(img/flag.png);
+	width: 10px;
+	height: 10px;
+	margin-left: 2px;
+	margin-right: 2px;
 }
 .doesnt_existIcon {
-  background-image: url(img/doesnt_exist.png);
-  width: 10px;
-  height: 10px;
-  margin-left: 2px;
-  margin-right: 2px;
+	background-image: url(img/doesnt_exist.png);
+	width: 10px;
+	height: 10px;
+	margin-left: 2px;
+	margin-right: 2px;
 }
 .closedIcon {
-  background-image: url(img/closed.png);
-  width: 10px;
-  height: 10px;
-  margin-left: 2px;
-  margin-right: 2px;
+	background-image: url(img/closed.png);
+	width: 10px;
+	height: 10px;
+	margin-left: 2px;
+	margin-right: 2px;
 }
 .inappropriateIcon {
-  background-image: url(img/inappropriate.png);
-  width: 10px;
-  height: 10px;
-  margin-left: 2px;
-  margin-right: 2px;
+	background-image: url(img/inappropriate.png);
+	width: 10px;
+	height: 10px;
+	margin-left: 2px;
+	margin-right: 2px;
 }
 .event_overIcon {
-  background-image: url(img/event_over.png);
-  width: 10px;
-  height: 10px;
-  margin-left: 2px;
-  margin-right: 2px;
+	background-image: url(img/event_over.png);
+	width: 10px;
+	height: 10px;
+	margin-left: 2px;
+	margin-right: 2px;
 }
 .exportIcon {
-  background-image: url(img/export.png);
-  width: 10px;
-  height: 10px;
-  margin-left: 2px;
-  margin-right: 2px;
+	background-image: url(img/export.png);
+	width: 10px;
+	height: 10px;
+	margin-left: 2px;
+	margin-right: 2px;
 }

@@ -5,13 +5,13 @@
  *
  * Carrega venues a partir de um arquivo CSV
  *
- * @category   Foursquare
- * @package    Foursquare-Mass-Editor-Tools
- * @author     Elio Gavlinski <gavlinski@gmail.com>
- * @copyright  Copyleft (c) 2011-2012
- * @version    1.2
- * @link       https://github.com/gavlinski/Foursquare-Mass-Editor-Tools/blob/master/load_csv.php
- * @since      File available since Release 1.1
+ * @category	 Foursquare
+ * @package		 Foursquare-Mass-Editor-Tools
+ * @author		 Elio Gavlinski <gavlinski@gmail.com>
+ * @copyright	 Copyleft (c) 2011-2012
+ * @version		 1.2
+ * @link			 https://github.com/gavlinski/Foursquare-Mass-Editor-Tools/blob/master/load_csv.php
+ * @since			 File available since Release 1.1
  */
  
 session_start();
@@ -68,23 +68,23 @@ $csv = $_FILES['csv']['tmp_name'];
 $filename = $_FILES['csv']['name'];
 
 if (is_uploaded_file($csv)) {
-  require "CsvToArray.Class.php";
-  $file = CsvToArray::open($csv);
-  if (count($file) > 500) {
-    echo ERRO01;
-    exit;
-  }
-  if (array_key_exists("venue", $file[0]) == false) {
+	require "CsvToArray.Class.php";
+	$file = CsvToArray::open($csv);
+	if (count($file) > 500) {
+		echo ERRO01;
+		exit;
+	}
+	if (array_key_exists("venue", $file[0]) == false) {
 		echo ERRO02;
-    exit;
-  }
-  $_SESSION["file"] = $file;
-  if (stripos($filename, "delete") !== false)
-    echo FLAG;
-  else
-    echo EDIT;
+		exit;
+	}
+	$_SESSION["file"] = $file;
+	if (stripos($filename, "delete") !== false)
+		echo FLAG;
+	else
+		echo EDIT;
 } else {
-  echo ERRO99;
-  exit();
+	echo ERRO99;
+	exit();
 }
 ?>

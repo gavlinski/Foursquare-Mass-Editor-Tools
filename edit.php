@@ -5,13 +5,13 @@
  *
  * Edição de venues a partir dos campos e dados recebidos do load.php
  *
- * @category   Foursquare
- * @package    Foursquare-Mass-Editor-Tools
- * @author     Elio Gavlinski <gavlinski@gmail.com>
- * @copyright  Copyleft (c) 2011-2012
- * @version    1.2
- * @link       https://github.com/gavlinski/Foursquare-Mass-Editor-Tools/blob/master/edit.php
- * @since      File available since Release 0.5
+ * @category	 Foursquare
+ * @package		 Foursquare-Mass-Editor-Tools
+ * @author		 Elio Gavlinski <gavlinski@gmail.com>
+ * @copyright	 Copyleft (c) 2011-2012
+ * @version		 1.2
+ * @link			 https://github.com/gavlinski/Foursquare-Mass-Editor-Tools/blob/master/edit.php
+ * @since			 File available since Release 0.5
  */
 
 session_start();
@@ -21,7 +21,7 @@ if (isset($_SESSION["oauth_token"])) {
 	$venues = $_SESSION["venues"];
 	$campos = $_SESSION["campos"];
 } else {
-  header('Location: index.html'); /* Redirect browser */
+	header('Location: index.html'); /* Redirect browser */
 }
 ?>
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
@@ -45,70 +45,70 @@ $totalCampos = 0;
 
 if ($campos != null) {
 	if (in_array("nome", $campos)) {
-	  $editName = true;
-	  $totalCampos++;
+		$editName = true;
+		$totalCampos++;
 	} else {
-	  $editName = false;
+		$editName = false;
 	}
 	if (in_array("endereco", $campos)) {
-	  $editAddress = true;
-	  $totalCampos++;
+		$editAddress = true;
+		$totalCampos++;
 	} else {
-	  $editAddress = false;
+		$editAddress = false;
 	}
 	if (in_array("ruacross", $campos)) {
-	  $editCross = true;
-	  $totalCampos++;
+		$editCross = true;
+		$totalCampos++;
 	} else {
-	  $editCross = false;
+		$editCross = false;
 	}
 	if (in_array("cidade", $campos)) {
-	  $editCity = true;
-	  $totalCampos++;
+		$editCity = true;
+		$totalCampos++;
 	} else {
-  $editCity = false;
+	$editCity = false;
 	}
 	if (in_array("estado", $campos)) {
-	  $editState = true;
-	  $totalCampos++;
+		$editState = true;
+		$totalCampos++;
 	} else {
-	  $editState = false;
+		$editState = false;
 	}
 	if (in_array("cep", $campos)) {
-	  $editZip = true;
-	  $totalCampos++;
+		$editZip = true;
+		$totalCampos++;
 	} else {
-	  $editZip = false;
+		$editZip = false;
 	}
 	if (in_array("twitter", $campos)) {
-	  $editTwitter = true;
-	  $totalCampos++;
+		$editTwitter = true;
+		$totalCampos++;
 	} else {
-	  $editTwitter = false;
+		$editTwitter = false;
 	}
 	if (in_array("telefone", $campos)) {
-	  $editPhone = true;
-	  $totalCampos++;
+		$editPhone = true;
+		$totalCampos++;
 	} else {
-	  $editPhone = false;
+		$editPhone = false;
 	}
 	if (in_array("website", $campos)) {
-	  $editUrl = true;
-	  $totalCampos++;
+		$editUrl = true;
+		$totalCampos++;
 	} else {
-	  $editUrl = false;
+		$editUrl = false;
 	}
 	if (in_array("descricao", $campos)) {
-	  $editDesc = true;
-	  $totalCampos++;
+		$editDesc = true;
+		$totalCampos++;
 	} else {
-	  $editDesc = false;
+		$editDesc = false;
 	}
 	if (in_array("latlong", $campos)) {
-	  $editLl = true;
-	  $totalCampos++;
+		$editLl = true;
+		$totalCampos++;
 	} else {
-	  $editLl = false;
+		$editLl = false;
 	}
 }
 
@@ -117,72 +117,72 @@ $ajusteInput = 11 - $totalCampos;
 $i = 0;
 
 foreach ($file as $f) {
-  $i++;
+	$i++;
 
-  echo '<div id="linha', $i - 1, '" class="row">', chr(10), '<form name="form', $i, '" accept-charset="utf-8" encType="multipart/form-data" method="post">', chr(10);
+	echo '<div id="linha', $i - 1, '" class="row">', chr(10), '<form name="form', $i, '" accept-charset="utf-8" encType="multipart/form-data" method="post">', chr(10);
 
-  $venue = $venues[$i - 1];  
-  echo '<div class="selectbox"><input name="selecao" data-dojo-type="dijit/form/CheckBox" value="', $i - 1, '" onChange="atualizarItensMenuMais(this.value)"></div>', chr(10);
+	$venue = $venues[$i - 1];	 
+	echo '<div class="selectbox"><input name="selecao" data-dojo-type="dijit/form/CheckBox" value="', $i - 1, '" onChange="atualizarItensMenuMais(this.value)"></div>', chr(10);
 
-  echo '<input type="hidden" name="venue" value="', $venue, '"><span id="info', $i - 1, '"><a id="venLnk', $i - 1, '" href="', $f, '" target="_blank" style="margin-left: 23px; margin-right: 5px; vertical-align: -1px;">';
-  if (count($file) < 10)
-    echo $i;
-  else if (count($file) < 100)
-    echo str_pad($i, 2, "0", STR_PAD_LEFT);
-  else
-    echo str_pad($i, 3, "0", STR_PAD_LEFT);
-  echo '</a></span>', chr(10);
+	echo '<input type="hidden" name="venue" value="', $venue, '"><span id="info', $i - 1, '"><a id="venLnk', $i - 1, '" href="', $f, '" target="_blank" style="margin-left: 23px; margin-right: 5px; vertical-align: -1px;">';
+	if (count($file) < 10)
+		echo $i;
+	else if (count($file) < 100)
+		echo str_pad($i, 2, "0", STR_PAD_LEFT);
+	else
+		echo str_pad($i, 3, "0", STR_PAD_LEFT);
+	echo '</a></span>', chr(10);
 
-  echo '<span id="icone', $i - 1, '"><img id=catImg', $i, ' src="https://foursquare.com/img/categories_v2/none_bg_32.png" style="height: 22px; width: 22px; margin-left: 0px"></span>', chr(10);
+	echo '<span id="icone', $i - 1, '"><img id=catImg', $i, ' src="https://foursquare.com/img/categories_v2/none_bg_32.png" style="height: 22px; width: 22px; margin-left: 0px"></span>', chr(10);
 
-  if ($editName) {
-    echo '<input type="text" dojoType="dijit.form.TextBox" name="name" maxlength="256" value=" " placeHolder="Nome" style="width: ', 11 + $ajusteInput, 'em; margin-left: 5px;" onchange="verificarAlteracao(this, ', $i - 1, ')">', chr(10);
-  } else {
-    echo '<input type="hidden" name="name">', chr(10);
-  }
+	if ($editName) {
+		echo '<input type="text" dojoType="dijit.form.TextBox" name="name" maxlength="256" value=" " placeHolder="Nome" style="width: ', 11 + $ajusteInput, 'em; margin-left: 5px;" onchange="verificarAlteracao(this, ', $i - 1, ')">', chr(10);
+	} else {
+		echo '<input type="hidden" name="name">', chr(10);
+	}
 
-  if ($editAddress) {
-    echo '<input type="text" dojoType="dijit.form.TextBox" name="address" maxlength="128" value=" " placeHolder="Endere&ccedil;o" style="width: ', 11 + $ajusteInput, 'em; margin-left: 5px;" onchange="verificarAlteracao(this, ', $i - 1, ')">', chr(10);
-  }
+	if ($editAddress) {
+		echo '<input type="text" dojoType="dijit.form.TextBox" name="address" maxlength="128" value=" " placeHolder="Endere&ccedil;o" style="width: ', 11 + $ajusteInput, 'em; margin-left: 5px;" onchange="verificarAlteracao(this, ', $i - 1, ')">', chr(10);
+	}
 
-  if ($editCross) {
-    echo '<input type="text" dojoType="dijit.form.TextBox" name="crossStreet" maxlength="51" value=" " placeHolder="Rua Cross" style="width: ', 9 + $ajusteInput, 'em; margin-left: 5px;" onchange="verificarAlteracao(this, ', $i - 1, ')">', chr(10);
-  }
+	if ($editCross) {
+		echo '<input type="text" dojoType="dijit.form.TextBox" name="crossStreet" maxlength="51" value=" " placeHolder="Rua Cross" style="width: ', 9 + $ajusteInput, 'em; margin-left: 5px;" onchange="verificarAlteracao(this, ', $i - 1, ')">', chr(10);
+	}
 
-  if ($editCity) {
-    echo '<input type="text" dojoType="dijit.form.TextBox" name="city" maxlength="31" value=" " placeHolder="Cidade" style="width: ', 7 + $ajusteInput, 'em; margin-left: 5px;" onchange="verificarAlteracao(this, ', $i - 1, ')">', chr(10);
-  }
+	if ($editCity) {
+		echo '<input type="text" dojoType="dijit.form.TextBox" name="city" maxlength="31" value=" " placeHolder="Cidade" style="width: ', 7 + $ajusteInput, 'em; margin-left: 5px;" onchange="verificarAlteracao(this, ', $i - 1, ')">', chr(10);
+	}
 
-  if ($editState) {
-    echo '<input type="text" dojoType="dijit.form.TextBox" name="state" maxlength="30" value=" " placeHolder="UF" style="width: 2.5em; margin-left: 5px;" onchange="verificarAlteracao(this, ', $i - 1, ')">', chr(10);  
-  }
+	if ($editState) {
+		echo '<input type="text" dojoType="dijit.form.TextBox" name="state" maxlength="30" value=" " placeHolder="UF" style="width: 2.5em; margin-left: 5px;" onchange="verificarAlteracao(this, ', $i - 1, ')">', chr(10);	 
+	}
 
-  if ($editZip) {
-    echo '<input type="text" dojoType="dijit.form.TextBox" name="zip" maxlength="13" value=" " placeHolder="CEP" style="width: 6em; margin-left: 5px;" onchange="verificarAlteracao(this, ', $i - 1, ')">', chr(10);
-  }
+	if ($editZip) {
+		echo '<input type="text" dojoType="dijit.form.TextBox" name="zip" maxlength="13" value=" " placeHolder="CEP" style="width: 6em; margin-left: 5px;" onchange="verificarAlteracao(this, ', $i - 1, ')">', chr(10);
+	}
 
-  if ($editTwitter) {
-    echo '<input type="text" dojoType="dijit.form.TextBox" name="twitter" maxlength="51" value=" " placeHolder="Twitter" style="width: ', 7 + $ajusteInput, 'em; margin-left: 5px;" onchange="verificarAlteracao(this, ', $i - 1, ')">', chr(10);
-  }
+	if ($editTwitter) {
+		echo '<input type="text" dojoType="dijit.form.TextBox" name="twitter" maxlength="51" value=" " placeHolder="Twitter" style="width: ', 7 + $ajusteInput, 'em; margin-left: 5px;" onchange="verificarAlteracao(this, ', $i - 1, ')">', chr(10);
+	}
 
-  if ($editPhone) {
-    echo '<input type="text" dojoType="dijit.form.TextBox" name="phone" maxlength="21" value=" " placeHolder="Telefone" style="width: 7em; margin-left: 5px;" onchange="verificarAlteracao(this, ', $i - 1, ')">', chr(10);
-  }
+	if ($editPhone) {
+		echo '<input type="text" dojoType="dijit.form.TextBox" name="phone" maxlength="21" value=" " placeHolder="Telefone" style="width: 7em; margin-left: 5px;" onchange="verificarAlteracao(this, ', $i - 1, ')">', chr(10);
+	}
 
-  if ($editUrl) {
-    echo '<input type="text" dojoType="dijit.form.TextBox" name="url" maxlength="256" value=" " placeHolder="Website" style="width: ', 8 + $ajusteInput, 'em; margin-left: 5px;" onchange="verificarAlteracao(this, ', $i - 1, ')">', chr(10);
-  }
+	if ($editUrl) {
+		echo '<input type="text" dojoType="dijit.form.TextBox" name="url" maxlength="256" value=" " placeHolder="Website" style="width: ', 8 + $ajusteInput, 'em; margin-left: 5px;" onchange="verificarAlteracao(this, ', $i - 1, ')">', chr(10);
+	}
 
-  if ($editDesc) {
-    echo '<input type="text" dojoType="dijit.form.TextBox" name="description" maxlength="300" value=" " placeHolder="Descri&ccedil;&atilde;o" style="width: ', 8 + $ajusteInput, 'em; margin-left: 5px;" onchange="verificarAlteracao(this, ', $i - 1, ')">', chr(10);
-  }
+	if ($editDesc) {
+		echo '<input type="text" dojoType="dijit.form.TextBox" name="description" maxlength="300" value=" " placeHolder="Descri&ccedil;&atilde;o" style="width: ', 8 + $ajusteInput, 'em; margin-left: 5px;" onchange="verificarAlteracao(this, ', $i - 1, ')">', chr(10);
+	}
 
-  if ($editLl) {
-    echo '<input type="text" dojoType="dijit.form.TextBox" name="ll" maxlength="402" value=" " placeHolder="Lat/Long" style="width: ', 7 + $ajusteInput, 'em; margin-left: 5px;" onchange="verificarAlteracao(this, ', $i - 1, ')">', chr(10);
-  }
-  
-  echo '<input type="hidden" id="cid', $i - 1, '" name="categoryId"><input type="hidden" id="cna', $i - 1, '" name="categoryName"><input type="hidden" id="cic', $i - 1, '" name="categoryIcon"><input type="hidden" id="vdt', $i - 1, '" name="createdAt"><input type="hidden" id="vcc', $i - 1, '" name="checkinsCount"><input type="hidden" id="vuc', $i - 1, '" name="usersCount"><input type="hidden" id="vtc', $i - 1, '" name="tipCount"><input type="hidden" id="vpc', $i - 1, '" name="photosCount"><input type="hidden" id="vic', $i - 1, '" name="isClosed">', chr(10);
-  echo '<span id="result', $i - 1, '"></span>', chr(10), '</form>', chr(10), '</div>', chr(10);
+	if ($editLl) {
+		echo '<input type="text" dojoType="dijit.form.TextBox" name="ll" maxlength="402" value=" " placeHolder="Lat/Long" style="width: ', 7 + $ajusteInput, 'em; margin-left: 5px;" onchange="verificarAlteracao(this, ', $i - 1, ')">', chr(10);
+	}
+	
+	echo '<input type="hidden" id="cid', $i - 1, '" name="categoryId"><input type="hidden" id="cna', $i - 1, '" name="categoryName"><input type="hidden" id="cic', $i - 1, '" name="categoryIcon"><input type="hidden" id="vdt', $i - 1, '" name="createdAt"><input type="hidden" id="vcc', $i - 1, '" name="checkinsCount"><input type="hidden" id="vuc', $i - 1, '" name="usersCount"><input type="hidden" id="vtc', $i - 1, '" name="tipCount"><input type="hidden" id="vpc', $i - 1, '" name="photosCount"><input type="hidden" id="vic', $i - 1, '" name="isClosed">', chr(10);
+	echo '<span id="result', $i - 1, '"></span>', chr(10), '</form>', chr(10), '</div>', chr(10);
 }
 ?>
 </div>

@@ -46,7 +46,7 @@ class ProgressBar {
 
 	function setProgressBarProgress($percentDone, $text = '') {
 		if ($this->indeterminate) {
-		  print('<script type="text/javascript">'."\r".'document.getElementById("'.$this->pbarid.'").setAttribute("class", "pb_before");'."\r".'document.getElementById("'.$this->textid.'").style.display = "inline";'."\r".'</script>'."\r");
+			print('<script type="text/javascript">'."\r".'document.getElementById("'.$this->pbarid.'").setAttribute("class", "pb_before");'."\r".'document.getElementById("'.$this->textid.'").style.display = "inline";'."\r".'</script>'."\r");
 			$this->indeterminate = false;
 		}
 		$this->percentDone = $percentDone;
@@ -55,14 +55,14 @@ class ProgressBar {
 	document.getElementById("'.$this->pbarid.'").style.width = "'.$percentDone.'%";'."\r");
 		if ($percentDone == 100) {
 			//print('document.getElementById("'.$this->pbid.'").style.display = "none";');
-			print('	document.getElementById("carregando").innerHTML = "Redirecionando&hellip;";
+			print(' document.getElementById("carregando").innerHTML = "Redirecionando&hellip;";
 	document.getElementById("'.$this->pbarid.'").setAttribute("class", "pb_indeterminate");
 	document.getElementById("'.$this->textid.'").style.display = "none";'."\r\n");
 		} else {
-			print('	document.getElementById("'.$this->tbarid.'").style.width = "'.(100-$percentDone).'%";'."\r\n");
+			print(' document.getElementById("'.$this->tbarid.'").style.width = "'.(100-$percentDone).'%";'."\r\n");
 		}
 		if ($text) {
-			print('	document.getElementById("'.$this->textid.'").innerHTML = "'.htmlspecialchars($text).'";'."\r\n");
+			print(' document.getElementById("'.$this->textid.'").innerHTML = "'.htmlspecialchars($text).'";'."\r\n");
 		}
 		print('}'."\r".'</script>'."\r");
 		$this->flush();
