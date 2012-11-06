@@ -9,11 +9,15 @@ dojo.require("dojo.data.ItemFileReadStore");
 dojo.require("dijit.Tree");
 dojo.require("dijit.Menu");
 
-var dataVersionamento = "20120924";
+var DATA_VERSIONAMENTO = "20120924";
+var MESES = new Array("01", "02", "03", "04", "05", "06", "07", "08", "09", "10", "11", "12");
+var SUCESSO = 0;
+var FALHA = -1;
 
 var total = 0;
 var csv = new Array();
 var txt = new Array();
+var relatorio = new Array();
 var categorias = new Array();
 var store = {};
 var timer;
@@ -29,34 +33,53 @@ var totalLinhasParaSinalizar = 0;
 var totalLinhasSinalizadas = 0;
 var linhaVenueComMaisCheckins = 0;
 
-function atualizarEditadas(i, imagem, item, dica) {
+function addZero(i) {
+  if (i < 10)
+    i = "0" + i;
+  return i;
+}
+
+function getDataHora() {
+  var d = new Date();
+  var dia = addZero(d.getDate());
+  var horas = addZero(d.getHours());
+  var minutos = addZero(d.getMinutes());
+  var segundos = addZero(d.getSeconds());
+  return dia + "/" + MESES[d.getMonth()] + "/" + d.getFullYear() + " " + horas + ":" + minutos + ":" + segundos;
+}
+
+function atualizarEditadas(i, imagem, item, dica, tipo) {
   dojo.byId("result" + i).innerHTML = imagem;
   createTooltip(item, dica);
-  linhasEditadas.splice(linhasEditadas.indexOf(i), 1);
-  totalLinhasEditadas++;
-  dijit.byId("saveProgress").update({maximum: totalLinhasParaSalvar, progress: totalLinhasEditadas});
-  if (linhasEditadas.length > 1)
-    dijit.byId("dlg_save").set("title", "Salvando " + linhasEditadas.length + " venues...");
-  else if (linhasEditadas.length == 1)
-    dijit.byId("dlg_save").set("title", "Salvando 1 venue...");
-  else if (linhasEditadas.length == 0) {
-    dijit.byId("saveButton").setAttribute('disabled', false);
-    if (timer) {
-    	clearTimeout(timer);
-    	var title = totalLinhasSalvas + " de " + totalLinhasEditadas + " venue";
-    	if (totalLinhasEditadas > 1)
-        title += "s";
-      if (totalLinhasSalvas == 0)
-        title += " editadas";
-    	else if (totalLinhasSalvas == 1)
-    	  title += " editada com sucesso";
-      else
-        title += " editadas com sucesso";
-      dijit.byId("dlg_save").set("title", title);
-      timer = setTimeout(function fecharPbSalvar() {
-  	    dijit.byId("dlg_save").hide();
-      }, 3000);
-    } 
+  if (tipo == SUCESSO) {
+    linhasEditadas.splice(linhasEditadas.indexOf(i), 1);
+    totalLinhasEditadas++;
+    dijit.byId("saveProgress").update({maximum: totalLinhasParaSalvar, progress: totalLinhasEditadas});
+    if (linhasEditadas.length > 1)
+      dijit.byId("dlg_save").set("title", "Salvando " + linhasEditadas.length + " venues...");
+    else if (linhasEditadas.length == 1)
+      dijit.byId("dlg_save").set("title", "Salvando 1 venue...");
+    else if (linhasEditadas.length == 0) {
+      dijit.byId("saveButton").setAttribute('disabled', false);
+      if (timer) {
+      	clearTimeout(timer);
+      	var title = totalLinhasSalvas + " de " + totalLinhasEditadas + " venue";
+      	if (totalLinhasEditadas > 1)
+          title += "s";
+        if (totalLinhasSalvas == 0)
+          title += " editadas";
+      	else if (totalLinhasSalvas == 1)
+      	  title += " editada com sucesso";
+        else
+          title += " editadas com sucesso";
+        dijit.byId("dlg_save").set("title", title);
+        timer = setTimeout(function fecharPbSalvar() {
+  	      dijit.byId("dlg_save").hide();
+        }, 3000);
+      } 
+    }
+    relatorio.push(new Array(document.forms[i]["name"].value, "editada", getDataHora(), document.forms[i]["venue"].value, categorias[i].nomes, "teste"));
+    dijit.byId("menuItemExportarRelatorio").setAttribute("disabled", false);
   }
 }
 
@@ -91,6 +114,8 @@ function atualizarSinalizadas(i, imagem, item, dica) {
       }, 3000);
     } 
   }
+  relatorio.push(new Array(document.forms[i]["name"].value, "sinalizada", getDataHora(), document.forms[i]["venue"].value, categorias[i].nomes, "teste"));
+  dijit.byId("menuItemExportarRelatorio").setAttribute("disabled", false);
 }
 
 function desabilitarLinha(i) {
@@ -130,7 +155,7 @@ function xmlhttpRequest(metodo, endpoint, dados, i) {
             var dicaVenue = atualizarDicaVenue(i);
             createTooltip("venLnk" + i, dicaVenue);
             totalLinhasSalvas++;
-            atualizarEditadas(i, "<img src='img/ok.png' alt='" + xmlhttp.responseText + "' style='vertical-align: middle;'>", "result" + i, "<span style=\"font-size: 12px\">Editada com sucesso</span>");
+            atualizarEditadas(i, "<img src='img/ok.png' alt='" + xmlhttp.responseText + "' style='vertical-align: middle;'>", "result" + i, "<span style=\"font-size: 12px\">Editada com sucesso</span>", SUCESSO);
           } else if (endpoint.substr(-4) == "flag") {
             totalLinhasSalvas++;
             atualizarSinalizadas(i, "<img src='img/ok.png' alt='" + xmlhttp.responseText + "' style='vertical-align: middle;'>", "result" + i, "<span style=\"font-size: 12px\">Sinalizada com sucesso</span>");
@@ -145,21 +170,21 @@ function xmlhttpRequest(metodo, endpoint, dados, i) {
       	if (metodo == "GET") {
           desabilitarLinha(i);
       	}
-        atualizarEditadas(i, "<img src='img/erro.png' alt='Erro 400: Bad Request, Tipo: " + resposta.meta.errorType + ", Detalhe: " + resposta.meta.errorDetail + "'>", "result" + i, "<span style=\"font-size: 12px\">Erro 400: Bad Request, Tipo: " + resposta.meta.errorType + ",<br>Detalhe: " + resposta.meta.errorDetail + "</span>");
+        atualizarEditadas(i, "<img src='img/erro.png' alt='Erro 400: Bad Request, Tipo: " + resposta.meta.errorType + ", Detalhe: " + resposta.meta.errorDetail + "'>", "result" + i, "<span style=\"font-size: 12px\">Erro 400: Bad Request, Tipo: " + resposta.meta.errorType + ",<br>Detalhe: " + resposta.meta.errorDetail + "</span>", FALHA);
       } else if (xmlhttp.status == 401) {
-        atualizarEditadas(i, "<img src='img/erro.png' alt='Erro 401: Unauthorized, Tipo: " + resposta.meta.errorType + ", Detalhe: " + resposta.meta.errorDetail + "'>", "result" + i, "<span style=\"font-size: 12px\">Erro 401: Unauthorized, Tipo: " + resposta.meta.errorType + ",<br>Detalhe: " + resposta.meta.errorDetail + "</span>");
+        atualizarEditadas(i, "<img src='img/erro.png' alt='Erro 401: Unauthorized, Tipo: " + resposta.meta.errorType + ", Detalhe: " + resposta.meta.errorDetail + "'>", "result" + i, "<span style=\"font-size: 12px\">Erro 401: Unauthorized, Tipo: " + resposta.meta.errorType + ",<br>Detalhe: " + resposta.meta.errorDetail + "</span>", FALHA);
       } else if (xmlhttp.status == 403) {
-        atualizarEditadas(i, "<img src='img/erro.png' alt='Erro 403: Forbidden, Tipo: " + resposta.meta.errorType + ", Detalhe: " + resposta.meta.errorDetail + "'>", "result" + i, "<span style=\"font-size: 12px\">Erro 403: Forbidden, Tipo: " + resposta.meta.errorType + ",<br>Detalhe: " + resposta.meta.errorDetail + "</span>");
+        atualizarEditadas(i, "<img src='img/erro.png' alt='Erro 403: Forbidden, Tipo: " + resposta.meta.errorType + ", Detalhe: " + resposta.meta.errorDetail + "'>", "result" + i, "<span style=\"font-size: 12px\">Erro 403: Forbidden, Tipo: " + resposta.meta.errorType + ",<br>Detalhe: " + resposta.meta.errorDetail + "</span>", FALHA);
       } else if (xmlhttp.status == 404) {
-        atualizarEditadas(i, "<img src='img/erro.png' alt='Erro 404: Not Found'>", "result" + i, "<span style=\"font-size: 12px\">Erro 404: Not Found</span>");
+        atualizarEditadas(i, "<img src='img/erro.png' alt='Erro 404: Not Found'>", "result" + i, "<span style=\"font-size: 12px\">Erro 404: Not Found</span>", FALHA);
       } else if (xmlhttp.status == 405) {
-        atualizarEditadas(i, "<img src='img/erro.png' alt='Erro 405: Method Not Allowed'>", "result" + i, "<span style=\"font-size: 12px\">Erro 405: Method Not Allowed</span>");
+        atualizarEditadas(i, "<img src='img/erro.png' alt='Erro 405: Method Not Allowed'>", "result" + i, "<span style=\"font-size: 12px\">Erro 405: Method Not Allowed</span>", FALHA);
       } else if (xmlhttp.status == 409) {
-        atualizarEditadas(i, "<img src='img/erro.png' alt='Erro 409: Conflict'>", "result" + i, "<span style=\"font-size: 12px\">Erro 409: Conflict</span>");
+        atualizarEditadas(i, "<img src='img/erro.png' alt='Erro 409: Conflict'>", "result" + i, "<span style=\"font-size: 12px\">Erro 409: Conflict</span>", FALHA);
       } else if (xmlhttp.status == 500) {
-        atualizarEditadas(i, "<img src='img/erro.png' alt='Erro 500: Internal Server Error'>", "result" + i, "<span style=\"font-size: 12px\">Erro 500: Internal Server Error</span>");
+        atualizarEditadas(i, "<img src='img/erro.png' alt='Erro 500: Internal Server Error'>", "result" + i, "<span style=\"font-size: 12px\">Erro 500: Internal Server Error</span>", FALHA);
       } else {
-        atualizarEditadas(i, "<img src='img/erro.png' alt='Erro desconhecido: " + xmlhttp.status + "'>", "result" + i, "<span style=\"font-size: 12px\">Erro desconhecido: " + xmlhttp.status + "</span>");
+        atualizarEditadas(i, "<img src='img/erro.png' alt='Erro desconhecido: " + xmlhttp.status + "'>", "result" + i, "<span style=\"font-size: 12px\">Erro desconhecido: " + xmlhttp.status + "</span>", FALHA);
       }
     }
   }
@@ -303,11 +328,8 @@ function createTooltip(target_id, content) {
 
 function formattedTime(unix_timestamp) {
   var date = new Date(unix_timestamp * 1000);
-  var dia = date.getDate();
-  if (dia < 10)
-    dia = "0" + dia;
-  var mes = new Array("01", "02", "03", "04", "05", "06", "07", "08", "09", "10", "11", "12");
-  return dia + "/" + mes[date.getMonth()] + "/" + date.getFullYear();
+  var dia = addZero(date.getDate());
+  return dia + "/" + MESES[date.getMonth()] + "/" + date.getFullYear();
 }
 
 function atualizarDicaVenue(i) {
@@ -625,7 +647,7 @@ function carregarVenues() {
   var linhas = document.forms.length;
   for (i = 0; i < linhas; i++) {
     venue = document.forms[i]["venue"].value;
-    xmlhttpRequest("GET", "https://api.foursquare.com/v2/venues/" + venue + "?oauth_token=" + oauth_token + "&v=" + dataVersionamento, null, i);
+    xmlhttpRequest("GET", "https://api.foursquare.com/v2/venues/" + venue + "?oauth_token=" + oauth_token + "&v=" + DATA_VERSIONAMENTO, null, i);
     dojo.byId("result" + i).innerHTML = "<img src='img/loading.gif' alt='Recuperando dados...'>";
   }
   //console.info("Venues recuperadas!");
@@ -667,7 +689,7 @@ function salvarVenues() {
             dados += "&ll=" + document.forms[i]["ll"].value;
         }
       }
-      dados += "&v=" + dataVersionamento;
+      dados += "&v=" + DATA_VERSIONAMENTO;
       //console.group("venue=" + venue + " (" + i + ")");
       //console.log(dados);
       //console.groupEnd();
@@ -717,7 +739,7 @@ function sinalizarVenues(problema) {
   for (l = 0; l < totalLinhasParaSinalizar; l++) {
     i = linhasSelecionadas[l].value;
     venue = document.forms[i]["venue"].value;
-    dados = "oauth_token=" + oauth_token + "&problem=" + problema + "&v=" + dataVersionamento;
+    dados = "oauth_token=" + oauth_token + "&problem=" + problema + "&v=" + DATA_VERSIONAMENTO;
     if (problema == "duplicate")
       dados += "&venueId=" + venueId;
     //console.group("venue=" + venue + " (" + i + ")");
@@ -743,8 +765,35 @@ function selecionarTodas(valor) {
 
 function carregarListaCategorias() {
   //console.info("Recuperando dados das categorias...");
-  xmlhttpRequest("GET", "https://api.foursquare.com/v2/venues/categories" + "?oauth_token=" + oauth_token + "&v=" + dataVersionamento, null, null);
+  xmlhttpRequest("GET", "https://api.foursquare.com/v2/venues/categories" + "?oauth_token=" + oauth_token + "&v=" + DATA_VERSIONAMENTO, null, null);
 }
+
+var STR_PAD_LEFT = 1;
+var STR_PAD_RIGHT = 2;
+var STR_PAD_BOTH = 3;
+
+function pad(str, len, pad, dir) {
+	if (typeof(len) == "undefined") { var len = 0; }
+	if (typeof(pad) == "undefined") { var pad = ' '; }
+	if (typeof(dir) == "undefined") { var dir = STR_PAD_RIGHT; }
+	if (len + 1 >= str.length) {
+		switch (dir) {
+			case STR_PAD_LEFT:
+				str = Array(len + 1 - str.length).join(pad) + str;
+			break;
+			case STR_PAD_BOTH:
+				var right = Math.ceil((padlen = len - str.length) / 2);
+				var left = padlen - right;
+				str = Array(left + 1).join(pad) + str + Array(right + 1).join(pad);
+			break;
+			default:
+				str = str + Array(len + 1 - str.length).join(pad);
+			break;
+		} // switch
+	}
+	return str;
+}
+
 var dlgGuia;
 dojo.addOnLoad(function inicializar() {
   // create the dialog:
@@ -866,6 +915,34 @@ dojo.addOnLoad(function inicializar() {
 		}
   });
   subMenu3.addChild(subMenu3Item2);
+  var subMenu3Item3 = new dijit.MenuItem({
+    label: "Relat&oacute;rio",
+    id: "menuItemExportarRelatorio",
+    disabled: true,
+    onClick: function() {
+      var nameMaxSize = 5;
+      var actionMaxSize = 8;
+      var categoriesMaxSize = 11;
+      var j = 0;
+      for (i = 0; i < relatorio.length; i++) {
+        if (relatorio[i][0].length >= nameMaxSize + 1)
+          nameMaxSize = relatorio[i][0].length + 1;
+        if (relatorio[i][1].length >= actionMaxSize + 1)
+          actionMaxSize = relatorio[i][1].length + 1;
+        if (relatorio[i][4].length >= categoriesMaxSize + 1)
+          categoriesMaxSize = relatorio[i][4].length + 1;
+      }
+      var html = new Array();
+      html[0] = "<!DOCTYPE html><html><head><meta http-equiv=\"text/html; charset=iso-8859-1\"></head><body><pre>";
+      html[1] = pad("name", nameMaxSize) + pad("action", actionMaxSize) + pad("date", 11) + pad("time", 9) + pad("id", 25) + pad("categories", categoriesMaxSize) + "comments";
+      var j = 2;
+      for (i = 0; i < relatorio.length; i++)
+        html[j++] = pad(relatorio[i][0], nameMaxSize) + pad(relatorio[i][1], actionMaxSize) + relatorio[i][2] + " " + relatorio[i][3] + " " + pad(relatorio[i][4], categoriesMaxSize) + relatorio[i][5];
+      html.push("</pre></body></html>");
+      window.open("data:text/html;charset=iso-8859-1," + escape(html.join("\r\n")));
+    }
+  });
+  subMenu3.addChild(subMenu3Item3);
   var menuItem3 = new dijit.PopupMenuItem({
     label: "Exportar",
     iconClass: "exportIcon",
