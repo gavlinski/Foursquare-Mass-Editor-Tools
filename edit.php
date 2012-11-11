@@ -38,7 +38,7 @@ if (isset($_SESSION["oauth_token"])) {
 </head>
 <body class="claro">
 <h2>Editar venues</h2>
-<p>Antes de salvar suas altera&ccedil;&otilde;es, n&atilde;o deixe de ler nosso <a id="guia" href="javascript:showDialog_guia();">guia de estilo</a> e as <a id="regras" href="https://pt.foursquare.com/info/houserules" target="_blank">regras da casa</a>.</p>
+<p>Antes de salvar suas altera&ccedil;&otilde;es, n&atilde;o deixe de ler nosso <a id="guia" href="javascript:showDialogGuia()">guia de estilo</a> e as <a id="regras" href="https://pt.foursquare.com/info/houserules" target="_blank">regras da casa</a>.</p>
 <div id="listContainer">
 <?php
 $totalCampos = 0;
@@ -186,22 +186,35 @@ foreach ($file as $f) {
 }
 ?>
 </div>
+<!-- Botoes Salvar, Cancelar e Mais -->
 <div>
-<button id="saveButton" dojoType="dijit.form.Button" type="submit" name="saveButton" onclick="salvarVenues()" style="float: left; padding-right: 3px; margin-left: 0px; margin-bottom: 15px" disabled>Salvar</button>
-<button id="cancelButton" dojoType="dijit.form.Button" type="button" onclick="history.go(-1)" name="cancelButton" style="float: left; padding-right: 3px;">Cancelar</button>
-<div id="dropdownButtonContainer" style="float: left"></div>
+	<button id="saveButton" dojoType="dijit.form.Button" type="submit" name="saveButton" onclick="javascript:showDialogComment(this.name)" style="float: left; padding-right: 3px; margin-left: 0px; margin-bottom: 15px" disabled>Salvar</button>
+	<button id="cancelButton" dojoType="dijit.form.Button" type="button" onclick="history.go(-1)" name="cancelButton" style="float: left; padding-right: 3px;">Cancelar</button>
+	<div id="dropdownButtonContainer" style="float: left"></div>
 </div>
+<!-- Janela de Edicao das Categorias -->
 <div data-dojo-type="dijit.Dialog" id="dlg_cats" data-dojo-props='title:"Categorias"'>
-<div id="catsContainer"></div>
-<div id="treeContainer"></div>
-<button id="saveCatsButton" dojoType="dijit.form.Button" type="button" onclick="salvarCategorias()" name="saveCatsButton">Confirmar</button>
-<button data-dojo-type="dijit.form.Button" type="button" data-dojo-props="onClick:function(){dijit.byId('dlg_cats').hide();}">Cancelar</button>
-<br><div id="venueIndex" style="display: none"></div><div id="catsIds" style="display: none"></div><div id="catsIcones" style="display: none"></div>
+	<div id="catsContainer"></div>
+	<div id="treeContainer"></div>
+	<button id="saveCatsButton" dojoType="dijit.form.Button" type="button" onclick="salvarCategorias()" name="saveCatsButton">OK</button>
+	<button data-dojo-type="dijit.form.Button" type="button" data-dojo-props="onClick:function(){ dijit.byId('dlg_cats').hide(); }">Cancelar</button>
+	<br><div id="venueIndex" style="display: none"></div><div id="catsIds" style="display: none"></div><div id="catsIcones" style="display: none"></div>
 </div>
+<!-- Barra de Progresso ao Salvar -->
 <div data-dojo-type="dijit.Dialog" id="dlg_save" data-dojo-props='title:"Salvando venues..."'>
-<div dojoType="dijit.ProgressBar" style="width:300px" jsId="jsProgress"
+	<div dojoType="dijit.ProgressBar" style="width:300px" jsId="jsProgress"
 id="saveProgress">
+	</div>
 </div>
+<!-- Janela de Digitacao de Comentario -->
+<div id="dlg_comment" data-dojo-type="dijit.Dialog" data-dojo-props="title:'Coment&aacute;rios'" style="display:none; width: 356px;">
+	<div class="dijitDialogPaneContentArea">
+		<textarea id="textarea" name="textarea" data-dojo-type="dijit/form/Textarea" maxLength="200" trim="true" style="max-height:8em !important;"></textarea>
+	</div>
+	<div class="dijitDialogPaneActionBar">
+		<button data-dojo-type="dijit.form.Button" type="submit" id="saveCommentButton" data-dojo-props="onClick:function(){ (acao == 'saveButton') ? salvarVenues() : sinalizarVenues(acao); }">OK</button>
+		<button data-dojo-type="dijit.form.Button" type="button" data-dojo-props="onClick:function(){ dijit.byId('dlg_comment').onCancel(); }">Cancelar</button>
+	</div>
 </div>
 </body>
 </html>

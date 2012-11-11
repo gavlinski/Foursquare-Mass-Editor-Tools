@@ -36,7 +36,7 @@ if (isset($_SESSION["oauth_token"])) {
 </head>
 <body class="claro">
 <h2>Editar venues</h2>
-<p>Antes de salvar suas altera&ccedil;&otilde;es, n&atilde;o deixe de ler nosso <a href="javascript:showDialog_guia();">guia de estilo</a> e as <a href="https://pt.foursquare.com/info/houserules" target="_blank">regras da casa</a>.</p>
+<p>Antes de salvar suas altera&ccedil;&otilde;es, n&atilde;o deixe de ler nosso <a href="javascript:showDialogGuia();">guia de estilo</a> e as <a href="https://pt.foursquare.com/info/houserules" target="_blank">regras da casa</a>.</p>
 <div id="listContainer">
 <?php
 if (array_key_exists("name", $file[0])) {

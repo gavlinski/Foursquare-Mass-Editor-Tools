@@ -33,6 +33,8 @@ var totalLinhasParaSinalizar = 0;
 var totalLinhasSinalizadas = 0;
 var linhaVenueComMaisCheckins = 0;
 
+var acao = "";
+
 function addZero(i) {
 	if (i < 10)
 		i = "0" + i;
@@ -78,7 +80,7 @@ function atualizarEditadas(i, imagem, item, dica, tipo) {
 				}, 3000);
 			} 
 		}
-		relatorio.push(new Array(document.forms[i]["name"].value, "editada", getDataHora(), document.forms[i]["venue"].value, categorias[i].nomes, "teste"));
+		relatorio.push(new Array(document.forms[i]["name"].value, "editada", getDataHora(), document.forms[i]["venue"].value, categorias[i].nomes, dijit.byId("textarea").value));
 		dijit.byId("menuItemExportarRelatorio").setAttribute("disabled", false);
 	}
 }
@@ -114,7 +116,7 @@ function atualizarSinalizadas(i, imagem, item, dica) {
 			}, 3000);
 		} 
 	}
-	relatorio.push(new Array(document.forms[i]["name"].value, "sinalizada", getDataHora(), document.forms[i]["venue"].value, categorias[i].nomes, "teste"));
+	relatorio.push(new Array(document.forms[i]["name"].value, "sinalizada", getDataHora(), document.forms[i]["venue"].value, categorias[i].nomes, dijit.byId("textarea").value));
 	dijit.byId("menuItemExportarRelatorio").setAttribute("disabled", false);
 }
 
@@ -654,58 +656,52 @@ function carregarVenues() {
 }
 
 function salvarVenues() {
-	for (i = 0; i < document.forms.length; i++)
-		dojo.byId("result" + i).innerHTML = "";
-	if (linhasEditadas.length > 0) {
-		totalLinhasEditadas = 0;
-		totalLinhasParaSalvar = linhasEditadas.length;
-		totalLinhasSalvas = 0;
-		dijit.byId("saveProgress").update({maximum: totalLinhasParaSalvar, progress: totalLinhasEditadas});
-		(totalLinhasParaSalvar > 1) ? dijit.byId("dlg_save").set("title", "Salvando " + totalLinhasParaSalvar + " venues...") : dijit.byId("dlg_save").set("title", "Salvando 1 venue...");
-		dijit.byId("dlg_save").show();
-		dijit.byId("saveButton").setAttribute("disabled", true);
-		var venue, dados, ll, elementName, i;
-		//console.info("Enviando dados...");
-		for (l = 0; l < totalLinhasParaSalvar; l++) {
-			i = linhasEditadas[l];
-			dados = "oauth_token=" + oauth_token;
-			var colunas = document.forms[i].elements.length - 8;
-			for (j = 2; j < colunas; j++) {
-				venue = document.forms[i]["venue"].value;
-				elementName = document.forms[i].elements[j].name;
-				if ((elementName != "ll") && (elementName != "categoryId") &&
-						((elementName == "name") || (elementName == "address") || (elementName == "crossStreet") || (elementName == "city") || (elementName == "state") || (elementName == "zip") || (elementName == "twitter") || (elementName == "phone") || (elementName == "url")))
-					dados += "&" + elementName + "=" + document.forms[i].elements[j].value.replace(/&/g, "%26");
-				else if ((elementName == "description") && (document.forms[i]["description"].readOnly == false)) {
-					var index = csv[0].indexOf("description")
-					dados += "&description=" + csv[i + 1][index].slice(1, -1).replace(/&/g, "%26");
-				} else if (elementName == "categoryId") {
-					categoryId = document.forms[i]["categoryId"].value;
-					if (categoryId != null && categoryId != "")
-						dados += "&categoryId=" + document.forms[i]["categoryId"].value;
-				} else if (elementName == "ll") {
-					ll = document.forms[i]["ll"].value;
-					if (ll != null && ll != "")
-						dados += "&ll=" + document.forms[i]["ll"].value;
-				}
+	totalLinhasEditadas = 0;
+	totalLinhasParaSalvar = linhasEditadas.length;
+	totalLinhasSalvas = 0;
+	dijit.byId("saveProgress").update({maximum: totalLinhasParaSalvar, progress: totalLinhasEditadas});
+	(totalLinhasParaSalvar > 1) ? dijit.byId("dlg_save").set("title", "Salvando " + totalLinhasParaSalvar + " venues...") : dijit.byId("dlg_save").set("title", "Salvando 1 venue...");
+	dijit.byId("dlg_save").show();
+	dijit.byId("saveButton").setAttribute("disabled", true);
+	var venue, dados, ll, elementName, i;
+	//console.info("Enviando dados...");
+	for (l = 0; l < totalLinhasParaSalvar; l++) {
+		i = linhasEditadas[l];
+		dados = "oauth_token=" + oauth_token;
+		var colunas = document.forms[i].elements.length - 8;
+		for (j = 2; j < colunas; j++) {
+			venue = document.forms[i]["venue"].value;
+			elementName = document.forms[i].elements[j].name;
+			if ((elementName != "ll") && (elementName != "categoryId") &&
+					((elementName == "name") || (elementName == "address") || (elementName == "crossStreet") || (elementName == "city") || (elementName == "state") || (elementName == "zip") || (elementName == "twitter") || (elementName == "phone") || (elementName == "url")))
+				dados += "&" + elementName + "=" + document.forms[i].elements[j].value.replace(/&/g, "%26");
+			else if ((elementName == "description") && (document.forms[i]["description"].readOnly == false)) {
+				var index = csv[0].indexOf("description")
+				dados += "&description=" + csv[i + 1][index].slice(1, -1).replace(/&/g, "%26");
+			} else if (elementName == "categoryId") {
+				categoryId = document.forms[i]["categoryId"].value;
+				if (categoryId != null && categoryId != "")
+					dados += "&categoryId=" + document.forms[i]["categoryId"].value;
+			} else if (elementName == "ll") {
+				ll = document.forms[i]["ll"].value;
+				if (ll != null && ll != "")
+					dados += "&ll=" + document.forms[i]["ll"].value;
 			}
-			dados += "&v=" + DATA_VERSIONAMENTO;
-			//console.group("venue=" + venue + " (" + i + ")");
-			//console.log(dados);
-			//console.groupEnd();
-			xmlhttpRequest("POST", "https://api.foursquare.com/v2/venues/" + venue + "/edit", dados, i);
-			dojo.byId("result" + i).innerHTML = "<img src='img/loading.gif' alt='Enviando dados...'>";
 		}
-		//console.info("Dados enviados!");
-		timer = setTimeout(function reabilitarSalvar() {
-			dijit.byId("saveButton").setAttribute('disabled', false);
-		}, 60000);
+		dados += "&v=" + DATA_VERSIONAMENTO;
+		//console.group("venue=" + venue + " (" + i + ")");
+		//console.log(dados);
+		//console.groupEnd();
+		xmlhttpRequest("POST", "https://api.foursquare.com/v2/venues/" + venue + "/edit", dados, i);
+		dojo.byId("result" + i).innerHTML = "<img src='img/loading.gif' alt='Enviando dados...'>";
 	}
+	//console.info("Dados enviados!");
+	timer = setTimeout(function reabilitarSalvar() {
+		dijit.byId("saveButton").setAttribute('disabled', false);
+	}, 60000);
 }
 
 function sinalizarVenues(problema) {
-	for (i = 0; i < document.forms.length; i++)
-		dojo.byId("result" + i).innerHTML = "";
 	//dojo.query("input[name=selecao]:checked").forEach("console.log(dijit.byId(item.id).value)");
 	linhasSelecionadas = dojo.query("input[name=selecao]:checked");
 	totalLinhasSinalizadas = 0;
@@ -839,7 +835,7 @@ dojo.addOnLoad(function inicializar() {
 		label: "Duplicadas",
 		id: "menuItemSinalizarDuplicate",
 		onClick: function() {
-			sinalizarVenues("duplicate");
+			showDialogComment("duplicate");
 		}
 	});
 	subMenu2.addChild(subMenu2Item1);
@@ -850,7 +846,7 @@ dojo.addOnLoad(function inicializar() {
 		iconClass: "doesnt_existIcon",
 		onClick: function() {
 			//dojo.query("input[name=selecao]:checked").forEach("desabilitarLinha(dijit.byId(item.id).value)");
-			sinalizarVenues("doesnt_exist");
+			showDialogComment("doesnt_exist");
 		}
 	});
 	subMenu2.addChild(subMenu2Item2);
@@ -859,7 +855,7 @@ dojo.addOnLoad(function inicializar() {
 		id: "menuItemSinalizarClosed",
 		iconClass: "closedIcon",
 		onClick: function() {
-			sinalizarVenues("closed");
+			showDialogComment("closed");
 		}
 	});
 	subMenu2.addChild(subMenu2Item3);
@@ -868,7 +864,7 @@ dojo.addOnLoad(function inicializar() {
 		id: "menuItemSinalizarInappropriate",
 		iconClass: "inappropriateIcon",
 		onClick: function() {
-			sinalizarVenues("inappropriate");
+			showDialogComment("inappropriate");
 		}
 	});
 	subMenu2.addChild(subMenu2Item4);
@@ -877,7 +873,7 @@ dojo.addOnLoad(function inicializar() {
 		id: "menuItemSinalizarEvent_over",
 		iconClass: "event_overIcon",
 		onClick: function() {
-			sinalizarVenues("event_over");
+			showDialogComment("event_over");
 		}
 	});
 	subMenu2.addChild(subMenu2Item5);
@@ -925,10 +921,14 @@ dojo.addOnLoad(function inicializar() {
 			var categoriesMaxSize = 11;
 			var j = 0;
 			for (i = 0; i < relatorio.length; i++) {
+				if (relatorio[i][0] == undefined)
+				  relatorio[i][0] = "";
 				if (relatorio[i][0].length >= nameMaxSize + 1)
 					nameMaxSize = relatorio[i][0].length + 1;
 				if (relatorio[i][1].length >= actionMaxSize + 1)
 					actionMaxSize = relatorio[i][1].length + 1;
+				if (relatorio[i][4] == undefined)
+				  relatorio[i][4] = "";
 				if (relatorio[i][4].length >= categoriesMaxSize + 1)
 					categoriesMaxSize = relatorio[i][4].length + 1;
 			}
@@ -937,7 +937,7 @@ dojo.addOnLoad(function inicializar() {
 			html[1] = pad("name", nameMaxSize) + pad("action", actionMaxSize) + pad("date", 11) + pad("time", 9) + pad("id", 25) + pad("categories", categoriesMaxSize) + "comments";
 			var j = 2;
 			for (i = 0; i < relatorio.length; i++)
-				html[j++] = pad(relatorio[i][0], nameMaxSize) + pad(relatorio[i][1], actionMaxSize) + relatorio[i][2] + " " + relatorio[i][3] + " " + pad(relatorio[i][4], categoriesMaxSize) + relatorio[i][5];
+				html[j++] = pad(relatorio[i][0], nameMaxSize) + pad(relatorio[i][1], actionMaxSize) + relatorio[i][2] + " " + relatorio[i][3] + " " + pad(relatorio[i][4], categoriesMaxSize) + relatorio[i][5].replace(/(\r\n|\n|\r)/gm, " ").replace(/\s+/g, " ");
 			html.push("</pre></body></html>");
 			window.open("data:text/html;charset=iso-8859-1," + escape(html.join("\r\n")));
 		}
@@ -973,10 +973,18 @@ window.onbeforeunload = function() {
 		return deCode("As altera&#231;&#245;es ser&#227;o perdidas se voc&#234; sair desta p&#225;gina sem clicar no bot&#227;o Salvar.");
 }
 
-function showDialog_guia() {
+function showDialogGuia() {
 	// set the content of the dialog:
 	dlg_guia.attr("content", "<ul><li><p>Use sempre a ortografia, acentua&ccedil;&atilde;o e as letras mai&uacute;sculas e min&uacute;sculas corretas.</p></li><li><p>Em redes ou venues com v&aacute;rios locais, n&atilde;o &eacute; preciso adicionar um sufixo de local. Portanto, pode deixar &quot;Subway&quot; ou &quot;Loja Americanas&quot; (em vez de &quot;Subway - Ponta Verde&quot; ou &quot;Lojas Americanas - Iguatemi&quot;).</p></li><li><p>Os nomes das venues devem respeitar o grafia original do lugar sem abrevia&ccedil;&otilde;es (principalmente nomes de empresas).</p></li><li><p>Sempre use abrevia&ccedil;&otilde;es nos endere&ccedil;os: &quot;Av.&quot; em vez de &quot;Avenida&quot;, &quot;R.&quot; em vez de &quot;Rua&quot;, etc., observando as <a href='http://www.buscacep.correios.com.br' target='_blank'>diretrizes postais locais</a>.</p></li><li>O preenchimento da Rua Cross &eacute; opcional e deve ser realizado da seguinte forma:<ul><li>R. Bela Cintra (para venues em uma esquina)</li><li>R. Bela Cintra x R. Haddock Lobo (para venues entre duas quadras)</li></ul><br></li><li>Na Rua Cross tamb&eacute;m podem ser inclu&iacute;dos:<ul><li>Bairro, complemento, ponto de refer&ecirc;ncia ou via de acesso (quando relevante)</li><li>Bloco, piso, loja ou setor (para subvenues)</li></ul></li><li><p>Os nomes de Estados devem ser abreviados: &quot;RJ&quot; em vez de &quot;Rio de Janeiro&quot;.</p></li><li><p>Em caso de d&uacute;vida sobre a cria&ccedil;&atilde;o e edi&ccedil;&atilde;o de venues no foursquare, consulte nossas <a href='https://pt.foursquare.com/info/houserules' target='_blank'>regras da casa</a> e as <a href='http://support.foursquare.com/forums/191151-venue-help' target='_blank'>perguntas frequentes sobre venues</a>.</p></li></ul>");
 	dlg_guia.show();
+}
+
+function showDialogComment(caller) {
+	for (i = 0; i < document.forms.length; i++)
+		dojo.byId("result" + i).innerHTML = "";
+	if (((caller == "saveButton") && (linhasEditadas.length > 0)) || (caller != "saveButton"))
+		dijit.byId('dlg_comment').show();
+	acao = caller;
 }
 //var node = dojo.byId("forms");
 //dojo.connect(node, "onkeypress", function(e) {
