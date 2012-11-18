@@ -74,6 +74,34 @@ a:hover {
 	padding-top: 8px;
 	padding-right: 5px;
 }
+#toolContainer .row span.labelNear {
+	float: left;
+	width: 53px;
+	padding-left: 1px;
+	padding-top: 8px;
+	padding-right: 12px;
+}
+#toolContainer .row span.labelQuery {
+	float: left;
+	width: 61px;
+	padding-left: 1px;
+	padding-top: 8px;
+	padding-right: 4px;
+}
+#toolContainer .row span.labelIntent {
+	float: left;
+	width: 54px;
+	padding-left: 0;
+	padding-top: 8px;
+	padding-right: 7px;
+}
+#toolContainer .row span.labelRadius {
+	float: left;
+	width: 30px;
+	padding-left: 1px;
+	padding-top: 8px;
+	padding-right: 35px;
+}
 #toolContainer .row span.formw {
 	float: left;
 	padding-left: 3px;
@@ -100,6 +128,17 @@ a:hover {
 	float: left;
 	padding-left: 3px;
 	padding-bottom: 8px;
+}
+.dijitSelect .dijitButtonText {
+	text-align: left;
+}
+#toolContainer .row span.combobox .dijitSelectLabel {
+	width: 243px;
+	overflow: hidden;
+}
+#toolContainer .row span.comboboxes .dijitSelectLabel {
+	width: 72px;
+	overflow: hidden;
 }
 .checkbox {
 	float: left;
