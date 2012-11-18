@@ -209,7 +209,7 @@ id="saveProgress">
 <!-- Janela de Digitacao de Comentario -->
 <div id="dlg_comment" data-dojo-type="dijit.Dialog" data-dojo-props="title:'Coment&aacute;rios'" style="display:none; width: 356px;">
 	<div class="dijitDialogPaneContentArea">
-		<textarea id="textarea" name="textarea" data-dojo-type="dijit/form/Textarea" maxLength="200" trim="true" style="max-height:8em !important;"></textarea>
+		<textarea id="textarea" name="textarea" data-dojo-type="dijit/form/Textarea" maxLength="200" trim="true"></textarea>
 	</div>
 	<div class="dijitDialogPaneActionBar">
 		<button data-dojo-type="dijit.form.Button" type="submit" id="saveCommentButton" data-dojo-props="onClick:function(){ (acao == 'saveButton') ? salvarVenues() : sinalizarVenues(acao); }">OK</button>

@@ -923,21 +923,21 @@ dojo.addOnLoad(function inicializar() {
 			for (i = 0; i < relatorio.length; i++) {
 				if (relatorio[i][0] == undefined)
 				  relatorio[i][0] = "";
-				if (relatorio[i][0].length >= nameMaxSize + 1)
-					nameMaxSize = relatorio[i][0].length + 1;
-				if (relatorio[i][1].length >= actionMaxSize + 1)
-					actionMaxSize = relatorio[i][1].length + 1;
+				if (relatorio[i][0].length > nameMaxSize)
+					nameMaxSize = relatorio[i][0].length;
+				if (relatorio[i][1].length >= actionMaxSize)
+					actionMaxSize = relatorio[i][1].length;
 				if (relatorio[i][4] == undefined)
 				  relatorio[i][4] = "";
-				if (relatorio[i][4].length >= categoriesMaxSize + 1)
-					categoriesMaxSize = relatorio[i][4].length + 1;
+				if (relatorio[i][4].length > categoriesMaxSize)
+					categoriesMaxSize = relatorio[i][4].length;
 			}
 			var html = new Array();
 			html[0] = "<!DOCTYPE html><html><head><meta http-equiv=\"text/html; charset=iso-8859-1\"></head><body><pre>";
-			html[1] = pad("name", nameMaxSize) + pad("action", actionMaxSize) + pad("date", 11) + pad("time", 9) + pad("id", 25) + pad("categories", categoriesMaxSize) + "comments";
+			html[1] = pad("name", nameMaxSize + 1) + pad("action", actionMaxSize + 1) + pad("date", 11) + pad("time", 9) + pad("id", 25) + pad("categories", categoriesMaxSize + 1) + "comments";
 			var j = 2;
 			for (i = 0; i < relatorio.length; i++)
-				html[j++] = pad(relatorio[i][0], nameMaxSize) + pad(relatorio[i][1], actionMaxSize) + relatorio[i][2] + " " + relatorio[i][3] + " " + pad(relatorio[i][4], categoriesMaxSize) + relatorio[i][5].replace(/(\r\n|\n|\r)/gm, " ").replace(/\s+/g, " ");
+				html[j++] = pad(relatorio[i][0], nameMaxSize + 1) + pad(relatorio[i][1], actionMaxSize + 1) + relatorio[i][2] + " " + relatorio[i][3] + " " + pad(relatorio[i][4], categoriesMaxSize + 1) + relatorio[i][5].replace(/(\r\n|\n|\r)/gm, " ").replace(/\s+/g, " ");
 			html.push("</pre></body></html>");
 			window.open("data:text/html;charset=iso-8859-1," + escape(html.join("\r\n")));
 		}
