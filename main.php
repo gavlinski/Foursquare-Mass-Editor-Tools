@@ -1,9 +1,32 @@
+<?php
+
+/**
+ * Main Page
+ *
+ * Página principal de acesso às ferramentas de importação e pesquisa
+ *
+ * @category	 Foursquare
+ * @package		 Foursquare-Mass-Editor-Tools
+ * @author		 Elio Gavlinski <gavlinski@gmail.com>
+ * @copyright	 Copyleft (c) 2012
+ * @version		 1.0
+ * @link			 https://github.com/gavlinski/Foursquare-Mass-Editor-Tools/blob/master/main.php
+ * @since			 File available since Release 1.5
+ */
+
+session_start();
+if (isset($_SESSION["oauth_token"])) {
+	$oauth_token = $_SESSION["oauth_token"];
+} else {
+	header('Location: index.php');
+}
+?>
 <html>
 <head>
-<title>Superuser Tools - foursquare</title>
+<title>Elio Tools</title>
 <meta http-equiv="Content-type" content="text/html; charset=utf-8"/>
 <script src="js/dojo/dojo.js" djConfig="parseOnLoad: true"></script>
-<script type="text/javascript" src="js/index.js"></script>
+<script type="text/javascript" src="js/main.js"></script>
 <link rel="shortcut icon" href="favicon.ico" type="image/x-icon" />
 <link rel="stylesheet" type="text/css" href="js/dijit/themes/claro/claro.css"/>
 <link rel="stylesheet" type="text/css" href="estilo.css"/>
@@ -16,10 +39,7 @@
 		<div dojoType="dijit.layout.ContentPane" title="Importar dados de um arquivo CSV">
 			<div dojoType="dijit.form.Form" enctype="multipart/form-data" accept-charset="iso-8859-1" id="f_csv" jsId="f_csv" action="load_csv.php" method="post">
 				<div id="toolContainer">
-					<div class="row">
-						<span class="label"><label for="oauth_token_csv"><a href="https://developer.foursquare.com/docs/explore.html#req=users/self" target="_blank">OAuth token</a>:</label></span>
-						<span class="formw"><input type="text" id="oauth_token_csv" name="oauth_token" required="true" dojoType="dijit.form.ValidationTextBox" maxlength="48" style="width: 34em;"/></span>
-					</div>
+					<div class="row"><span class="labelBlanck"></span></div>
 					<div class="row">
 						<span class="label"><label for="uploader_csv"><a id="dlg_csv" href="javascript:showDialogCsv();">Arquivo</a>:</label></span>
 						<span class="button"><input type="hidden" name="MAX_FILE_SIZE" value="500000" dojoType="dijit.form.TextBox"/><input name="csv" multiple="false" type="file" data-dojo-type="dojox.form.Uploader" label="Escolher arquivo" id="uploader_csv" style="margin-top: 1px;"/></span>
@@ -41,10 +61,6 @@
 		<div dojoType="dijit.layout.ContentPane" title="Importar lista de um arquivo de texto">
 			<div dojoType="dijit.form.Form" enctype="multipart/form-data" accept-charset="iso-8859-1" id="f_txt" jsId="f_txt" action="load.php" method="post">
 				<div id="toolcontainer">
-					<div class="row">
-						<span class="label"><label for="oauth_token_txt"><a href="https://developer.foursquare.com/docs/explore.html#req=users/self" target="_blank">OAuth token</a>:</label></span>
-						<span class="formw"><input type="text" id="oauth_token_txt" name="oauth_token" required="true" dojoType="dijit.form.ValidationTextBox" maxlength="48" style="width: 34em;"/></span>
-					</div>
 					<div class="row">
 						<span class="label"><label for="txt"><a id="dlg_txt" href="javascript:showDialogTxt();">Arquivo</a>:</label></span>
 						<span class="button"><input type="hidden" name="MAX_FILE_SIZE" value="5000000" dojoType="dijit.form.TextBox"/><input name="txt" multiple="false" type="file" data-dojo-type="dojox.form.Uploader" label="Escolher arquivo" id="uploader_txt" style=""/></span>
@@ -139,10 +155,6 @@
 			<div dojoType="dijit.form.Form" enctype="multipart/form-data" accept-charset="iso-8859-1" id="f_lks" jsId="f_lks" action="load.php" method="post">
 				<div id="toolContainer">
 					<div class="row">
-						<span class="label"><label for="oauth_token_lks"><a href="https://developer.foursquare.com/docs/explore.html#req=users/self" target="_blank">OAuth token</a>:</label></span>
-						<span class="formw"><input type="text" id="oauth_token_lks" name="oauth_token" required="true" dojoType="dijit.form.ValidationTextBox" maxlength="48" style="width: 34em;"/></span>
-					</div>
-					<div class="row">
 						<span class="label"><label for="pagina"><a id="dlg_lks" href="javascript:showDialogLks();">Endere&ccedil;o</a>:</label></span>
 						<span class="formw"><input type="text" id="pagina" name="pagina" required="true" dojoType="dijit.form.ValidationTextBox" trim="true" style="width: 34em; margin-bottom: 3px"/></span>
 					</div>
@@ -235,10 +247,6 @@
 			<div dojoType="dijit.form.Form" enctype="multipart/form-data" accept-charset="iso-8859-1" id="f_ids" jsId="f_ids" action="load.php" method="post">
 				<div id="toolContainer">
 					<div class="row">
-						<span class="label"><label for="oauth_token_ids"><a href="https://developer.foursquare.com/docs/explore.html#req=users/self" target="_blank">OAuth token</a>:</label></span>
-						<span class="formw"><input type="text" id="oauth_token_ids" name="oauth_token" required="true" dojoType="dijit.form.ValidationTextBox" maxlength="48" style="width: 34em;"/></span>
-					</div>
-					<div class="row">
 						<span class="label"><label for="textarea_ids"><a id="dlg_ids" href="javascript:showDialogIds();">IDs ou URLs</a>:</label></span>
 						<span class="textarea"><textarea id="textarea_ids" name="textarea" dojoType="dijit.form.SimpleTextarea" maxLength="4000" trim="true" style="font-family: Arial, Helvetica, Verdana, sans-serif; font-size: 13px; resize: none; width: 444px; height: 67px;"></textarea></span>
 					</div>
@@ -329,11 +337,8 @@
 		</div>
 		<div dojoType="dijit.layout.ContentPane" title="Pesquisar venues" selected="true">
 			<div dojoType="dijit.form.Form" enctype="multipart/form-data" accept-charset="iso-8859-1" id="f_src" jsId="f_src" action="search.php" method="post">
+				<input type="hidden" id="oauth_token_scr" name="oauth_token" value="<?= $oauth_token ?>"/>
 				<div id="toolContainer">
-					<div class="row">
-						<span class="label"><label for="oauth_token_src"><a href="https://developer.foursquare.com/docs/explore.html#req=users/self" target="_blank">OAuth token</a>:</label></span>
-						<span class="formw"><input type="text" id="oauth_token_src" name="oauth_token" required="true" dojoType="dijit.form.ValidationTextBox" maxlength="48" style="width: 34em;" value="PUY0Y4FMSGSXNR24BMSEK50FHVLPKGSRLUPBJSSY1UAEP2U3"/></span>
-					</div>
 					<div class="row">
 						<span class="label"><label for="ll"><a href="https://developer.foursquare.com/docs/venues/search" target="_blank">Lat/Long</a>:</label></span>
 						<span class="formw"><input type="text" id="ll" name="ll" required="false" dojoType="dijit.form.ValidationTextBox" trim="true" style="width: 266px" value="-16.01670379538501,-48.06514263153076"/></span>
@@ -476,11 +481,9 @@
 					<button dojoType="dijit.form.Button" type="submit" class="continue">
 						Continuar
 					</button>
-					<!--
 					<button dojoType="dijit.form.Button" type=button onClick="console.log(f_src.getValues())">
 						Get Values from form!
 					</button>
-					-->
 				</div>
 			</div>
 		</div>

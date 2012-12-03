@@ -15,8 +15,9 @@
  */
  
 session_start();
-$_SESSION["oauth_token"] = $_POST["oauth_token"];
-?>
+if (!isset($_SESSION["oauth_token"])) {
+	header('Location: index.php');
+}
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
 <html>
 <head>

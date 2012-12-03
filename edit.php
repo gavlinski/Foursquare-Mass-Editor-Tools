@@ -27,7 +27,7 @@ if (isset($_SESSION["oauth_token"])) {
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
 <html>
 <head>
-<title>Superuser Tools - foursquare</title>
+<title>Elio Tools</title>
 <meta http-equiv="Content-type" content="text/html; charset=ISO-8859-1"/>
 <link rel="shortcut icon" href="favicon.ico" type="image/x-icon"/>
 <link rel="stylesheet" type="text/css" href="js/dijit/themes/claro/claro.css"/>

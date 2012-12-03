@@ -9,12 +9,15 @@ dojo.require("dojo.data.ItemFileReadStore");
 dojo.require("dijit.Tree");
 dojo.require("dijit.Menu");
 
+//{"meta":{"code":400,"errorType":"param_error","errorDetail":"Must start with http:\/\/"},"response":{}}
+
 var DATA_VERSIONAMENTO = "20120924";
 var MESES = new Array("01", "02", "03", "04", "05", "06", "07", "08", "09", "10", "11", "12");
 var SUCESSO = 0;
 var FALHA = -1;
 
-var total = 0;
+var totalCarregadas = 0;
+var totalNaoCarregadas = 0;
 var csv = new Array();
 var txt = new Array();
 var relatorio = new Array();
@@ -111,6 +114,8 @@ function atualizarSinalizadas(i, imagem, item, dica) {
 				title += " sinalizadas com sucesso";
 			dijit.byId("dlg_save").set("title", title);
 			dijit.byId(dojo.query("input[name=selecao]")[linhaVenueComMaisCheckins].id).setChecked(false);
+			if (dojo.query("input[name=selecao]:enabled").length == 0)
+				dijit.byId("menuSelecionar").setAttribute('disabled', true);
 			timer = setTimeout(function fecharPbSalvar() {
 				dijit.byId("dlg_save").hide();
 			}, 3000);
@@ -171,6 +176,13 @@ function xmlhttpRequest(metodo, endpoint, dados, i) {
 			} else if (xmlhttp.status == 400) {
 				if (metodo == "GET") {
 					desabilitarLinha(i);
+					totalNaoCarregadas++;
+					if (totalNaoCarregadas == document.forms.length) {
+						linhasEditadas = [];
+						dijit.byId("saveButton").setAttribute('disabled', false);
+						dijit.byId("menuSelecionar").setAttribute('disabled', true);
+						dijit.byId("menuExportar").setAttribute('disabled', true);
+					}
 				}
 				atualizarEditadas(i, "<img src='img/erro.png' alt='Erro 400: Bad Request, Tipo: " + resposta.meta.errorType + ", Detalhe: " + resposta.meta.errorDetail + "'>", "result" + i, "<span style=\"font-size: 12px\">Erro 400: Bad Request, Tipo: " + resposta.meta.errorType + ",<br>Detalhe: " + resposta.meta.errorDetail + "</span>", FALHA);
 			} else if (xmlhttp.status == 401) {
@@ -369,8 +381,8 @@ function atualizarDicaVenue(i) {
 }
 
 function atualizarTabela(resposta, i) {
-	total++;
-	if (total == document.forms.length) {
+	totalCarregadas++;
+	if (totalCarregadas == (document.forms.length - totalNaoCarregadas)) {
 		/*** Necessário adicionar 1 segundo de atraso após término do carregamento ***/
 		timer = setTimeout(function limparLinhasEditadas() {
 			linhasEditadas = [];
@@ -403,7 +415,7 @@ function atualizarTabela(resposta, i) {
 		switch (elementName) {
 		case "name":
 			//document.forms[i]["name"].value = resposta.response.venue.name;
-			if (total == 1) {
+			if (totalCarregadas == 1) {
 				if (j == 2)
 					csv[0] = ["venue", "categoryId"];
 				csv[0] = csv[0].concat("name");
@@ -414,7 +426,7 @@ function atualizarTabela(resposta, i) {
 			break;
 		case "address":
 			document.forms[i]["address"].value = resposta.response.venue.location.address;
-			if (total == 1) {
+			if (totalCarregadas == 1) {
 				if (j == 2)
 					csv[0] = ["venue", "categoryId"];
 				csv[0] = csv[0].concat("address");
@@ -425,7 +437,7 @@ function atualizarTabela(resposta, i) {
 			break;
 		case "crossStreet":
 			document.forms[i]["crossStreet"].value = resposta.response.venue.location.crossStreet;
-			if (total == 1) {
+			if (totalCarregadas == 1) {
 				if (j == 2)
 					csv[0] = ["venue", "categoryId"];
 				csv[0] = csv[0].concat("crossStreet");
@@ -436,7 +448,7 @@ function atualizarTabela(resposta, i) {
 			break;
 		case "city":
 			document.forms[i]["city"].value = resposta.response.venue.location.city;
-			if (total == 1) {
+			if (totalCarregadas == 1) {
 				if (j == 2)
 					csv[0] = ["venue", "categoryId"];
 				csv[0] = csv[0].concat("city");
@@ -447,7 +459,7 @@ function atualizarTabela(resposta, i) {
 			break;
 		case "state":
 			document.forms[i]["state"].value = resposta.response.venue.location.state;
-			if (total == 1) {
+			if (totalCarregadas == 1) {
 				if (j == 2)
 					csv[0] = ["venue", "categoryId"];
 				csv[0] = csv[0].concat("state");
@@ -458,7 +470,7 @@ function atualizarTabela(resposta, i) {
 			break;
 		case "zip":
 			document.forms[i]["zip"].value = resposta.response.venue.location.postalCode;
-			if (total == 1) {
+			if (totalCarregadas == 1) {
 				if (j == 2)
 					csv[0] = ["venue", "categoryId"];
 				csv[0] = csv[0].concat("zip");
@@ -469,7 +481,7 @@ function atualizarTabela(resposta, i) {
 			break;
 		case "twitter":
 			document.forms[i]["twitter"].value = resposta.response.venue.contact.twitter;
-			if (total == 1) {
+			if (totalCarregadas == 1) {
 				if (j == 2)
 					csv[0] = ["venue", "categoryId"];
 				csv[0] = csv[0].concat("twitter");
@@ -480,7 +492,7 @@ function atualizarTabela(resposta, i) {
 			break;
 		case "phone":
 			document.forms[i]["phone"].value = resposta.response.venue.contact.phone;
-			if (total == 1) {
+			if (totalCarregadas == 1) {
 				if (j == 2)
 					csv[0] = ["venue", "categoryId"];
 				csv[0] = csv[0].concat("phone");
@@ -491,7 +503,7 @@ function atualizarTabela(resposta, i) {
 			break;
 		case "url":
 			document.forms[i]["url"].value = resposta.response.venue.url;
-			if (total == 1) {
+			if (totalCarregadas == 1) {
 				if (j == 2)
 					csv[0] = ["venue", "categoryId"];
 				csv[0] = csv[0].concat("url");
@@ -502,7 +514,7 @@ function atualizarTabela(resposta, i) {
 			break;
 		case "description":
 			document.forms[i]["description"].value = resposta.response.venue.description;
-			if (total == 1) {
+			if (totalCarregadas == 1) {
 				if (j == 2)
 					csv[0] = ["venue", "categoryId"];
 				csv[0] = csv[0].concat("description");
@@ -515,7 +527,7 @@ function atualizarTabela(resposta, i) {
 			break;
 		case "ll":
 			document.forms[i]["ll"].value = (resposta.response.venue.location.lat + ', ' + resposta.response.venue.location.lng).replace(/undefined/gi, "0.0");
-			if (total == 1) {
+			if (totalCarregadas == 1) {
 				if (j == 2)
 					csv[0] = ["venue", "categoryId"];
 				csv[0] = csv[0].concat("ll");
@@ -555,8 +567,10 @@ function atualizarTabela(resposta, i) {
 	var dicaVenue = atualizarDicaVenue(i);
 	createTooltip("venLnk" + i, dicaVenue);
 	csv[i + 1] = csv[i + 1].concat(document.forms[i]["createdAt"].value + ";" + document.forms[i]["checkinsCount"].value + ";" + document.forms[i]["usersCount"].value + ";" + document.forms[i]["tipCount"].value + ";" + document.forms[i]["photosCount"].value + ";" + document.forms[i]["isClosed"].value);
-	if (total == document.forms.length) {
+	if (totalCarregadas == document.forms.length - totalNaoCarregadas) {
 		csv[0] = csv[0].concat("createdAt;checkins;users;tips;photos;closed");
+		if (dojo.query("input[name=selecao]:enabled").length == 0)
+			dijit.byId("menuSelecionar").setAttribute('disabled', true);
 	}
 }
 
@@ -822,6 +836,7 @@ dojo.addOnLoad(function inicializar() {
 	subMenu1.addChild(subMenu1Item2);
 	var menuItem1 = new dijit.PopupMenuItem({
 		label: "Selecionar",
+		id: "menuSelecionar",
 		popup: subMenu1
 	});
 	menu.addChild(menuItem1);
@@ -945,6 +960,7 @@ dojo.addOnLoad(function inicializar() {
 	subMenu3.addChild(subMenu3Item3);
 	var menuItem3 = new dijit.PopupMenuItem({
 		label: "Exportar",
+		id: "menuExportar",
 		iconClass: "exportIcon",
 		popup: subMenu3
 	});

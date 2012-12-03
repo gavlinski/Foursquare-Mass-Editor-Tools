@@ -19,18 +19,13 @@ dojo.addOnLoad(function() {
 	var arquivo_nome = "";
 	var uploader_csv = dijit.byId("uploader_csv");
 	var form_csv = dijit.byId("f_csv");
-	var oauth_csv = dijit.byId("oauth_token_csv");
 	dojo.connect(uploader_csv, "onChange", function (data) {
 		arquivo_csv.innerHTML = data[0].name + " (" + Math.ceil(data[0].size * .001) + " kB)";
 		arquivo_nome = data[0].name;
 	});
 	dojo.connect(form_csv, "onSubmit", function(e) {
 		if (form_csv.validate()) {
-			if (oauth_csv.get("value").length != 48) {
-				e.preventDefault();
-				alert("O OAuth token deve possuir 48 caracteres");
-				oauth_csv.focus();
-			} else if (arquivo_csv.innerHTML === "Nenhum arquivo selecionado") {
+			if (arquivo_csv.innerHTML === "Nenhum arquivo selecionado") {
 				e.preventDefault();
 				alert("O arquivo precisa ser escolhido");
 				uploader_csv.inputNode.focus();
@@ -44,7 +39,6 @@ dojo.addOnLoad(function() {
 		} else {
 			e.preventDefault();
 		}
-		dojo.cookie("oauth_token", dijit.byId("oauth_token_csv").value, { expires: 15 });
 		//dojo.cookie("pagina", "", { expires: 15 });
 		//dojo.cookie("textarea", "", { expires: 15 });
 		dojo.cookie("accordion", dijit.byId("accordion").selectedChildWidget.id, { expires: 15 });
@@ -57,17 +51,12 @@ dojo.addOnLoad(function() {
 	var arquivo_txt = dojo.byId("arquivo_txt");
 	var uploader_txt = dijit.byId("uploader_txt");
 	var form_txt = dijit.byId("f_txt");
-	var oauth_txt = dijit.byId("oauth_token_txt");
 	dojo.connect(uploader_txt, "onChange", function (data) {
 		arquivo_txt.innerHTML = data[0].name + " (" + Math.ceil(data[0].size * .001) + " kB)";
 	});
 	dojo.connect(form_txt, "onSubmit", function(e) {
 		if (form_txt.validate()) {
-			if (oauth_txt.get("value").length != 48) {
-				e.preventDefault();
-				alert("O OAuth token deve possuir 48 caracteres");
-				oauth_txt.focus();
-			} else if (arquivo_txt.innerHTML === "Nenhum arquivo selecionado") {
+			if (arquivo_txt.innerHTML === "Nenhum arquivo selecionado") {
 				e.preventDefault();
 				alert("O arquivo precisa ser escolhido");
 				uploader_txt.inputNode.focus();
@@ -81,7 +70,6 @@ dojo.addOnLoad(function() {
 		} else {
 			e.preventDefault();
 		}
-		dojo.cookie("oauth_token", dijit.byId("oauth_token_txt").value, { expires: 15 });
 		//dojo.cookie("pagina", "", { expires: 15 });
 		//dojo.cookie("textarea", "", { expires: 15 });
 		dojo.cookie("campos", dijit.byId("nome1").checked + "." + dijit.byId("endereco1").checked + "." + dijit.byId("ruacross1").checked + "." + dijit.byId("cidade1").checked + "." + dijit.byId("estado1").checked + "." + dijit.byId("cep1").checked + "." + dijit.byId("twitter1").checked + "." + dijit.byId("telefone1").checked + "." + dijit.byId("website1").checked + "." + dijit.byId("descricao1").checked + "." + dijit.byId("latlong1").checked, { expires: 15 });
@@ -93,25 +81,19 @@ dojo.addOnLoad(function() {
 		style: "width: 650px"
 	});
 	var form_lks = dijit.byId("f_lks");
-	var oauth_lks = dijit.byId("oauth_token_lks");
 	var pagina = dijit.byId("pagina");
 	dojo.connect(form_lks, "onSubmit", function(e) {
-		if (form_lks.validate()) {
-			if (oauth_lks.get("value").length != 48) {
-				e.preventDefault();
-				alert("O OAuth token deve possuir 48 caracteres");
-				oauth_lks.focus();
-			//} else if (dojo.query('input:checked', 'f_lks').length == 0) {
+		if (!form_lks.validate()) {
+			//if (dojo.query('input:checked', 'f_lks').length == 0) {
 				//e.preventDefault();
 				//alert("Selecione pelo menos um dos campos");
 				//dijit.byId("nome2").focus();
 			//} else {
 				//alert("Ready to submit data: " + dojo.toJson(form_lks.attr("value")));
-			}
-		} else {
+			//}
+		//} else {
 			e.preventDefault();
 		}
-		dojo.cookie("oauth_token", dijit.byId("oauth_token_lks").value, { expires: 15 });
 		dojo.cookie("pagina", dijit.byId("pagina").value, { expires: 15 });
 		//dojo.cookie("textarea", "", { expires: 15 });
 		dojo.cookie("campos", dijit.byId("nome2").checked + "." + dijit.byId("endereco2").checked + "." + dijit.byId("ruacross2").checked + "." + dijit.byId("cidade2").checked + "." + dijit.byId("estado2").checked + "." + dijit.byId("cep2").checked + "." + dijit.byId("twitter2").checked + "." + dijit.byId("telefone2").checked + "." + dijit.byId("website2").checked + "." + dijit.byId("descricao2").checked + "." + dijit.byId("latlong2").checked, { expires: 15 });
@@ -123,15 +105,10 @@ dojo.addOnLoad(function() {
 		style: "width: 570px"
 	});
 	var form_ids = dijit.byId("f_ids");
-	var oauth_ids = dijit.byId("oauth_token_ids");
 	var textarea_ids = dijit.byId("textarea_ids");
 	dojo.connect(form_ids, "onSubmit", function(e) {
 		if (form_ids.validate()) {
-			if (oauth_ids.get("value").length != 48) {
-				e.preventDefault();
-				alert("O OAuth token deve possuir 48 caracteres");
-				oauth_ids.focus();
-			} else if (textarea_ids.value == "") {
+			if (textarea_ids.value == "") {
 				e.preventDefault();
 				alert("Informe pelo menos uma venue");
 				textarea_ids.focus();
@@ -145,7 +122,6 @@ dojo.addOnLoad(function() {
 		} else {
 			e.preventDefault();
 		}
-		dojo.cookie("oauth_token", dijit.byId("oauth_token_ids").value, { expires: 15 });
 		//dojo.cookie("pagina", "", { expires: 15 });
 		dojo.cookie("textarea", dijit.byId("textarea_ids").value, { expires: 15 });
 		dojo.cookie("campos", dijit.byId("nome3").checked + "." + dijit.byId("endereco3").checked + "." + dijit.byId("ruacross3").checked + "." + dijit.byId("cidade3").checked + "." + dijit.byId("estado3").checked + "." + dijit.byId("cep3").checked + "." + dijit.byId("twitter3").checked + "." + dijit.byId("telefone3").checked + "." + dijit.byId("website3").checked + "." + dijit.byId("descricao3").checked + "." + dijit.byId("latlong3").checked, { expires: 15 });
@@ -153,15 +129,11 @@ dojo.addOnLoad(function() {
 	});
 	
 	var form_src = dijit.byId("f_src");
-	var oauth_src = dijit.byId("oauth_token_src");
+	var oauth_src = dojo.byId("oauth_token_src");
 	var ll_src = dijit.byId("ll");
 	dojo.connect(form_src, "onSubmit", function(e) {
 		if (form_src.validate()) {
-			if (oauth_src.get("value").length != 48) {
-				e.preventDefault();
-				alert("O OAuth token deve possuir 48 caracteres");
-				oauth_src.focus();
-			} else if (ll_src.value == "") {
+			if (ll_src.value == "") {
 				e.preventDefault();
 				alert("Informe as coordenadas");
 				ll_src.focus();
@@ -175,7 +147,6 @@ dojo.addOnLoad(function() {
 		} else {
 			e.preventDefault();
 		}
-		dojo.cookie("oauth_token", dijit.byId("oauth_token_src").value, { expires: 15 });
 		//dojo.cookie("pagina", "", { expires: 15 });
 		//dojo.cookie("textarea", "", { expires: 15 });
 		//dojo.cookie("ll", dijit.byId("ll").value, { expires: 15 });
@@ -186,13 +157,8 @@ dojo.addOnLoad(function() {
 
 dojo.ready(function() {
 	setTimeout(function() {
-		dijit.byId("oauth_token_csv").attr("value", dojo.cookie("oauth_token"));
-		dijit.byId("oauth_token_txt").attr("value", dojo.cookie("oauth_token"));
-		dijit.byId("oauth_token_lks").attr("value", dojo.cookie("oauth_token"));
-		dijit.byId("oauth_token_src").attr("value", dojo.cookie("oauth_token"));
 		dijit.byId("pagina").attr("value", dojo.cookie("pagina"));
 		dijit.byId("textarea_ids").attr("value", dojo.cookie("textarea"));
-		dijit.byId("oauth_token_ids").attr("value", dojo.cookie("oauth_token"));
 		dojo.attr(dijit.byId("pagina").textbox, "autocomplete", "on");
 		dojo.attr(dijit.byId("ll").textbox, "autocomplete", "on");
 		if (dojo.cookie("campos") != undefined) {
