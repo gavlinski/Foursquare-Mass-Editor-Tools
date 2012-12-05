@@ -1,6 +1,6 @@
 <?php
 
-	require_once("FoursquareAPI.class.php");
+	require_once("FoursquareAPI.Class.php");
 
 	// This file is intended to be used as your redirect_uri for the client on Foursquare
 
@@ -18,6 +18,9 @@
 	} else if (array_key_exists("code", $_GET)) {
 		$token = $foursquare->GetToken($_GET['code'], $redirect_uri);
 	}
+	
+	// If we have not received a token, display the link for Foursquare webauth
+	if (!isset($token)) {
 
 ?>
 <!doctype html>
@@ -31,23 +34,25 @@
 	<link rel="stylesheet" type="text/css" href="estilo.css"/>
 </head>
 <body class="claro">
-<h1>Token Request</h1>
 <p>
 	<?php
-	
-	// If we have not received a token, display the link for Foursquare webauth
-	if (!isset($token)) {
-		echo "<a href='" . $foursquare->AuthenticationLink($redirect_uri) . "'>Connect to this app via Foursquare</a>";
-	// Otherwise save the token in a session variable and redirect browser
-	} else {
-		session_start();
-		$_SESSION["oauth_token"] = $token;
-	// Save and configure a cookie to expire in 15 days
-		setcookie("oauth_token", $token, time()+60*60*24*15);
-		header('Location: main.php');
-		
-	}
+
+		echo "<a href='" . $foursquare->AuthenticationLink($redirect_uri) . "'><img src='img/connect-blue@2x.png' alt='Connect to this app via Foursquare'></a>";
+
 	?>
 </p>
 </body>
 </html>
+<?php
+
+	// Otherwise save the token in a session variable and redirect browser
+	} else {
+		session_start();
+		$_SESSION["oauth_token"] = $token;
+
+		// Save and configure a cookie to expire in 15 days
+		setcookie("oauth_token", $token, time()+60*60*24*15);
+		header('Location: main.php');
+	}
+?>
+
