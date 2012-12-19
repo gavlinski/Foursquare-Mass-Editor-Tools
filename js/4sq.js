@@ -160,6 +160,10 @@ function tratarErro(metodo, i) {
 	}
 }
 
+function compare(el1, el2, index) {
+  return el1[index] == el2[index] ? 0 : (el1[index] < el2[index] ? -1 : 1);
+}
+
 function xmlhttpRequest(metodo, endpoint, dados, i) {
 	var xmlhttp = new XMLHttpRequest();
 	xmlhttp.onreadystatechange = function() {
@@ -183,9 +187,21 @@ function xmlhttpRequest(metodo, endpoint, dados, i) {
 						atualizarSinalizadas(i, "<img src='img/ok.png' alt='" + xmlhttp.responseText + "' style='vertical-align: middle;'>", "result" + i, "<span style=\"font-size: 12px\">Sinalizada com sucesso</span>");
 					}
 				} else if ((metodo == "GET") && (resposta.response.categories == undefined)) {
+					//console.info("Venue recuperada!");
 					atualizarTabela(resposta, i);
 				} else if (resposta.response.categories != undefined) {
 					//console.info("Categorias recuperadas!");
+					/*** Organiza em ordem alfabética o segundo e terceiro níveis das categorias ***/
+					for (j = 0; j < resposta.response.categories.length; j++) {
+						resposta.response.categories[j].categories.sort(function(el1, el2) {
+							return compare(el1, el2, "name")
+						});
+						for (k = 0; k < resposta.response.categories[j].categories.length; k++)
+							if (resposta.response.categories[j].categories[k].categories.length > 1)
+								resposta.response.categories[j].categories[k].categories.sort(function(el1, el2) {
+									return compare(el1, el2, "name")
+								});
+					}
 					montarArvore(resposta);
 				}
 			} else if (xmlhttp.status == 400) {
