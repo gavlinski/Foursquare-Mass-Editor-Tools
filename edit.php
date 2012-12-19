@@ -33,7 +33,7 @@ if (isset($_SESSION["oauth_token"])) {
 <link rel="stylesheet" type="text/css" href="js/dijit/themes/claro/claro.css"/>
 <link rel="stylesheet" type="text/css" href="estilo.css"/>
 <script src="js/dojo/dojo.js" djConfig="parseOnLoad: true"></script>
-<script type="text/javascript">var oauth_token = "<?= $oauth_token ?>";</script>
+<script type="text/javascript">var oauth_token = "<?= $oauth_token ?>"; var txt = "<?= implode('%0A,', $file) ?>".split(',');</script>
 <script type="text/javascript" src="js/4sq.js"></script>
 </head>
 <body class="claro">

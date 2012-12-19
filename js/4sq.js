@@ -9,8 +9,6 @@ dojo.require("dojo.data.ItemFileReadStore");
 dojo.require("dijit.Tree");
 dojo.require("dijit.Menu");
 
-//{"meta":{"code":400,"errorType":"param_error","errorDetail":"Must start with http:\/\/"},"response":{}}
-
 var DATA_VERSIONAMENTO = "20120924";
 var MESES = new Array("01", "02", "03", "04", "05", "06", "07", "08", "09", "10", "11", "12");
 var SUCESSO = 0;
@@ -19,7 +17,6 @@ var FALHA = -1;
 var totalCarregadas = 0;
 var totalNaoCarregadas = 0;
 var csv = new Array();
-var txt = new Array();
 var relatorio = new Array();
 var categorias = new Array();
 var store = {};
@@ -83,7 +80,7 @@ function atualizarEditadas(i, imagem, item, dica, tipo) {
 				}, 3000);
 			} 
 		}
-		relatorio.push(new Array(document.forms[i]["name"].value, "editada", getDataHora(), document.forms[i]["venue"].value, categorias[i].nomes, dijit.byId("textarea").value));
+		relatorio.push(new Array(document.forms[i]["name"].value, "editada", getDataHora(), document.forms[i]["venue"].value, dojo.byId("cna" + i).value, dijit.byId("textarea").value));
 		dijit.byId("menuItemExportarRelatorio").setAttribute("disabled", false);
 	}
 }
@@ -146,6 +143,23 @@ function desabilitarLinha(i) {
 		linhasEditadas.splice(linhaEditada, 1);
 }
 
+function tratarErro(metodo, i) {
+	if (metodo == "GET") {
+		desabilitarLinha(i);
+		totalNaoCarregadas++;
+		/*** Se esta tiver sido a última venue carregada ***/
+		if (totalCarregadas == (document.forms.length - totalNaoCarregadas)) {
+			linhasEditadas = [];
+			dijit.byId("saveButton").setAttribute('disabled', false);
+			/*** Se nenhuma venue tiver sido carregada ***/
+			if (totalNaoCarregadas == document.forms.length) {
+				dijit.byId("menuSelecionar").setAttribute('disabled', true);
+				dijit.byId("menuExportar").setAttribute('disabled', true);
+			}
+		}
+	}
+}
+
 function xmlhttpRequest(metodo, endpoint, dados, i) {
 	var xmlhttp = new XMLHttpRequest();
 	xmlhttp.onreadystatechange = function() {
@@ -155,7 +169,8 @@ function xmlhttpRequest(metodo, endpoint, dados, i) {
 			} catch(err) {
 				return false;
 			}
-			if (xmlhttp.status == 200) {
+			/*** O erro {"meta":{"code":400,"errorType":"param_error","errorDetail":"Must start with http:\/\/"}} é um bug da API que ocorre quando o campo url é enviado em branco. Mas mesmo dando erro, a venue é corretamente editada. ***/
+			if ((xmlhttp.status == 200) || ((xmlhttp.status == 400) && (resposta.meta.errorType == "param_error") && (resposta.meta.errorDetail == "Must start with http:\/\/"))) {
 				if (metodo == "POST") {
 					if (endpoint.substr(-4) == "edit") {
 						dojo.byId("info" + i).innerHTML = dojo.byId("info" + i).innerHTML.replace(/%0A/gi, "");
@@ -174,30 +189,28 @@ function xmlhttpRequest(metodo, endpoint, dados, i) {
 					montarArvore(resposta);
 				}
 			} else if (xmlhttp.status == 400) {
-				if (metodo == "GET") {
-					desabilitarLinha(i);
-					totalNaoCarregadas++;
-					if (totalNaoCarregadas == document.forms.length) {
-						linhasEditadas = [];
-						dijit.byId("saveButton").setAttribute('disabled', false);
-						dijit.byId("menuSelecionar").setAttribute('disabled', true);
-						dijit.byId("menuExportar").setAttribute('disabled', true);
-					}
-				}
+				tratarErro(metodo, i);
 				atualizarEditadas(i, "<img src='img/erro.png' alt='Erro 400: Bad Request, Tipo: " + resposta.meta.errorType + ", Detalhe: " + resposta.meta.errorDetail + "'>", "result" + i, "<span style=\"font-size: 12px\">Erro 400: Bad Request, Tipo: " + resposta.meta.errorType + ",<br>Detalhe: " + resposta.meta.errorDetail + "</span>", FALHA);
 			} else if (xmlhttp.status == 401) {
+				tratarErro(metodo, i);
 				atualizarEditadas(i, "<img src='img/erro.png' alt='Erro 401: Unauthorized, Tipo: " + resposta.meta.errorType + ", Detalhe: " + resposta.meta.errorDetail + "'>", "result" + i, "<span style=\"font-size: 12px\">Erro 401: Unauthorized, Tipo: " + resposta.meta.errorType + ",<br>Detalhe: " + resposta.meta.errorDetail + "</span>", FALHA);
 			} else if (xmlhttp.status == 403) {
+				tratarErro(metodo, i);
 				atualizarEditadas(i, "<img src='img/erro.png' alt='Erro 403: Forbidden, Tipo: " + resposta.meta.errorType + ", Detalhe: " + resposta.meta.errorDetail + "'>", "result" + i, "<span style=\"font-size: 12px\">Erro 403: Forbidden, Tipo: " + resposta.meta.errorType + ",<br>Detalhe: " + resposta.meta.errorDetail + "</span>", FALHA);
 			} else if (xmlhttp.status == 404) {
+				tratarErro(metodo, i);
 				atualizarEditadas(i, "<img src='img/erro.png' alt='Erro 404: Not Found'>", "result" + i, "<span style=\"font-size: 12px\">Erro 404: Not Found</span>", FALHA);
 			} else if (xmlhttp.status == 405) {
+				tratarErro(metodo, i);
 				atualizarEditadas(i, "<img src='img/erro.png' alt='Erro 405: Method Not Allowed'>", "result" + i, "<span style=\"font-size: 12px\">Erro 405: Method Not Allowed</span>", FALHA);
 			} else if (xmlhttp.status == 409) {
+				tratarErro(metodo, i);
 				atualizarEditadas(i, "<img src='img/erro.png' alt='Erro 409: Conflict'>", "result" + i, "<span style=\"font-size: 12px\">Erro 409: Conflict</span>", FALHA);
 			} else if (xmlhttp.status == 500) {
+				tratarErro(metodo, i);
 				atualizarEditadas(i, "<img src='img/erro.png' alt='Erro 500: Internal Server Error'>", "result" + i, "<span style=\"font-size: 12px\">Erro 500: Internal Server Error</span>", FALHA);
 			} else {
+				tratarErro(metodo, i);
 				atualizarEditadas(i, "<img src='img/erro.png' alt='Erro desconhecido: " + xmlhttp.status + "'>", "result" + i, "<span style=\"font-size: 12px\">Erro desconhecido: " + xmlhttp.status + "</span>", FALHA);
 			}
 		}
@@ -546,7 +559,6 @@ function atualizarTabela(resposta, i) {
 	if ((resposta.response.venue.categories[0] != undefined) && (resposta.response.venue.categories[0].id == "4bf58dd8d48988d103941735"))
 		desabilitarLinha(i);
 	csv[i + 1] = linha.replace(/undefined/gi, "").split("&&");
-	txt[i + 1] = "https://foursquare.com/v/" + resposta.response.venue.id + '%0A';
 	if (resposta.response.venue.categories[0] == undefined) {
 		dojo.byId("icone" + i).innerHTML = "<a id='catLnk" + i + "' href='javascript:editarCategorias(" + i + ")'><img id=catImg" + i + " src='https://foursquare.com/img/categories_v2/none_bg_32.png' style='height: 22px; width: 22px; margin-left: 0px'></a>";
 	} else if (resposta.response.venue.categories[0].id == "4bf58dd8d48988d103941735") {
@@ -677,7 +689,7 @@ function salvarVenues() {
 	(totalLinhasParaSalvar > 1) ? dijit.byId("dlg_save").set("title", "Salvando " + totalLinhasParaSalvar + " venues...") : dijit.byId("dlg_save").set("title", "Salvando 1 venue...");
 	dijit.byId("dlg_save").show();
 	dijit.byId("saveButton").setAttribute("disabled", true);
-	var venue, dados, ll, elementName, i;
+	var i, venue, dados, ll, elementName, categoryId;
 	//console.info("Enviando dados...");
 	for (l = 0; l < totalLinhasParaSalvar; l++) {
 		i = linhasEditadas[l];
@@ -694,8 +706,8 @@ function salvarVenues() {
 				dados += "&description=" + csv[i + 1][index].slice(1, -1).replace(/&/g, "%26");
 			} else if (elementName == "categoryId") {
 				categoryId = document.forms[i]["categoryId"].value;
-				if (categoryId != null && categoryId != "")
-					dados += "&categoryId=" + document.forms[i]["categoryId"].value;
+				if ((categoryId != null) && (categoryId != ""))
+					dados += "&categoryId=" + categoryId;
 			} else if (elementName == "ll") {
 				ll = document.forms[i]["ll"].value;
 				if (ll != null && ll != "")
@@ -922,7 +934,20 @@ dojo.addOnLoad(function inicializar() {
 		label: "Arquivo TXT",
 		id: "menuItemExportarTXT",
 		onClick: function() {
-			window.open("data:text/plain;charset=iso-8859-1," + txt.join("\r\n"));
+			var arq = txt.slice(0);
+			var j = 0;
+			var l = arq.length;
+			linhasSelecionadas = [];
+			if (totalLinhasSelecionadas > 0) {
+				dojo.query("input[name=selecao]:checked").forEach("linhasSelecionadas.push(dijit.byId(item.id).value)");
+				for (i = 0; i < l; i++) {
+					if (linhasSelecionadas.indexOf(i.toString()) == -1)
+						arq.splice(j, 1);
+					else
+						j++;
+				}
+			}
+			window.open("data:text/plain;charset=utf-8," + arq.join("\r\n"));
 		}
 	});
 	subMenu3.addChild(subMenu3Item2);
@@ -931,28 +956,43 @@ dojo.addOnLoad(function inicializar() {
 		id: "menuItemExportarRelatorio",
 		disabled: true,
 		onClick: function() {
-			var nameMaxSize = 5;
-			var actionMaxSize = 8;
-			var categoriesMaxSize = 11;
+			var NAME_MAX_SIZE = 5;
+			var ACTION_MAX_SIZE = 7;
+			var CATEGORIES_MAX_SIZE = 11;
+			var COL_NAME = 0;
+			var COL_ACTION = 1;
+			var COL_DATETIME = 2;
+			var COL_ID = 3;
+			var COL_CATEGORIES = 4;
+			var COL_COMMENTS = 5;
+			var comments = false;
 			var j = 0;
 			for (i = 0; i < relatorio.length; i++) {
-				if (relatorio[i][0] == undefined)
-				  relatorio[i][0] = "";
-				if (relatorio[i][0].length > nameMaxSize)
-					nameMaxSize = relatorio[i][0].length;
-				if (relatorio[i][1].length >= actionMaxSize)
-					actionMaxSize = relatorio[i][1].length;
-				if (relatorio[i][4] == undefined)
-				  relatorio[i][4] = "";
-				if (relatorio[i][4].length > categoriesMaxSize)
-					categoriesMaxSize = relatorio[i][4].length;
+				if (relatorio[i][COL_NAME] == undefined)
+				  relatorio[i][COL_NAME] = "";
+				if (relatorio[i][COL_NAME].length > NAME_MAX_SIZE)
+					NAME_MAX_SIZE = relatorio[i][COL_NAME].length;
+				if (relatorio[i][COL_ACTION].length >= ACTION_MAX_SIZE)
+					ACTION_MAX_SIZE = relatorio[i][COL_ACTION].length;
+				if (relatorio[i][COL_CATEGORIES] == undefined)
+				  relatorio[i][COL_CATEGORIES] = "";
+				if (relatorio[i][COL_CATEGORIES].length > CATEGORIES_MAX_SIZE)
+					CATEGORIES_MAX_SIZE = relatorio[i][COL_CATEGORIES].length;
+				if (relatorio[i][COL_COMMENTS].length > 0)
+					comments = true;
 			}
 			var html = new Array();
 			html[0] = "<!DOCTYPE html><html><head><meta http-equiv=\"text/html; charset=iso-8859-1\"></head><body><pre>";
-			html[1] = pad("name", nameMaxSize + 1) + pad("action", actionMaxSize + 1) + pad("date", 11) + pad("time", 9) + pad("id", 25) + pad("categories", categoriesMaxSize + 1) + "comments";
+			html[1] = pad("name", NAME_MAX_SIZE + 1) + pad("action", ACTION_MAX_SIZE + 1) + pad("date", 11) + pad("time", 9) + pad("id", 25) + pad("categories", CATEGORIES_MAX_SIZE);
+			if (comments)
+				html[1] += " comments";
 			var j = 2;
-			for (i = 0; i < relatorio.length; i++)
-				html[j++] = pad(relatorio[i][0], nameMaxSize + 1) + pad(relatorio[i][1], actionMaxSize + 1) + relatorio[i][2] + " " + relatorio[i][3] + " " + pad(relatorio[i][4], categoriesMaxSize + 1) + relatorio[i][5].replace(/(\r\n|\n|\r)/gm, " ").replace(/\s+/g, " ");
+			for (i = 0; i < relatorio.length; i++) {
+				html[j] = pad(relatorio[i][COL_NAME], NAME_MAX_SIZE + 1) + pad(relatorio[i][COL_ACTION], ACTION_MAX_SIZE + 1) + relatorio[i][COL_DATETIME] + " " + relatorio[i][COL_ID] + " " + pad(relatorio[i][COL_CATEGORIES], CATEGORIES_MAX_SIZE + 1);
+				if (comments)
+					html[j] += relatorio[i][COL_COMMENTS].replace(/(\r\n|\n|\r)/gm, " ").replace(/\s+/g, " ");
+				j++;
+			}
 			html.push("</pre></body></html>");
 			window.open("data:text/html;charset=iso-8859-1," + escape(html.join("\r\n")));
 		}
