@@ -3,25 +3,27 @@ dojo.require("dijit.form.Button");
 dojo.require("dijit.form.TextBox");
 dojo.require("dijit.Tooltip");
 dojo.require("dijit.Menu");
+dojo.require("dojo.cookie");
 
-var dataVersionamento = "20120924";
+var DATA_VERSIONAMENTO = "20120924";
+
+var oauth_token = dojo.cookie("oauth_token");
 
 var total = 0;
 var timer;
 var categorias = new Array();
 
-function atualizarResultado(linha, imagem, dica) {
-	dojo.byId(linha).innerHTML = imagem;
+function atualizarResultado(i, imagem, dica) {
+	var item = "result" + i;
+	dojo.byId(item).innerHTML = imagem;
 	if (dica != "")
-		createTooltip(linha, dica);
+		createTooltip(item, dica);
 	total++;
 	if (total == document.forms.length) {
 		if (dijit.byId("flagButton"))
 			dijit.byId("flagButton").setAttribute('disabled', false);
 		else 
 			dijit.byId("saveButton").setAttribute('disabled', false);
-		if (timer)
-			clearTimeout(timer);
 	}
 }
 
@@ -34,30 +36,40 @@ function xmlhttpRequest(metodo, endpoint, dados, i) {
 			} catch(err) {
 				return false;
 			}
-			if (xmlhttp.status == 200) {
+			/*** O erro {"meta":{"code":400,"errorType":"param_error","errorDetail":"Must start with http:\/\/"}} é um bug da API que ocorre quando o campo url é enviado em branco. Mas mesmo dando erro, a venue é corretamente editada. ***/
+			if ((xmlhttp.status == 200) || ((xmlhttp.status == 400) && (resposta.meta.errorType == "param_error") && (resposta.meta.errorDetail == "Must start with http:\/\/"))) {
+				clearTimeout(xmlhttpTimeout);
 				if (metodo == "POST") {
-					atualizarResultado("result" + i, "<img src='img/ok.png' alt='" + xmlhttp.responseText + "' style='vertical-align: middle;'>", "");
+					atualizarResultado(i, "<img src='img/ok.png' alt='" + xmlhttp.responseText + "' style='vertical-align: middle;'>", "<span style=\"font-size: 12px\">Editada com sucesso</span>");
 				} else if (metodo == "GET") {
-					//console.info("Categorias recuperadas!");
+					console.info("Categorias recuperadas!");
 					montarTabela(resposta);
 					atualizarCategorias();
 				}
 			} else if (xmlhttp.status == 400) {
-				atualizarResultado("result" + i, "<img src='img/erro.png' alt='Erro 400: Bad Request, Tipo: " + resposta.meta.errorType + ", Detalhe: " + resposta.meta.errorDetail + "'>", "<span style=\"font-size: 12px\">Erro 400: Bad Request, Tipo: " + resposta.meta.errorType + ",<br>Detalhe: " + resposta.meta.errorDetail + "</span>");
+				clearTimeout(xmlhttpTimeout);
+				atualizarResultado(i, "<img src='img/erro.png' alt='Erro 400: Bad Request, Tipo: " + resposta.meta.errorType + ", Detalhe: " + resposta.meta.errorDetail + "'>", "<span style=\"font-size: 12px\">Erro 400: Bad Request, Tipo: " + resposta.meta.errorType + ",<br>Detalhe: " + resposta.meta.errorDetail + "</span>");
 			} else if (xmlhttp.status == 401) {
-				atualizarResultado("result" + i, "<img src='img/erro.png' alt='Erro 401: Unauthorized, Tipo: " + resposta.meta.errorType + ", Detalhe: " + resposta.meta.errorDetail + "'>", "<span style=\"font-size: 12px\">Erro 401: Unauthorized, Tipo: " + resposta.meta.errorType + ",<br>Detalhe: " + resposta.meta.errorDetail + "</span>");
+				clearTimeout(xmlhttpTimeout);
+				atualizarResultado(i, "<img src='img/erro.png' alt='Erro 401: Unauthorized, Tipo: " + resposta.meta.errorType + ", Detalhe: " + resposta.meta.errorDetail + "'>", "<span style=\"font-size: 12px\">Erro 401: Unauthorized, Tipo: " + resposta.meta.errorType + ",<br>Detalhe: " + resposta.meta.errorDetail + "</span>");
 			} else if (xmlhttp.status == 403) {
-				atualizarResultado("result" + i, "<img src='img/erro.png' alt='Erro 403: Forbidden'>", "<span style=\"font-size: 12px\">Erro 403: Forbidden, Tipo: " + resposta.meta.errorType + ",<br>Detalhe: " + resposta.meta.errorDetail + "</span>");
+				clearTimeout(xmlhttpTimeout);
+				atualizarResultado(i, "<img src='img/erro.png' alt='Erro 403: Forbidden'>", "<span style=\"font-size: 12px\">Erro 403: Forbidden, Tipo: " + resposta.meta.errorType + ",<br>Detalhe: " + resposta.meta.errorDetail + "</span>");
 			} else if (xmlhttp.status == 404) {
-				atualizarResultado("result" + i, "<img src='img/erro.png' alt='Erro 404: Not Found'>", "<span style=\"font-size: 12px\">Erro 404: Not Found</span>");
+				clearTimeout(xmlhttpTimeout);
+				atualizarResultado(i, "<img src='img/erro.png' alt='Erro 404: Not Found'>", "<span style=\"font-size: 12px\">Erro 404: Not Found</span>");
 			} else if (xmlhttp.status == 405) {
-				atualizarResultado("result" + i, "<img src='img/erro.png' alt='Erro 405: Method Not Allowed'>", "<span style=\"font-size: 12px\">Erro 405: Method Not Allowed</span>");
+				clearTimeout(xmlhttpTimeout);
+				atualizarResultado(i, "<img src='img/erro.png' alt='Erro 405: Method Not Allowed'>", "<span style=\"font-size: 12px\">Erro 405: Method Not Allowed</span>");
 			} else if (xmlhttp.status == 409) {
-				atualizarResultado("result" + i, "<img src='img/erro.png' alt='Erro 409: Conflict'>", "<span style=\"font-size: 12px\">Erro 409: Conflict</span>");
+				clearTimeout(xmlhttpTimeout);
+				atualizarResultado(i, "<img src='img/erro.png' alt='Erro 409: Conflict'>", "<span style=\"font-size: 12px\">Erro 409: Conflict</span>");
 			} else if (xmlhttp.status == 500) {
-				atualizarResultado("result" + i, "<img src='img/erro.png' alt='Erro 500: Internal Server Error'>", "<span style=\"font-size: 12px\">Erro 500: Internal Server Error</span>");
+				clearTimeout(xmlhttpTimeout);
+				atualizarResultado(i, "<img src='img/erro.png' alt='Erro 500: Internal Server Error'>", "<span style=\"font-size: 12px\">Erro 500: Internal Server Error</span>");
 			} else {
-				atualizarResultado("result" + i, "<img src='img/erro.png' alt='Erro desconhecido: " + xmlhttp.status + "'>", "<span style=\"font-size: 12px\">Erro desconhecido: " + xmlhttp.status + "</span>");
+				clearTimeout(xmlhttpTimeout);
+				atualizarResultado(i, "<img src='img/erro.png' alt='Erro desconhecido: " + xmlhttp.status + "'>", "<span style=\"font-size: 12px\">Erro desconhecido: " + xmlhttp.status + "</span>");
 			}
 		}
 	}
@@ -65,6 +77,12 @@ function xmlhttpRequest(metodo, endpoint, dados, i) {
 	xmlhttp.open(metodo, endpoint, true);
 	xmlhttp.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
 	xmlhttp.send(dados);
+	var xmlhttpTimeout = setTimeout(function ajaxTimeout() {
+		xmlhttp.abort();
+		console.info(metodo + " abortado!");
+		if (metodo == "POST")
+			atualizarResultado(i, "<img src='img/erro.png' alt='Erro: Request Timed Out'>", "<span style=\"font-size: 12px\">Erro: Request Timed Out</span>");
+	}, 60000);
 	return false;
 }
 
@@ -121,7 +139,7 @@ function salvarVenues() {
 	total = 0;
 	dijit.byId("saveButton").setAttribute("disabled", true);
 	var venue, dados, categoryId, ll, elementName;
-	//console.info("Enviando dados...");
+	console.info("Enviando dados...");
 	var totalLinhas = document.forms.length;
 	for (i = 0; i < totalLinhas; i++) {
 		venue = document.forms[i]["venue"].value;
@@ -144,43 +162,37 @@ function salvarVenues() {
 					dados += "&ll=" + document.forms[i]["ll"].value;
 			}
 		}
-		dados += "&v=" + dataVersionamento;
+		dados += "&v=" + DATA_VERSIONAMENTO;
 		//console.group("venue=" + venue + " (" + i + ")");
 		//console.log(dados);
 		//console.groupEnd();
 		xmlhttpRequest("POST", "https://api.foursquare.com/v2/venues/" + venue + "/edit", dados, i);
 		dojo.byId("result" + i).innerHTML = "<img src='img/loading.gif' alt='Enviando dados...'>";
 	}
-	//console.info("Dados enviados!");
-	timer = setTimeout(function() {
-		dijit.byId("saveButton").setAttribute('disabled', false);
-	}, 120000);
+	console.info("Dados enviados!");
 }
 
 function sinalizarVenues(problema) {
 	total = 0;
 	dijit.byId("flagButton").setAttribute("disabled", true);
 	var venue, dados;
-	//console.info("Enviando dados...");
+	console.info("Enviando dados...");
 	var totalLinhas = document.forms.length;
 	for (i = 0; i < totalLinhas; i++) {
 		venue = document.forms[i]["venue"].value;
-		dados = "oauth_token=" + oauth_token + "&problem=" + problema + "&v=" + dataVersionamento;
+		dados = "oauth_token=" + oauth_token + "&problem=" + problema + "&v=" + DATA_VERSIONAMENTO;
 		//console.group("venue=" + venue + " (" + i + ")");
 		//console.log(dados);
 		//console.groupEnd();
 		xmlhttpRequest("POST", "https://api.foursquare.com/v2/venues/" + venue + "/flag", dados, i);
 		dojo.byId("result" + i).innerHTML = "<img src='img/loading.gif' alt='Enviando dados...'>";
 	}
-	//console.info("Dados enviados!");
-	timer = setTimeout(function() {
-		dijit.byId("flagButton").setAttribute('disabled', false);
-	}, 120000);
+	console.info("Dados enviados!");
 }
 
 function carregarListaCategorias() {
-	//console.info("Recuperando dados das categorias...");
-	xmlhttpRequest("GET", "https://api.foursquare.com/v2/venues/categories" + "?oauth_token=" + oauth_token + "&v=" + dataVersionamento, null, null);
+	console.info("Recuperando dados das categorias...");
+	xmlhttpRequest("GET", "https://api.foursquare.com/v2/venues/categories" + "?oauth_token=" + oauth_token + "&v=" + DATA_VERSIONAMENTO, null, null);
 }
 
 var dlg_guia;

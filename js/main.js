@@ -72,7 +72,8 @@ dojo.addOnLoad(function() {
 		}
 		//dojo.cookie("pagina", "", { expires: 15 });
 		//dojo.cookie("textarea", "", { expires: 15 });
-		dojo.cookie("campos", dijit.byId("nome1").checked + "." + dijit.byId("endereco1").checked + "." + dijit.byId("ruacross1").checked + "." + dijit.byId("cidade1").checked + "." + dijit.byId("estado1").checked + "." + dijit.byId("cep1").checked + "." + dijit.byId("twitter1").checked + "." + dijit.byId("telefone1").checked + "." + dijit.byId("website1").checked + "." + dijit.byId("descricao1").checked + "." + dijit.byId("latlong1").checked, { expires: 15 });
+		var campos1 = dijit.byId("nome1").checked + "." + dijit.byId("endereco1").checked + "." + dijit.byId("ruacross1").checked + "." + dijit.byId("cidade1").checked + "." + dijit.byId("estado1").checked + "." + dijit.byId("cep1").checked + "." + dijit.byId("twitter1").checked + "." + dijit.byId("telefone1").checked + "." + dijit.byId("website1").checked + "." + dijit.byId("descricao1").checked + "." + dijit.byId("latlong1").checked;
+		dojo.cookie("campos", campos1, { expires: 15 });
 		dojo.cookie("accordion", dijit.byId("accordion").selectedChildWidget.id, { expires: 15 });
 	});
 	
@@ -96,7 +97,8 @@ dojo.addOnLoad(function() {
 		}
 		dojo.cookie("pagina", dijit.byId("pagina").value, { expires: 15 });
 		//dojo.cookie("textarea", "", { expires: 15 });
-		dojo.cookie("campos", dijit.byId("nome2").checked + "." + dijit.byId("endereco2").checked + "." + dijit.byId("ruacross2").checked + "." + dijit.byId("cidade2").checked + "." + dijit.byId("estado2").checked + "." + dijit.byId("cep2").checked + "." + dijit.byId("twitter2").checked + "." + dijit.byId("telefone2").checked + "." + dijit.byId("website2").checked + "." + dijit.byId("descricao2").checked + "." + dijit.byId("latlong2").checked, { expires: 15 });
+		var campos2 = dijit.byId("nome2").checked + "." + dijit.byId("endereco2").checked + "." + dijit.byId("ruacross2").checked + "." + dijit.byId("cidade2").checked + "." + dijit.byId("estado2").checked + "." + dijit.byId("cep2").checked + "." + dijit.byId("twitter2").checked + "." + dijit.byId("telefone2").checked + "." + dijit.byId("website2").checked + "." + dijit.byId("descricao2").checked + "." + dijit.byId("latlong2").checked;
+		dojo.cookie("campos", campos2, { expires: 15 });
 		dojo.cookie("accordion", dijit.byId("accordion").selectedChildWidget.id, { expires: 15 });
 	});
 	
@@ -124,7 +126,8 @@ dojo.addOnLoad(function() {
 		}
 		//dojo.cookie("pagina", "", { expires: 15 });
 		dojo.cookie("textarea", dijit.byId("textarea_ids").value, { expires: 15 });
-		dojo.cookie("campos", dijit.byId("nome3").checked + "." + dijit.byId("endereco3").checked + "." + dijit.byId("ruacross3").checked + "." + dijit.byId("cidade3").checked + "." + dijit.byId("estado3").checked + "." + dijit.byId("cep3").checked + "." + dijit.byId("twitter3").checked + "." + dijit.byId("telefone3").checked + "." + dijit.byId("website3").checked + "." + dijit.byId("descricao3").checked + "." + dijit.byId("latlong3").checked, { expires: 15 });
+		var campos3 = dijit.byId("nome3").checked + "." + dijit.byId("endereco3").checked + "." + dijit.byId("ruacross3").checked + "." + dijit.byId("cidade3").checked + "." + dijit.byId("estado3").checked + "." + dijit.byId("cep3").checked + "." + dijit.byId("twitter3").checked + "." + dijit.byId("telefone3").checked + "." + dijit.byId("website3").checked + "." + dijit.byId("descricao3").checked + "." + dijit.byId("latlong3").checked;
+		dojo.cookie("campos", campos3, { expires: 15 });
 		dojo.cookie("accordion", dijit.byId("accordion").selectedChildWidget.id, { expires: 15 });
 	});
 	
@@ -150,7 +153,10 @@ dojo.addOnLoad(function() {
 		//dojo.cookie("pagina", "", { expires: 15 });
 		//dojo.cookie("textarea", "", { expires: 15 });
 		//dojo.cookie("ll", dijit.byId("ll").value, { expires: 15 });
-		dojo.cookie("campos", dijit.byId("nome4").checked + "." + dijit.byId("endereco4").checked + "." + dijit.byId("ruacross4").checked + "." + dijit.byId("cidade4").checked + "." + dijit.byId("estado4").checked + "." + dijit.byId("cep4").checked + "." + dijit.byId("twitter4").checked + "." + dijit.byId("telefone4").checked + "." + dijit.byId("website4").checked + "." + dijit.byId("descricao4").checked + "." + dijit.byId("latlong4").checked, { expires: 15 });
+		var campos4 = dijit.byId("nome4").checked + "." + dijit.byId("endereco4").checked + "." + dijit.byId("ruacross4").checked + "." + dijit.byId("cidade4").checked + "." + dijit.byId("estado4").checked + "." + dijit.byId("cep4").checked + "." + dijit.byId("twitter4").checked + "." + dijit.byId("telefone4").checked + "." + dijit.byId("website4").checked + ".";
+		(dijit.byId("descricao" + i).disabled) ? campos4 += "false." : campos4 += dijit.byId("descricao4").checked + ".";
+		campos4 += dijit.byId("latlong4").checked;
+		dojo.cookie("campos", campos4, { expires: 15 });
 		dojo.cookie("accordion", dijit.byId("accordion").selectedChildWidget.id, { expires: 15 });
 	});
 });
@@ -174,7 +180,7 @@ dojo.ready(function() {
 				dijit.byId("twitter" + i).attr("checked", (campos[6] === 'true'));
 				dijit.byId("telefone" + i).attr("checked", (campos[7] === 'true'));
 				dijit.byId("website" + i).attr("checked", (campos[8] === 'true'));
-				dijit.byId("descricao" + i).attr("checked", (campos[9] === 'true'));
+				(dijit.byId("descricao" + i).disabled) ? dijit.byId("descricao" + i).attr("checked", false) : dijit.byId("descricao" + i).attr("checked", (campos[9] === 'true'));
 				dijit.byId("latlong"	+ i).attr("checked", (campos[10] === 'true'));
 			}
 			dijit.byId("accordion").selectChild(dojo.cookie("accordion"), false);

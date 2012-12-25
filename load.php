@@ -3,13 +3,13 @@
 /**
  * List Venues Loader
  *
- * Carrega venues a partir de um endereco web, arquivo de texto ou IDs
+ * Carrega venues a partir de um endereço web, arquivo de texto ou IDs
  *
  * @category	 Foursquare
  * @package		 Foursquare-Mass-Editor-Tools
  * @author		 Elio Gavlinski <gavlinski@gmail.com>
  * @copyright	 Copyleft (c) 2011-2012
- * @version		 1.2
+ * @version		 1.3
  * @link			 https://github.com/gavlinski/Foursquare-Mass-Editor-Tools/blob/master/load.php
  * @since			 File available since Release 1.1
  */
@@ -27,7 +27,7 @@ if (!isset($_SESSION["oauth_token"])) {
 <meta http-equiv="cache-control" content="no-cache"/>
 <meta http-equiv="pragma" content="no-cache">
 <?php
-define("VERSION", "Venues Loader 1.1");
+define("VERSION", "Venues Loader 1.3");
 define("LINKS", '<link rel="shortcut icon" href="favicon.ico" type="image/x-icon"/>
 <link rel="stylesheet" type="text/css" href="js/dijit/themes/claro/claro.css"/>
 <link rel="stylesheet" type="text/css" href="estilo.css"/>
@@ -52,7 +52,7 @@ define("ERRO02", TEMPLATE1 . '<p>Erro na leitura do ID ou URL de uma das venues.
 define("ERRO03", TEMPLATE1 . '<p>Nenhuma venue encontrada no endere&ccedil;o informado.</p>
 <p>Verifique a p&aacute;gina e tente novamente.</p>
 ' . TEMPLATE2);
-define("ERRO99", '<meta http-equiv="refresh" content="5; url=index.html">
+define("ERRO99", '<meta http-equiv="refresh" content="5; url=index.php">
 ' . LINKS . '</head>
 <body>
 <p>Erro na leitura dos dados.</p>
@@ -67,6 +67,7 @@ if (isset($_FILES['txt']['tmp_name'])) {
 	if (is_uploaded_file($arquivo)) {
 		$_SESSION["file"] = validarVenues(filtrarArray(file($arquivo)));
 		$_SESSION["campos"] = $_POST["campos"];
+		setLocalCache("txt", implode('%0A,', $_SESSION["file"]), "venues");
 		echo EDIT;
 	}
 } else if (isset($_POST["pagina"])) {
@@ -78,6 +79,7 @@ if (isset($_FILES['txt']['tmp_name'])) {
 			exit;
 		} else {
 			$_SESSION["campos"] = $_POST["campos2"];
+			setLocalCache("txt", implode('%0A,', $_SESSION["file"]), "venues");
 			echo EDIT;
 		}
 	}
@@ -85,6 +87,7 @@ if (isset($_FILES['txt']['tmp_name'])) {
 	$lista = explode("\n", $_POST["textarea"]);
 	$_SESSION["file"] = validarVenues(filtrarArray($lista));
 	$_SESSION["campos"] = $_POST["campos3"];
+	setLocalCache("txt", implode('%0A,', $_SESSION["file"]), "venues");
 	echo EDIT;
 }
 echo ERRO99;
@@ -151,7 +154,7 @@ function validarVenues($lines) {
 				$i++;
 			}
 			$p->setProgressBarProgress($i*100/$size);
-			usleep(100000*0.1);
+			usleep(10000*0.1);
 		}
 		/*** break the reference with the last element ***/
 		unset($r);
@@ -187,7 +190,7 @@ function validarVenues($lines) {
 			}
 			$i++;
 			$p->setProgressBarProgress($i*100/$size);
-			usleep(100000*0.1);
+			usleep(10000*0.1);
 		}
 		/*** break the reference with the last element ***/
 		unset($line);
@@ -261,7 +264,7 @@ function parseVenues($html) {
 				}
 				$j++;
 				$p->setProgressBarProgress($j*100/$size);
-				usleep(100000*0.1);
+				usleep(10000*0.1);
 			}
 		} else {
 			$size = count($ret);
@@ -270,7 +273,7 @@ function parseVenues($html) {
 				$r = "https://foursquare.com/v/" . $venues[$i];
 				$i++;
 				$p->setProgressBarProgress($i*100/$size);
-				usleep(100000*0.1);
+				usleep(10000*0.1);
 			}
 			/*** break the reference with the last element ***/
 			unset($r);
@@ -287,4 +290,11 @@ function parseVenues($html) {
 		return false;
 	}
 }
+
+function setLocalCache($key, $data, $key2) {
+	print('<script type="text/javascript">'."\n\r".'	localStorage.setItem("'.$key.'", "'.$data.'");'."\n\r".'	localStorage.removeItem("'.$key2.'");'."\n\r".'</script>');
+	print str_pad('', intval(ini_get('output_buffering'))) . "\n\r";
+	flush();
+}
+
 ?>

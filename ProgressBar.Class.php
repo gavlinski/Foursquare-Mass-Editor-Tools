@@ -46,35 +46,35 @@ class ProgressBar {
 
 	function setProgressBarProgress($percentDone, $text = '') {
 		if ($this->indeterminate) {
-			print('<script type="text/javascript">'."\r".'document.getElementById("'.$this->pbarid.'").setAttribute("class", "pb_before");'."\r".'document.getElementById("'.$this->textid.'").style.display = "inline";'."\r".'</script>'."\r");
+			print('<script type="text/javascript">'."\n\r".'	document.getElementById("'.$this->pbarid.'").setAttribute("class", "pb_before");'."\n\r".'	document.getElementById("'.$this->textid.'").style.display = "inline";'."\n\r".'</script>'."\n\r");
 			$this->indeterminate = false;
 		}
 		$this->percentDone = $percentDone;
 		$text = $text ? $text : number_format($this->percentDone, $this->decimals, '.', '').'%';
-		print('<script type="text/javascript">'."\r".'if (document.getElementById("'.$this->pbarid.'")) {
-	document.getElementById("'.$this->pbarid.'").style.width = "'.$percentDone.'%";'."\r");
+		print('<script type="text/javascript">'."\n\r".'if (document.getElementById("'.$this->pbarid.'")) {
+	document.getElementById("'.$this->pbarid.'").style.width = "'.$percentDone.'%";'."\n\r");
 		if ($percentDone == 100) {
 			//print('document.getElementById("'.$this->pbid.'").style.display = "none";');
-			print(' document.getElementById("carregando").innerHTML = "Redirecionando&hellip;";
+			print('	document.getElementById("carregando").innerHTML = "Redirecionando&hellip;";
 	document.getElementById("'.$this->pbarid.'").setAttribute("class", "pb_indeterminate");
 	document.getElementById("'.$this->textid.'").style.display = "none";'."\r\n");
 		} else {
-			print(' document.getElementById("'.$this->tbarid.'").style.width = "'.(100-$percentDone).'%";'."\r\n");
+			print('	document.getElementById("'.$this->tbarid.'").style.width = "'.(100-$percentDone).'%";'."\r\n");
 		}
 		if ($text) {
-			print(' document.getElementById("'.$this->textid.'").innerHTML = "'.htmlspecialchars($text).'";'."\r\n");
+			print('	document.getElementById("'.$this->textid.'").innerHTML = "'.htmlspecialchars($text).'";'."\r\n");
 		}
-		print('}'."\r".'</script>'."\r");
+		print('}'."\n\r".'</script>');
 		$this->flush();
 	}
 	
 	function hide() {
-		print('<script type="text/javascript">'."\r".'document.getElementById("'.$this->pbid.'").style.display = "none";'."\r".'document.getElementById("carregando").style.display = "none";'."\r".'document.title = "Erro";'."\r".'</script>'."\r");
+		print('<script type="text/javascript">'."\n\r".'document.getElementById("'.$this->pbid.'").style.display = "none";'."\n\r".'document.getElementById("carregando").style.display = "none";'."\n\r".'document.title = "Erro";'."\n\r".'</script>'."\n\r");
 		$this->flush();
 	}
 
 	function flush() {
-		print str_pad('', intval(ini_get('output_buffering')))."\n";
+		print str_pad('', intval(ini_get('output_buffering')))."\n\r";
 		//ob_end_flush();
 		flush();
 	}

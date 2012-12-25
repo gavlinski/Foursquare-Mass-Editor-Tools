@@ -1,25 +1,37 @@
 <?php
 
+/**
+ * Foursquare Token Request
+ *
+ * Requisita um OAuth Token para autenticação do usuário
+ *
+ * @category	 Foursquare
+ * @package		 Foursquare-Mass-Editor-Tools
+ * @author		 Elio Gavlinski <gavlinski@gmail.com>
+ * @copyright	 Copyleft (c) 2012
+ * @version		 1.0
+ * @link			 https://github.com/gavlinski/Foursquare-Mass-Editor-Tools/blob/master/index.php
+ * @since			 File available since Release 1.5
+ */
+
 	require_once("FoursquareAPI.Class.php");
 
-	// This file is intended to be used as your redirect_uri for the client on Foursquare
-
-	// Set your client key and secret
+	/*** Set client key and secret ***/
 	$client_key = "3EZPQCWMPTP0TLV4SJNPOLMWJB4UVCBGMADXWQCYFU3MPIQZ";
 	$client_secret = "J2310KS05Z50PU44DUC0T0HPEYM2CEQKBBPROAGXMBACZRZG";
 	$redirect_uri = "http://localhost/4sqmet/index.php";
 
-	// Load the Foursquare API library
+	/*** Load the Foursquare API library ***/
 	$foursquare = new FoursquareAPI($client_key, $client_secret);
 
-	// If the link has been clicked, and we have a supplied code, use it to request a token
+	/*** If the link has been clicked, and we have a supplied code, use it to request a token ***/
 	if (isset($_COOKIE['oauth_token'])) {
 		$token = $_COOKIE['oauth_token'];
 	} else if (array_key_exists("code", $_GET)) {
 		$token = $foursquare->GetToken($_GET['code'], $redirect_uri);
 	}
 	
-	// If we have not received a token, display the link for Foursquare webauth
+	/*** If we have not received a token, display the link for Foursquare webauth ***/
 	if (!isset($token)) {
 
 ?>

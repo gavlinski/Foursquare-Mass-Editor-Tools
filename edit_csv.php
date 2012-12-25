@@ -19,7 +19,7 @@ if (isset($_SESSION["oauth_token"])) {
 	$oauth_token = $_SESSION["oauth_token"];
 	$file = $_SESSION["file"];
 } else {
-	header('Location: index.html'); /* Redirect browser */
+	header('Location: index.php'); /* Redirect browser */
 }
 ?>
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
@@ -31,7 +31,6 @@ if (isset($_SESSION["oauth_token"])) {
 <link rel="stylesheet" type="text/css" href="js/dijit/themes/claro/claro.css"/>
 <link rel="stylesheet" type="text/css" href="estilo.css"/>
 <script src="js/dojo/dojo.js" djConfig="parseOnLoad: true"></script>
-<script type="text/javascript">var oauth_token = "<?= $oauth_token ?>";</script>
 <script type="text/javascript" src="js/4sq_csv.js"></script>
 </head>
 <body class="claro">

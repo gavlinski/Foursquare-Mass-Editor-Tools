@@ -19,7 +19,7 @@ if (isset($_SESSION["oauth_token"])) {
 	$oauth_token = $_SESSION["oauth_token"];
 	$file = $_SESSION["file"];
 } else {
-	header('Location: index.html'); /* Redirect browser */
+	header('Location: index.php'); /* Redirect browser */
 }
 ?>
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">

@@ -459,7 +459,7 @@ if (isset($_SESSION["oauth_token"])) {
 								</label>
 							</div>
 							<div class="checkbox" style="width: 6.5em;">
-								<input id="descricao4" name="campos4[]" dojoType="dijit.form.CheckBox" value="descricao">
+								<input id="descricao4" name="campos4[]" dojoType="dijit.form.CheckBox" value="descricao" disabled="disabled">
 								<label for="descricao4">
 									Descri&ccedil;&atilde;o
 								</label>

@@ -9,7 +9,7 @@
  * @package		 Foursquare-Mass-Editor-Tools
  * @author		 Elio Gavlinski <gavlinski@gmail.com>
  * @copyright	 Copyleft (c) 2011-2012
- * @version		 1.2
+ * @version		 1.3
  * @link			 https://github.com/gavlinski/Foursquare-Mass-Editor-Tools/blob/master/load_csv.php
  * @since			 File available since Release 1.1
  */
@@ -27,7 +27,7 @@ if (!isset($_SESSION["oauth_token"])) {
 <meta http-equiv="cache-control" content="no-cache"/>
 <meta http-equiv="pragma" content="no-cache">
 <?php
-define("VERSION", "CSV Venues Editor 1.1");
+define("VERSION", "CSV Venues Editor 1.3");
 define("LINKS", '<link rel="shortcut icon" href="favicon.ico" type="image/x-icon"/>
 <link rel="stylesheet" type="text/css" href="js/dijit/themes/claro/claro.css"/>
 <link rel="stylesheet" type="text/css" href="estilo.css"/>
@@ -53,7 +53,7 @@ define("ERRO01", TEMPLATE1 . '<p>O limite da API &eacute; de 500 requisi&ccedil;
 define("ERRO02", TEMPLATE1 . '<p>Erro na leitura do cabe&ccedil;alho ou conjunto de caracteres inv&aacute;lido.</p>
 <p>Verifique o arquivo CSV e tente novamente.</p>
 ' . TEMPLATE2);
-define("ERRO99", '<meta http-equiv="refresh" content="5; url=index.html">
+define("ERRO99", '<meta http-equiv="refresh" content="5; url=index.php">
 ' . LINKS . '</head>
 <body>
 <p>Erro na leitura dos dados.</p>

@@ -8,30 +8,37 @@ dojo.require("dijit.Tooltip");
 dojo.require("dojo.data.ItemFileReadStore");
 dojo.require("dijit.Tree");
 dojo.require("dijit.Menu");
+dojo.require("dojo.cookie");
 
 var DATA_VERSIONAMENTO = "20120924";
 var MESES = new Array("01", "02", "03", "04", "05", "06", "07", "08", "09", "10", "11", "12");
-var SUCESSO = 0;
-var FALHA = -1;
+
+var oauth_token = dojo.cookie("oauth_token");
+var txt = "";
+var json = "";
+
+var csv = new Array();
+var relatorio = new Array();
+
+var categorias = new Array();
+var store = {};
+
+var timer;
 
 var totalCarregadas = 0;
 var totalNaoCarregadas = 0;
-var csv = new Array();
-var relatorio = new Array();
-var categorias = new Array();
-var store = {};
-var timer;
 
 var linhasEditadas = new Array();
-var totalLinhasEditadas = 0;
-var totalLinhasParaSalvar = 0;
-var totalLinhasSalvas = 0;
+var totalParaSalvar = 0;
+var totalEditadas = 0;
 
 var linhasSelecionadas = new Array();
-var totalLinhasSelecionadas = 0;
-var totalLinhasParaSinalizar = 0;
-var totalLinhasSinalizadas = 0;
+var totalSelecionadas = 0;
+var totalParaSinalizar = 0;
+var totalSinalizadas = 0;
 var linhaVenueComMaisCheckins = 0;
+
+var totalProgresso = 0;
 
 var acao = "";
 
@@ -50,76 +57,90 @@ function getDataHora() {
 	return dia + "/" + MESES[d.getMonth()] + "/" + d.getFullYear() + " " + horas + ":" + minutos + ":" + segundos;
 }
 
-function atualizarEditadas(i, imagem, item, dica, tipo) {
-	dojo.byId("result" + i).innerHTML = imagem;
+function atualizarDicaResultado(item, imagem, dica) {
+	dojo.byId(item).innerHTML = imagem;
 	createTooltip(item, dica);
-	if (tipo == SUCESSO) {
-		linhasEditadas.splice(linhasEditadas.indexOf(i), 1);
-		totalLinhasEditadas++;
-		dijit.byId("saveProgress").update({maximum: totalLinhasParaSalvar, progress: totalLinhasEditadas});
-		if (linhasEditadas.length > 1)
-			dijit.byId("dlg_save").set("title", "Salvando " + linhasEditadas.length + " venues...");
-		else if (linhasEditadas.length == 1)
-			dijit.byId("dlg_save").set("title", "Salvando 1 venue...");
-		else if (linhasEditadas.length == 0) {
-			dijit.byId("saveButton").setAttribute('disabled', false);
-			if (timer) {
-				clearTimeout(timer);
-				var title = totalLinhasSalvas + " de " + totalLinhasEditadas + " venue";
-				if (totalLinhasEditadas > 1)
-					title += "s";
-				if (totalLinhasSalvas == 0)
-					title += " editadas";
-				else if (totalLinhasSalvas == 1)
-					title += " editada com sucesso";
-				else
-					title += " editadas com sucesso";
-				dijit.byId("dlg_save").set("title", title);
-				timer = setTimeout(function fecharPbSalvar() {
-					dijit.byId("dlg_save").hide();
-				}, 3000);
-			} 
-		}
-		relatorio.push(new Array(document.forms[i]["name"].value, "editada", getDataHora(), document.forms[i]["venue"].value, dojo.byId("cna" + i).value, dijit.byId("textarea").value));
-		dijit.byId("menuItemExportarRelatorio").setAttribute("disabled", false);
+}
+
+function atualizarEditadas(i) {
+	linhasEditadas.splice(linhasEditadas.indexOf(i), 1);
+	totalEditadas++;
+	dijit.byId("saveProgress").update({maximum: totalParaSalvar, progress: totalEditadas});
+	if (linhasEditadas.length > 1)
+		dijit.byId("dlg_save").set("title", "Salvando " + linhasEditadas.length + " venues...");
+	else if (linhasEditadas.length == 1)
+		dijit.byId("dlg_save").set("title", "Salvando 1 venue...");
+	else if (linhasEditadas.length == 0) {
+		dijit.byId("saveButton").setAttribute('disabled', false);
+		var title = totalProgresso + " de " + totalEditadas + " venue";
+		if (totalEditadas > 1)
+			title += "s";
+		if (totalProgresso == 0)
+			title += " editadas";
+		else if (totalProgresso == 1)
+			title += " editada com sucesso";
+		else
+			title += " editadas com sucesso";
+		dijit.byId("dlg_save").set("title", title);
+		timer = setTimeout(function fecharPbSalvar() {
+			dijit.byId("dlg_save").hide();
+		}, 3000);
 	}
 }
 
-function atualizarSinalizadas(i, imagem, item, dica) {
-	dojo.byId("result" + i).innerHTML = imagem;
-	createTooltip(item, dica);
-	desabilitarLinha(i);
+function atualizarSinalizadas(i) {
 	linhasSelecionadas.splice(linhasSelecionadas.indexOf(parseInt(i)), 1);
-	totalLinhasSinalizadas++;
-	dijit.byId("saveProgress").update({maximum: totalLinhasParaSinalizar, progress: totalLinhasSinalizadas});
+	totalSinalizadas++;
+	dijit.byId("saveProgress").update({maximum: totalParaSinalizar, progress: totalSinalizadas});
 	if (linhasSelecionadas.length > 1)
 		dijit.byId("dlg_save").set("title", "Sinalizando " + linhasSelecionadas.length + " venues...");
 	else if (linhasSelecionadas.length == 1)
 		dijit.byId("dlg_save").set("title", "Sinalizando 1 venue...");
 	else if (linhasSelecionadas.length == 0) {
 		dijit.byId("menuSinalizar").setAttribute('disabled', false);
-		if (timer) {
-			clearTimeout(timer);
-			var title = totalLinhasSalvas + " de " + totalLinhasSinalizadas + " venue";
-			if (totalLinhasSinalizadas > 1)
-				title += "s";
-			if (totalLinhasSalvas == 0)
-				title += " sinalizadas";
-			else if (totalLinhasSalvas == 1)
-				title += " sinalizada com sucesso";
-			else
-				title += " sinalizadas com sucesso";
-			dijit.byId("dlg_save").set("title", title);
-			dijit.byId(dojo.query("input[name=selecao]")[linhaVenueComMaisCheckins].id).setChecked(false);
-			if (dojo.query("input[name=selecao]:enabled").length == 0)
-				dijit.byId("menuSelecionar").setAttribute('disabled', true);
-			timer = setTimeout(function fecharPbSalvar() {
-				dijit.byId("dlg_save").hide();
-			}, 3000);
-		} 
+		var title = totalProgresso + " de " + totalSinalizadas + " venue";
+		if (totalSinalizadas > 1)
+			title += "s";
+		if (totalProgresso == 0)
+			title += " sinalizadas";
+		else if (totalProgresso == 1)
+			title += " sinalizada com sucesso";
+		else
+			title += " sinalizadas com sucesso";
+		dijit.byId("dlg_save").set("title", title);
+		dijit.byId(dojo.query("input[name=selecao]")[linhaVenueComMaisCheckins].id).setChecked(false);
+		if (dojo.query("input[name=selecao]:enabled").length == 0)
+			dijit.byId("menuSelecionar").setAttribute('disabled', true);
+		timer = setTimeout(function fecharPbSalvar() {
+			dijit.byId("dlg_save").hide();
+		}, 3000);
 	}
-	relatorio.push(new Array(document.forms[i]["name"].value, "sinalizada", getDataHora(), document.forms[i]["venue"].value, categorias[i].nomes, dijit.byId("textarea").value));
-	dijit.byId("menuItemExportarRelatorio").setAttribute("disabled", false);
+}
+
+function atualizarFalhas(metodo, i, acao) {
+	if (metodo == "GET") {
+		desabilitarLinha(i);
+		totalNaoCarregadas++;
+		/*** Se tiver sido a última venue a ser carregada ***/
+		if (totalCarregadas == (document.forms.length - totalNaoCarregadas)) {
+			limparLinhasEditadas();
+			/*** Se nenhuma venue tiver sido carregada ***/
+			if (totalNaoCarregadas == document.forms.length) {
+				dijit.byId("menuSelecionar").setAttribute('disabled', true);
+				dijit.byId("menuExportar").setAttribute('disabled', true);
+			}
+		}
+	} else if (metodo == "POST") {
+		if (acao == "edit")
+			atualizarEditadas(i);
+		else if (acao == "flag")
+			atualizarSinalizadas(i);
+	}
+}
+
+function limparLinhasEditadas() {
+	linhasEditadas = [];
+	dijit.byId("saveButton").setAttribute('disabled', false);
 }
 
 function desabilitarLinha(i) {
@@ -143,29 +164,15 @@ function desabilitarLinha(i) {
 		linhasEditadas.splice(linhaEditada, 1);
 }
 
-function tratarErro(metodo, i) {
-	if (metodo == "GET") {
-		desabilitarLinha(i);
-		totalNaoCarregadas++;
-		/*** Se esta tiver sido a última venue carregada ***/
-		if (totalCarregadas == (document.forms.length - totalNaoCarregadas)) {
-			linhasEditadas = [];
-			dijit.byId("saveButton").setAttribute('disabled', false);
-			/*** Se nenhuma venue tiver sido carregada ***/
-			if (totalNaoCarregadas == document.forms.length) {
-				dijit.byId("menuSelecionar").setAttribute('disabled', true);
-				dijit.byId("menuExportar").setAttribute('disabled', true);
-			}
-		}
-	}
-}
-
 function compare(el1, el2, index) {
   return el1[index] == el2[index] ? 0 : (el1[index] < el2[index] ? -1 : 1);
 }
 
 function xmlhttpRequest(metodo, endpoint, dados, i) {
 	var xmlhttp = new XMLHttpRequest();
+	var item = "result" + i;
+	var imagem, dica;
+	var acao = endpoint.substr(-4);
 	xmlhttp.onreadystatechange = function() {
 		if (xmlhttp.readyState == 4) {
 			try {
@@ -175,22 +182,31 @@ function xmlhttpRequest(metodo, endpoint, dados, i) {
 			}
 			/*** O erro {"meta":{"code":400,"errorType":"param_error","errorDetail":"Must start with http:\/\/"}} é um bug da API que ocorre quando o campo url é enviado em branco. Mas mesmo dando erro, a venue é corretamente editada. ***/
 			if ((xmlhttp.status == 200) || ((xmlhttp.status == 400) && (resposta.meta.errorType == "param_error") && (resposta.meta.errorDetail == "Must start with http:\/\/"))) {
+				clearTimeout(xmlhttpTimeout);
 				if (metodo == "POST") {
-					if (endpoint.substr(-4) == "edit") {
+					imagem = "<img src='img/ok.png' alt='" + xmlhttp.responseText + "' style='vertical-align: middle;'>";
+					totalProgresso++;
+					if (acao == "edit") {
 						dojo.byId("info" + i).innerHTML = dojo.byId("info" + i).innerHTML.replace(/%0A/gi, "");
 						var dicaVenue = atualizarDicaVenue(i);
 						createTooltip("venLnk" + i, dicaVenue);
-						totalLinhasSalvas++;
-						atualizarEditadas(i, "<img src='img/ok.png' alt='" + xmlhttp.responseText + "' style='vertical-align: middle;'>", "result" + i, "<span style=\"font-size: 12px\">Editada com sucesso</span>", SUCESSO);
-					} else if (endpoint.substr(-4) == "flag") {
-						totalLinhasSalvas++;
-						atualizarSinalizadas(i, "<img src='img/ok.png' alt='" + xmlhttp.responseText + "' style='vertical-align: middle;'>", "result" + i, "<span style=\"font-size: 12px\">Sinalizada com sucesso</span>");
+						dica = "<span style=\"font-size: 12px\">Editada com sucesso</span>";
+						atualizarEditadas(i);
+						relatorio.push(new Array(document.forms[i]["name"].value, "editada", getDataHora(), document.forms[i]["venue"].value, dojo.byId("cna" + i).value, dijit.byId("textarea").value));
+						dijit.byId("menuItemExportarRelatorio").setAttribute("disabled", false);
+					} else if (acao == "flag") {
+						dica = "<span style=\"font-size: 12px\">Sinalizada com sucesso</span>";
+						desabilitarLinha(i);
+						atualizarSinalizadas(i);
+						relatorio.push(new Array(document.forms[i]["name"].value, "sinalizada", getDataHora(), document.forms[i]["venue"].value, categorias[i].nomes, dijit.byId("textarea").value));
+						dijit.byId("menuItemExportarRelatorio").setAttribute("disabled", false);
 					}
+					atualizarDicaResultado(item, imagem, dica);
 				} else if ((metodo == "GET") && (resposta.response.categories == undefined)) {
-					//console.info("Venue recuperada!");
+					console.info("Venue " + i + " recuperada!");
 					atualizarTabela(resposta, i);
 				} else if (resposta.response.categories != undefined) {
-					//console.info("Categorias recuperadas!");
+					console.info("Categorias recuperadas!");
 					/*** Organiza em ordem alfabética o segundo e terceiro níveis das categorias ***/
 					for (j = 0; j < resposta.response.categories.length; j++) {
 						resposta.response.categories[j].categories.sort(function(el1, el2) {
@@ -204,36 +220,59 @@ function xmlhttpRequest(metodo, endpoint, dados, i) {
 					}
 					montarArvore(resposta);
 				}
-			} else if (xmlhttp.status == 400) {
-				tratarErro(metodo, i);
-				atualizarEditadas(i, "<img src='img/erro.png' alt='Erro 400: Bad Request, Tipo: " + resposta.meta.errorType + ", Detalhe: " + resposta.meta.errorDetail + "'>", "result" + i, "<span style=\"font-size: 12px\">Erro 400: Bad Request, Tipo: " + resposta.meta.errorType + ",<br>Detalhe: " + resposta.meta.errorDetail + "</span>", FALHA);
-			} else if (xmlhttp.status == 401) {
-				tratarErro(metodo, i);
-				atualizarEditadas(i, "<img src='img/erro.png' alt='Erro 401: Unauthorized, Tipo: " + resposta.meta.errorType + ", Detalhe: " + resposta.meta.errorDetail + "'>", "result" + i, "<span style=\"font-size: 12px\">Erro 401: Unauthorized, Tipo: " + resposta.meta.errorType + ",<br>Detalhe: " + resposta.meta.errorDetail + "</span>", FALHA);
-			} else if (xmlhttp.status == 403) {
-				tratarErro(metodo, i);
-				atualizarEditadas(i, "<img src='img/erro.png' alt='Erro 403: Forbidden, Tipo: " + resposta.meta.errorType + ", Detalhe: " + resposta.meta.errorDetail + "'>", "result" + i, "<span style=\"font-size: 12px\">Erro 403: Forbidden, Tipo: " + resposta.meta.errorType + ",<br>Detalhe: " + resposta.meta.errorDetail + "</span>", FALHA);
-			} else if (xmlhttp.status == 404) {
-				tratarErro(metodo, i);
-				atualizarEditadas(i, "<img src='img/erro.png' alt='Erro 404: Not Found'>", "result" + i, "<span style=\"font-size: 12px\">Erro 404: Not Found</span>", FALHA);
-			} else if (xmlhttp.status == 405) {
-				tratarErro(metodo, i);
-				atualizarEditadas(i, "<img src='img/erro.png' alt='Erro 405: Method Not Allowed'>", "result" + i, "<span style=\"font-size: 12px\">Erro 405: Method Not Allowed</span>", FALHA);
-			} else if (xmlhttp.status == 409) {
-				tratarErro(metodo, i);
-				atualizarEditadas(i, "<img src='img/erro.png' alt='Erro 409: Conflict'>", "result" + i, "<span style=\"font-size: 12px\">Erro 409: Conflict</span>", FALHA);
-			} else if (xmlhttp.status == 500) {
-				tratarErro(metodo, i);
-				atualizarEditadas(i, "<img src='img/erro.png' alt='Erro 500: Internal Server Error'>", "result" + i, "<span style=\"font-size: 12px\">Erro 500: Internal Server Error</span>", FALHA);
 			} else {
-				tratarErro(metodo, i);
-				atualizarEditadas(i, "<img src='img/erro.png' alt='Erro desconhecido: " + xmlhttp.status + "'>", "result" + i, "<span style=\"font-size: 12px\">Erro desconhecido: " + xmlhttp.status + "</span>", FALHA);
+				clearTimeout(xmlhttpTimeout);
+				atualizarFalhas(metodo, i, acao);
+				switch (xmlhttp.status) {
+				case 400:
+					imagem = "<img src='img/erro.png' alt='Erro 400: Bad Request, Tipo: " + resposta.meta.errorType + ", Detalhe: " + resposta.meta.errorDetail + "'>";
+					dica = "<span style=\"font-size: 12px\">Erro 400: Bad Request, Tipo: " + resposta.meta.errorType + ",<br>Detalhe: " + resposta.meta.errorDetail + "</span>";
+					break;
+				case 401:
+					imagem = "<img src='img/erro.png' alt='Erro 401: Unauthorized, Tipo: " + resposta.meta.errorType + ", Detalhe: " + resposta.meta.errorDetail + "'>";
+					dica = "<span style=\"font-size: 12px\">Erro 401: Unauthorized, Tipo: " + resposta.meta.errorType + ",<br>Detalhe: " + resposta.meta.errorDetail + "</span>";
+					break;
+				case 403:
+					imagem = "<img src='img/erro.png' alt='Erro 403: Forbidden, Tipo: " + resposta.meta.errorType + ", Detalhe: " + resposta.meta.errorDetail + "'>";
+					dica = "<span style=\"font-size: 12px\">Erro 403: Forbidden, Tipo: " + resposta.meta.errorType + ",<br>Detalhe: " + resposta.meta.errorDetail + "</span>";
+					break;
+				case 404:
+					imagem = "<img src='img/erro.png' alt='Erro 404: Not Found'>";
+					dica = "<span style=\"font-size: 12px\">Erro 404: Not Found</span>";
+					break;
+				case 405:
+					imagem = "<img src='img/erro.png' alt='Erro 405: Method Not Allowed'>";
+					dica = "<span style=\"font-size: 12px\">Erro 405: Method Not Allowed</span>";
+					break;
+				case 409:
+					imagem  = "<img src='img/erro.png' alt='Erro 409: Conflict'>";
+					dica = "<span style=\"font-size: 12px\">Erro 409: Conflict</span>";
+					break;
+				case 500:
+					imagem = "<img src='img/erro.png' alt='Erro 500: Internal Server Error'>";
+					dica = "<span style=\"font-size: 12px\">Erro 500: Internal Server Error</span>";
+					break;
+				default:
+					imagem = "<img src='img/erro.png' alt='Erro desconhecido: " + xmlhttp.status + "'>";
+					dica = "<span style=\"font-size: 12px\">Erro desconhecido: " + xmlhttp.status + "</span>";
+				} // switch
+				atualizarDicaResultado(item, imagem, dica);
 			}
 		}
 	}
 	xmlhttp.open(metodo, endpoint, true);
 	xmlhttp.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
 	xmlhttp.send(dados);
+	var xmlhttpTimeout = setTimeout(function ajaxTimeout() {
+		xmlhttp.abort();
+		console.info(metodo + " (" + i + ")" + " abortado!");
+		if (i != null) {
+			atualizarFalhas(metodo, i, acao);
+			imagem = "<img src='img/erro.png' alt='Erro: Request Timed Out'>";
+			dica = "<span style=\"font-size: 12px\">Erro: Request Timed Out</span>";
+			atualizarDicaResultado(item, imagem, dica);
+		}
+	}, 60000);
 	return false;
 }
 
@@ -413,10 +452,7 @@ function atualizarTabela(resposta, i) {
 	totalCarregadas++;
 	if (totalCarregadas == (document.forms.length - totalNaoCarregadas)) {
 		/*** Necessário adicionar 1 segundo de atraso após término do carregamento ***/
-		timer = setTimeout(function limparLinhasEditadas() {
-			linhasEditadas = [];
-			dijit.byId("saveButton").setAttribute('disabled', false);
-		}, 1000);
+		timer = setTimeout(limparLinhasEditadas(), 1000);
 	}
 	var linha = "";
 	categorias[i] = new Categoria();
@@ -586,11 +622,13 @@ function atualizarTabela(resposta, i) {
 		dojo.byId("icone" + i).innerHTML = "<a id='catLnk" + i + "' href='javascript:editarCategorias(" + i + ")'><img id=catImg" + i + " src='" + categorias[i].icones.split(",", 1)[0] + "' style='height: 22px; width: 22px; margin-left: 0px'></a>";
 		createTooltip("catLnk" + i, "<span style=\"font-size: 12px\">" + categorias[i].nomes.replace(/,/gi, ", ") + "</span>");
 	}
-	document.forms[i]["createdAt"].value = formattedTime(resposta.response.venue.createdAt);
+	if (resposta.response.venue.createdAt != undefined)
+		document.forms[i]["createdAt"].value = formattedTime(resposta.response.venue.createdAt);
 	document.forms[i]["checkinsCount"].value = resposta.response.venue.stats.checkinsCount;
 	document.forms[i]["usersCount"].value = resposta.response.venue.stats.usersCount;
 	document.forms[i]["tipCount"].value = resposta.response.venue.stats.tipCount;
-	document.forms[i]["photosCount"].value = resposta.response.venue.photos.count;
+	if (resposta.response.venue.photos.count != undefined)
+	  document.forms[i]["photosCount"].value = resposta.response.venue.photos.count;
 	(resposta.response.venue.closed == undefined) ? document.forms[i]["isClosed"].value = false : document.forms[i]["isClosed"].value = true;
 	var dicaVenue = atualizarDicaVenue(i);
 	createTooltip("venLnk" + i, dicaVenue);
@@ -685,29 +723,42 @@ function treeOnClick(item) {
 	}
 }
 
-function carregarVenues() {
+function carregarDadosVenues() {
 	var venue;
-	//console.info("Recuperando dados das venues...");
+	console.info("Recuperando dados das venues...");
 	var linhas = document.forms.length;
-	for (i = 0; i < linhas; i++) {
-		venue = document.forms[i]["venue"].value;
-		xmlhttpRequest("GET", "https://api.foursquare.com/v2/venues/" + venue + "?oauth_token=" + oauth_token + "&v=" + DATA_VERSIONAMENTO, null, i);
-		dojo.byId("result" + i).innerHTML = "<img src='img/loading.gif' alt='Recuperando dados...'>";
-	}
+	if (localStorage && localStorage.getItem('venues'))
+		json = JSON.parse(localStorage.getItem('venues'));
+	if (json == "")
+		for (i = 0; i < linhas; i++) {
+			venue = document.forms[i]["venue"].value;
+			xmlhttpRequest("GET", "https://api.foursquare.com/v2/venues/" + venue + "?oauth_token=" + oauth_token + "&v=" + DATA_VERSIONAMENTO, null, i);
+			dojo.byId("result" + i).innerHTML = "<img src='img/loading.gif' alt='Recuperando dados...'>";
+		}
+	/*else {
+		try {
+			var resposta = JSON.parse(json);
+		} catch(err) {
+			return false;
+		}
+		for (i = 0; i < linhas; i++) {
+			atualizarTabela(resposta, i);
+		}
+	}*/
 	//console.info("Venues recuperadas!");
 }
 
 function salvarVenues() {
-	totalLinhasEditadas = 0;
-	totalLinhasParaSalvar = linhasEditadas.length;
-	totalLinhasSalvas = 0;
-	dijit.byId("saveProgress").update({maximum: totalLinhasParaSalvar, progress: totalLinhasEditadas});
-	(totalLinhasParaSalvar > 1) ? dijit.byId("dlg_save").set("title", "Salvando " + totalLinhasParaSalvar + " venues...") : dijit.byId("dlg_save").set("title", "Salvando 1 venue...");
+	totalEditadas = 0;
+	totalParaSalvar = linhasEditadas.length;
+	totalProgresso = 0;
+	dijit.byId("saveProgress").update({maximum: totalParaSalvar, progress: totalEditadas});
+	(totalParaSalvar > 1) ? dijit.byId("dlg_save").set("title", "Salvando " + totalParaSalvar + " venues...") : dijit.byId("dlg_save").set("title", "Salvando 1 venue...");
 	dijit.byId("dlg_save").show();
 	dijit.byId("saveButton").setAttribute("disabled", true);
 	var i, venue, dados, ll, elementName, categoryId;
-	//console.info("Enviando dados...");
-	for (l = 0; l < totalLinhasParaSalvar; l++) {
+	console.info("Enviando dados...");
+	for (l = 0; l < totalParaSalvar; l++) {
 		i = linhasEditadas[l];
 		dados = "oauth_token=" + oauth_token;
 		var colunas = document.forms[i].elements.length - 8;
@@ -737,23 +788,20 @@ function salvarVenues() {
 		xmlhttpRequest("POST", "https://api.foursquare.com/v2/venues/" + venue + "/edit", dados, i);
 		dojo.byId("result" + i).innerHTML = "<img src='img/loading.gif' alt='Enviando dados...'>";
 	}
-	//console.info("Dados enviados!");
-	timer = setTimeout(function reabilitarSalvar() {
-		dijit.byId("saveButton").setAttribute('disabled', false);
-	}, 60000);
+	console.info("Dados enviados!");
 }
 
 function sinalizarVenues(problema) {
 	//dojo.query("input[name=selecao]:checked").forEach("console.log(dijit.byId(item.id).value)");
 	linhasSelecionadas = dojo.query("input[name=selecao]:checked");
-	totalLinhasSinalizadas = 0;
+	totalSinalizadas = 0;
 	if (problema == "duplicate") {
 		/*** Verifica qual a venue que possui mais check-ins ***/
 		var linhaComMaisCheckins = 0;
 		var checkinsCount = parseInt(dojo.byId("vcc" + linhasSelecionadas[linhaComMaisCheckins].value).value);
 		var venueId = document.forms[linhasSelecionadas[linhaComMaisCheckins].value]["venue"].value;
 		var checkins = 0;
-		for (l = 1; l < totalLinhasSelecionadas; l++) {
+		for (l = 1; l < totalSelecionadas; l++) {
 			checkins = parseInt(dojo.byId("vcc" + linhasSelecionadas[l].value).value);
 			if (checkins > checkinsCount) {
 				linhaComMaisCheckins = l;
@@ -763,18 +811,18 @@ function sinalizarVenues(problema) {
 		}
 		linhaVenueComMaisCheckins = parseInt(linhasSelecionadas[linhaComMaisCheckins].value);
 		linhasSelecionadas.splice(linhaComMaisCheckins, 1);
-		totalLinhasParaSinalizar = totalLinhasSelecionadas - 1;
+		totalParaSinalizar = totalSelecionadas - 1;
 	} else {
-		totalLinhasParaSinalizar = totalLinhasSelecionadas;
+		totalParaSinalizar = totalSelecionadas;
 	}
-	totalLinhasSalvas = 0;
-	dijit.byId("saveProgress").update({maximum: totalLinhasParaSinalizar, progress: totalLinhasSinalizadas});
-	(totalLinhasParaSinalizar > 1) ? dijit.byId("dlg_save").set("title", "Sinalizando " + totalLinhasParaSinalizar + " venues...") : dijit.byId("dlg_save").set("title", "Sinalizando 1 venue...");
+	totalProgresso = 0;
+	dijit.byId("saveProgress").update({maximum: totalParaSinalizar, progress: totalSinalizadas});
+	(totalParaSinalizar > 1) ? dijit.byId("dlg_save").set("title", "Sinalizando " + totalParaSinalizar + " venues...") : dijit.byId("dlg_save").set("title", "Sinalizando 1 venue...");
 	dijit.byId("dlg_save").show();
 	dijit.byId("menuSinalizar").setAttribute("disabled", true);
 	var venue, dados;
-	//console.info("Enviando dados...");
-	for (l = 0; l < totalLinhasParaSinalizar; l++) {
+	console.info("Enviando dados...");
+	for (l = 0; l < totalParaSinalizar; l++) {
 		i = linhasSelecionadas[l].value;
 		venue = document.forms[i]["venue"].value;
 		dados = "oauth_token=" + oauth_token + "&problem=" + problema + "&v=" + DATA_VERSIONAMENTO;
@@ -786,10 +834,7 @@ function sinalizarVenues(problema) {
 		xmlhttpRequest("POST", "https://api.foursquare.com/v2/venues/" + venue + "/flag", dados, i);
 		dojo.byId("result" + i).innerHTML = "<img src='img/loading.gif' alt='Enviando dados...'>";
 		}
-	//console.info("Dados enviados!");
-	timer = setTimeout(function reabilitarSinalizar() {
-		dijit.byId("menuSinalizar").setAttribute('disabled', false);
-	}, 60000);
+	console.info("Dados enviados!");
 }
 
 function selecionarTodas(valor) {
@@ -802,7 +847,7 @@ function selecionarTodas(valor) {
 }
 
 function carregarListaCategorias() {
-	//console.info("Recuperando dados das categorias...");
+	console.info("Recuperando dados das categorias...");
 	xmlhttpRequest("GET", "https://api.foursquare.com/v2/venues/categories" + "?oauth_token=" + oauth_token + "&v=" + DATA_VERSIONAMENTO, null, null);
 }
 
@@ -816,17 +861,16 @@ function pad(str, len, pad, dir) {
 	if (typeof(dir) == "undefined") { var dir = STR_PAD_RIGHT; }
 	if (len + 1 >= str.length) {
 		switch (dir) {
-			case STR_PAD_LEFT:
-				str = Array(len + 1 - str.length).join(pad) + str;
+		case STR_PAD_LEFT:
+			str = Array(len + 1 - str.length).join(pad) + str;
 			break;
-			case STR_PAD_BOTH:
-				var right = Math.ceil((padlen = len - str.length) / 2);
-				var left = padlen - right;
-				str = Array(left + 1).join(pad) + str + Array(right + 1).join(pad);
+		case STR_PAD_BOTH:
+			var right = Math.ceil((padlen = len - str.length) / 2);
+			var left = padlen - right;
+			str = Array(left + 1).join(pad) + str + Array(right + 1).join(pad);
 			break;
-			default:
-				str = str + Array(len + 1 - str.length).join(pad);
-			break;
+		default:
+			str = str + Array(len + 1 - str.length).join(pad);
 		} // switch
 	}
 	return str;
@@ -954,7 +998,7 @@ dojo.addOnLoad(function inicializar() {
 			var j = 0;
 			var l = arq.length;
 			linhasSelecionadas = [];
-			if (totalLinhasSelecionadas > 0) {
+			if (totalSelecionadas > 0) {
 				dojo.query("input[name=selecao]:checked").forEach("linhasSelecionadas.push(dijit.byId(item.id).value)");
 				for (i = 0; i < l; i++) {
 					if (linhasSelecionadas.indexOf(i.toString()) == -1)
@@ -1028,7 +1072,11 @@ dojo.addOnLoad(function inicializar() {
 		id: "progButton"
 	});
 	dojo.byId("dropdownButtonContainer").appendChild(button.domNode);
-	carregarVenues();
+	
+	if (localStorage && localStorage.getItem('txt'))
+		txt = localStorage.getItem("txt").split(',');
+	
+	carregarDadosVenues();
 	carregarListaCategorias();
 });
 
@@ -1081,7 +1129,7 @@ function verificarAlteracao(textbox, i) {
 }
 
 function atualizarItensMenuMais(i) {
-	totalLinhasSelecionadas = dojo.query("input[name=selecao]:checked").length;
-	(totalLinhasSelecionadas > 0) ? dijit.byId("menuSinalizar").setAttribute("disabled", false) : dijit.byId("menuSinalizar").setAttribute("disabled", true);
-	(totalLinhasSelecionadas > 1) ? dijit.byId("menuItemSinalizarDuplicate").setAttribute("disabled", false) : dijit.byId("menuItemSinalizarDuplicate").setAttribute("disabled", true);
+	totalSelecionadas = dojo.query("input[name=selecao]:checked").length;
+	(totalSelecionadas > 0) ? dijit.byId("menuSinalizar").setAttribute("disabled", false) : dijit.byId("menuSinalizar").setAttribute("disabled", true);
+	(totalSelecionadas > 1) ? dijit.byId("menuItemSinalizarDuplicate").setAttribute("disabled", false) : dijit.byId("menuItemSinalizarDuplicate").setAttribute("disabled", true);
 }
