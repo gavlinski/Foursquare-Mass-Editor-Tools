@@ -6,12 +6,30 @@ dojo.require("dijit.Menu");
 dojo.require("dojo.cookie");
 
 var DATA_VERSIONAMENTO = "20120924";
+var MESES = new Array("01", "02", "03", "04", "05", "06", "07", "08", "09", "10", "11", "12");
 
 var oauth_token = dojo.cookie("oauth_token");
+
+var relatorio = new Array();
 
 var total = 0;
 var timer;
 var categorias = new Array();
+
+function addZero(i) {
+	if (i < 10)
+		i = "0" + i;
+	return i;
+}
+
+function getDataHora() {
+	var d = new Date();
+	var dia = addZero(d.getDate());
+	var horas = addZero(d.getHours());
+	var minutos = addZero(d.getMinutes());
+	var segundos = addZero(d.getSeconds());
+	return dia + "/" + MESES[d.getMonth()] + "/" + d.getFullYear() + " " + horas + ":" + minutos + ":" + segundos;
+}
 
 function atualizarResultado(i, imagem, dica) {
 	var item = "result" + i;
@@ -29,6 +47,7 @@ function atualizarResultado(i, imagem, dica) {
 
 function xmlhttpRequest(metodo, endpoint, dados, i) {
 	var xmlhttp = new XMLHttpRequest();
+	var acao = endpoint.substr(-4);
 	xmlhttp.onreadystatechange = function() {
 		if (xmlhttp.readyState == 4) {
 			try {
@@ -41,6 +60,11 @@ function xmlhttpRequest(metodo, endpoint, dados, i) {
 				clearTimeout(xmlhttpTimeout);
 				if (metodo == "POST") {
 					atualizarResultado(i, "<img src='img/ok.png' alt='" + xmlhttp.responseText + "' style='vertical-align: middle;'>", "<span style=\"font-size: 12px\">Editada com sucesso</span>");
+					if (acao == "edit")
+						relatorio.push(new Array(document.forms[i]["name"].value, "editada", getDataHora(), document.forms[i]["venue"].value, recuperarNomesCategorias(categoryId, ",")));
+					else if (acao == "flag")
+						relatorio.push(new Array(document.forms[i]["name"].value, "sinalizada", getDataHora(), document.forms[i]["venue"].value, recuperarNomesCategorias(categoryId, ",")));
+					dijit.byId("menuItemExportarRelatorio").setAttribute("disabled", false);
 				} else if (metodo == "GET") {
 					console.info("Categorias recuperadas!");
 					montarTabela(resposta);
@@ -112,15 +136,19 @@ function montarTabela(resposta) {
 	}));
 }
 
+function recuperarNomesCategorias(categoryId, separador) {
+	var nomes = "";
+	for (j = 0; j < categoryId.length; j++)
+		if (categoryId[j] in categorias)
+			nomes += categorias[categoryId[j]].nome + separador;
+	return nomes.slice(0, -2);
+}
+
 function salvarCategoria(i) {
 	categoryId = document.forms[i]["categoryId"].value.split(",", 3);
 	if ((categoryId[0] != "") && (categoryId[0] != " ") && (categoryId[0] in categorias)) {
 		dojo.byId("icone" + i).innerHTML = "<img id=catImg" + i + " src='" + categorias[categoryId[0]].icone + "' style='height: 22px; width: 22px; margin-left: 0px'>";
-		nomes = "";
-		for (j = 0; j < categoryId.length; j++)
-			if (categoryId[j] in categorias)
-				nomes += categorias[categoryId[j]].nome + ", ";
-		createTooltip("catImg" + i, "<span style=\"font-size: 12px\">" + nomes.slice(0, -2) + "</span>");
+		createTooltip("catImg" + i, "<span style=\"font-size: 12px\">" + recuperarNomesCategorias(categoryId, ", ") + "</span>");
 	} else {
 		dojo.byId("icone" + i).innerHTML = "<img id=catImg" + i + " src='https://foursquare.com/img/categories_v2/none_bg_32.png' style='height: 22px; width: 22px; margin-left: 0px'>";
 	}
@@ -195,6 +223,31 @@ function carregarListaCategorias() {
 	xmlhttpRequest("GET", "https://api.foursquare.com/v2/venues/categories" + "?oauth_token=" + oauth_token + "&v=" + DATA_VERSIONAMENTO, null, null);
 }
 
+var STR_PAD_LEFT = 1;
+var STR_PAD_RIGHT = 2;
+var STR_PAD_BOTH = 3;
+
+function pad(str, len, pad, dir) {
+	if (typeof(len) == "undefined") { var len = 0; }
+	if (typeof(pad) == "undefined") { var pad = ' '; }
+	if (typeof(dir) == "undefined") { var dir = STR_PAD_RIGHT; }
+	if (len + 1 >= str.length) {
+		switch (dir) {
+		case STR_PAD_LEFT:
+			str = Array(len + 1 - str.length).join(pad) + str;
+			break;
+		case STR_PAD_BOTH:
+			var right = Math.ceil((padlen = len - str.length) / 2);
+			var left = padlen - right;
+			str = Array(left + 1).join(pad) + str + Array(right + 1).join(pad);
+			break;
+		default:
+			str = str + Array(len + 1 - str.length).join(pad);
+		} // switch
+	}
+	return str;
+}
+
 var dlg_guia;
 dojo.addOnLoad(function() {
 	// create the dialog:
@@ -202,8 +255,9 @@ dojo.addOnLoad(function() {
 		title: "Guia de estilo",
 		style: "width: 435px"
 	});
-	if (dojo.query('#dropdownButtonContainer').length != 0) {
-		var menu = new dijit.Menu({
+	
+	if (dojo.query('#dropdownButtonContainer1').length != 0) {
+		var menu1 = new dijit.Menu({
 			style: "display: none;"
 		});
 		var menuItem1 = new dijit.MenuItem({
@@ -212,22 +266,73 @@ dojo.addOnLoad(function() {
 				sinalizarVenues("inappropriate");
 			}
 		});
-		menu.addChild(menuItem1);
+		menu1.addChild(menuItem1);
 		var menuItem2 = new dijit.MenuItem({
 			label: "Doesn't exist",
 			onClick: function() {
 				sinalizarVenues("doesnt_exist");
 			}
 		});
-		menu.addChild(menuItem2);
-		var button = new dijit.form.DropDownButton({
+		menu1.addChild(menuItem2);
+		var button1 = new dijit.form.DropDownButton({
 			label: "Flag",
 			name: "menuButton",
-			dropDown: menu,
+			dropDown: menu1,
 			id: "flagButton"
 		});
-		dojo.byId("dropdownButtonContainer").appendChild(button.domNode);
+		dojo.byId("dropdownButtonContainer1").appendChild(button1.domNode);
 	}
+	
+	var menu2 = new dijit.Menu({
+		style: "display: none;"
+	});
+	var menu2Item1 = new dijit.MenuItem({
+		label: "Relat&oacute;rio",
+		id: "menuItemExportarRelatorio",
+		disabled: true,
+		onClick: function() {
+			var NAME_MAX_SIZE = 5;
+			var ACTION_MAX_SIZE = 7;
+			var CATEGORIES_MAX_SIZE = 11;
+			var COL_NAME = 0;
+			var COL_ACTION = 1;
+			var COL_DATETIME = 2;
+			var COL_ID = 3;
+			var COL_CATEGORIES = 4;
+			var j = 0;
+			for (i = 0; i < relatorio.length; i++) {
+				if (relatorio[i][COL_NAME] == undefined)
+				  relatorio[i][COL_NAME] = "";
+				if (relatorio[i][COL_NAME].length > NAME_MAX_SIZE)
+					NAME_MAX_SIZE = relatorio[i][COL_NAME].length;
+				if (relatorio[i][COL_ACTION].length >= ACTION_MAX_SIZE)
+					ACTION_MAX_SIZE = relatorio[i][COL_ACTION].length;
+				if (relatorio[i][COL_CATEGORIES] == undefined)
+				  relatorio[i][COL_CATEGORIES] = "";
+				if (relatorio[i][COL_CATEGORIES].length > CATEGORIES_MAX_SIZE)
+					CATEGORIES_MAX_SIZE = relatorio[i][COL_CATEGORIES].length;
+			}
+			var html = new Array();
+			html[0] = "<!DOCTYPE html><html><head><meta http-equiv=\"text/html; charset=iso-8859-1\"></head><body><pre>";
+			html[1] = pad("name", NAME_MAX_SIZE + 1) + pad("action", ACTION_MAX_SIZE + 1) + pad("date", 11) + pad("time", 9) + pad("id", 25) + pad("categories", CATEGORIES_MAX_SIZE);
+			var j = 2;
+			for (i = 0; i < relatorio.length; i++) {
+				html[j] = pad(relatorio[i][COL_NAME], NAME_MAX_SIZE + 1) + pad(relatorio[i][COL_ACTION], ACTION_MAX_SIZE + 1) + relatorio[i][COL_DATETIME] + " " + relatorio[i][COL_ID] + " " + pad(relatorio[i][COL_CATEGORIES], CATEGORIES_MAX_SIZE + 1);
+				j++;
+			}
+			html.push("</pre></body></html>");
+			window.open("data:text/html;charset=iso-8859-1," + escape(html.join("\r\n")));
+		}
+	});
+	menu2.addChild(menu2Item1);	 
+	var button2 = new dijit.form.DropDownButton({
+		label: "Exportar",
+		name: "menuExportar",
+		dropDown: menu2,
+		id: "exportButton"
+	});
+	dojo.byId("dropdownButtonContainer2").appendChild(button2.domNode);
+	
 	if (dojo.query('#icone0').length != 0)
 		carregarListaCategorias();
 });

@@ -31,7 +31,6 @@ if (isset($_SESSION["oauth_token"])) {
 <link rel="stylesheet" type="text/css" href="js/dijit/themes/claro/claro.css"/>
 <link rel="stylesheet" type="text/css" href="estilo.css"/>
 <script src="js/dojo/dojo.js" djConfig="parseOnLoad: true"></script>
-<script type="text/javascript">var oauth_token = "<?= $oauth_token ?>";</script>
 <script type="text/javascript" src="js/4sq_csv.js"></script>
 </head>
 <body class="claro">
@@ -190,10 +189,11 @@ foreach ($file as $f) {
 ?>
 </div>
 <div>
-<div id="dropdownButtonContainer" style="float: left; padding-right: 3px; margin-left: 0px; margin-bottom: 15px"></div>
+<div id="dropdownButtonContainer1" style="float: left; padding-right: 3px; margin-left: 0px; margin-bottom: 15px"></div>
 </div>
 <!--<button id="flagButton" dojoType="dijit.form.Button" type="submit" name="flagButton" onclick="sinalizarVenues()" style="float: left; padding-right: 3px;">Flag</button>-->
 <button id="cancelButton" dojoType="dijit.form.Button" type="button" onclick="history.go(-1)" name="cancelButton" style="float: left">Cancelar</button>
+<div id="dropdownButtonContainer2" style="float: left"></div>
 </div>
 </body>
 </html>

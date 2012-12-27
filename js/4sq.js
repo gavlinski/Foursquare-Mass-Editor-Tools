@@ -40,7 +40,7 @@ var linhaVenueComMaisCheckins = 0;
 
 var totalProgresso = 0;
 
-var acao = "";
+var actionButton = "";
 
 function addZero(i) {
 	if (i < 10)
@@ -1104,7 +1104,7 @@ function showDialogComment(caller) {
 		dojo.byId("result" + i).innerHTML = "";
 	if (((caller == "saveButton") && (linhasEditadas.length > 0)) || (caller != "saveButton"))
 		dijit.byId('dlg_comment').show();
-	acao = caller;
+	actionButton = caller;
 }
 //var node = dojo.byId("forms");
 //dojo.connect(node, "onkeypress", function(e) {

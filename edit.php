@@ -210,7 +210,7 @@ id="saveProgress">
 		<textarea id="textarea" name="textarea" data-dojo-type="dijit/form/Textarea" maxLength="200" trim="true"></textarea>
 	</div>
 	<div class="dijitDialogPaneActionBar">
-		<button data-dojo-type="dijit.form.Button" type="submit" id="saveCommentButton" data-dojo-props="onClick:function(){ (acao == 'saveButton') ? salvarVenues() : sinalizarVenues(acao); }">OK</button>
+		<button data-dojo-type="dijit.form.Button" type="submit" id="saveCommentButton" data-dojo-props="onClick:function(){ (actionButton == 'saveButton') ? salvarVenues() : sinalizarVenues(actionButton); }">OK</button>
 		<button data-dojo-type="dijit.form.Button" type="button" data-dojo-props="onClick:function(){ dijit.byId('dlg_comment').onCancel(); }">Cancelar</button>
 	</div>
 </div>

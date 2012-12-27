@@ -199,6 +199,7 @@ foreach ($file as $f) {
 <div>
 <button id="saveButton" dojoType="dijit.form.Button" type="submit" name="saveButton" onclick="salvarVenues()" style="float: left; padding-right: 3px; margin-left: 0px; margin-bottom: 15px">Salvar</button>
 <button id="cancelButton" dojoType="dijit.form.Button" type="button" onclick="history.go(-1)" name="cancelButton" style="float: left">Cancelar</button>
+<div id="dropdownButtonContainer2" style="float: left"></div>
 </div>
 </body>
 </html>
