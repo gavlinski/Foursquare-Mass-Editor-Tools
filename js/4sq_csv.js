@@ -60,11 +60,20 @@ function xmlhttpRequest(metodo, endpoint, dados, i) {
 				clearTimeout(xmlhttpTimeout);
 				if (metodo == "POST") {
 					atualizarResultado(i, "<img src='img/ok.png' alt='" + xmlhttp.responseText + "' style='vertical-align: middle;'>", "<span style=\"font-size: 12px\">Editada com sucesso</span>");
+					var name = "";
+					if (document.forms[i]["name"] != undefined)
+						name = document.forms[i]["name"].value;
+					var categoryId = new Array();
+					if (document.forms[i]["categoryId"] != undefined)
+						categoryId = document.forms[i]["categoryId"].value.split(",", 3);
 					if (acao == "edit")
-						relatorio.push(new Array(document.forms[i]["name"].value, "editada", getDataHora(), document.forms[i]["venue"].value, recuperarNomesCategorias(categoryId, ",")));
+						acao = "editada";
 					else if (acao == "flag")
-						relatorio.push(new Array(document.forms[i]["name"].value, "sinalizada", getDataHora(), document.forms[i]["venue"].value, recuperarNomesCategorias(categoryId, ",")));
+						acao = "sinalizada";
+					var venueId = document.forms[i]["venue"].value;
+					relatorio.push(new Array(name, acao, getDataHora(), venueId, recuperarNomesCategorias(categoryId, ","), (i + 1).toString()));
 					dijit.byId("menuItemExportarRelatorio").setAttribute("disabled", false);
+					dijit.byId("exportButton").setAttribute("disabled", false);
 				} else if (metodo == "GET") {
 					console.info("Categorias recuperadas!");
 					montarTabela(resposta);
@@ -138,10 +147,13 @@ function montarTabela(resposta) {
 
 function recuperarNomesCategorias(categoryId, separador) {
 	var nomes = "";
-	for (j = 0; j < categoryId.length; j++)
-		if (categoryId[j] in categorias)
-			nomes += categorias[categoryId[j]].nome + separador;
-	return nomes.slice(0, -2);
+	if (categoryId.length > 0) {
+		for (j = 0; j < categoryId.length; j++)
+			if (categoryId[j] in categorias)
+				nomes += categorias[categoryId[j]].nome + separador;
+		nomes = nomes.replace(/\s+$/, "").slice(0, -1);
+	}
+	return nomes;
 }
 
 function salvarCategoria(i) {
@@ -156,7 +168,6 @@ function salvarCategoria(i) {
 
 function atualizarCategorias() {
 	var totalLinhas = document.forms.length;
-	var categoryId = new Array();
 	var nomes;
 	for (i = 0; i < totalLinhas; i++) {
 		salvarCategoria(i);
@@ -299,25 +310,39 @@ dojo.addOnLoad(function() {
 			var COL_DATETIME = 2;
 			var COL_ID = 3;
 			var COL_CATEGORIES = 4;
+			var COL_VENUE = 5;
+			var hasName, hasCategory;
 			var j = 0;
 			for (i = 0; i < relatorio.length; i++) {
 				if (relatorio[i][COL_NAME] == undefined)
 				  relatorio[i][COL_NAME] = "";
 				if (relatorio[i][COL_NAME].length > NAME_MAX_SIZE)
 					NAME_MAX_SIZE = relatorio[i][COL_NAME].length;
+				(relatorio[i][COL_NAME].length > 0) ? hasName = true : hasName = false;
 				if (relatorio[i][COL_ACTION].length >= ACTION_MAX_SIZE)
 					ACTION_MAX_SIZE = relatorio[i][COL_ACTION].length;
 				if (relatorio[i][COL_CATEGORIES] == undefined)
 				  relatorio[i][COL_CATEGORIES] = "";
 				if (relatorio[i][COL_CATEGORIES].length > CATEGORIES_MAX_SIZE)
 					CATEGORIES_MAX_SIZE = relatorio[i][COL_CATEGORIES].length;
+				(relatorio[i][COL_CATEGORIES].length > 0) ? hasCategory = true : hasCategory = false;
 			}
 			var html = new Array();
 			html[0] = "<!DOCTYPE html><html><head><meta http-equiv=\"text/html; charset=iso-8859-1\"></head><body><pre>";
-			html[1] = pad("name", NAME_MAX_SIZE + 1) + pad("action", ACTION_MAX_SIZE + 1) + pad("date", 11) + pad("time", 9) + pad("id", 25) + pad("categories", CATEGORIES_MAX_SIZE);
+			if (hasName)
+				html[1] = pad("name", NAME_MAX_SIZE + 1) + pad("action", ACTION_MAX_SIZE + 1) + pad("date", 11) + pad("time", 9) + pad("id", 25);
+			else
+				html[1] = "venue " + pad("action", ACTION_MAX_SIZE + 1) + pad("date", 11) + pad("time", 9) + pad("id", 25);
+			if (hasCategory)
+				html[1] += pad("categories", CATEGORIES_MAX_SIZE);
 			var j = 2;
 			for (i = 0; i < relatorio.length; i++) {
-				html[j] = pad(relatorio[i][COL_NAME], NAME_MAX_SIZE + 1) + pad(relatorio[i][COL_ACTION], ACTION_MAX_SIZE + 1) + relatorio[i][COL_DATETIME] + " " + relatorio[i][COL_ID] + " " + pad(relatorio[i][COL_CATEGORIES], CATEGORIES_MAX_SIZE + 1);
+				if (hasName)
+					html[j] = pad(relatorio[i][COL_NAME], NAME_MAX_SIZE + 1) + pad(relatorio[i][COL_ACTION], ACTION_MAX_SIZE + 1) + relatorio[i][COL_DATETIME] + " " + relatorio[i][COL_ID];
+				else
+					html[j] = pad(relatorio[i][COL_VENUE], 6) + pad(relatorio[i][COL_ACTION], ACTION_MAX_SIZE + 1) + relatorio[i][COL_DATETIME] + " " + relatorio[i][COL_ID];
+				if (hasCategory)
+					html[j] += " " + pad(relatorio[i][COL_CATEGORIES], CATEGORIES_MAX_SIZE + 1);
 				j++;
 			}
 			html.push("</pre></body></html>");
@@ -329,6 +354,7 @@ dojo.addOnLoad(function() {
 		label: "Exportar",
 		name: "menuExportar",
 		dropDown: menu2,
+		disabled: true,
 		id: "exportButton"
 	});
 	dojo.byId("dropdownButtonContainer2").appendChild(button2.domNode);
