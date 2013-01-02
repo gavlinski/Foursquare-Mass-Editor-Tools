@@ -163,7 +163,8 @@ dojo.addOnLoad(function() {
 
 dojo.ready(function() {
 	setTimeout(function() {
-		dijit.byId("pagina").attr("value", dojo.cookie("pagina"));
+		if (dojo.cookie("pagina") != "undefined")
+			dijit.byId("pagina").attr("value", dojo.cookie("pagina"));
 		dijit.byId("textarea_ids").attr("value", dojo.cookie("textarea"));
 		dojo.attr(dijit.byId("pagina").textbox, "autocomplete", "on");
 		dojo.attr(dijit.byId("ll").textbox, "autocomplete", "on");

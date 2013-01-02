@@ -452,7 +452,7 @@ function atualizarTabela(resposta, i) {
 	totalCarregadas++;
 	if (totalCarregadas == (document.forms.length - totalNaoCarregadas)) {
 		/*** Necessário adicionar 1 segundo de atraso após término do carregamento ***/
-		timer = setTimeout(limparLinhasEditadas(), 1000);
+		limparLinhasEditadas();
 	}
 	var linha = "";
 	categorias[i] = new Categoria();
@@ -1016,9 +1016,9 @@ dojo.addOnLoad(function inicializar() {
 		id: "menuItemExportarRelatorio",
 		disabled: true,
 		onClick: function() {
-			var NAME_MAX_SIZE = 5;
+			var NAME_MAX_SIZE = 4;
 			var ACTION_MAX_SIZE = 7;
-			var CATEGORIES_MAX_SIZE = 11;
+			var CATEGORIES_MAX_SIZE = 10;
 			var COL_NAME = 0;
 			var COL_ACTION = 1;
 			var COL_DATETIME = 2;
@@ -1032,7 +1032,7 @@ dojo.addOnLoad(function inicializar() {
 				  relatorio[i][COL_NAME] = "";
 				if (relatorio[i][COL_NAME].length > NAME_MAX_SIZE)
 					NAME_MAX_SIZE = relatorio[i][COL_NAME].length;
-				if (relatorio[i][COL_ACTION].length >= ACTION_MAX_SIZE)
+				if (relatorio[i][COL_ACTION].length > ACTION_MAX_SIZE)
 					ACTION_MAX_SIZE = relatorio[i][COL_ACTION].length;
 				if (relatorio[i][COL_CATEGORIES] == undefined)
 				  relatorio[i][COL_CATEGORIES] = "";
