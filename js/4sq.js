@@ -622,7 +622,7 @@ function atualizarTabela(venue, i, modo) {
 		desabilitarLinha(i);
 	csv[i + 1] = linha.replace(/undefined/gi, "").split("&&");
 	if (venue.categories[0] == undefined) {
-		dojo.byId("icone" + i).innerHTML = "<a id='catLnk" + i + "' href='javascript:editarCategorias(" + i + ")'><img id=catImg" + i + " src='https://foursquare.com/img/categories_v2/none_bg_32.png' style='height: 22px; width: 22px; margin-left: 0px'></a>";
+		(modo == DADOS_COMPLETOS) ? dojo.byId("icone" + i).innerHTML = "<a id='catLnk" + i + "' href='javascript:editarCategorias(" + i + ")'><img id=catImg" + i + " src='https://foursquare.com/img/categories_v2/none_bg_32.png' style='height: 22px; width: 22px; margin-left: 0px'></a>" : dojo.byId("icone" + i).innerHTML = "<img id=catImg" + i + " src='https://foursquare.com/img/categories_v2/none_bg_32.png' style='height: 22px; width: 22px; margin-left: 0px'>";
 	} else if ((venue.categories[0].id == "4bf58dd8d48988d103941735") || (modo == DADOS_PARCIAIS)) {
 		dojo.byId("icone" + i).innerHTML = "<img id=catLnk" + i + " src='" + categorias[i].icones.split(",", 1)[0] + "' style='height: 22px; width: 22px; margin-left: 0px'>";
 		createTooltip("catLnk" + i, "<span style=\"font-size: 12px\">" + categorias[i].nomes.replace(/,/gi, ", ") + "</span>");
@@ -1058,16 +1058,20 @@ dojo.addOnLoad(function inicializar() {
 			var html = new Array();
 			html[0] = "<!DOCTYPE html><html><head><meta http-equiv=\"text/html; charset=iso-8859-1\"></head><body><pre>";
 			html[1] = pad("name", NAME_MAX_SIZE + 1) + pad("action", ACTION_MAX_SIZE + 1) + pad("date", 11) + pad("time", 9) + pad("id", 24);
-			if (json == "")
-				html[1] += pad(" categories", CATEGORIES_MAX_SIZE);
-			if (comments)
+			if ((json == "") && (comments))
+				html[1] += pad(" categories", CATEGORIES_MAX_SIZE + 2) + "comments";
+			else if ((json == "") && (!comments))
+				html[1] += pad(" categories", CATEGORIES_MAX_SIZE + 1);
+			else if (comments)
 				html[1] += " comments";
 			var j = 2;
 			for (i = 0; i < relatorio.length; i++) {
 				html[j] = pad(relatorio[i][COL_NAME], NAME_MAX_SIZE + 1) + pad(relatorio[i][COL_ACTION], ACTION_MAX_SIZE + 1) + relatorio[i][COL_DATETIME] + " " + relatorio[i][COL_ID];
-				if (json == "")
-					html[j] += " " + pad(relatorio[i][COL_CATEGORIES], CATEGORIES_MAX_SIZE + 1)
-				if (comments)
+				if ((json == "") && (comments))
+					html[j] += " " + pad(relatorio[i][COL_CATEGORIES], CATEGORIES_MAX_SIZE + 1) + relatorio[i][COL_COMMENTS].replace(/(\r\n|\n|\r)/gm, " ").replace(/\s+/g, " ");
+				else if ((json == "") && (!comments))
+					html[j] += " " + pad(relatorio[i][COL_CATEGORIES], CATEGORIES_MAX_SIZE);
+				else if (comments)
 					html[j] += " " + relatorio[i][COL_COMMENTS].replace(/(\r\n|\n|\r)/gm, " ").replace(/\s+/g, " ");
 				j++;
 			}

@@ -336,7 +336,7 @@ dojo.addOnLoad(function() {
 			if (hasName)
 				html[1] = pad("name", NAME_MAX_SIZE + 1) + pad("action", ACTION_MAX_SIZE + 1) + pad("date", 11) + pad("time", 9) + pad("id", 25);
 			else
-				html[1] = "venue " + pad("action", ACTION_MAX_SIZE + 1) + pad("date", 11) + pad("time", 9) + pad("id", 25);
+				html[1] = "venue " + pad("action", ACTION_MAX_SIZE + 1) + pad("date", 11) + pad("time", 9) + pad("id", 24);
 			if (hasCategory)
 				html[1] += pad("categories", CATEGORIES_MAX_SIZE);
 			var j = 2;
@@ -346,7 +346,7 @@ dojo.addOnLoad(function() {
 				else
 					html[j] = pad(relatorio[i][COL_VENUE], 6) + pad(relatorio[i][COL_ACTION], ACTION_MAX_SIZE + 1) + relatorio[i][COL_DATETIME] + " " + relatorio[i][COL_ID];
 				if (hasCategory)
-					html[j] += " " + pad(relatorio[i][COL_CATEGORIES], CATEGORIES_MAX_SIZE + 1);
+					html[j] += " " + pad(relatorio[i][COL_CATEGORIES], CATEGORIES_MAX_SIZE);
 				j++;
 			}
 			html.push("</pre></body></html>");
