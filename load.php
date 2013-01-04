@@ -292,7 +292,7 @@ function parseVenues($html) {
 }
 
 function setLocalCache($key, $data, $key2) {
-	print('<script type="text/javascript">'."\n\r".'	localStorage.setItem("'.$key.'", "'.$data.'");'."\n\r".'	localStorage.removeItem("'.$key2.'");'."\n\r".'</script>');
+	print('<script type="text/javascript">'."\n\r".'	localStorage.setItem(\''.$key.'\', \''.$data.'\');'."\n\r".'	localStorage.removeItem(\''.$key2.'\');'."\n\r".'</script>');
 	print str_pad('', intval(ini_get('output_buffering'))) . "\n\r";
 	flush();
 }

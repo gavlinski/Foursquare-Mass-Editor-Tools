@@ -363,6 +363,7 @@ if (isset($_SESSION["oauth_token"])) {
 							<span class="comboboxes">
 								<select data-dojo-id="limit" name="limit" id="limit" style="margin-bottom: 3px" data-dojo-type="dijit/form/Select">
 									<option value="10">10</option>
+									<option value="25">25</option>
 									<option value="50" selected="selected">50</option>
 									<option value="100">100</option>
 									<option value="150">150</option>

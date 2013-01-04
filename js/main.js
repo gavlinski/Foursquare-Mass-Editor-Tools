@@ -140,12 +140,12 @@ dojo.addOnLoad(function() {
 				e.preventDefault();
 				alert("Informe as coordenadas");
 				ll_src.focus();
-			//} else if (dojo.query('input:checked', 'f_ids').length == 0) {
+			//} else if (dojo.query('input:checked', 'f_src').length == 0) {
 				//e.preventDefault();
 				//alert("Selecione pelo menos um dos campos");
-				//dijit.byId("nome3").focus();
-			} else {
-				alert("Ready to submit data: " + dojo.toJson(form_src.attr("value")));
+				//dijit.byId("nome4").focus();
+			//} else {
+				//alert("Ready to submit data: " + dojo.toJson(form_src.attr("value")));
 			}
 		} else {
 			e.preventDefault();
@@ -154,7 +154,7 @@ dojo.addOnLoad(function() {
 		//dojo.cookie("textarea", "", { expires: 15 });
 		//dojo.cookie("ll", dijit.byId("ll").value, { expires: 15 });
 		var campos4 = dijit.byId("nome4").checked + "." + dijit.byId("endereco4").checked + "." + dijit.byId("ruacross4").checked + "." + dijit.byId("cidade4").checked + "." + dijit.byId("estado4").checked + "." + dijit.byId("cep4").checked + "." + dijit.byId("twitter4").checked + "." + dijit.byId("telefone4").checked + "." + dijit.byId("website4").checked + ".";
-		(dijit.byId("descricao" + i).disabled) ? campos4 += "false." : campos4 += dijit.byId("descricao4").checked + ".";
+		(dijit.byId("descricao4").disabled) ? campos4 += "false." : campos4 += dijit.byId("descricao4").checked + ".";
 		campos4 += dijit.byId("latlong4").checked;
 		dojo.cookie("campos", campos4, { expires: 15 });
 		dojo.cookie("accordion", dijit.byId("accordion").selectedChildWidget.id, { expires: 15 });

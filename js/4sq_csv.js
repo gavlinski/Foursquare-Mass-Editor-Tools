@@ -75,9 +75,13 @@ function xmlhttpRequest(metodo, endpoint, dados, i) {
 					dijit.byId("menuItemExportarRelatorio").setAttribute("disabled", false);
 					dijit.byId("exportButton").setAttribute("disabled", false);
 				} else if (metodo == "GET") {
-					console.info("Categorias recuperadas!");
 					montarTabela(resposta);
 					atualizarCategorias();
+					console.info("Categorias recuperadas!");
+					localStorage.setItem("categorias", JSON.stringify(resposta));
+					var d = new Date();
+					d.setHours(0, 0, 0, 0);
+					dojo.cookie("data_categorias", d, { expires: 1 });
 				}
 			} else if (xmlhttp.status == 400) {
 				clearTimeout(xmlhttpTimeout);
@@ -359,8 +363,18 @@ dojo.addOnLoad(function() {
 	});
 	dojo.byId("dropdownButtonContainer2").appendChild(button2.domNode);
 	
-	if (dojo.query('#icone0').length != 0)
-		carregarListaCategorias();
+	if (dojo.query('#icone0').length != 0) {
+		var d = new Date();
+		d.setHours(0, 0, 0, 0);
+		if ((!localStorage.getItem('categorias')) || (d > dojo.cookie("data_categorias")))
+			carregarListaCategorias();
+		else {
+			var resposta = JSON.parse(localStorage.getItem('categorias'));
+			montarTabela(resposta);
+			atualizarCategorias();
+			console.info("Categorias recuperadas do localStorage!");
+		}
+	}
 });
 
 function showDialogGuia() {
