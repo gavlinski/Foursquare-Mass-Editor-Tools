@@ -43,6 +43,12 @@ define("TEMPLATE1", '<script src="js/dojo/dojo.js" djConfig="parseOnLoad: true">
 define("TEMPLATE2", '<p><button dojoType="dijit.form.Button" type="button" onclick="history.go(-1)" style="margin-left: 0px;">Voltar</button></p>
 </body>
 </html>');
+define("ERRO01", LINKS . HBODY . TEMPLATE1 . '<p>Erro na convers&atilde;o do endere&ccedil;o em coordenadas geogr&aacute;ficas.</p>
+<p>Verifique o endere&ccedil;o ou as coordenadas e tente novamente.</p>
+' . TEMPLATE2);
+define("ERRO02", TEMPLATE1 . '<p>Nenhuma venue encontrada nas coordenadas geogr&aacute;ficas informadas.</p>
+<p>Verifique o campo Lat/Long e tente novamente.</p>
+' . TEMPLATE2);
 define("ERRO99", '<meta http-equiv="refresh" content="5; url=index.php">
 ' . LINKS . '</head>
 <body>
@@ -70,7 +76,12 @@ if (isset($_POST["radius"]))
 
 if (!preg_match('/^(\-?\d+(\.\d+)?),\s*(\-?\d+(\.\d+)?)$/', $params["ll"])) {
 	$array = lookup($params["ll"]);
-	$params["ll"] = $array["latitude"] . "," . $array["longitude"];
+	if ($array != null) {
+		$params["ll"] = $array["latitude"] . "," . $array["longitude"];
+	} else {
+		echo ERRO01;
+		exit;
+	} 
 }
 
 $data = pesquisarVenues($params);
@@ -84,9 +95,12 @@ if (count($file) > 0) {
 	//echo '<br><br>';
 	//print_r(filtrarArray($venues));
 	$_SESSION["campos"] = $_POST["campos4"];
-	setLocalCache("venues", str_replace(array('"', "'"), array('\"', "\'"), $data));
-	//exit;
+	//setLocalCache("venues", str_replace(array('"', "'"), array("", "\'"), $data));
+	setLocalCache("venues", addslashes($data));
 	echo EDIT;
+} else {
+	echo ERRO02;
+	exit;
 }
 echo ERRO99;
 
@@ -137,8 +151,8 @@ function pesquisarVenues($params) {
 		}
 	} else {
 		$p->hide();
-		echo TEMPLATE1 . '<p>Erro ' . $json->meta->code . ': ' . $json->meta->errorType . '</p>
-<p>Detalhe: ' . $json->meta->errorDetail . '</p>
+		echo TEMPLATE1 . '<p><b>Erro ' . $json->meta->code . ':</b> ' . $json->meta->errorType . '</p>
+<p><b>Detalhe:</b> ' . $json->meta->errorDetail . '</p>
 ' . TEMPLATE2;
 		exit;
 	}
