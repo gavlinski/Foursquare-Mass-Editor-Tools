@@ -33,7 +33,7 @@ class FoursquareApi {
 	
 	// Edited Petr Babicka (babcca@gmail.com) https://developer.foursquare.com/overview/versioning
 	/** @var String $Version YYYYMMDD */
-	private $Version = '20120228'; 
+	private $Version = '20130105'; 
 
 	/** @var String $ClientID */
 	private $ClientID;
@@ -120,7 +120,7 @@ class FoursquareApi {
 				$endpoint = $request['endpoint'];
 				unset($request['endpoint']);
 				$query = '/' . $endpoint;
-					if (!empty($request)) $query .= '?' . http_build_query($request);
+					if (!empty($request)) $query .= '?' . htmlentities(urlencode(http_build_query($request)));
 				$request_queries[] = $query;
 			}
 			$params['requests'] = implode(',', $request_queries);
@@ -212,14 +212,21 @@ class FoursquareApi {
 	 * @return array(lat, lng) || NULL
 	 */
 	public function GeoLocate($addr){
+		$addr = str_replace(" ", "+", urlencode($addr));
 		$geoapi = "http://maps.googleapis.com/maps/api/geocode/json";
 		$params = array("address"=>$addr,"sensor"=>"false");
 		$response = $this->GET($geoapi,$params);
 		$json = json_decode($response);
-		if ($json->status === "ZERO_RESULTS") {
+		// If Status Code is ZERO_RESULTS, OVER_QUERY_LIMIT, REQUEST_DENIED or INVALID_REQUEST 
+		if ($json->status != "OK") {
 			return NULL;
 		} else {
-			return array($json->results[0]->geometry->location->lat,$json->results[0]->geometry->location->lng);
+			return array('latitude' => $json->results[0]->geometry->location->lat,
+				'longitude' => $json->results[0]->geometry->location->lng,
+				'southwest' => $json->results[0]->geometry->viewport->southwest->lat . "," . $json->results[0]->geometry->viewport->southwest->lng,
+				'northeast' => $json->results[0]->geometry->viewport->northeast->lat . "," . $json->results[0]->geometry->viewport->northeast->lng,
+				'southeast' => $json->results[0]->geometry->viewport->southwest->lat . "," . $json->results[0]->geometry->viewport->northeast->lng,
+				'northwest' => $json->results[0]->geometry->viewport->northeast->lat . "," . $json->results[0]->geometry->viewport->southwest->lng);
 		}
 	}
 	

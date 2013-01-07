@@ -469,7 +469,7 @@ function atualizarTabela(venue, i, modo) {
 	for (j = 0; j < venue.categories.length; j++) {
 		categorias[i].ids += venue.categories[j].id + ",";
 		categorias[i].nomes += venue.categories[j].name + ",";
-		(modo == DADOS_COMPLETOS) ? categorias[i].icones += venue.categories[j].icon.prefix + "bg_32" + venue.categories[j].icon.suffix + "," : categorias[i].icones += venue.categories[j].icon.prefix.replace("categories", "categories_v2").replace("drugstore", "pharmacy").replace("danceparty", "nightclub") + "bg_32" + venue.categories[j].icon.name + ",";
+		categorias[i].icones += venue.categories[j].icon.prefix + "bg_32" + venue.categories[j].icon.suffix + ",";
 	}
 	if (categorias[i].ids != undefined) {
 		categorias[i].ids = categorias[i].ids.slice(0, -1).replace(/undefined/gi, "");
@@ -735,11 +735,11 @@ function treeOnClick(item) {
 
 function carregarDadosVenues() {
 	var venue;
-	console.info("Recuperando dados das venues...");
 	var linhas = document.forms.length;
 	if (localStorage && localStorage.getItem('venues'))
 		json = JSON.parse(localStorage.getItem('venues'));
 	if (json == "") {
+		console.info("Recuperando dados completos das venues...");
 		for (i = 0; i < linhas; i++) {
 			venue = document.forms[i]["venue"].value;
 			xmlhttpRequest("GET", "https://api.foursquare.com/v2/venues/" + venue + "?oauth_token=" + oauth_token + "&v=" + DATA_VERSIONAMENTO, null, i);
@@ -755,9 +755,10 @@ function carregarDadosVenues() {
 			console.info("Categorias recuperadas do localStorage!");
 		}
 	} else {
+		console.info("Recuperando dados parciais das venues...");
 		for (i = 0; i < linhas; i++) {
 			atualizarTabela(json.response.venues[i], i, DADOS_PARCIAIS);
-			console.info("Venue " + i + " recuperada!");
+			console.info("Venue " + i + " recuperada via JSON!");
 		}
 	}
 }
