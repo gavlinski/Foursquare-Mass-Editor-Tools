@@ -355,7 +355,7 @@ if (isset($_SESSION["oauth_token"])) {
 							</span>
 						</span>
 						<span class="labelQuery"><label for="query"><a href="https://developer.foursquare.com/docs/venues/search" target="_blank">Consulta</a>:</label></span>
-						<span class="formw"><input type="text" id="query" name="query" required="false" dojoType="dijit.form.ValidationTextBox" trim="true" style="width: 95px" disabled="true"/></span>
+						<span class="formw"><input type="text" id="query" name="query" required="false" dojoType="dijit.form.ValidationTextBox" trim="true" style="width: 95px"/></span>
 					</div>
 					<div class="row">
 						<span class="label"><label for="limit"><a href="https://developer.foursquare.com/docs/venues/search" target="_blank">Limite</a>:</label></span>

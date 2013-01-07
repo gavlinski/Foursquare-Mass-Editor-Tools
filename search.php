@@ -3,7 +3,7 @@
 /**
  * Search Venues
  *
- * Pesquisa venues utilizando a API
+ * Pesquisa venues utilizando a API https://api.foursquare.com/v2/venues/search
  *
  * @category	 Foursquare
  * @package		 Foursquare-Mass-Editor-Tools
@@ -43,11 +43,11 @@ define("TEMPLATE1", '<script src="js/dojo/dojo.js" djConfig="parseOnLoad: true">
 define("TEMPLATE2", '<p><button dojoType="dijit.form.Button" type="button" onclick="history.go(-1)" style="margin-left: 0px;">Voltar</button></p>
 </body>
 </html>');
-define("ERRO01", LINKS . HBODY . TEMPLATE1 . '<p>Erro na convers&atilde;o do endere&ccedil;o em coordenadas geogr&aacute;ficas.</p>
+define("ERRO01", TEMPLATE1 . '<p>Erro na convers&atilde;o do endere&ccedil;o em coordenadas geogr&aacute;ficas.</p>
 <p>Verifique o endere&ccedil;o ou as coordenadas e tente novamente.</p>
 ' . TEMPLATE2);
 define("ERRO02", TEMPLATE1 . '<p>Nenhuma venue encontrada nas coordenadas geogr&aacute;ficas informadas.</p>
-<p>Verifique o campo Lat/Long e tente novamente.</p>
+<p>Verifique a latitude e longitude e tente novamente.</p>
 ' . TEMPLATE2);
 define("ERRO99", '<meta http-equiv="refresh" content="5; url=index.php">
 ' . LINKS . '</head>
@@ -65,7 +65,7 @@ if (isset($_POST["near"]))
 	$params["near"] = $_POST["near"];
 if (isset($_POST["categoryId"]))
 	$params["categoryId"] = $_POST["categoryId"];
-if (isset($_POST["query"]))
+if ((isset($_POST["query"])) && ($_POST["query"] != ""))
 	$params["query"] = $_POST["query"];
 if (isset($_POST["limit"]))
 	$params["limit"] = $_POST["limit"];
@@ -74,28 +74,13 @@ if (isset($_POST["intent"]))
 if (isset($_POST["radius"]))
 	$params["radius"] = $_POST["radius"];
 
-if (!preg_match('/^(\-?\d+(\.\d+)?),\s*(\-?\d+(\.\d+)?)$/', $params["ll"])) {
-	$array = lookup($params["ll"]);
-	if ($array != null) {
-		$params["ll"] = $array["latitude"] . "," . $array["longitude"];
-	} else {
-		echo ERRO01;
-		exit;
-	} 
-}
-
 $data = pesquisarVenues($params);
-//print_r($data);
 
 if (count($file) > 0) {
 	$_SESSION["file"] = filtrarArray($file);
-	//print_r(filtrarArray($file));
-	setLocalCache("txt", implode('%0A,', $_SESSION["file"]));
 	$_SESSION["venues"] = filtrarArray($venues);
-	//echo '<br><br>';
-	//print_r(filtrarArray($venues));
 	$_SESSION["campos"] = $_POST["campos4"];
-	//setLocalCache("venues", str_replace(array('"', "'"), array("", "\'"), $data));
+	setLocalCache("txt", implode('%0A,', $_SESSION["file"]));
 	setLocalCache("venues", addslashes($data));
 	echo EDIT;
 } else {
@@ -113,14 +98,13 @@ function pesquisarVenues($params) {
 	$venues = array();
 	global $file;
 	$file = array();
-	$i = 0;
-	
+		
 	require_once("ProgressBar.Class.php");
 
 	echo PESQUISANDO;
-	$p = new ProgressBar();
+	$pbar = new ProgressBar();
 	echo '<div style="width: 400px;">' . "\r\n";
-	$p->render();
+	$pbar->render();
 	echo '</div>' . "\r\n";
 
 	require_once("FoursquareAPI.Class.php");
@@ -133,22 +117,99 @@ function pesquisarVenues($params) {
 	$foursquare = new FoursquareAPI($client_key, $client_secret);
 	$foursquare -> SetAccessToken($_SESSION["oauth_token"]);
 	
-	/*** Perform a request to a authenticated-only resource ***/
-	$response = $foursquare -> GetPrivate("venues/search", $params);
-	$json = json_decode($response);
-	
-	if ($json->meta->code == 200) {
-		$size = count($json->response->venues);
-
-		foreach ($json->response->venues as $venue) {
-			if (property_exists($venue, "id"))
-				$venues[$i] = $venue->id;
-			if (property_exists($venue, "canonicalUrl"))
-				$file[$i] = $venue->canonicalUrl;
-			$i++;
-			$p->setProgressBarProgress($i*100/$size);
-			usleep(10000*0.1);
+	/*** Leverages the Google Maps API to generate a lat/lng pair for a given address ***/
+	if (!preg_match('/^(\-?\d+(\.\d+)?),\s*(\-?\d+(\.\d+)?)$/', $params["ll"])) {
+		$coordinates = $foursquare -> GeoLocate($params["ll"]);
+		$params["ll"] = $coordinates["latitude"] . "," . $coordinates["longitude"];
+		if ($coordinates == null) {
+			$pbar->hide();
+			echo ERRO01;
+			exit;
 		}
+	}
+	
+	/*** Perform a request to a authenticated-only resource ***/
+	if ($params["limit"] <= 50) {
+		$response = $foursquare -> GetPrivate("venues/search", $params);
+		$json = json_decode($response);
+		
+	/*** Perform multiple requests at once to a authenticated-only resource ***/
+	} else {
+		$limit = $params["limit"];
+		$params["limit"] = 50;
+		$requests[] = array("endpoint" => "venues/search") + $params;
+		if ($limit >= 100) {
+			$params["ll"] = $coordinates["southwest"];
+			$requests[] = array("endpoint" => "venues/search") + $params;
+			if ($limit >= 150) {
+				$params["ll"] = $coordinates["northeast"];
+				$requests[] = array("endpoint" => "venues/search") + $params;
+				if ($limit >= 200) {
+					$params["ll"] = $coordinates["southeast"];
+					$requests[] = array("endpoint" => "venues/search") + $params;
+					if ($limit == 250) {
+						$params["ll"] = $coordinates["northwest"];
+						$requests[] = array("endpoint" => "venues/search") + $params;
+					}
+				}
+			}
+		}
+		$responses = $foursquare -> GetMulti($requests);
+		$json = json_decode($responses);
+	}
+	
+	function extrairVenuesIdsUrls($json_response_venues, $pbar, $size, $i) {
+		$array = array();
+		foreach ($json_response_venues as $venue) {
+			if (property_exists($venue, "id"))
+				$array["venues"][] = $venue->id;
+			if (property_exists($venue, "canonicalUrl"))
+				$array["file"][] = $venue->canonicalUrl;
+			$i++;
+			$pbar->setProgressBarProgress($i*100/$size);
+			usleep(50000*0.1);
+		}
+		return $array;
+	}
+	
+	if ((isset($json->meta->code)) && ($json->meta->code == 200)) {
+	
+		/*** Single request ***/
+		if (isset($json->response->venues)) {
+			$size = count($json->response->venues);
+			$array = extrairVenuesIdsUrls($json->response->venues, $pbar, $size, 0);
+			$venues = $array["venues"];
+			$file = $array["file"];
+			
+		/*** Multi requests ***/
+		} else if (isset($json->response->responses)) {
+			$size = count($json->response->responses)*50;
+			$response = json_decode($responses, true);
+			$i = 0;
+			$response_venues = array();
+			foreach ($json->response->responses as $resp) {
+				$array = extrairVenuesIdsUrls($resp->response->venues, $pbar, $size, $i);
+				$r = $response["response"]["responses"][$i/50]["response"]["venues"];
+				if (count($venues) > 0) {
+					foreach ($r as $key => &$value)
+						if (!in_array($value["id"], $venues))
+							$response_venues["response"]["venues"][] = $r[$key];
+						else
+							unset($r[$key]); // remove venue duplicada
+					unset($value);
+				} else {
+					$response_venues["response"]["venues"] = $r;
+				}
+				$venues = array_merge($venues, $array["venues"]);
+				$file = array_merge($file, $array["file"]);
+				$i += 50;
+			}
+			unset($response["response"]);
+			$response = json_encode(array_merge($response, $response_venues));
+			//var_dump($response);
+			//exit;
+		}
+		
 	} else {
 		$p->hide();
 		echo TEMPLATE1 . '<p><b>Erro ' . $json->meta->code . ':</b> ' . $json->meta->errorType . '</p>
@@ -164,35 +225,6 @@ function setLocalCache($key, $data) {
 	print('<script type="text/javascript">'."\n\r".'	localStorage.setItem(\''.$key.'\', \''.$data.'\');'."\n\r".'</script>');
 	print str_pad('', intval(ini_get('output_buffering'))) . "\n\r";
 	flush();
-}
-
-function lookup($string) {
-	$string = str_replace (" ", "+", urlencode($string));
-	$details_url = "http://maps.googleapis.com/maps/api/geocode/json?address=".$string."&sensor=false";
-
-	$ch = curl_init();
-	curl_setopt($ch, CURLOPT_URL, $details_url);
-	curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
-	$response = json_decode(curl_exec($ch), true);
-
-	/*** If Status Code is ZERO_RESULTS, OVER_QUERY_LIMIT, REQUEST_DENIED or INVALID_REQUEST ***/
-	if ($response['status'] != 'OK') {
-		return null;
-	}
-
-	//print_r($response);
-	$geometry = $response['results'][0]['geometry'];
-
-	$latitude = $geometry['location']['lat'];
-	$longitude = $geometry['location']['lng'];
-
-	$array = array(
-		'latitude' => $latitude,
-    'longitude' => $longitude,
-    'location_type' => $geometry['location_type'],
-  );
-
-	return $array;
 }
 
 ?>
