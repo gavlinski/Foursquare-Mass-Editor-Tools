@@ -211,7 +211,7 @@ function pesquisarVenues($params) {
 		}
 		
 	} else {
-		$p->hide();
+		$pbar->hide();
 		echo TEMPLATE1 . '<p><b>Erro ' . $json->meta->code . ':</b> ' . $json->meta->errorType . '</p>
 <p><b>Detalhe:</b> ' . $json->meta->errorDetail . '</p>
 ' . TEMPLATE2;

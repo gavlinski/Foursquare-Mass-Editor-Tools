@@ -341,7 +341,7 @@ if (isset($_SESSION["oauth_token"])) {
 				<div id="toolContainer">
 					<div class="row">
 						<span class="label"><label for="ll"><a href="https://developer.foursquare.com/docs/venues/search" target="_blank">Lat/Long</a>:</label></span>
-						<span class="formw"><input type="text" id="ll" name="ll" required="false" dojoType="dijit.form.ValidationTextBox" trim="true" style="width: 266px" value="-16.01670379538501,-48.06514263153076"/></span>
+						<span class="formw"><input type="text" id="ll" name="ll" required="false" dojoType="dijit.form.ValidationTextBox" trim="true" style="width: 266px"/></span>
 						<span class="labelNear"><label for="near"><a href="https://developer.foursquare.com/docs/venues/search" target="_blank">Perto de</a>:</label></span>
 						<span class="formw"><input type="text" id="near" name="near" required="false" dojoType="dijit.form.ValidationTextBox" trim="true" style="width: 95px" disabled="true"/></span>
 					</div>

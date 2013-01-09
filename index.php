@@ -16,22 +16,22 @@
 
 	require_once("FoursquareAPI.Class.php");
 
-	/*** Set client key and secret ***/
+	// Set client key and secret
 	$client_key = "3EZPQCWMPTP0TLV4SJNPOLMWJB4UVCBGMADXWQCYFU3MPIQZ";
 	$client_secret = "J2310KS05Z50PU44DUC0T0HPEYM2CEQKBBPROAGXMBACZRZG";
 	$redirect_uri = "http://localhost/4sqmet/index.php";
 
-	/*** Load the Foursquare API library ***/
+	// Load the Foursquare API library
 	$foursquare = new FoursquareAPI($client_key, $client_secret);
 
-	/*** If the link has been clicked, and we have a supplied code, use it to request a token ***/
+	// If the link has been clicked, and we have a supplied code, use it to request a token
 	if (isset($_COOKIE['oauth_token'])) {
 		$token = $_COOKIE['oauth_token'];
 	} else if (array_key_exists("code", $_GET)) {
 		$token = $foursquare->GetToken($_GET['code'], $redirect_uri);
 	}
 	
-	/*** If we have not received a token, display the link for Foursquare webauth ***/
+	// If we have not received a token, display the link for Foursquare webauth
 	if (!isset($token)) {
 
 ?>
@@ -64,6 +64,25 @@
 
 		// Save and configure a cookie to expire in 15 days
 		setcookie("oauth_token", $token, time()+60*60*24*15);
+		
+		// Load the Foursquare API library
+		$foursquare -> SetAccessToken($_SESSION["oauth_token"]);
+	
+		// Perform a request to a authenticated-only resource
+		$request = $foursquare->GetPrivate("users/self");
+		$details = json_decode($request);
+		
+		// Returns profile information for a given user
+		$u = $details->response->user;
+		if (property_exists($u, "firstName") && property_exists($u, "lastName")) {
+			$name = $u->firstName . " " . $u->lastName;
+			setcookie("name", $name, time()+60*60*24*1);
+		}
+		if (property_exists($u->checkins, "items")) {
+			$coordinates = $u->checkins->items[0]->venue->location->lat . "," . $u->checkins->items[0]->venue->location->lng;
+			setcookie("coordinates", $coordinates, time()+60*60*24*1);
+		}
+		
 		header('Location: main.php');
 	}
 ?>
