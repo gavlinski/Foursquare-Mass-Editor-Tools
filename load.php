@@ -12,6 +12,7 @@
  * @version		 1.4
  * @link			 https://github.com/gavlinski/Foursquare-Mass-Editor-Tools/blob/master/load.php
  * @since			 File available since Release 1.1
+ * @license		 GPLv3 <http://www.gnu.org/licenses/gpl.txt>
  */
 
 session_start();

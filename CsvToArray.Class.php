@@ -18,6 +18,7 @@
  * @package		 CsvToArray
  * @copyright	 Copyleft (c) 2009-2010 . (http://www.pontophp.com.br)
  * @version		 1.1
+ * @license		 GPLv3 <http://www.gnu.org/licenses/gpl.txt>
  */
 final class CsvToArray {
 
