@@ -12,7 +12,6 @@
  * @version		 1.0
  * @link			 https://github.com/gavlinski/Foursquare-Mass-Editor-Tools/blob/master/search.php
  * @since			 File available since Release 1.5
- * @license		 GPLv3 <http://www.gnu.org/licenses/gpl.txt
  */
 
 session_start();
@@ -108,10 +107,8 @@ function pesquisarVenues($params) {
 	require_once("FoursquareAPI.Class.php");
 
 	/*** Set client key and secret ***/
-	//$client_key = "3EZPQCWMPTP0TLV4SJNPOLMWJB4UVCBGMADXWQCYFU3MPIQZ";
-	//$client_secret = "J2310KS05Z50PU44DUC0T0HPEYM2CEQKBBPROAGXMBACZRZG";
-	$client_key = "LFWOW3NHC1MINMYZY4UUHHPCC5Z2LWZ0DZHYH3XBXYJBPGDO";
-	$client_secret = "QIG3AB5SFSAE5TP00QZSHLRSMCKQHTN5EAMAOLHNSNJJDQDL";
+	$client_key = "3EZPQCWMPTP0TLV4SJNPOLMWJB4UVCBGMADXWQCYFU3MPIQZ";
+	$client_secret = "J2310KS05Z50PU44DUC0T0HPEYM2CEQKBBPROAGXMBACZRZG";
 
 	/*** Load the Foursquare API library ***/
 	$foursquare = new FoursquareAPI($client_key, $client_secret);

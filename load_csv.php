@@ -12,7 +12,6 @@
  * @version		 1.3
  * @link			 https://github.com/gavlinski/Foursquare-Mass-Editor-Tools/blob/master/load_csv.php
  * @since			 File available since Release 1.1
- * @license		 GPLv3 <http://www.gnu.org/licenses/gpl.txt>
  */
  
 session_start();

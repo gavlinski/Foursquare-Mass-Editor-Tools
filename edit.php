@@ -9,10 +9,9 @@
  * @package		 Foursquare-Mass-Editor-Tools
  * @author		 Elio Gavlinski <gavlinski@gmail.com>
  * @copyright	 Copyleft (c) 2011-2012
- * @version		 1.3
+ * @version		 1.2
  * @link			 https://github.com/gavlinski/Foursquare-Mass-Editor-Tools/blob/master/edit.php
  * @since			 File available since Release 0.5
- * @license		 GPLv3 <http://www.gnu.org/licenses/gpl.txt>
  */
 
 session_start();

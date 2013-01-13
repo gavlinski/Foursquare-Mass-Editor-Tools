@@ -4,8 +4,8 @@
  * A PHP-based Foursquare client library with a focus on simplicity and ease of integration
  * 
  * @package php-foursquare 
- * @author Stephen Young <stephen@tryllo.com>, @stephenyoungdev, @gavlinski
- * @version 1.1.0
+ * @author Stephen Young <stephen@tryllo.com>, @stephenyoungdev
+ * @version 1.0.0
  * @license GPLv3 <http://www.gnu.org/licenses/gpl.txt>
  */
 
@@ -33,7 +33,7 @@ class FoursquareApi {
 	
 	// Edited Petr Babicka (babcca@gmail.com) https://developer.foursquare.com/overview/versioning
 	/** @var String $Version YYYYMMDD */
-	private $Version = '20130113'; 
+	private $Version = '20130105'; 
 
 	/** @var String $ClientID */
 	private $ClientID;
@@ -120,7 +120,6 @@ class FoursquareApi {
 				$endpoint = $request['endpoint'];
 				unset($request['endpoint']);
 				$query = '/' . $endpoint;
-					// Edited Elio Gavlinski (gavlinski@gmail.com)
 					if (!empty($request)) $query .= '?' . htmlentities(urlencode(http_build_query($request)));
 				$request_queries[] = $query;
 			}
@@ -222,7 +221,6 @@ class FoursquareApi {
 		if ($json->status != "OK") {
 			return NULL;
 		} else {
-			// Edited Elio Gavlinski (gavlinski@gmail.com)
 			return array('latitude' => $json->results[0]->geometry->location->lat,
 				'longitude' => $json->results[0]->geometry->location->lng,
 				'southwest' => $json->results[0]->geometry->viewport->southwest->lat . "," . $json->results[0]->geometry->viewport->southwest->lng,
