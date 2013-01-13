@@ -174,7 +174,8 @@ a:hover {
 .pb_after {
 	float: left;
 	border-right: 1px solid #769dc0;
-	background: #ffffff url("js/dijit/themes/claro/images/progressBarEmpty.png") repeat-none left;
+	/*background: #ffffff url("js/dijit/themes/claro/images/progressBarEmpty.png") repeat-none left;*/
+	background: #ffffff url("js/dijit/themes/claro/images/progressBarFull.png") repeat-none left;
 }
 .pb_indeterminate {
 	float: left;

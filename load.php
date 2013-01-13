@@ -9,7 +9,7 @@
  * @package		 Foursquare-Mass-Editor-Tools
  * @author		 Elio Gavlinski <gavlinski@gmail.com>
  * @copyright	 Copyleft (c) 2011-2012
- * @version		 1.3
+ * @version		 1.4
  * @link			 https://github.com/gavlinski/Foursquare-Mass-Editor-Tools/blob/master/load.php
  * @since			 File available since Release 1.1
  */
@@ -62,14 +62,17 @@ define("EDIT", '<script type="text/javascript">
 	window.location = "edit.php"
 </script>;');
 
+// Importação de dados de um arquivo texto
 if (isset($_FILES['txt']['tmp_name'])) {
 	$arquivo = $_FILES['txt']['tmp_name'];
 	if (is_uploaded_file($arquivo)) {
-		$_SESSION["file"] = validarVenues(filtrarArray(file($arquivo)));
+		$_SESSION["file"] = validarVenues(file($arquivo));
 		$_SESSION["campos"] = $_POST["campos"];
 		setLocalCache("txt", implode('%0A,', $_SESSION["file"]), "venues");
 		echo EDIT;
 	}
+
+// Importação de lista de uma página web
 } else if (isset($_POST["pagina"])) {
 	$pagina = $_POST["pagina"];
 	if ($pagina != "") {
@@ -83,13 +86,22 @@ if (isset($_FILES['txt']['tmp_name'])) {
 			echo EDIT;
 		}
 	}
+
+// IDs ou URLs informados manualmente
 } else if ((isset($_POST["textarea"])) && ($_POST["textarea"] != "")) {
 	$lista = explode("\n", $_POST["textarea"]);
-	$_SESSION["file"] = validarVenues(filtrarArray($lista));
-	$_SESSION["campos"] = $_POST["campos3"];
-	setLocalCache("txt", implode('%0A,', $_SESSION["file"]), "venues");
-	echo EDIT;
+	$_SESSION["file"] = validarVenues($lista);
+	if ($_SESSION["file"] == false) {
+		$p->hide();
+		echo ERRO03;
+		exit;
+	} else {
+		$_SESSION["campos"] = $_POST["campos3"];
+		setLocalCache("txt", implode('%0A,', $_SESSION["file"]), "venues");
+		echo EDIT;
+	}
 }
+
 echo ERRO99;
 
 function filtrarArray($array) {
@@ -158,12 +170,9 @@ function validarVenues($lines) {
 		}
 		/*** break the reference with the last element ***/
 		unset($r);
-		//print_r($ret);
-		//echo '<br><br>';
-		//print_r($venues);
-		//exit;
+
 		$_SESSION["venues"] = $venues;
-		return $ret;
+		return filtrarArray($ret);
 	} else if (count($lines) > 500) {
 		$p->hide();
 		echo ERRO01;
@@ -184,7 +193,7 @@ function validarVenues($lines) {
 					$line = substr($line, 0, $l);
 				$line = str_replace("/edit", "", $line);
 				$venues[$i] = substr($line, strrpos($line, "/") + 1, 24);
-			} else {
+			} else if ($length == 24) {
 				$venues[$i] = $line;
 				$line = "https://foursquare.com/v/" . $line;
 				//$line = "" + $venues[$i];
@@ -195,10 +204,14 @@ function validarVenues($lines) {
 		}
 		/*** break the reference with the last element ***/
 		unset($line);
-		//print_r($lines);
-		//echo '<br><br>';
-		//print_r($venues);
-		//exit;
+
+		$lines = filtrarArray($lines);
+		if (count($lines) == 0) {
+			$p->hide();
+			echo ERRO03;
+			exit;
+		}
+
 		$_SESSION["venues"] = $venues;
 		return $lines;
 	}

@@ -12,6 +12,8 @@ dojo.require("dojo.cookie");
 
 var DATA_VERSIONAMENTO = "20120924";
 var MESES = new Array("01", "02", "03", "04", "05", "06", "07", "08", "09", "10", "11", "12");
+
+var modo;
 var DADOS_COMPLETOS = 0;
 var DADOS_PARCIAIS = 1;
 
@@ -205,7 +207,7 @@ function xmlhttpRequest(metodo, endpoint, dados, i) {
 					}
 					atualizarDicaResultado(item, imagem, dica);
 				} else if ((metodo == "GET") && (resposta.response.categories == undefined)) {
-					atualizarTabela(resposta.response.venue, i, DADOS_COMPLETOS);
+					atualizarTabela(resposta.response.venue, i);
 					console.info("Venue " + i + " recuperada!");
 				} else if (resposta.response.categories != undefined) {
 					/*** Organiza em ordem alfabética o segundo e terceiro níveis das categorias ***/
@@ -458,7 +460,7 @@ function atualizarDicaVenue(i) {
 	return dica;
 }
 
-function atualizarTabela(venue, i, modo) {
+function atualizarTabela(venue, i) {
 	totalCarregadas++;
 	if (totalCarregadas == (document.forms.length - totalNaoCarregadas)) {
 		limparLinhasEditadas();
@@ -740,6 +742,7 @@ function carregarDadosVenues() {
 		json = JSON.parse(localStorage.getItem('venues'));
 	if (json == "") {
 		console.info("Recuperando dados completos das venues...");
+		modo = DADOS_COMPLETOS;
 		for (i = 0; i < linhas; i++) {
 			venue = document.forms[i]["venue"].value;
 			xmlhttpRequest("GET", "https://api.foursquare.com/v2/venues/" + venue + "?oauth_token=" + oauth_token + "&v=" + DATA_VERSIONAMENTO, null, i);
@@ -756,10 +759,12 @@ function carregarDadosVenues() {
 		}
 	} else {
 		console.info("Recuperando dados parciais das venues...");
+		modo = DADOS_PARCIAIS;
 		for (i = 0; i < linhas; i++) {
-			atualizarTabela(json.response.venues[i], i, DADOS_PARCIAIS);
-			console.info("Venue " + i + " recuperada via JSON!");
+			atualizarTabela(json.response.venues[i], i);
+			//console.info("Venue " + i + " recuperada via JSON!");
 		}
+		console.info("Dados parciais das venues recuperados via JSON!");
 	}
 }
 
@@ -786,7 +791,7 @@ function salvarVenues() {
 			else if ((elementName == "description") && (document.forms[i]["description"].readOnly == false)) {
 				var index = csv[0].indexOf("description")
 				dados += "&description=" + csv[i + 1][index].slice(1, -1).replace(/&/g, "%26");
-			} else if (elementName == "categoryId") {
+			} else if ((elementName == "categoryId") && (modo == DADOS_COMPLETOS)){
 				categoryId = document.forms[i]["categoryId"].value;
 				if ((categoryId != null) && (categoryId != ""))
 					dados += "&categoryId=" + categoryId;
@@ -797,9 +802,9 @@ function salvarVenues() {
 			}
 		}
 		dados += "&v=" + DATA_VERSIONAMENTO;
-		//console.group("venue=" + venue + " (" + i + ")");
-		//console.log(dados);
-		//console.groupEnd();
+		console.group("venue=" + venue + " (" + i + ")");
+		console.log(dados);
+		console.groupEnd();
 		xmlhttpRequest("POST", "https://api.foursquare.com/v2/venues/" + venue + "/edit", dados, i);
 		dojo.byId("result" + i).innerHTML = "<img src='img/loading.gif' alt='Enviando dados...'>";
 	}
@@ -937,7 +942,7 @@ dojo.addOnLoad(function inicializar() {
 		label: "Duplicadas",
 		id: "menuItemSinalizarDuplicate",
 		onClick: function() {
-			showDialogComment("duplicate");
+			showDialogComment("duplicate", "duplicada");
 		}
 	});
 	subMenu2.addChild(subMenu2Item1);
@@ -948,7 +953,7 @@ dojo.addOnLoad(function inicializar() {
 		iconClass: "doesnt_existIcon",
 		onClick: function() {
 			//dojo.query("input[name=selecao]:checked").forEach("desabilitarLinha(dijit.byId(item.id).value)");
-			showDialogComment("doesnt_exist");
+			showDialogComment("doesnt_exist", deCode("n&#227;o existe"));
 		}
 	});
 	subMenu2.addChild(subMenu2Item2);
@@ -957,7 +962,7 @@ dojo.addOnLoad(function inicializar() {
 		id: "menuItemSinalizarClosed",
 		iconClass: "closedIcon",
 		onClick: function() {
-			showDialogComment("closed");
+			showDialogComment("closed", "fechada");
 		}
 	});
 	subMenu2.addChild(subMenu2Item3);
@@ -966,7 +971,7 @@ dojo.addOnLoad(function inicializar() {
 		id: "menuItemSinalizarInappropriate",
 		iconClass: "inappropriateIcon",
 		onClick: function() {
-			showDialogComment("inappropriate");
+			showDialogComment("inappropriate", "inadequada");
 		}
 	});
 	subMenu2.addChild(subMenu2Item4);
@@ -975,7 +980,7 @@ dojo.addOnLoad(function inicializar() {
 		id: "menuItemSinalizarEvent_over",
 		iconClass: "event_overIcon",
 		onClick: function() {
-			showDialogComment("event_over");
+			showDialogComment("event_over", deCode("j&#225; terminou"));
 		}
 	});
 	subMenu2.addChild(subMenu2Item5);
@@ -1077,7 +1082,10 @@ dojo.addOnLoad(function inicializar() {
 				j++;
 			}
 			html.push("</pre></body></html>");
-			window.open("data:text/html;charset=iso-8859-1," + escape(html.join("\r\n")));
+			var rel = escape(html.join("\r\n"));
+			while (rel.indexOf("%u") !== -1)
+				rel = rel.substring(0, rel.indexOf("%u")) + " " + rel.substring(rel.indexOf("%u") + 6);
+			window.open("data:text/html;charset=iso-8859-1," + rel);
 		}
 	});
 	subMenu3.addChild(subMenu3Item3);
@@ -1121,11 +1129,16 @@ function showDialogGuia() {
 	dlg_guia.show();
 }
 
-function showDialogComment(caller) {
+function showDialogComment(caller, comment) {
 	for (i = 0; i < document.forms.length; i++)
 		dojo.byId("result" + i).innerHTML = "";
-	if (((caller == "saveButton") && (linhasEditadas.length > 0)) || (caller != "saveButton"))
+	if (((caller == "saveButton") && (linhasEditadas.length > 0)) || (caller != "saveButton")) {
 		dijit.byId('dlg_comment').show();
+		if (typeof(comment) == "undefined")
+			var comment = "";
+		if ((dijit.byId("textarea").value) == "")
+			dijit.byId("textarea").attr("value", comment);
+	}
 	actionButton = caller;
 }
 //var node = dojo.byId("forms");

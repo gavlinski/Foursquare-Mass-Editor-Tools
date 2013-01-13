@@ -482,9 +482,9 @@ if (isset($_SESSION["oauth_token"])) {
 					<button dojoType="dijit.form.Button" type="submit" class="continue">
 						Continuar
 					</button>
-					<button dojoType="dijit.form.Button" type=button onClick="console.log(f_src.getValues())">
+					<!--<button dojoType="dijit.form.Button" type=button onClick="console.log(f_src.getValues())">
 						Get Values from form!
-					</button>
+					</button>-->
 				</div>
 			</div>
 		</div>

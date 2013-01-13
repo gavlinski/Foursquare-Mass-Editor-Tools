@@ -74,20 +74,17 @@ if (isset($_POST["intent"]))
 if (isset($_POST["radius"]))
 	$params["radius"] = $_POST["radius"];
 
-$data = pesquisarVenues($params);
+if (isset($params))
+	$data = pesquisarVenues($params);
+else
+	echo ERRO99;
 
-if (count($file) > 0) {
-	$_SESSION["file"] = filtrarArray($file);
-	$_SESSION["venues"] = filtrarArray($venues);
-	$_SESSION["campos"] = $_POST["campos4"];
-	setLocalCache("txt", implode('%0A,', $_SESSION["file"]));
-	setLocalCache("venues", addslashes($data));
-	echo EDIT;
-} else {
-	echo ERRO02;
-	exit;
-}
-echo ERRO99;
+$_SESSION["file"] = filtrarArray($file);
+$_SESSION["venues"] = filtrarArray($venues);
+$_SESSION["campos"] = $_POST["campos4"];
+setLocalCache("txt", implode('%0A,', $_SESSION["file"]));
+setLocalCache("venues", addslashes($data));
+echo EDIT;
 
 function filtrarArray($array) {
 	return array_values(array_unique($array));
@@ -118,7 +115,7 @@ function pesquisarVenues($params) {
 	$foursquare -> SetAccessToken($_SESSION["oauth_token"]);
 	
 	/*** Leverages the Google Maps API to generate a lat/lng pair for a given address ***/
-	if (!preg_match('/^(\-?\d+(\.\d+)?),\s*(\-?\d+(\.\d+)?)$/', $params["ll"])) {
+	if ((!preg_match('/^(\-?\d+(\.\d+)?),\s*(\-?\d+(\.\d+)?)$/', $params["ll"])) ||  ($params["limit"] > 50)) {
 		$coordinates = $foursquare -> GeoLocate($params["ll"]);
 		$params["ll"] = $coordinates["latitude"] . "," . $coordinates["longitude"];
 		if ($coordinates == null) {
@@ -157,15 +154,18 @@ function pesquisarVenues($params) {
 		$responses = $foursquare -> GetMulti($requests);
 		$json = json_decode($responses);
 	}
-	
+		
 	function extrairVenuesIdsUrls($json_response_venues, $pbar, $size, $i) {
 		$array = array();
+		$s = count($json_response_venues);
+		$delta = ($size/($size/50))/$s;
+		//echo("\$size = $size, \$s = $s, \$delta = $delta<br>");
 		foreach ($json_response_venues as $venue) {
 			if (property_exists($venue, "id"))
 				$array["venues"][] = $venue->id;
 			if (property_exists($venue, "canonicalUrl"))
 				$array["file"][] = $venue->canonicalUrl;
-			$i++;
+			$i += $delta;
 			$pbar->setProgressBarProgress($i*100/$size);
 			usleep(50000*0.1);
 		}
@@ -177,9 +177,15 @@ function pesquisarVenues($params) {
 		/*** Single request ***/
 		if (isset($json->response->venues)) {
 			$size = count($json->response->venues);
-			$array = extrairVenuesIdsUrls($json->response->venues, $pbar, $size, 0);
-			$venues = $array["venues"];
-			$file = $array["file"];
+			if ($size > 0) {
+				$array = extrairVenuesIdsUrls($json->response->venues, $pbar, $size, 0);
+				$venues = $array["venues"];
+				$file = $array["file"];
+			} else {
+				$pbar->hide();
+				echo ERRO02;
+				exit;
+			}
 			
 		/*** Multi requests ***/
 		} else if (isset($json->response->responses)) {
@@ -188,26 +194,36 @@ function pesquisarVenues($params) {
 			$i = 0;
 			$response_venues = array();
 			foreach ($json->response->responses as $resp) {
-				$array = extrairVenuesIdsUrls($resp->response->venues, $pbar, $size, $i);
-				$r = $response["response"]["responses"][$i/50]["response"]["venues"];
-				if (count($venues) > 0) {
-					foreach ($r as $key => &$value)
-						if (!in_array($value["id"], $venues))
-							$response_venues["response"]["venues"][] = $r[$key];
-						else
-							unset($r[$key]); // remove venue duplicada
-					unset($value);
+				if (count($resp->response->venues) > 0) {
+					$array = extrairVenuesIdsUrls($resp->response->venues, $pbar, $size, $i);
+					$r = $response["response"]["responses"][$i/50]["response"]["venues"];
+					if (count($venues) > 0) {
+						foreach ($r as $key => &$value)
+							if (!in_array($value["id"], $venues))
+								$response_venues["response"]["venues"][] = $r[$key];
+							else
+								unset($r[$key]); // remove venue duplicada
+						unset($value);
+					} else {
+						$response_venues["response"]["venues"] = $r;
+					}
+					$venues = array_merge($venues, $array["venues"]);
+					$file = array_merge($file, $array["file"]);
+					$i += 50;
 				} else {
-					$response_venues["response"]["venues"] = $r;
+					$i += 50;
+					$pbar->setProgressBarProgress($i*100/$size);
+					usleep(50000*0.1);
 				}
-				$venues = array_merge($venues, $array["venues"]);
-				$file = array_merge($file, $array["file"]);
-				$i += 50;
 			}
+			if (!isset($response_venues["response"]["venues"])) {
+				$pbar->hide();
+				echo ERRO02;
+				exit;
+			}
+
 			unset($response["response"]);
 			$response = json_encode(array_merge($response, $response_venues));
-			//var_dump($response);
-			//exit;
 		}
 		
 	} else {

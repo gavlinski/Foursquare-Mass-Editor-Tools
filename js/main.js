@@ -9,8 +9,10 @@ dojo.require("dijit.form.Select");
 dojo.require("dijit.layout.AccordionContainer");
 dojo.require("dojox.form.Uploader");
 dojo.require("dojo.cookie");
+dojo.require("dojox.image");
 
 dojo.addOnLoad(function() {
+	dojox.image.preload(["js/dijit/themes/claro/images/progressBarFull.png", "js/dijit/themes/claro/images/progressBarAnim.gif"]);
 	dlg_csv = new dijit.Dialog({
 		title: "Arquivo CSV",
 		style: "width: 570px"
