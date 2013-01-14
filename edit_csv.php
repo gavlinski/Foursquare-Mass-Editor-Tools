@@ -15,7 +15,8 @@
  * @license		 GPLv3 <http://www.gnu.org/licenses/gpl.txt>
  */
 
-session_start();
+if (!isset($_SESSION))
+	session_start();
 if (isset($_SESSION["oauth_token"])) {
 	$oauth_token = $_SESSION["oauth_token"];
 	$file = $_SESSION["file"];

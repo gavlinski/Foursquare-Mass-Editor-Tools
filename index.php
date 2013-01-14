@@ -63,7 +63,8 @@
 
 	// Otherwise save the token in a session variable and redirect browser
 	} else {
-		session_start();
+		if (!isset($_SESSION))
+			session_start();
 		$_SESSION["oauth_token"] = $token;
 
 		// Save and configure a cookie to expire in 15 days
