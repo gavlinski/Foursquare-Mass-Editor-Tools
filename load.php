@@ -273,7 +273,10 @@ function parseVenues($html) {
 						$vid = substr($tag->getAttribute('href'), -24);
 					if (!in_array($vid, $venues)) { 
 						$venues[$i] = $vid;
-						$ret[$i] = "https://foursquare.com" . $tag->getAttribute('href');
+						if (stripos($tag->getAttribute('href'), "https://foursquare.com") !== false)
+							$ret[$i] = $tag->getAttribute('href');
+						else
+							$ret[$i] = "https://foursquare.com" . $tag->getAttribute('href');
 						$i++;
 					}
 				}
