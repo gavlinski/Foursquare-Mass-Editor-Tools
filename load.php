@@ -267,8 +267,8 @@ function parseVenues($html) {
 			$j = 0;
 			foreach ($links as $tag) {
 				if ((stripos($tag->getAttribute('href'), "/venue/") !== false) || (stripos($tag->getAttribute('href'), "/v/") !== false)) {
-					if (substr_count($tag->getAttribute('href'), "/") == 2)
-						$vid = substr($tag->getAttribute('href'), 3, 24);
+					if (stripos($tag->getAttribute('href'), "?referralId=a-") !== false)
+						$vid = substr($tag->getAttribute('href'), -62, 24);
 					else
 						$vid = substr($tag->getAttribute('href'), -24);
 					if (!in_array($vid, $venues)) { 
