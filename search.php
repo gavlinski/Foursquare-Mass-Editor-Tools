@@ -15,7 +15,8 @@
  * @license		 GPLv3 <http://www.gnu.org/licenses/gpl.txt
  */
 
-session_start();
+if (!isset($_SESSION))
+	session_start();
 if (!isset($_SESSION["oauth_token"])) {
 	header('Location: index.php');
 }
@@ -161,7 +162,10 @@ function pesquisarVenues($params) {
 	function extrairVenuesIdsUrls($json_response_venues, $pbar, $size, $i) {
 		$array = array();
 		$s = count($json_response_venues);
-		$delta = ($size/($size/50))/$s;
+		if ($size < 50)
+			$delta = 1;
+		else
+			$delta = ($size/($size/50))/$s;
 		//echo("\$size = $size, \$s = $s, \$delta = $delta<br>");
 		foreach ($json_response_venues as $venue) {
 			if (property_exists($venue, "id"))
@@ -169,6 +173,7 @@ function pesquisarVenues($params) {
 			if (property_exists($venue, "canonicalUrl"))
 				$array["file"][] = $venue->canonicalUrl;
 			$i += $delta;
+			//echo("\$i = $i,");
 			$pbar->setProgressBarProgress($i*100/$size);
 			usleep(50000*0.1);
 		}
@@ -228,7 +233,7 @@ function pesquisarVenues($params) {
 			unset($response["response"]);
 			$response = json_encode(array_merge($response, $response_venues));
 		}
-		
+
 	} else {
 		$pbar->hide();
 		echo TEMPLATE1 . '<p><b>Erro ' . $json->meta->code . ':</b> ' . $json->meta->errorType . '</p>
