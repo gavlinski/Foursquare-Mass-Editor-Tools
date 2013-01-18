@@ -152,7 +152,7 @@ function validarVenues($lines) {
 			}
 			
 		/*** 4sqmap - Foursquare Maps and Statistics ***/
-		} else if (stripos($line, 'https://foursquare.com/venue/') !== false) {
+		} else if (stripos($line, 'foursquare.com/venue/') !== false) {
 			//echo "Line #<b>{$line_num}</b> : " . htmlspecialchars($line) . " at position <b>" . stripos($line, 'https://foursquare.com/venue/') . "</b><br />\n";
 			$ret = array_merge($ret, array_slice(explode('https://foursquare.com/venue/', $line), 1));
 		}
@@ -173,7 +173,7 @@ function validarVenues($lines) {
 		/*** break the reference with the last element ***/
 		unset($r);
 
-		$_SESSION["venues"] = $venues;
+		$_SESSION["venues"] = filtrarArray($venues);
 		return filtrarArray($ret);
 	} else if (count($lines) > 500) {
 		$p->hide();
@@ -206,7 +206,6 @@ function validarVenues($lines) {
 		}
 		/*** break the reference with the last element ***/
 		unset($line);
-
 		$lines = filtrarArray($lines);
 		if (count($lines) == 0) {
 			$p->hide();
@@ -214,7 +213,7 @@ function validarVenues($lines) {
 			exit;
 		}
 
-		$_SESSION["venues"] = $venues;
+		$_SESSION["venues"] = filtrarArray($venues);
 		return $lines;
 	}
 }
@@ -274,7 +273,7 @@ function parseVenues($html) {
 						$vid = substr($tag->getAttribute('href'), -24);
 					if (!in_array($vid, $venues)) { 
 						$venues[$i] = $vid;
-						if (stripos($tag->getAttribute('href'), "https://foursquare.com") !== false)
+						if (stripos($tag->getAttribute('href'), "foursquare.com") !== false)
 							$ret[$i] = $tag->getAttribute('href');
 						else
 							$ret[$i] = "https://foursquare.com" . $tag->getAttribute('href');
