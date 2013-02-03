@@ -137,24 +137,10 @@ function validarVenues($lines) {
 			//echo "Line #<b>{$line_num}</b> : " . htmlspecialchars($line) . " at position <b>" . $pos . "</b><br />\n";
 			//$ret[] = substr($line, $pos + 8);
 
-		/*** Tidysquare ***/
-		//} else if (stripos($line, 'venuesArray.push(venue') !== false) {
-		if (stripos($line, 'venuesArray.push(venue') !== false) {
-			$l = strlen($line);
-			//echo "Line #<b>{$line_num}</b> : " . htmlspecialchars($line) . "l : " . $l . "<br />\n";
-			//if (($l == 53) or ($l == 54))
-			if ($l == 48)
-				//$ret[] = substr($line, -$l + 26);
-				$ret[] = substr($line, -26);
-			else {
-				$ret = explode('venuesArray.push(venue', $line);
-				$ret = array_slice($ret, 1);
-			}
-			
-		/*** 4sqmap - Foursquare Maps and Statistics ***/
-		} else if (stripos($line, 'foursquare.com/venue/') !== false) {
+		/*** Tidysquare e 4sqmap - Foursquare Maps and Statistics ***/
+		if (stripos($line, 'foursquare.com/venue/') !== false) {
 			//echo "Line #<b>{$line_num}</b> : " . htmlspecialchars($line) . " at position <b>" . stripos($line, 'https://foursquare.com/venue/') . "</b><br />\n";
-			$ret = array_merge($ret, array_slice(explode('https://foursquare.com/venue/', $line), 1));
+			$ret = array_merge($ret, array_slice(explode('://foursquare.com/venue/', $line), 1));
 		}
 	}
 
@@ -162,18 +148,20 @@ function validarVenues($lines) {
 		$size = count($ret);
 		foreach ($ret as &$r) {
 			$vid = substr($r, 0, 24);
-			if (!in_array($vid, $venues)) { 
-				$venues[$i] = $vid;
-				$r = "https://foursquare.com/v/" . $venues[$i];
-				$i++;
+			if ((stripos($vid, ' ') === false) && (!in_array($vid, $venues))) {
+				$venues[] = $vid;
+				$r = "https://foursquare.com/v/" . $vid;
+			} else {
+				$r = "";
 			}
+			$i++;
 			$p->setProgressBarProgress($i*100/$size);
 			usleep(50000*0.1);
 		}
 		/*** break the reference with the last element ***/
 		unset($r);
 
-		$_SESSION["venues"] = filtrarArray($venues);
+		$_SESSION["venues"] = $venues;
 		return filtrarArray($ret);
 	} else if (count($lines) > 500) {
 		$p->hide();
