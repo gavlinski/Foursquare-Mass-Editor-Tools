@@ -116,6 +116,19 @@ function filtrarArray($array) {
 	return array_values(array_unique($array));
 }
 
+function filtrarArrayPorId($array) {
+	$new_array = array();
+	foreach ($array as $i => &$value) {
+		$vid = basename($value);
+		if (!in_array($vid, $new_array))
+			$new_array[] = $vid;
+		else
+			unset($array[$i]);
+	}
+	unset($value);
+	return array_values($array);
+}
+
 function validarVenues($lines) {
 	$ret = array();
 	global $venues;
@@ -182,7 +195,8 @@ function validarVenues($lines) {
 				if ($line[$l] === "/")
 					$line = substr($line, 0, $l);
 				$line = str_replace("/edit", "", $line);
-				$venues[$i] = substr($line, strrpos($line, "/") + 1, 24);
+				//$venues[$i] = substr($line, strrpos($line, "/") + 1, 24);
+				$venues[$i] = basename($line);
 			} else if ($length == 24) {
 				$venues[$i] = $line;
 				$line = "https://foursquare.com/v/" . $line;
@@ -202,6 +216,8 @@ function validarVenues($lines) {
 		}
 
 		$_SESSION["venues"] = filtrarArray($venues);
+		if (count($_SESSION["venues"]) != count($lines))
+			$lines = filtrarArrayPorId($lines);
 		return $lines;
 	}
 }
