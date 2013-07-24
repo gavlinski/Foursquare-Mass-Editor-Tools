@@ -53,7 +53,7 @@ class FoursquareApi {
 	 * @param String $client_secret
 	 * @param String $version Defaults to v2, appends into the API url
 	 */
-	public function  __construct($client_id = false,$client_secret = false, $redirect_uri='', $version='v2', $language='en'){
+	public function  __construct($client_id = false,$client_secret = false, $redirect_uri='', $version='v2', $language='pt'){
 		$this->BaseUrl = "{$this->BaseUrl}$version/";
 		$this->ClientID = $client_id;
 		$this->ClientSecret = $client_secret;

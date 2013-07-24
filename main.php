@@ -8,8 +8,8 @@
  * @category	 Foursquare
  * @package		 Foursquare-Mass-Editor-Tools
  * @author		 Elio Gavlinski <gavlinski@gmail.com>
- * @copyright	 Copyleft (c) 2012
- * @version		 1.0
+ * @copyright	 Copyleft (c) 2012-2013
+ * @version		 1.1
  * @link			 https://github.com/gavlinski/Foursquare-Mass-Editor-Tools/blob/master/main.php
  * @since			 File available since Release 1.5
  * @license		 GPLv3 <http://www.gnu.org/licenses/gpl.txt>
@@ -29,6 +29,39 @@ if (isset($_SESSION["oauth_token"])) {
 <meta http-equiv="Content-type" content="text/html; charset=utf-8"/>
 <script src="js/dojo/dojo.js" djConfig="parseOnLoad: true"></script>
 <script type="text/javascript" src="js/main.js"></script>
+<?php
+$cache_file = "/tmp/cache-" . md5($_SERVER['REQUEST_URI']);
+if (file_exists($cache_file) && (filemtime($cache_file) > (time() - 3600 * 12))) {
+	// Cache file is less than 12 hours old. 
+	// Don't bother refreshing, just use the file as-is.
+	$response = file_get_contents($cache_file);
+} else {
+	// Our cache is out-of-date, so load the data from our remote server,
+	// and also save it over our cache for next time.
+	$response = carregarListaCategorias();
+	file_put_contents($cache_file, $response, LOCK_EX);
+}
+setLocalCache("categorias", $response);
+
+function carregarListaCategorias() {
+	require_once("FoursquareAPI.Class.php");
+
+	/*** Set client key and secret ***/
+	include 'includes/app_credentials.php';
+
+	/*** Load the Foursquare API library ***/
+	$foursquare = new FoursquareAPI($client_key, $client_secret);
+	$foursquare -> SetAccessToken($_SESSION["oauth_token"]);
+	
+	return $foursquare->GetPrivate("venues/categories");
+}
+
+function setLocalCache($key, $data) {
+	print('<script type="text/javascript">localStorage.setItem(\''.$key.'\', \''.$data.'\');</script>');
+	print str_pad('', intval(ini_get('output_buffering')));
+	flush();
+}
+?>
 <link rel="shortcut icon" href="favicon.ico" type="image/x-icon" />
 <link rel="stylesheet" type="text/css" href="js/dijit/themes/claro/claro.css"/>
 <link rel="stylesheet" type="text/css" href="estilo.css"/>
@@ -342,54 +375,55 @@ if (isset($_SESSION["oauth_token"])) {
 				<input type="hidden" id="oauth_token_scr" name="oauth_token" value="<?= $oauth_token ?>"/>
 				<div id="toolContainer">
 					<div class="row">
-						<span class="label"><label for="ll"><a href="https://developer.foursquare.com/docs/venues/search" target="_blank">Lat/Long</a>:</label></span>
-						<span class="formw"><input type="text" id="ll" name="ll" required="false" dojoType="dijit.form.ValidationTextBox" trim="true" style="width: 266px"/></span>
-						<span class="labelNear"><label for="near"><a href="https://developer.foursquare.com/docs/venues/search" target="_blank">Perto de</a>:</label></span>
-						<span class="formw"><input type="text" id="near" name="near" required="false" dojoType="dijit.form.ValidationTextBox" trim="true" style="width: 95px" disabled="true"/></span>
+						<span class="label"><label for="query"><a href="https://developer.foursquare.com/docs/venues/search" target="_blank">Consulta</a>:</label></span>
+						<span class="formw"><input type="text" id="query" name="query" required="false" dojoType="dijit.form.ValidationTextBox" trim="true" style="width: 170px"/></span>
+						<span class="labelLl"><label for="ll"><a href="https://developer.foursquare.com/docs/venues/search" target="_blank">Local</a>:</label></span>
+						<span class="formw"><input type="text" id="ll" name="ll" required="false" dojoType="dijit.form.ValidationTextBox" trim="true" style="width: 213px"/></span>
 					</div>
 					<div class="row">
 						<span class="label"><label for="categoryId"><a href="https://developer.foursquare.com/docs/venues/search" target="_blank">Categoria</a>:</label></span>
 						<span class="formw">
 							<span class="combobox">
-								<select data-dojo-id="categoryId" name="categoryId" id="categoryId" data-dojo-type="dijit/form/Select" disabled="true">
-									<option value=""></option>
+								<select data-dojo-id="categoryId" name="categoryId" id="categoryId" data-dojo-type="dijit/form/FilteringSelect">
+<?php
+	$categories = json_decode($response);
+	$categories_names = array();
+	
+	foreach ($categories->response->categories as $category):
+		if (property_exists($category, "categories"))
+			foreach ($category->categories as $category2):
+				if (property_exists($category2, "name")) {
+					$categories_names[$category2->id] = $category2->name;
+				}
+				if (property_exists($category2, "categories"))
+					foreach ($category2->categories as $category3):
+						if (property_exists($category3, "name")) {
+							$categories_names[$category3->id] = $category3->name;
+						}
+					endforeach;
+			endforeach;
+	endforeach;
+
+	asort($categories_names);
+	$options = '									<option value=""></option>
+';
+	foreach ($categories_names as $key => $val) {
+		$options .=
+'									<option value="' . $key . '">' . $val . '</option>
+';
+	}
+
+	echo $options;
+?>
 								</select>
 							</span>
 						</span>
-						<span class="labelQuery"><label for="query"><a href="https://developer.foursquare.com/docs/venues/search" target="_blank">Consulta</a>:</label></span>
-						<span class="formw"><input type="text" id="query" name="query" required="false" dojoType="dijit.form.ValidationTextBox" trim="true" style="width: 95px"/></span>
-					</div>
-					<div class="row">
-						<span class="label"><label for="limit"><a href="https://developer.foursquare.com/docs/venues/search" target="_blank">Limite</a>:</label></span>
-						<span class="formw">
-							<span class="comboboxes">
-								<select data-dojo-id="limit" name="limit" id="limit" style="margin-bottom: 3px" data-dojo-type="dijit/form/Select">
-									<option value="10">10</option>
-									<option value="25">25</option>
-									<option value="50" selected="selected">50</option>
-									<option value="100">100</option>
-									<option value="150">150</option>
-									<option value="200">200</option>
-									<option value="250">250</option>
-								</select>
-							</span>
-						</span>
-						<span class="labelIntent"><label for="intent"><a href="https://developer.foursquare.com/docs/venues/search" target="_blank">Inten&ccedil;&atilde;o</a>:</label></span>
-						<span class="formw">
-							<span class="comboboxes">
-								<select data-dojo-id="intent" name="intent" id="intent" data-dojo-type="dijit/form/Select" disabled="true">
-									<option value="checkin">checkin</option>
-									<option value="browse">browse</option>
-									<option value="global">global</option>
-									<option value="match">match</option>
-								</select>
-							</span>
-						</span>
+
 						<span class="labelRadius"><label for="radius"><a href="https://developer.foursquare.com/docs/venues/search" target="_blank">Raio</a>:</label></span>
 						<span class="formw">
 							<span class="comboboxes">
-								<select data-dojo-id="radius" name="radius" id="radius" data-dojo-type="dijit/form/Select" disabled="true">
-									<option value=""></option>
+								<select data-dojo-id="radius" name="radius" id="radius" data-dojo-type="dijit/form/Select">
+									<option value="">Padr&atilde;o</option>
 									<option value="50">50 m</option>
 									<option value="100">100 m</option>
 									<option value="250">250 m</option>
@@ -402,6 +436,34 @@ if (isset($_SESSION["oauth_token"])) {
 								</select>
 							</span>
 						</span>
+						<span class="labelIntent"><label for="intent"><a href="https://developer.foursquare.com/docs/venues/search" target="_blank">Inten&ccedil;&atilde;o</a>:</label></span>
+						<span class="formw">
+							<span class="comboboxes">
+								<select data-dojo-id="intent" name="intent" data-dojo-type="dijit/form/Select">
+									<option value="checkin">checkin</option>
+									<option value="browse">browse</option>
+									<option value="global">global</option>
+									<option value="match">match</option>
+								</select>
+							</span>
+						</span>
+					</div>
+					<div class="row">
+						<span class="label"><label for="limit"><a href="https://developer.foursquare.com/docs/venues/search" target="_blank">Limite</a>:</label></span>
+						<span class="formw">
+							<span class="comboboxes">
+								<select data-dojo-id="limit" name="limit" id="limit" id="intent" style="margin-bottom: 3px" data-dojo-type="dijit/form/Select">
+									<option value="10">10</option>
+									<option value="25">25</option>
+									<option value="50" selected="selected">50</option>
+									<option value="100">100</option>
+									<option value="150">150</option>
+									<option value="200">200</option>
+									<option value="250">250</option>
+								</select>
+							</span>
+						</span>
+
 					</div>
 					<div class="row">
 						<span class="label"><label for="campos4">Campos:</label></span>

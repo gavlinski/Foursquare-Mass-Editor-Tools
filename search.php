@@ -63,8 +63,6 @@ define("EDIT", '<script type="text/javascript">
 
 if (isset($_POST["ll"]))
 	$params["ll"] = utf8_encode($_POST["ll"]);
-if (isset($_POST["near"]))
-	$params["near"] = $_POST["near"];
 if (isset($_POST["categoryId"]))
 	$params["categoryId"] = $_POST["categoryId"];
 if ((isset($_POST["query"])) && ($_POST["query"] != ""))
@@ -109,10 +107,7 @@ function pesquisarVenues($params) {
 	require_once("FoursquareAPI.Class.php");
 
 	/*** Set client key and secret ***/
-	//$client_key = "3EZPQCWMPTP0TLV4SJNPOLMWJB4UVCBGMADXWQCYFU3MPIQZ";
-	//$client_secret = "J2310KS05Z50PU44DUC0T0HPEYM2CEQKBBPROAGXMBACZRZG";
-	$client_key = "LFWOW3NHC1MINMYZY4UUHHPCC5Z2LWZ0DZHYH3XBXYJBPGDO";
-	$client_secret = "QIG3AB5SFSAE5TP00QZSHLRSMCKQHTN5EAMAOLHNSNJJDQDL";
+	include 'includes/app_credentials.php';
 
 	/*** Load the Foursquare API library ***/
 	$foursquare = new FoursquareAPI($client_key, $client_secret);
