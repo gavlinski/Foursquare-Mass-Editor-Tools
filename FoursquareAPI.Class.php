@@ -4,8 +4,8 @@
  * A PHP-based Foursquare client library with a focus on simplicity and ease of integration
  * 
  * @package php-foursquare 
- * @author Stephen Young <stephen@tryllo.com>, @stephenyoungdev, @gavlinski
- * @version 1.1.0
+ * @author Stephen Young <stephen@tryllo.com>, @stephenyoungdev
+ * @version 1.0.0
  * @license GPLv3 <http://www.gnu.org/licenses/gpl.txt>
  */
 
@@ -28,12 +28,14 @@ class FoursquareApi {
 	private $BaseUrl = "https://api.foursquare.com/";
 	/** @var String $AuthUrl The url for obtaining the auth access code */
 	private $AuthUrl = "https://foursquare.com/oauth2/authenticate";
+  /** @var String $AuthorizeUrl The url for obtaining an auth token, reprompting even if logged in */
+  private $AuthorizeUrl = "https://foursquare.com/oauth2/authorize";
 	/** @var String $TokenUrl The url for obtaining an auth token */
 	private $TokenUrl = "https://foursquare.com/oauth2/access_token";
 	
 	// Edited Petr Babicka (babcca@gmail.com) https://developer.foursquare.com/overview/versioning
 	/** @var String $Version YYYYMMDD */
-	private $Version = '20130113'; 
+	private $Version;
 
 	/** @var String $ClientID */
 	private $ClientID;
@@ -45,20 +47,24 @@ class FoursquareApi {
 	private $AuthToken;
 	/** @var String $ClientLanguage */
 	private $ClientLanguage;
-	
-	/**
-	 * Constructor for the API
-	 * Prepares the request URL and client api params
-	 * @param String $client_id
-	 * @param String $client_secret
-	 * @param String $version Defaults to v2, appends into the API url
-	 */
-	public function  __construct($client_id = false,$client_secret = false, $redirect_uri='', $version='v2', $language='pt'){
+
+    /**
+     * Constructor for the API
+     * Prepares the request URL and client api params
+     * @param bool|String $client_id
+     * @param bool|String $client_secret
+     * @param string $redirect_uri
+     * @param String $version Defaults to v2, appends into the API url
+     * @param string $language
+     * @param string $api_version https://developer.foursquare.com/overview/versioning
+     */
+	public function  __construct($client_id = false,$client_secret = false, $redirect_uri='', $version='v2', $language='en', $api_version='20120228'){
 		$this->BaseUrl = "{$this->BaseUrl}$version/";
 		$this->ClientID = $client_id;
 		$this->ClientSecret = $client_secret;
 		$this->ClientLanguage = $language;
 		$this->RedirectUri = $redirect_uri;
+        $this->Version = $api_version;
 	}
     
 	public function setRedirectUri( $uri ) {
@@ -240,12 +246,7 @@ class FoursquareApi {
 	 * @param Array $params The parameters to pass to the URL
 	 */	
 	private function MakeUrl($url,$params){
-		if(!empty($params) && $params){
-			foreach($params as $k=>$v) $kv[] = "$k=$v";
-			$url_params = str_replace(" ","+",implode('&',$kv));
-			$url = trim($url) . '?' . $url_params;
-		}
-		return $url;
+	    return trim($url) . '?' . http_build_query($params); 
 	}
 	
 	// Access token functions
@@ -272,6 +273,21 @@ class FoursquareApi {
 		return $this->MakeUrl($this->AuthUrl,$params);
 	}
 	
+  /**
+   * AuthorizeLink
+   * Returns a link to the Foursquare web authentication page. Using /authorize will ask the user to
+   * re-authenticate their identity and reauthorize your app while giving the user the option to
+   * login under a different account.
+   * @param String $redirect The configured redirect_uri for the provided client credentials
+   */
+  public function AuthorizeLink($redirect=''){
+    if ( 0 === strlen( $redirect ) ) {
+      $redirect = $this->RedirectUri;
+    }
+    $params = array("client_id"=>$this->ClientID,"response_type"=>"code","redirect_uri"=>$redirect);
+    return $this->MakeUrl($this->AuthorizeUrl,$params);
+  }
+  
 	/**
 	 * GetToken
 	 * Performs a request to Foursquare for a user token, and returns the token, while also storing it
@@ -290,7 +306,7 @@ class FoursquareApi {
 						"grant_type"=>"authorization_code",
 						"redirect_uri"=>$redirect,
 						"code"=>$code);
-		$result = $this->POST($this->TokenUrl,$params);
+		$result = $this->GET($this->TokenUrl,$params);
 		$json = json_decode($result);
 		
 		// Petr Babicka Check if we get token
