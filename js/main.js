@@ -164,6 +164,8 @@ dojo.addOnLoad(function() {
 
 dojo.ready(function() {
 	setTimeout(function() {
+		if (dojo.cookie("name") != "undefined")
+			dojo.byId("name").innerText = dojo.cookie("name");
 		if (dojo.cookie("pagina") != "undefined")
 			dijit.byId("pagina").attr("value", dojo.cookie("pagina"));
 		dijit.byId("textarea_ids").attr("value", dojo.cookie("textarea"));

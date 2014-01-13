@@ -76,7 +76,7 @@
 		$u = $details->response->user;
 		if (property_exists($u, "firstName") && property_exists($u, "lastName")) {
 			$name = $u->firstName . " " . $u->lastName;
-			setcookie("name", $name, time()+60*60*24*1);
+			setrawcookie("name", rawurlencode($name), time()+60*60*24*1);
 		}
 		if (property_exists($u->checkins, "items")) {
 			$coordinates = $u->checkins->items[0]->venue->location->lat . "," . $u->checkins->items[0]->venue->location->lng;
