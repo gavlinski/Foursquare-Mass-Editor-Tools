@@ -163,10 +163,13 @@ function pesquisarVenues($params) {
 			$delta = ($size/($size/50))/$s;
 		//echo("\$size = $size, \$s = $s, \$delta = $delta<br>");
 		foreach ($json_response_venues as $venue) {
-			if (property_exists($venue, "id"))
+			if (property_exists($venue, "id")) {
 				$array["venues"][] = $venue->id;
-			if (property_exists($venue, "canonicalUrl"))
-				$array["file"][] = $venue->canonicalUrl;
+				if (property_exists($venue, "canonicalUrl"))
+					$array["file"][] = $venue->canonicalUrl;
+				else
+					$array["file"][] = "https://foursquare.com/v/" . $venue->id;
+			}
 			$i += $delta;
 			//echo("\$i = $i,");
 			$pbar->setProgressBarProgress($i*100/$size);
