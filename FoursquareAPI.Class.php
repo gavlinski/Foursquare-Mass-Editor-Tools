@@ -58,7 +58,7 @@ class FoursquareApi {
      * @param string $language
      * @param string $api_version https://developer.foursquare.com/overview/versioning
      */
-	public function  __construct($client_id = false,$client_secret = false, $redirect_uri='', $version='v2', $language='en', $api_version='20120228'){
+	public function  __construct($client_id = false,$client_secret = false, $redirect_uri='', $version='v2', $language='pt', $api_version='20140114'){
 		$this->BaseUrl = "{$this->BaseUrl}$version/";
 		$this->ClientID = $client_id;
 		$this->ClientSecret = $client_secret;
