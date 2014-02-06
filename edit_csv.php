@@ -127,27 +127,27 @@ foreach ($file as $f) {
 	}
 
 	if ($hasName) {
-		$name = htmlentities($f['name']);
+		$name = htmlentities($f['name'], ENT_QUOTES, 'ISO-8859-1');
 		echo '<input type="text" dojoType="dijit.form.TextBox" name="name" maxlength="256" value="', $name, '" placeHolder="Nome" style="width: 11em; margin-left: 5px;" onchange="verificarAlteracao(this, ', $i - 1, ')">', chr(10);
 	}
 
 	if ($hasAddress) {
-		$address = htmlentities($f['address']);
+		$address = htmlentities($f['address'], ENT_QUOTES, 'ISO-8859-1');
 		echo '<input type="text" dojoType="dijit.form.TextBox" name="address" maxlength="128" value="', $address, '" placeHolder="Endere&ccedil;o" style="width: 11em; margin-left: 5px;" onchange="verificarAlteracao(this, ', $i - 1, ')">', chr(10);
 	}
 
 	if ($hasCross) {
-		$crossStreet = htmlentities($f['crossStreet']);
+		$crossStreet = htmlentities($f['crossStreet'], ENT_QUOTES, 'ISO-8859-1');
 		echo '<input type="text" dojoType="dijit.form.TextBox" name="crossStreet" maxlength="51" value="', $crossStreet, '" placeHolder="Rua Cross" style="width: 9em; margin-left: 5px;" onchange="verificarAlteracao(this, ', $i - 1, ')">', chr(10);
 	}
 
 	if ($hasCity) {
-		$city = htmlentities($f['city']);
+		$city = htmlentities($f['city'], ENT_QUOTES, 'ISO-8859-1');
 		echo '<input type="text" dojoType="dijit.form.TextBox" name="city" maxlength="31" value="', $city, '" placeHolder="Cidade" style="width: 7em; margin-left: 5px;" onchange="verificarAlteracao(this, ', $i - 1, ')">', chr(10);
 	}
 
 	if ($hasState) {
-		$state = htmlentities($f['state']);
+		$state = htmlentities($f['state'], ENT_QUOTES, 'ISO-8859-1');
 		echo '<input type="text" dojoType="dijit.form.TextBox" name="state" maxlength="30" value="', $state, '" placeHolder="UF" style="width: 2.5em; margin-left: 5px;" onchange="verificarAlteracao(this, ', $i - 1, ')">', chr(10);
 	}
 
@@ -172,7 +172,7 @@ foreach ($file as $f) {
 	}
 
 	if ($hasDesc) {
-		$description = htmlentities($f['description']);
+		$description = htmlentities($f['description'], ENT_QUOTES, 'ISO-8859-1');
 		echo '<input type="text" dojoType="dijit.form.TextBox" name="description" maxlength="300" value="', $description, '" placeHolder="Descri&ccedil;&atilde;o" style="width: 8em; margin-left: 5px;" onchange="verificarAlteracao(this, ', $i - 1, ')">', chr(10);
 	}
 
@@ -186,7 +186,7 @@ foreach ($file as $f) {
 	}
 
 	if ($hasCategoryId) {
-		$categoryId = htmlentities($f['categoryId']);
+		$categoryId = $f['categoryId'];
 		//if (($categoryId != '') && ($categoryId != ' ')) {
 			echo '<input type="text" dojoType="dijit.form.TextBox" name="categoryId" maxlength="75" value="', $categoryId, '" placeHolder="Categorias" style="width: 9em; margin-left: 5px;" onchange="verificarAlteracao(this, ', $i - 1, ')">', chr(10);
 		//} else {

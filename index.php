@@ -24,7 +24,7 @@
 	$foursquare = new FoursquareAPI($client_key, $client_secret);
 
 	// If the link has been clicked, and we have a supplied code, use it to request a token
-	if (isset($_COOKIE['oauth_token'])) {
+	if ((isset($_COOKIE['oauth_token'])) && ($_COOKIE['oauth_token'] != "0")) {
 		$token = $_COOKIE['oauth_token'];
 	} else if (array_key_exists("code", $_GET)) {
 		$token = $foursquare->GetToken($_GET['code'], $redirect_uri);
