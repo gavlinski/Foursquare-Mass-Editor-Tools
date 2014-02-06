@@ -69,7 +69,10 @@ function setLocalCache($key, $data) {
 <body class="claro">
 <h2>Edi&ccedil;&atilde;o de venues em massa via API</h2>
 <div style="width: 578px;">
-	<!--<p>Ol&aacute;, <span id="name">Superusu&aacute;rio</span>!</p>-->
+<?php
+if ((isset($_COOKIE['name'])) && (strlen($_COOKIE['name']) > 0))
+		echo "<p>Ol&aacute;, <span id=\"name\">" . $_COOKIE['name'] . "</span>!</p>";
+?>
 	<p>Para ajudar a manter atualizadas as venues do foursquare, disponibilizamos aos superusu&aacute;rios ferramentas que permitem edit&aacute;-las em massa. Obrigado por ajudar a melhorar as listagens de venues do foursquare.<p>
 	<div id="accordion" dojoType="dijit.layout.AccordionContainer" doLayout="false">
 		<div dojoType="dijit.layout.ContentPane" title="Importar dados de um arquivo CSV">
