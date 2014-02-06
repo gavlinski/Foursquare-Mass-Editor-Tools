@@ -138,6 +138,8 @@ dojo.addOnLoad(function() {
 	var ll_src = dijit.byId("ll");
 	dojo.connect(form_src, "onSubmit", function(e) {
 		if (form_src.validate()) {
+			if (radius.value == "")
+				radius.value = "800";
 			if (ll_src.value == "") {
 				e.preventDefault();
 				alert("Informe as coordenadas ou o endere&ccedil;o");
@@ -146,8 +148,8 @@ dojo.addOnLoad(function() {
 				//e.preventDefault();
 				//alert("Selecione pelo menos um dos campos");
 				//dijit.byId("nome4").focus();
-			//} else {
-				//alert("Ready to submit data: " + dojo.toJson(form_src.attr("value")));
+			} else {
+				alert("Ready to submit data: " + dojo.toJson(form_src.attr("value")));
 			}
 		} else {
 			e.preventDefault();
