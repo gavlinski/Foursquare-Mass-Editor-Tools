@@ -196,9 +196,19 @@ foreach ($file as $f) {
 <div data-dojo-type="dijit.Dialog" id="dlg_cats" data-dojo-props='title:"Categorias"'>
 	<div id="catsContainer"></div>
 	<div id="treeContainer"></div>
-	<button id="saveCatsButton" dojoType="dijit.form.Button" type="button" onclick="salvarCategorias()" name="saveCatsButton">OK</button>
-	<button data-dojo-type="dijit.form.Button" type="button" data-dojo-props="onClick:function(){ dijit.byId('dlg_cats').hide(); }">Cancelar</button>
-	<br><div id="venueIndex" style="display: none"></div><div id="catsIds" style="display: none"></div><div id="catsIcones" style="display: none"></div>
+	<span class="checkbox">
+		<div class="editAllCheckbox" style="width: 19em;">
+			<input id="editAllCheckbox" name="editAllCheckbox" dojoType="dijit.form.CheckBox" value="editAllCategories">
+				<label for="editAllCheckbox">
+					Aplicar categoria(s) a todas as venues
+				</label>
+		</div>
+	</span>
+	<span style="clear: both; display: block;">
+		<button id="saveCatsButton" dojoType="dijit.form.Button" type="button" onclick="salvarCategorias()" name="saveCatsButton">OK</button>
+		<button data-dojo-type="dijit.form.Button" type="button" data-dojo-props="onClick:function(){ dijit.byId('dlg_cats').hide(); }">Cancelar</button>
+	</span>
+	<div id="venueIndex" style="display: none"></div><div id="catsIds" style="display: none"></div><div id="catsIcones" style="display: none"></div>
 </div>
 <!-- Barra de Progresso ao Salvar -->
 <div data-dojo-type="dijit.Dialog" id="dlg_save" data-dojo-props='title:"Salvando venues..."'>

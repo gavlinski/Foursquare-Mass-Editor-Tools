@@ -312,6 +312,7 @@ function editarCategorias(i) {
 	atualizarCategorias(nomes, ids, icones);
 	dojo.byId("venueIndex").innerHTML = i;
 	dijit.byId("dlg_cats").show();
+	dijit.byId("editAllCheckbox").attr("checked", false);
 }
 
 function removerCategoria(i) {
@@ -377,29 +378,41 @@ function tornarCategoriaPrimaria(i) {
 }
 
 function salvarCategorias() {
-	var i = dojo.byId("venueIndex").innerHTML;
+	var venueIndex, venueLoop;
 	var nomes = "";
 	if (dojo.byId("catsIds").innerHTML != "") {
 		nomes = dojo.byId("categoria1").innerHTML;
-		if (dojo.byId("categoria2") !== null)
+		if (dojo.byId("categoria2") !== null) {
 			nomes += dojo.byId("categoria2").innerHTML;
-		if (dojo.byId("categoria3") !== null)
-			nomes += dojo.byId("categoria3").innerHTML;
-		dojo.byId("cna" + i).value = nomes;
-		dojo.byId("cid" + i).value = dojo.byId("catsIds").innerHTML;
-		dojo.byId("cic" + i).value = dojo.byId("catsIcones").innerHTML;
-		dojo.byId("icone" + i).innerHTML = "<a id='catLnk" + i + "' href='javascript:editarCategorias(" + i + ")'><img id=catImg" + i + " src='" + dojo.byId("cic" + i).value.split(",", 1)[0] + "' style='height: 22px; width: 22px; margin-left: 0px'></a>";
-		var index = csv[0].indexOf("categoryId")
-		csv[parseInt(i) + 1][index] = dojo.byId("cid" + i).value;
-		dojo.byId("result" + i).innerHTML = "";
-		if (linhasEditadas.indexOf(parseInt(i)) == -1)
-			linhasEditadas.push(parseInt(i));
-		//console.log(dojo.byId("cna" + i).value);
-		//console.log(dojo.byId("cid" + i).value);
-		//console.log(dojo.byId("cic" + i).value);
-		//console.log(csv[parseInt(i) + 1][2], csv[parseInt(i) + 1][index]);
+			if (dojo.byId("categoria3") !== null)
+				nomes += dojo.byId("categoria3").innerHTML;
+		}
+		if (dijit.byId("editAllCheckbox").checked) {
+			venueIndex = 0;
+			venueLoop = document.forms.length - 1;
+		} else {
+			venueIndex = dojo.byId("venueIndex").innerHTML;
+			venueLoop = venueIndex;
+		}
+		for (i = venueIndex; i <= venueLoop; i++) {
+			if (dojo.query("input[name=selecao]")[i].disabled != true) {
+				dojo.byId("cna" + i).value = nomes;
+				dojo.byId("cid" + i).value = dojo.byId("catsIds").innerHTML;
+				dojo.byId("cic" + i).value = dojo.byId("catsIcones").innerHTML;
+				dojo.byId("icone" + i).innerHTML = "<a id='catLnk" + i + "' href='javascript:editarCategorias(" + i + ")'><img id=catImg" + i + " src='" + dojo.byId("cic" + i).value.split(",", 1)[0] + "' style='height: 22px; width: 22px; margin-left: 0px'></a>";
+				var index = csv[0].indexOf("categoryId")
+				csv[parseInt(i) + 1][index] = dojo.byId("cid" + i).value;
+				dojo.byId("result" + i).innerHTML = "";
+				if (linhasEditadas.indexOf(parseInt(i)) == -1)
+					linhasEditadas.push(parseInt(i));
+				//console.log(dojo.byId("cna" + i).value);
+				//console.log(dojo.byId("cid" + i).value);
+				//console.log(dojo.byId("cic" + i).value);
+				//console.log(csv[parseInt(i) + 1][2], csv[parseInt(i) + 1][index]);
+				createTooltip("catLnk" + i, "<span style=\"font-size: 12px\">" + nomes.replace(/,/gi, ", ") + "</span>");
+			}
+		}
 		dijit.byId('dlg_cats').hide();
-		createTooltip("catLnk" + i, "<span style=\"font-size: 12px\">" + nomes.replace(/,/gi, ", ") + "</span>");
 		//dijit.byId("menuItemExportarCSV").setAttribute("disabled", true);
 	}
 }

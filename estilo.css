@@ -248,7 +248,7 @@ a:hover {
 }
 #treeContainer {
 	width: 375px;
-	height: 200px;
+	height: 222px;
 	font-size: 12px;
 	padding-top: 3px;
 	margin-bottom: 6px;
@@ -256,6 +256,14 @@ a:hover {
 	-khtml-user-select: none;
 	-webkit-user-select: none;
 	user-select: none;
+}
+#dlg_cats .dijitDialogPaneContent span.checkbox {
+	float: left;
+}
+.editAllCheckbox {
+  margin-left: 3px;
+  margin-bottom: 6px;
+	font-size: 12px;
 }
 .flagIcon {
 	background-image: url(img/flag.png);
