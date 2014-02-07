@@ -138,8 +138,9 @@ dojo.addOnLoad(function() {
 	var ll_src = dijit.byId("ll");
 	dojo.connect(form_src, "onSubmit", function(e) {
 		if (form_src.validate()) {
-			if (radius.value == "")
-				radius.value = "800";
+			if (radius.value == "") {
+				dijit.byId("radius").attr("value", "1000");
+			}
 			if (ll_src.value == "") {
 				e.preventDefault();
 				alert("Informe as coordenadas ou o endere&ccedil;o");
@@ -148,8 +149,8 @@ dojo.addOnLoad(function() {
 				//e.preventDefault();
 				//alert("Selecione pelo menos um dos campos");
 				//dijit.byId("nome4").focus();
-			} else {
-				alert("Ready to submit data: " + dojo.toJson(form_src.attr("value")));
+			//} else {
+				//alert("Ready to submit data: " + dojo.toJson(form_src.attr("value")));
 			}
 		} else {
 			e.preventDefault();
@@ -208,12 +209,12 @@ dojo.ready(function() {
 		if (dojo.cookie("search") != undefined) {
 			var search = JSON.parse(dojo.cookie("search"));
 			dijit.byId("ll").attr("value", search[0]);
-			//dijit.byId("near").attr("value", search[1]);
-			//dijit.byId("categoryId").attr("value", search[2]);
+			dijit.byId("near").attr("value", search[1]);
+			dijit.byId("categoryId").attr("value", search[2]);
 			dijit.byId("query").attr("value", search[3]);
 			dijit.byId("limit").attr("value", search[4]);
-			//dijit.byId("intent").attr("value", search[5]);
-			//dijit.byId("radius").attr("value", search[6]);
+			dijit.byId("intent").attr("value", search[5]);
+			dijit.byId("radius").attr("value", search[6]);
 		} else {
 			dijit.byId("ll").attr("value", dojo.cookie("coordinates"));
 		}
