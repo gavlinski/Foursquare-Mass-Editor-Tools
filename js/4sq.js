@@ -1019,6 +1019,18 @@ dojo.addOnLoad(function inicializar() {
 				if (csv[i] != undefined)
 					arq[j++] = csv[i].join(";");
 			}
+			if (totalSelecionadas > 0) {
+				var j = 1;
+				var l = arq.length;
+				linhasSelecionadas = [];
+				dojo.query("input[name=selecao]:checked").forEach("linhasSelecionadas.push(dijit.byId(item.id).value)");
+				for (i = 0; i < l; i++) {
+					if (linhasSelecionadas.indexOf(i.toString()) == -1)
+						arq.splice(j, 1);
+					else
+						j++;
+				}
+			}
 			window.location.href = "data:text/csv;charset=iso-8859-1," + escape(arq.join("\r\n"));
 		}
 	});
@@ -1028,10 +1040,10 @@ dojo.addOnLoad(function inicializar() {
 		id: "menuItemExportarTXT",
 		onClick: function() {
 			var arq = txt.slice(0);
-			var j = 0;
-			var l = arq.length;
-			linhasSelecionadas = [];
 			if (totalSelecionadas > 0) {
+				var j = 0;
+				var l = arq.length;
+				linhasSelecionadas = [];
 				dojo.query("input[name=selecao]:checked").forEach("linhasSelecionadas.push(dijit.byId(item.id).value)");
 				for (i = 0; i < l; i++) {
 					if (linhasSelecionadas.indexOf(i.toString()) == -1)

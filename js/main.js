@@ -138,9 +138,6 @@ dojo.addOnLoad(function() {
 	var ll_src = dijit.byId("ll");
 	dojo.connect(form_src, "onSubmit", function(e) {
 		if (form_src.validate()) {
-			if (radius.value == "") {
-				dijit.byId("radius").attr("value", "10000");
-			}
 			if (ll_src.value == "") {
 				e.preventDefault();
 				alert("Informe as coordenadas ou o endere&ccedil;o");
@@ -158,16 +155,20 @@ dojo.addOnLoad(function() {
 		var campos4 = dijit.byId("nome4").checked + "." + dijit.byId("endereco4").checked + "." + dijit.byId("ruacross4").checked + "." + dijit.byId("cidade4").checked + "." + dijit.byId("estado4").checked + "." + dijit.byId("cep4").checked + "." + dijit.byId("twitter4").checked + "." + dijit.byId("telefone4").checked + "." + dijit.byId("website4").checked + ".";
 		(dijit.byId("descricao4").disabled) ? campos4 += "false." : campos4 += dijit.byId("descricao4").checked + ".";
 		campos4 += dijit.byId("latlong4").checked;
-		var search = [dijit.byId("ll").value, "near", "categoryId", dijit.byId("query").value, dijit.byId("limit").value, "intent", "radius"];
+		var search = [dijit.byId("query").value, dijit.byId("ll").value, dijit.byId("categoryId").value, dijit.byId("radius").value, dijit.byId("intent").value, dijit.byId("limit").value];
 		dojo.cookie("search", JSON.stringify(search), { expires: 15 });
 		dojo.cookie("campos", campos4, { expires: 15 });
 		dojo.cookie("accordion", dijit.byId("accordion").selectedChildWidget.id, { expires: 15 });
+		if (radius.value == "") {
+			dijit.byId("radius").attr("value", "5000");
+		}
+
 	});
 });
 
 dojo.ready(function() {
 	setTimeout(function() {
-		if (dojo.cookie("name") != "undefined")
+		if ((dojo.cookie("name") != null) && (dojo.cookie("name") != "undefined"))
 			dojo.byId("name").innerText = dojo.cookie("name");
 		if (dojo.cookie("pagina") != "undefined")
 			dijit.byId("pagina").attr("value", dojo.cookie("pagina"));
@@ -208,13 +209,12 @@ dojo.ready(function() {
 		}
 		if (dojo.cookie("search") != undefined) {
 			var search = JSON.parse(dojo.cookie("search"));
-			dijit.byId("ll").attr("value", search[0]);
-			dijit.byId("near").attr("value", search[1]);
+			dijit.byId("query").attr("value", search[0]);
+			dijit.byId("ll").attr("value", search[1]);
 			dijit.byId("categoryId").attr("value", search[2]);
-			dijit.byId("query").attr("value", search[3]);
-			dijit.byId("limit").attr("value", search[4]);
-			dijit.byId("intent").attr("value", search[5]);
-			dijit.byId("radius").attr("value", search[6]);
+			dijit.byId("radius").attr("value", search[3]);
+			dijit.byId("intent").attr("value", search[4]);
+			dijit.byId("limit").attr("value", search[5]);
 		} else {
 			dijit.byId("ll").attr("value", dojo.cookie("coordinates"));
 		}

@@ -62,7 +62,7 @@ define("EDIT", '<script type="text/javascript">
 </script>;');
 
 if (isset($_POST["ll"]))
-	$params["ll"] = utf8_encode($_POST["ll"]);
+	$params["ll"] = stripAccents($_POST["ll"]);
 if (isset($_POST["categoryId"]))
 	$params["categoryId"] = $_POST["categoryId"];
 if ((isset($_POST["query"])) && ($_POST["query"] != ""))
@@ -85,6 +85,10 @@ $_SESSION["campos"] = $_POST["campos4"];
 setLocalCache("txt", implode('%0A,', $_SESSION["file"]));
 setLocalCache("venues", addslashes($data));
 echo EDIT;
+
+function stripAccents($str) {
+    return strtr($str, utf8_decode('àáâãäçèéêëìíîïñòóôõöùúûüýÿÀÁÂÃÄÇÈÉÊËÌÍÎÏÑÒÓÔÕÖÙÚÛÜÝ'), 'aaaaaceeeeiiiinooooouuuuyyAAAAACEEEEIIIINOOOOOUUUUY');
+}
 
 function filtrarArray($array) {
 	return array_values(array_unique($array));

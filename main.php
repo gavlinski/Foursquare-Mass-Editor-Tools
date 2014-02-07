@@ -57,7 +57,7 @@ function carregarListaCategorias() {
 }
 
 function setLocalCache($key, $data) {
-	print('<script type="text/javascript">localStorage.setItem(\''.$key.'\', \''.$data.'\');</script>');
+	print('<script type="text/javascript">localStorage.setItem(\''.$key.'\', \''.str_replace("'", "\'", $data).'\');</script>');
 	print str_pad('', intval(ini_get('output_buffering')));
 	flush();
 }
@@ -443,7 +443,7 @@ if ((isset($_COOKIE['name'])) && (strlen($_COOKIE['name']) > 0))
 						<span class="labelIntent"><label for="intent"><a href="https://developer.foursquare.com/docs/venues/search" target="_blank">Inten&ccedil;&atilde;o</a>:</label></span>
 						<span class="formw">
 							<span class="comboboxes">
-								<select data-dojo-id="intent" name="intent" data-dojo-type="dijit/form/Select">
+								<select data-dojo-id="intent" name="intent" id="intent" data-dojo-type="dijit/form/Select">
 									<option value="checkin">checkin</option>
 									<option value="browse">browse</option>
 									<option value="global">global</option>
