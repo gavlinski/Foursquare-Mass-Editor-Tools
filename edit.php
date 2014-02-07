@@ -197,7 +197,7 @@ foreach ($file as $f) {
 	<div id="catsContainer"></div>
 	<div id="treeContainer"></div>
 	<span class="checkbox">
-		<div class="editAllCheckbox" style="width: 19em;">
+		<div class="editAllCheckbox" style="width: 19.2em;">
 			<input id="editAllCheckbox" name="editAllCheckbox" dojoType="dijit.form.CheckBox" value="editAllCategories">
 				<label for="editAllCheckbox">
 					Aplicar categoria(s) a todas as venues
