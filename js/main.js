@@ -139,7 +139,7 @@ dojo.addOnLoad(function() {
 	dojo.connect(form_src, "onSubmit", function(e) {
 		if (form_src.validate()) {
 			if (radius.value == "") {
-				dijit.byId("radius").attr("value", "1000");
+				dijit.byId("radius").attr("value", "10000");
 			}
 			if (ll_src.value == "") {
 				e.preventDefault();
