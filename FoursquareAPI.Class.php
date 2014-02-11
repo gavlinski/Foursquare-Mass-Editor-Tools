@@ -219,7 +219,7 @@ class FoursquareApi {
 	 * @return array(lat, lng) || NULL
 	 */
 	public function GeoLocate($addr){
-		$addr = str_replace(" ", "+", urlencode($addr));
+		$addr = str_replace(" ", "+", $addr);
 		$geoapi = "http://maps.googleapis.com/maps/api/geocode/json";
 		$params = array("address"=>$addr,"sensor"=>"false");
 		$response = $this->GET($geoapi,$params);
