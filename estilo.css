@@ -307,3 +307,10 @@ a:hover {
 	margin-left: 2px;
 	margin-right: 2px;
 }
+.privateIcon {
+	background-image: url(img/private.png);
+	width: 10px;
+	height: 10px;
+	margin-left: 2px;
+	margin-right: 2px;
+}

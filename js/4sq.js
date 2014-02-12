@@ -961,21 +961,20 @@ dojo.addOnLoad(function inicializar() {
 	subMenu2.addChild(subMenu2Item1);
 	subMenu2.addChild(new dijit.MenuSeparator);
 	var subMenu2Item2 = new dijit.MenuItem({
-		label: "N&atilde;o existe",
-		id: "menuItemSinalizarDoesnt_exist",
-		iconClass: "doesnt_existIcon",
-		onClick: function() {
-			//dojo.query("input[name=selecao]:checked").forEach("desabilitarLinha(dijit.byId(item.id).value)");
-			showDialogComment("doesnt_exist", deCode("n&#227;o existe"));
-		}
-	});
-	subMenu2.addChild(subMenu2Item2);
-	var subMenu2Item3 = new dijit.MenuItem({
 		label: "Fechada",
 		id: "menuItemSinalizarClosed",
 		iconClass: "closedIcon",
 		onClick: function() {
 			showDialogComment("closed", "fechada");
+		}
+	});
+	subMenu2.addChild(subMenu2Item2);
+	var subMenu2Item3 = new dijit.MenuItem({
+		label: "J&aacute; terminou",
+		id: "menuItemSinalizarEvent_over",
+		iconClass: "event_overIcon",
+		onClick: function() {
+			showDialogComment("event_over", deCode("j&#225; terminou"));
 		}
 	});
 	subMenu2.addChild(subMenu2Item3);
@@ -989,14 +988,25 @@ dojo.addOnLoad(function inicializar() {
 	});
 	subMenu2.addChild(subMenu2Item4);
 	var subMenu2Item5 = new dijit.MenuItem({
-		label: "J&aacute; terminou",
-		id: "menuItemSinalizarEvent_over",
-		iconClass: "event_overIcon",
+		label: "N&atilde;o existe",
+		id: "menuItemSinalizarDoesnt_exist",
+		iconClass: "doesnt_existIcon",
 		onClick: function() {
-			showDialogComment("event_over", deCode("j&#225; terminou"));
+			//dojo.query("input[name=selecao]:checked").forEach("desabilitarLinha(dijit.byId(item.id).value)");
+			showDialogComment("doesnt_exist", deCode("n&#227;o existe"));
 		}
 	});
 	subMenu2.addChild(subMenu2Item5);
+	subMenu2.addChild(new dijit.MenuSeparator);
+	var subMenu2Item6 = new dijit.MenuItem({
+		label: "Particular",
+		id: "menuItemSinalizarPrivate",
+		iconClass: "privateIcon",
+		onClick: function() {
+			showDialogComment("private", "particular");
+		}
+	});
+	subMenu2.addChild(subMenu2Item6);
 	var menuItem2 = new dijit.PopupMenuItem({
 		label: "Sinalizar",
 		id: "menuSinalizar",
