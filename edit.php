@@ -25,7 +25,7 @@ if (isset($_SESSION["oauth_token"])) {
 	header('Location: index.php'); /* Redirect browser */
 }
 ?>
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<!DOCTYPE html>
 <html>
 <head>
 <title>Elio Tools</title>
@@ -39,6 +39,7 @@ if (isset($_SESSION["oauth_token"])) {
 <body class="claro">
 <h2>Editar venues</h2>
 <p>Antes de salvar suas altera&ccedil;&otilde;es, n&atilde;o deixe de ler nosso <a id="guia" href="javascript:showDialogGuia()">guia de estilo</a> e as <a id="regras" href="https://pt.foursquare.com/info/houserules" target="_blank">regras da casa</a>.</p>
+<div id="mapa"></div>
 <div id="listContainer">
 <?php
 $totalCampos = 0;

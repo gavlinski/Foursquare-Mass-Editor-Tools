@@ -46,6 +46,11 @@ var totalProgresso = 0;
 
 var actionButton = "";
 
+var locais = new Array();
+var marcadores = new Array();
+var map, bounds;
+var mapaCarregado = false;
+
 function addZero(i) {
 	if (i < 10)
 		i = "0" + i;
@@ -128,6 +133,7 @@ function atualizarFalhas(metodo, i, acao) {
 		/*** Se tiver sido a última venue a ser carregada ***/
 		if (totalCarregadas == (document.forms.length - totalNaoCarregadas)) {
 			limparLinhasEditadas();
+			atualizarMarcadoresMapa();
 			/*** Se nenhuma venue tiver sido carregada ***/
 			if (totalNaoCarregadas == document.forms.length) {
 				dijit.byId("menuSelecionar").setAttribute('disabled', true);
@@ -208,7 +214,6 @@ function xmlhttpRequest(metodo, endpoint, dados, i) {
 					atualizarDicaResultado(item, imagem, dica);
 				} else if ((metodo == "GET") && (resposta.response.categories == undefined)) {
 					atualizarTabela(resposta.response.venue, i);
-					console.info("Venue " + i + " recuperada!");
 				} else if (resposta.response.categories != undefined) {
 					/*** Organiza em ordem alfabética o segundo e terceiro níveis das categorias ***/
 					for (j = 0; j < resposta.response.categories.length; j++) {
@@ -475,9 +480,6 @@ function atualizarDicaVenue(i) {
 
 function atualizarTabela(venue, i) {
 	totalCarregadas++;
-	if (totalCarregadas == (document.forms.length - totalNaoCarregadas)) {
-		limparLinhasEditadas();
-	}
 	var linha = "";
 	categorias[i] = new Categoria();
 	var sufixo;
@@ -662,6 +664,12 @@ function atualizarTabela(venue, i) {
 		(modo == DADOS_COMPLETOS) ? csv[0] = csv[0].concat("createdAt;checkins;users;tips;photos;closed") : csv[0] = csv[0].concat("checkins;users;tips");
 		if (dojo.query("input[name=selecao]:enabled").length == 0)
 			dijit.byId("menuSelecionar").setAttribute('disabled', true);
+	}
+	locais[i] = [(i + 1) + ". " + venue.name, venue.location.lat, venue.location.lng];
+	console.info("Venue " + i + " recuperada!");
+	if (totalCarregadas == (document.forms.length - totalNaoCarregadas)) {
+		limparLinhasEditadas();
+		atualizarMarcadoresMapa();
 	}
 }
 
@@ -909,8 +917,83 @@ function pad(str, len, pad, dir) {
 	return str;
 }
 
+// Função para carregamento assíncrono
+function carregarMapa() {
+	var script = document.createElement("script");
+	script.type = "text/javascript";
+	script.src = "http://maps.googleapis.com/maps/api/js?key=AIzaSyD9ZfpJz_ZlwOo7crLhiYhxcpJdBPpBVi8&sensor=false&callback=inicializarMapa";
+	document.body.appendChild(script);
+}
+
+function inicializarMapa() {
+	var lat;
+	var lng;
+	var myZoom;
+	if ((dojo.cookie("coordinates") != null) && (dojo.cookie("coordinates") != "undefined")) {
+		coordinates = dojo.cookie("coordinates").split(",");
+		lat = parseFloat(coordinates[0]);
+		lng = parseFloat(coordinates[1]);
+		myZoom = 15;
+	} else {
+		//lat = -30.03798082521393;
+		//lng = -51.23306166770155;
+		lat = -14.2400732;
+		lng = -53.1805018;
+		myZoom = 4;
+	}
+	
+	// Exibir mapa;
+	var myLatlng = new google.maps.LatLng(lat, lng);
+	var mapOptions = {
+		zoom: myZoom,
+		center: myLatlng,
+		mapTypeId: google.maps.MapTypeId.ROADMAP
+	}
+
+	// Exibir o mapa na div #mapa;
+	map = new google.maps.Map(dojo.byId('mapa'), mapOptions);
+	bounds = new google.maps.LatLngBounds();
+	mapaCarregado = true;
+	console.info("Mapa carregado!");
+	
+	// Marcador personalizado;
+	//var marcadorPersonalizado = new google.maps.Marker({
+		//position: myLatlng,
+		//map: map,
+		//title: 'Serpro - Porto Alegre/RS',
+		//animation: google.maps.Animation.DROP
+	//});
+}
+
+function atualizarMarcadoresMapa() {
+	if (!mapaCarregado) {
+		setTimeout(atualizarMarcadoresMapa, 1000); //wait 1000 milliseconds then recheck
+		return;
+	}
+	for (i = 0; i < locais.length; i++) {
+		if (locais[i][1] != undefined) {
+			marcadores[i] = new google.maps.Marker({
+				position: new google.maps.LatLng(locais[i][1], locais[i][2]),
+				map: map,
+				title: locais[i][0],
+				draggable: true,
+				animation: google.maps.Animation.DROP
+			});
+			google.maps.event.addListener(marcadores[i], 'dragend', function(evt) {
+				//console.log(this);
+				console.info('Marcador ' + this.title.charAt(0) + ' movido: ' + evt.latLng.lat() + ', ' + evt.latLng.lng());
+			});
+			bounds.extend(marcadores[i].position);
+		}
+	}
+	map.fitBounds(bounds);
+	console.info("Marcadores posicionados!");
+}
+
 var dlgGuia;
 dojo.addOnLoad(function inicializar() {
+	dojo.style("mapa", "width", dojo.byId('listContainer').offsetWidth.toString() + "px");
+	
 	// create the dialog:
 	dlg_guia = new dijit.Dialog({
 		title: "Guia de estilo",
@@ -1142,6 +1225,7 @@ dojo.addOnLoad(function inicializar() {
 	if (localStorage && localStorage.getItem('txt'))
 		txt = localStorage.getItem("txt").split(',');
 	
+	carregarMapa();
 	carregarDadosVenues();
 });
 

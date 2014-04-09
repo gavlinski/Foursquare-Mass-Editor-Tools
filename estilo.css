@@ -314,3 +314,14 @@ a:hover {
 	margin-left: 2px;
 	margin-right: 2px;
 }
+#mapa {
+	width: 533px;
+	height: 256px;
+	resize: both;
+	overflow: auto;
+	border: 1px solid #ccc;
+	margin-bottom: 15px;
+	border-radius: 26px;
+	-webkit-border-radius: 5px;
+	-moz-border-radius: 5px;
+}
