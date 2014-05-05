@@ -797,8 +797,9 @@ function salvarVenues() {
 	(totalParaSalvar > 1) ? dijit.byId("dlg_save").set("title", "Salvando " + totalParaSalvar + " venues...") : dijit.byId("dlg_save").set("title", "Salvando 1 venue...");
 	dijit.byId("dlg_save").show();
 	dijit.byId("saveButton").setAttribute("disabled", true);
-	var i, venue, dados, ll, elementName, categoryId;
+	var i, venue, dados, ll, elementName, categoryId, comentario;
 	console.info("Enviando dados...");
+	comentario = dijit.byId("textarea").value;
 	for (l = 0; l < totalParaSalvar; l++) {
 		i = linhasEditadas[l];
 		dados = "oauth_token=" + oauth_token;
@@ -822,7 +823,7 @@ function salvarVenues() {
 					dados += "&ll=" + document.forms[i]["ll"].value;
 			}
 		}
-		dados += "&v=" + DATA_VERSIONAMENTO;
+		dados += "&comment=" + comentario + "&v=" + DATA_VERSIONAMENTO;
 		console.group("venue=" + venue + " (" + i + ")");
 		console.log(dados);
 		console.groupEnd();
@@ -861,12 +862,13 @@ function sinalizarVenues(problema) {
 	(totalParaSinalizar > 1) ? dijit.byId("dlg_save").set("title", "Sinalizando " + totalParaSinalizar + " venues...") : dijit.byId("dlg_save").set("title", "Sinalizando 1 venue...");
 	dijit.byId("dlg_save").show();
 	dijit.byId("menuSinalizar").setAttribute("disabled", true);
-	var venue, dados;
+	var venue, dados, comentario;
 	console.info("Enviando dados...");
+	comentario = dijit.byId("textarea").value;
 	for (l = 0; l < totalParaSinalizar; l++) {
 		i = linhasSelecionadas[l].value;
 		venue = document.forms[i]["venue"].value;
-		dados = "oauth_token=" + oauth_token + "&problem=" + problema + "&v=" + DATA_VERSIONAMENTO;
+		dados = "oauth_token=" + oauth_token + "&problem=" + problema + "&comment=" + comentario + "&v=" + DATA_VERSIONAMENTO;
 		if (problema == "duplicate")
 			dados += "&venueId=" + venueId;
 		//console.group("venue=" + venue + " (" + i + ")");
