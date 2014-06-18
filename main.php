@@ -35,13 +35,25 @@ if (file_exists($cache_file) && (filemtime($cache_file) > (time() - 3600 * 12)))
 	// Cache file is less than 12 hours old. 
 	// Don't bother refreshing, just use the file as-is.
 	$response = file_get_contents($cache_file);
+	$categories = json_decode($response);
+	$categories_loaded = true;
 } else {
-	// Our cache is out-of-date, so load the data from our remote server,
-	// and also save it over our cache for next time.
+	// Our cache is out-of-date, so load the data from our remote server.
 	$response = carregarListaCategorias();
-	file_put_contents($cache_file, $response, LOCK_EX);
+	$categories = json_decode($response);
+	if (property_exists($categories->meta, "code") && ($categories->meta->code == "200")) {
+		// JSON data is valid so save it over our cache for next time.
+		$categories_loaded = true;
+		file_put_contents($cache_file, $response, LOCK_EX);
+		setLocalCache("categorias", $response);
+	} else {
+		// JSON data is invalid so delete it and clear cache.
+		$categories_loaded = false;
+		if (file_exists($cache_file))
+			unlink($cache_file);
+		removeLocalCache("categorias");
+	}
 }
-setLocalCache("categorias", $response);
 
 function carregarListaCategorias() {
 	require_once("FoursquareAPI.Class.php");
@@ -58,6 +70,12 @@ function carregarListaCategorias() {
 
 function setLocalCache($key, $data) {
 	print('<script type="text/javascript">localStorage.setItem(\''.$key.'\', \''.str_replace("'", "\'", $data).'\');</script>');
+	print str_pad('', intval(ini_get('output_buffering')));
+	flush();
+}
+
+function removeLocalCache($key) {
+	print('<script type="text/javascript">if (localStorage && localStorage.getItem(\''.$key.'\')) localStorage.removeItem(\''.$key.'\');</script>');
 	print str_pad('', intval(ini_get('output_buffering')));
 	flush();
 }
@@ -390,31 +408,32 @@ if ((isset($_COOKIE['name'])) && (strlen($_COOKIE['name']) > 0))
 							<span class="combobox">
 								<select data-dojo-id="categoryId" name="categoryId" id="categoryId" data-dojo-type="dijit/form/FilteringSelect">
 <?php
-	$categories = json_decode($response);
-	$categories_names = array();
-	
-	foreach ($categories->response->categories as $category):
-		if (property_exists($category, "categories"))
-			foreach ($category->categories as $category2):
-				if (property_exists($category2, "name")) {
-					$categories_names[$category2->id] = $category2->name;
-				}
-				if (property_exists($category2, "categories"))
-					foreach ($category2->categories as $category3):
-						if (property_exists($category3, "name")) {
-							$categories_names[$category3->id] = $category3->name;
-						}
-					endforeach;
-			endforeach;
-	endforeach;
-
-	asort($categories_names);
 	$options = '									<option value=""></option>
-';
-	foreach ($categories_names as $key => $val) {
-		$options .=
-'									<option value="' . $key . '">' . $val . '</option>
-';
+	';
+	if ($categories_loaded) {
+		$categories_names = array();
+	
+		foreach ($categories->response->categories as $category):
+			if (property_exists($category, "categories"))
+				foreach ($category->categories as $category2):
+					if (property_exists($category2, "name")) {
+						$categories_names[$category2->id] = $category2->name;
+					}
+					if (property_exists($category2, "categories"))
+						foreach ($category2->categories as $category3):
+							if (property_exists($category3, "name")) {
+								$categories_names[$category3->id] = $category3->name;
+							}
+						endforeach;
+				endforeach;
+		endforeach;
+
+		asort($categories_names);
+		foreach ($categories_names as $key => $val) {
+			$options .=
+	'									<option value="' . $key . '">' . $val . '</option>
+	';
+		}
 	}
 
 	echo $options;
