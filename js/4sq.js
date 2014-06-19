@@ -17,6 +17,8 @@ var modo;
 var DADOS_COMPLETOS = 0;
 var DADOS_PARCIAIS = 1;
 
+var CATEGORIA_HOME = "4bf58dd8d48988d103941735";
+
 var oauth_token = dojo.cookie("oauth_token");
 var txt = "";
 var json = "";
@@ -159,7 +161,7 @@ function desabilitarLinha(i) {
 			//console.log(inputElem);
 			if ((inputElem.type == 'checkbox') && (dijit.byId(inputElem.id).get("checked") == true))
 				dijit.byId(inputElem.id).setChecked(false);
-			if ((inputElem.type == 'text') || (inputElem.type == 'checkbox')) //&& ((inputElem.value == ' ') || (inputElem.value == '')))
+			if (inputElem.type == 'text') //|| (inputElem.type == 'checkbox')) //&& ((inputElem.value == ' ') || (inputElem.value == '')))
 				dijit.byId(inputElem.id).setDisabled(true);
 			if (dojo.byId("cid" + i).value == "")
 				dojo.byId("icone" + i).innerHTML = "<img id=catImg" + i + " src='https://foursquare.com/img/categories_v2/none_bg_32.png' style='height: 22px; width: 22px; margin-left: 0px'>";
@@ -182,7 +184,7 @@ function xmlhttpRequest(metodo, endpoint, dados, i) {
 	var xmlhttp = new XMLHttpRequest();
 	var item = "result" + i;
 	var imagem, dica;
-	var acao = endpoint.substr(-4);
+	var acao = /[^/]*$/.exec(endpoint)[0];
 	xmlhttp.onreadystatechange = function() {
 		if (xmlhttp.readyState == 4) {
 			try {
@@ -204,7 +206,7 @@ function xmlhttpRequest(metodo, endpoint, dados, i) {
 						atualizarEditadas(i);
 						relatorio.push(new Array(document.forms[i]["name"].value, "editada", getDataHora(), document.forms[i]["venue"].value, dojo.byId("cna" + i).value, dijit.byId("textarea").value));
 						dijit.byId("menuItemExportarRelatorio").setAttribute("disabled", false);
-					} else if (acao == "flag") {
+					} else if ((acao == "flag") || (acao == "proposeedit")) {
 						dica = "<span style=\"font-size: 12px\">Sinalizada com sucesso</span>";
 						desabilitarLinha(i);
 						atualizarSinalizadas(i);
@@ -635,12 +637,12 @@ function atualizarTabela(venue, i) {
 			dijit.byId(dojo.query("input[name=" + elementName + "]")[i].id).set("value", "");
 	}
 	dojo.byId("result" + i).innerHTML = "";
-	if ((venue.categories[0] != undefined) && (venue.categories[0].id == "4bf58dd8d48988d103941735"))
+	if ((venue.categories[0] != undefined) && (venue.categories[0].id == CATEGORIA_HOME))
 		desabilitarLinha(i);
 	csv[i + 1] = linha.replace(/undefined/gi, "").split("&&");
 	if (venue.categories[0] == undefined) {
 		(modo == DADOS_COMPLETOS) ? dojo.byId("icone" + i).innerHTML = "<a id='catLnk" + i + "' href='javascript:editarCategorias(" + i + ")'><img id=catImg" + i + " src='https://foursquare.com/img/categories_v2/none_bg_32.png' style='height: 22px; width: 22px; margin-left: 0px'></a>" : dojo.byId("icone" + i).innerHTML = "<img id=catImg" + i + " src='https://foursquare.com/img/categories_v2/none_bg_32.png' style='height: 22px; width: 22px; margin-left: 0px'>";
-	} else if ((venue.categories[0].id == "4bf58dd8d48988d103941735") || (modo == DADOS_PARCIAIS)) {
+	} else if ((venue.categories[0].id == CATEGORIA_HOME) || (modo == DADOS_PARCIAIS)) {
 		dojo.byId("icone" + i).innerHTML = "<img id=catLnk" + i + " src='" + categorias[i].icones.split(",", 1)[0] + "' style='height: 22px; width: 22px; margin-left: 0px'>";
 		createTooltip("catLnk" + i, "<span style=\"font-size: 12px\">" + categorias[i].nomes.replace(/,/gi, ", ") + "</span>");
 	} else if (venue.id != document.forms[i]["venue"].value) {
@@ -827,7 +829,8 @@ function salvarVenues() {
 		console.group("venue=" + venue + " (" + i + ")");
 		console.log(dados);
 		console.groupEnd();
-		xmlhttpRequest("POST", "https://api.foursquare.com/v2/venues/" + venue + "/edit", dados, i);
+		var acao = "edit";
+		xmlhttpRequest("POST", "https://api.foursquare.com/v2/venues/" + venue + "/" + acao, dados, i);
 		dojo.byId("result" + i).innerHTML = "<img src='img/loading.gif' alt='Enviando dados...'>";
 	}
 	console.info("Dados enviados!");
@@ -862,19 +865,27 @@ function sinalizarVenues(problema) {
 	(totalParaSinalizar > 1) ? dijit.byId("dlg_save").set("title", "Sinalizando " + totalParaSinalizar + " venues...") : dijit.byId("dlg_save").set("title", "Sinalizando 1 venue...");
 	dijit.byId("dlg_save").show();
 	dijit.byId("menuSinalizar").setAttribute("disabled", true);
-	var venue, dados, comentario;
+	var venue, dados, acao, comentario;
 	console.info("Enviando dados...");
 	comentario = dijit.byId("textarea").value;
 	for (l = 0; l < totalParaSinalizar; l++) {
 		i = linhasSelecionadas[l].value;
 		venue = document.forms[i]["venue"].value;
-		dados = "oauth_token=" + oauth_token + "&problem=" + problema + "&comment=" + comentario + "&v=" + DATA_VERSIONAMENTO;
+		dados = "oauth_token=" + oauth_token;
+		if (problema == "home_remove") {
+			dados += "&removeCategoryIds=" + CATEGORIA_HOME;
+			acao = "proposeedit";
+		} else {
+			dados += "&problem=" + problema;
+			acao = "flag";
+		}
+		dados += "&comment=" + comentario + "&v=" + DATA_VERSIONAMENTO;
 		if (problema == "duplicate")
 			dados += "&venueId=" + venueId;
 		//console.group("venue=" + venue + " (" + i + ")");
 		//console.log(dados);
 		//console.groupEnd();
-		xmlhttpRequest("POST", "https://api.foursquare.com/v2/venues/" + venue + "/flag", dados, i);
+		xmlhttpRequest("POST", "https://api.foursquare.com/v2/venues/" + venue + "/" + acao, dados, i)
 		dojo.byId("result" + i).innerHTML = "<img src='img/loading.gif' alt='Enviando dados...'>";
 		}
 	console.info("Dados enviados!");
@@ -939,8 +950,10 @@ function inicializarMapa() {
 	} else {
 		//lat = -30.03798082521393;
 		//lng = -51.23306166770155;
-		lat = -14.2400732;
-		lng = -53.1805018;
+		//lat = -14.2400732;
+		//lng = -53.1805018;
+		lat = -12.726084;
+		lng = -55.425781;
 		myZoom = 4;
 	}
 	
@@ -973,7 +986,7 @@ function atualizarMarcadoresMapa() {
 		return;
 	}
 	for (i = 0; i < locais.length; i++) {
-		if (locais[i][1] != undefined) {
+		if ((locais[i] != undefined) && (locais[i][1] != undefined)) {
 			marcadores[i] = new google.maps.Marker({
 				position: new google.maps.LatLng(locais[i][1], locais[i][2]),
 				map: map,
@@ -1037,43 +1050,18 @@ dojo.addOnLoad(function inicializar() {
 		style: "display: none;"
 	});
 	var subMenu2Item1 = new dijit.MenuItem({
-		label: "Duplicadas",
+		label: "duplicate", // "Duplicadas",
 		id: "menuItemSinalizarDuplicate",
 		onClick: function() {
 			showDialogComment("duplicate", "duplicada");
 		}
 	});
 	subMenu2.addChild(subMenu2Item1);
+	
 	subMenu2.addChild(new dijit.MenuSeparator);
+	
 	var subMenu2Item2 = new dijit.MenuItem({
-		label: "Fechada",
-		id: "menuItemSinalizarClosed",
-		iconClass: "closedIcon",
-		onClick: function() {
-			showDialogComment("closed", "fechada");
-		}
-	});
-	subMenu2.addChild(subMenu2Item2);
-	var subMenu2Item3 = new dijit.MenuItem({
-		label: "J&aacute; terminou",
-		id: "menuItemSinalizarEvent_over",
-		iconClass: "event_overIcon",
-		onClick: function() {
-			showDialogComment("event_over", deCode("j&#225; terminou"));
-		}
-	});
-	subMenu2.addChild(subMenu2Item3);
-	var subMenu2Item4 = new dijit.MenuItem({
-		label: "Inadequada",
-		id: "menuItemSinalizarInappropriate",
-		iconClass: "inappropriateIcon",
-		onClick: function() {
-			showDialogComment("inappropriate", "inadequada");
-		}
-	});
-	subMenu2.addChild(subMenu2Item4);
-	var subMenu2Item5 = new dijit.MenuItem({
-		label: "N&atilde;o existe",
+		label: "doesnt_exist", // "N&atilde;o existe",
 		id: "menuItemSinalizarDoesnt_exist",
 		iconClass: "doesnt_existIcon",
 		onClick: function() {
@@ -1081,17 +1069,104 @@ dojo.addOnLoad(function inicializar() {
 			showDialogComment("doesnt_exist", deCode("n&#227;o existe"));
 		}
 	});
+	subMenu2.addChild(subMenu2Item2);
+	
+	var subMenu2Item3 = new dijit.MenuItem({
+		label: "event_over", // "J&aacute; terminou",
+		id: "menuItemSinalizarEvent_over",
+		iconClass: "event_overIcon",
+		onClick: function() {
+			showDialogComment("event_over", deCode("j&#225; terminou"));
+		}
+	});
+	subMenu2.addChild(subMenu2Item3);
+	
+	var subMenu2Item4 = new dijit.MenuItem({
+		label: "inappropriate", // "Inadequada",
+		id: "menuItemSinalizarInappropriate",
+		iconClass: "inappropriateIcon",
+		onClick: function() {
+			showDialogComment("inappropriate", "inadequada");
+		}
+	});
+	subMenu2.addChild(subMenu2Item4);
+	
+	var subMenu2Item5 = new dijit.MenuItem({
+		label: "closed", // "Fechada",
+		id: "menuItemSinalizarClosed",
+		iconClass: "closedIcon",
+		onClick: function() {
+			showDialogComment("closed", "fechada");
+		}
+	});
 	subMenu2.addChild(subMenu2Item5);
+	
 	subMenu2.addChild(new dijit.MenuSeparator);
+	
 	var subMenu2Item6 = new dijit.MenuItem({
-		label: "Particular",
+		label: "home_remove", // "",
+		id: "menuItemSinalizarHome_remove",
+		//iconClass: "closedIcon",
+		onClick: function() {
+			showDialogComment("home_remove", "");
+		}
+	});
+	subMenu2.addChild(subMenu2Item6);
+	
+	var subMenu2Item7 = new dijit.MenuItem({
+		label: "home_recategorize", // "",
+		id: "menuItemSinalizarHome_recategorize",
+		//iconClass: "closedIcon",
+		onClick: function() {
+			showDialogComment("home_recategorize", "");
+		}
+	});
+	subMenu2.addChild(subMenu2Item7);
+	
+	subMenu2.addChild(new dijit.MenuSeparator);
+	
+	var subMenu2Item8 = new dijit.MenuItem({
+		label: "public", // "P&uacute;blica",
+		id: "menuItemSinalizarPublic",
+		//iconClass: "closedIcon",
+		onClick: function() {
+			showDialogComment("public", deCode("p&#225;blica"));
+		}
+	});
+	subMenu2.addChild(subMenu2Item8);
+	
+	var subMenu2Item9 = new dijit.MenuItem({
+		label: "private", // "Particular",
 		id: "menuItemSinalizarPrivate",
 		iconClass: "privateIcon",
 		onClick: function() {
 			showDialogComment("private", "particular");
 		}
 	});
-	subMenu2.addChild(subMenu2Item6);
+	subMenu2.addChild(subMenu2Item9);
+	
+	subMenu2.addChild(new dijit.MenuSeparator);
+	
+	var subMenu2Item10 = new dijit.MenuItem({
+		label: "not_closed", // "Reaberta",
+		id: "menuItemSinalizarNot_closed",
+		//iconClass: "closedIcon",
+		onClick: function() {
+			showDialogComment("not_closed", "reaberta");
+		}
+	});
+	subMenu2.addChild(subMenu2Item10);
+	
+	var subMenu2Item11 = new dijit.MenuItem({
+		label: "un_delete", // "",
+		id: "menuItemSinalizarUn_delete",
+		//iconClass: "closedIcon",
+		onClick: function() {
+			showDialogComment("un_delete", "");
+		}
+	});
+	subMenu2.addChild(subMenu2Item11);
+	
 	var menuItem2 = new dijit.PopupMenuItem({
 		label: "Sinalizar",
 		id: "menuSinalizar",
