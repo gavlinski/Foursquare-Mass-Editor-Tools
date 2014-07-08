@@ -45,6 +45,7 @@ var totalSinalizadas = 0;
 var linhaVenueComMaisCheckins = 0;
 
 var totalProgresso = 0;
+var totalTimeout = 0;
 
 var actionButton = "";
 
@@ -73,15 +74,17 @@ function atualizarDicaResultado(item, imagem, dica) {
 	createTooltip(item, dica);
 }
 
-function atualizarEditadas(i) {
-	linhasEditadas.splice(linhasEditadas.indexOf(i), 1);
+function atualizarEditadas(i, timeout) {
+	if (timeout == false)
+		linhasEditadas.splice(linhasEditadas.indexOf(i), 1);
 	totalEditadas++;
+	var editadas = linhasEditadas.length - totalTimeout;
 	dijit.byId("saveProgress").update({maximum: totalParaSalvar, progress: totalEditadas});
-	if (linhasEditadas.length > 1)
-		dijit.byId("dlg_save").set("title", "Salvando " + linhasEditadas.length + " venues...");
-	else if (linhasEditadas.length == 1)
+	if (editadas > 1)
+		dijit.byId("dlg_save").set("title", "Salvando " + editadas + " venues...");
+	else if (editadas == 1)
 		dijit.byId("dlg_save").set("title", "Salvando 1 venue...");
-	else if (linhasEditadas.length == 0) {
+	else if (editadas == 0) {
 		dijit.byId("saveButton").setAttribute('disabled', false);
 		var title = totalProgresso + " de " + totalEditadas + " venue";
 		if (totalEditadas > 1)
@@ -99,15 +102,17 @@ function atualizarEditadas(i) {
 	}
 }
 
-function atualizarSinalizadas(i) {
-	linhasSelecionadas.splice(linhasSelecionadas.indexOf(parseInt(i)), 1);
+function atualizarSinalizadas(i, timeout) {
+	if (timeout == false)
+		linhasSelecionadas.splice(linhasSelecionadas.indexOf(parseInt(i)), 1);
 	totalSinalizadas++;
+	var selecionadas = linhasSelecionadas.length - totalTimeout;
 	dijit.byId("saveProgress").update({maximum: totalParaSinalizar, progress: totalSinalizadas});
-	if (linhasSelecionadas.length > 1)
-		dijit.byId("dlg_save").set("title", "Sinalizando " + linhasSelecionadas.length + " venues...");
-	else if (linhasSelecionadas.length == 1)
+	if (selecionadas > 1)
+		dijit.byId("dlg_save").set("title", "Sinalizando " + selecionadas + " venues...");
+	else if (selecionadas == 1)
 		dijit.byId("dlg_save").set("title", "Sinalizando 1 venue...");
-	else if (linhasSelecionadas.length == 0) {
+	else if (selecionadas == 0) {
 		dijit.byId("menuSinalizar").setAttribute('disabled', false);
 		var title = totalProgresso + " de " + totalSinalizadas + " venue";
 		if (totalSinalizadas > 1)
@@ -119,7 +124,8 @@ function atualizarSinalizadas(i) {
 		else
 			title += " sinalizadas com sucesso";
 		dijit.byId("dlg_save").set("title", title);
-		dijit.byId(dojo.query("input[name=selecao]")[linhaVenueComMaisCheckins].id).setChecked(false);
+		if (timeout == false)
+			dijit.byId(dojo.query("input[name=selecao]")[linhaVenueComMaisCheckins].id).setChecked(false);
 		if (dojo.query("input[name=selecao]:enabled").length == 0)
 			dijit.byId("menuSelecionar").setAttribute('disabled', true);
 		timer = setTimeout(function fecharPbSalvar() {
@@ -128,7 +134,7 @@ function atualizarSinalizadas(i) {
 	}
 }
 
-function atualizarFalhas(metodo, i, acao) {
+function atualizarFalhas(metodo, i, acao, timeout) {
 	if (metodo == "GET") {
 		desabilitarLinha(i);
 		totalNaoCarregadas++;
@@ -144,9 +150,9 @@ function atualizarFalhas(metodo, i, acao) {
 		}
 	} else if (metodo == "POST") {
 		if (acao == "edit")
-			atualizarEditadas(i);
-		else if (acao == "flag")
-			atualizarSinalizadas(i);
+			atualizarEditadas(i, timeout);
+		else if ((acao == "flag") || (acao == "proposeedit"))
+			atualizarSinalizadas(i, timeout);
 	}
 }
 
@@ -203,13 +209,15 @@ function xmlhttpRequest(metodo, endpoint, dados, i) {
 						var dicaVenue = atualizarDicaVenue(i);
 						createTooltip("venLnk" + i, dicaVenue);
 						dica = "<span style=\"font-size: 12px\">Editada com sucesso</span>";
-						atualizarEditadas(i);
+						atualizarEditadas(i, false);
 						relatorio.push(new Array(document.forms[i]["name"].value, "editada", getDataHora(), document.forms[i]["venue"].value, dojo.byId("cna" + i).value, dijit.byId("textarea").value));
 						dijit.byId("menuItemExportarRelatorio").setAttribute("disabled", false);
 					} else if ((acao == "flag") || (acao == "proposeedit")) {
 						dica = "<span style=\"font-size: 12px\">Sinalizada com sucesso</span>";
-						desabilitarLinha(i);
-						atualizarSinalizadas(i);
+						var problema = dojo.queryToObject(dados).problem;
+						if ((acao == "flag") && ((problema != "public") && (problema != "private") && (problema != "not_closed") && (problema != "un_delete")))
+							desabilitarLinha(i);
+						atualizarSinalizadas(i, false);
 						relatorio.push(new Array(document.forms[i]["name"].value, "sinalizada", getDataHora(), document.forms[i]["venue"].value, categorias[i].nomes, dijit.byId("textarea").value));
 						dijit.byId("menuItemExportarRelatorio").setAttribute("disabled", false);
 					}
@@ -237,7 +245,7 @@ function xmlhttpRequest(metodo, endpoint, dados, i) {
 				}
 			} else {
 				clearTimeout(xmlhttpTimeout);
-				atualizarFalhas(metodo, i, acao);
+				atualizarFalhas(metodo, i, acao, false);
 				switch (xmlhttp.status) {
 				case 400:
 					imagem = "<img src='img/erro.png' alt='Erro 400: Bad Request, Tipo: " + resposta.meta.errorType + ", Detalhe: " + resposta.meta.errorDetail + "'>";
@@ -282,7 +290,8 @@ function xmlhttpRequest(metodo, endpoint, dados, i) {
 		xmlhttp.abort();
 		console.info(metodo + " (" + i + ")" + " abortado!");
 		if (i != null) {
-			atualizarFalhas(metodo, i, acao);
+			totalTimeout++;
+			atualizarFalhas(metodo, i, acao, true);
 			imagem = "<img src='img/erro.png' alt='Erro: Request Timed Out'>";
 			dica = "<span style=\"font-size: 12px\">Erro: Request Timed Out</span>";
 			atualizarDicaResultado(item, imagem, dica);
@@ -795,13 +804,14 @@ function salvarVenues() {
 	totalEditadas = 0;
 	totalParaSalvar = linhasEditadas.length;
 	totalProgresso = 0;
+	totalTimeout = 0;
 	dijit.byId("saveProgress").update({maximum: totalParaSalvar, progress: totalEditadas});
 	(totalParaSalvar > 1) ? dijit.byId("dlg_save").set("title", "Salvando " + totalParaSalvar + " venues...") : dijit.byId("dlg_save").set("title", "Salvando 1 venue...");
 	dijit.byId("dlg_save").show();
 	dijit.byId("saveButton").setAttribute("disabled", true);
 	var i, venue, dados, ll, elementName, categoryId, comentario;
 	console.info("Enviando dados...");
-	comentario = dijit.byId("textarea").value;
+	comentario = encodeURIComponent(dijit.byId("textarea").value);
 	for (l = 0; l < totalParaSalvar; l++) {
 		i = linhasEditadas[l];
 		dados = "oauth_token=" + oauth_token;
@@ -811,10 +821,12 @@ function salvarVenues() {
 			elementName = document.forms[i].elements[j].name;
 			if ((elementName != "ll") && (elementName != "categoryId") &&
 					((elementName == "name") || (elementName == "address") || (elementName == "crossStreet") || (elementName == "city") || (elementName == "state") || (elementName == "zip") || (elementName == "twitter") || (elementName == "phone") || (elementName == "url")))
-				dados += "&" + elementName + "=" + document.forms[i].elements[j].value.replace(/&/g, "%26");
+				//dados += "&" + elementName + "=" + document.forms[i].elements[j].value.replace(/&/g, "%26");
+				dados += "&" + elementName + "=" + encodeURIComponent(document.forms[i].elements[j].value);
 			else if ((elementName == "description") && (document.forms[i]["description"].readOnly == false)) {
 				var index = csv[0].indexOf("description")
-				dados += "&description=" + csv[i + 1][index].slice(1, -1).replace(/&/g, "%26");
+				//dados += "&description=" + csv[i + 1][index].slice(1, -1).replace(/&/g, "%26");
+				dados += "&description=" + encodeURIComponent(csv[i + 1][index].slice(1, -1));
 			} else if ((elementName == "categoryId") && (modo == DADOS_COMPLETOS)){
 				categoryId = document.forms[i]["categoryId"].value;
 				if ((categoryId != null) && (categoryId != ""))
@@ -861,13 +873,14 @@ function sinalizarVenues(problema) {
 		totalParaSinalizar = totalSelecionadas;
 	}
 	totalProgresso = 0;
+	totalTimeout = 0;
 	dijit.byId("saveProgress").update({maximum: totalParaSinalizar, progress: totalSinalizadas});
 	(totalParaSinalizar > 1) ? dijit.byId("dlg_save").set("title", "Sinalizando " + totalParaSinalizar + " venues...") : dijit.byId("dlg_save").set("title", "Sinalizando 1 venue...");
 	dijit.byId("dlg_save").show();
 	dijit.byId("menuSinalizar").setAttribute("disabled", true);
 	var venue, dados, acao, comentario;
 	console.info("Enviando dados...");
-	comentario = dijit.byId("textarea").value;
+	comentario = encodeURIComponent(dijit.byId("textarea").value);
 	for (l = 0; l < totalParaSinalizar; l++) {
 		i = linhasSelecionadas[l].value;
 		venue = document.forms[i]["venue"].value;
@@ -1130,7 +1143,7 @@ dojo.addOnLoad(function inicializar() {
 		id: "menuItemSinalizarPublic",
 		//iconClass: "closedIcon",
 		onClick: function() {
-			showDialogComment("public", deCode("p&#225;blica"));
+			showDialogComment("public", deCode("p&#250;blica"));
 		}
 	});
 	subMenu2.addChild(subMenu2Item8);
