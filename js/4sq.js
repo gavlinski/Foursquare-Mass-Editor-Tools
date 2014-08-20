@@ -453,8 +453,17 @@ function formattedTime(unix_timestamp) {
 
 function atualizarDicaVenue(i) {
 	var dica = "<span style=\"font-size: 12px\"><b>" + document.forms[i]["name"].value + "</b>";
-	if (document.forms[i]["isClosed"].value == "true")
-		dica += "<br><span style=\"color: #999999;\"><b>Now Closed</b></span>";
+	if ((document.forms[i]["isClosed"].value == "true") || (document.forms[i]["isPrivate"].value == "true") || (document.forms[i]["isDeleted"].value == "true")) {
+		dica += "<br><span style=\"color: #df7a77;\"><b>";
+		var flags = "";
+		if (document.forms[i]["isClosed"].value == "true")
+			flags += "(Fechado) ";
+		if (document.forms[i]["isPrivate"].value == "true")
+			flags += "(Privado) ";
+		if (document.forms[i]["isDeleted"].value == "true")
+			flags += "(Exclu&iacute;do) ";
+		dica += flags.trim() + "</b></span>";
+	}
 	try {
 		if (document.forms[i]["address"].value != "") {
 			dica += "<br>" + document.forms[i]["address"].value;
@@ -668,11 +677,13 @@ function atualizarTabela(venue, i) {
 	if (venue.photos != undefined)
 	  document.forms[i]["photosCount"].value = venue.photos.count;
 	(venue.closed == undefined) ? document.forms[i]["isClosed"].value = false : document.forms[i]["isClosed"].value = true;
+	(venue.private == undefined) ? document.forms[i]["isPrivate"].value = false : document.forms[i]["isPrivate"].value = true;
+	(venue.deleted == undefined) ? document.forms[i]["isDeleted"].value = false : document.forms[i]["isDeleted"].value = true;
 	var dicaVenue = atualizarDicaVenue(i);
 	createTooltip("venLnk" + i, dicaVenue);
-	(modo == DADOS_COMPLETOS) ? csv[i + 1] = csv[i + 1].concat(document.forms[i]["createdAt"].value + ";" + document.forms[i]["checkinsCount"].value + ";" + document.forms[i]["usersCount"].value + ";" + document.forms[i]["tipCount"].value + ";" + document.forms[i]["photosCount"].value + ";" + document.forms[i]["isClosed"].value) : csv[i + 1] = csv[i + 1].concat(document.forms[i]["checkinsCount"].value + ";" + document.forms[i]["usersCount"].value + ";" + document.forms[i]["tipCount"].value);
+	(modo == DADOS_COMPLETOS) ? csv[i + 1] = csv[i + 1].concat(document.forms[i]["createdAt"].value + ";" + document.forms[i]["checkinsCount"].value + ";" + document.forms[i]["usersCount"].value + ";" + document.forms[i]["tipCount"].value + ";" + document.forms[i]["photosCount"].value + ";" + document.forms[i]["isClosed"].value + ";" + document.forms[i]["isPrivate"].value + ";" + document.forms[i]["isDeleted"].value) : csv[i + 1] = csv[i + 1].concat(document.forms[i]["checkinsCount"].value + ";" + document.forms[i]["usersCount"].value + ";" + document.forms[i]["tipCount"].value);
 	if (totalCarregadas == document.forms.length - totalNaoCarregadas) {
-		(modo == DADOS_COMPLETOS) ? csv[0] = csv[0].concat("createdAt;checkins;users;tips;photos;closed") : csv[0] = csv[0].concat("checkins;users;tips");
+		(modo == DADOS_COMPLETOS) ? csv[0] = csv[0].concat("createdAt;checkins;users;tips;photos;closed;private;deleted") : csv[0] = csv[0].concat("checkins;users;tips");
 		if (dojo.query("input[name=selecao]:enabled").length == 0)
 			dijit.byId("menuSelecionar").setAttribute('disabled', true);
 	}
