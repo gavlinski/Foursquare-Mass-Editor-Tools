@@ -10,7 +10,7 @@ dojo.require("dijit.Tree");
 dojo.require("dijit.Menu");
 dojo.require("dojo.cookie");
 
-var DATA_VERSIONAMENTO = "20140206";
+var DATA_VERSIONAMENTO = "20140821";
 var MESES = new Array("01", "02", "03", "04", "05", "06", "07", "08", "09", "10", "11", "12");
 
 var modo;
@@ -151,7 +151,7 @@ function atualizarFalhas(metodo, i, acao, timeout) {
 	} else if (metodo == "POST") {
 		if (acao == "edit")
 			atualizarEditadas(i, timeout);
-		else if ((acao == "flag") || (acao == "proposeedit"))
+		else if (acao == "flag")
 			atualizarSinalizadas(i, timeout);
 	}
 }
@@ -186,11 +186,11 @@ function compare(el1, el2, index) {
   return el1[index] == el2[index] ? 0 : (el1[index] < el2[index] ? -1 : 1);
 }
 
-function xmlhttpRequest(metodo, endpoint, dados, i) {
+function xmlhttpRequest(metodo, endpoint, acao, dados, i) {
 	var xmlhttp = new XMLHttpRequest();
 	var item = "result" + i;
 	var imagem, dica;
-	var acao = /[^/]*$/.exec(endpoint)[0];
+	//var acao = /[^/]*$/.exec(endpoint)[0];
 	xmlhttp.onreadystatechange = function() {
 		if (xmlhttp.readyState == 4) {
 			try {
@@ -212,10 +212,10 @@ function xmlhttpRequest(metodo, endpoint, dados, i) {
 						atualizarEditadas(i, false);
 						relatorio.push(new Array(document.forms[i]["name"].value, "editada", getDataHora(), document.forms[i]["venue"].value, dojo.byId("cna" + i).value, dijit.byId("textarea").value));
 						dijit.byId("menuItemExportarRelatorio").setAttribute("disabled", false);
-					} else if ((acao == "flag") || (acao == "proposeedit")) {
+					} else if (acao == "flag") {
 						dica = "<span style=\"font-size: 12px\">Sinalizada com sucesso</span>";
 						var problema = dojo.queryToObject(dados).problem;
-						if ((acao == "flag") && ((problema != "public") && (problema != "private") && (problema != "not_closed") && (problema != "un_delete")))
+						if ((problema != "public") && (problema != "private") && (problema != "not_closed") && (problema != "un_delete"))
 							desabilitarLinha(i);
 						atualizarSinalizadas(i, false);
 						relatorio.push(new Array(document.forms[i]["name"].value, "sinalizada", getDataHora(), document.forms[i]["venue"].value, categorias[i].nomes, dijit.byId("textarea").value));
@@ -519,7 +519,8 @@ function atualizarTabela(venue, i) {
 		//console.log(categorias[i].nomes + " (" + categorias[i].ids + ") [" + categorias[i].icones + "]");
 	}
 	document.forms[i]["name"].value = venue.name;
-	var colunas = document.forms[i].elements.length - 9;
+	/*** 11 = Quantidade de campos ocultos ***/
+	var colunas = document.forms[i].elements.length - 11;
 	var elementName;
 	for (j = 2; j < colunas; j++) {
 		elementName = document.forms[i].elements[j].name;
@@ -558,6 +559,17 @@ function atualizarTabela(venue, i) {
 				linha = venue.id + '&&' + categorias[i].ids;
 			linha += '&&"' + venue.location.crossStreet + '"';
 			break;
+		case "neighborhood":
+			document.forms[i]["neighborhood"].value = venue.neighborhood;
+			if (totalCarregadas == 1) {
+				if (j == 2)
+					csv[0] = ["venue", "categoryId"];
+				csv[0] = csv[0].concat("neighborhood");
+			}
+			if (j == 2)
+				linha = venue.id + '&&' + categorias[i].ids;
+			linha += '&&"' + venue.neighborhood + '"';
+			break;
 		case "city":
 			document.forms[i]["city"].value = venue.location.city;
 			if (totalCarregadas == 1) {
@@ -591,16 +603,22 @@ function atualizarTabela(venue, i) {
 				linha = venue.id + '&&' + categorias[i].ids;
 			linha += '&&"' + venue.location.postalCode + '"';
 			break;
-		case "twitter":
-			document.forms[i]["twitter"].value = venue.contact.twitter;
+		case "parent":
+			var parent;
+			try {
+				(venue.parent.id) ? parent = "" : parent = venue.parent.id;
+			} catch(e) {
+				//console.log(e);
+			}
+			document.forms[i]["parent"].value = parent;
 			if (totalCarregadas == 1) {
 				if (j == 2)
 					csv[0] = ["venue", "categoryId"];
-				csv[0] = csv[0].concat("twitter");
+				csv[0] = csv[0].concat("parent");
 			}
 			if (j == 2)
 				linha = venue.id + '&&' + categorias[i].ids;
-			linha += '&&"' + venue.contact.twitter + '"';
+			linha += '&&"' + parent + '"';
 			break;
 		case "phone":
 			document.forms[i]["phone"].value = venue.contact.phone;
@@ -623,6 +641,28 @@ function atualizarTabela(venue, i) {
 			if (j == 2)
 				linha = venue.id + '&&' + categorias[i].ids;
 			linha += '&&"' + venue.url + '"';
+			break;
+		case "twitter":
+			document.forms[i]["twitter"].value = venue.contact.twitter;
+			if (totalCarregadas == 1) {
+				if (j == 2)
+					csv[0] = ["venue", "categoryId"];
+				csv[0] = csv[0].concat("twitter");
+			}
+			if (j == 2)
+				linha = venue.id + '&&' + categorias[i].ids;
+			linha += '&&"' + venue.contact.twitter + '"';
+			break;
+		case "facebook":
+			document.forms[i]["facebook"].value = venue.contact.facebookUsername;
+			if (totalCarregadas == 1) {
+				if (j == 2)
+					csv[0] = ["venue", "categoryId"];
+				csv[0] = csv[0].concat("facebook");
+			}
+			if (j == 2)
+				linha = venue.id + '&&' + categorias[i].ids;
+			linha += '&&"' + venue.contact.facebookUsername + '"';
 			break;
 		case "description":
 			document.forms[i]["description"].value = venue.description;
@@ -788,7 +828,7 @@ function carregarDadosVenues() {
 		modo = DADOS_COMPLETOS;
 		for (i = 0; i < linhas; i++) {
 			venue = document.forms[i]["venue"].value;
-			xmlhttpRequest("GET", "https://api.foursquare.com/v2/venues/" + venue + "?oauth_token=" + oauth_token + "&v=" + DATA_VERSIONAMENTO, null, i);
+			xmlhttpRequest("GET", "https://api.foursquare.com/v2/venues/" + venue + "?oauth_token=" + oauth_token + "&v=" + DATA_VERSIONAMENTO, "load", null, i);
 			dojo.byId("result" + i).innerHTML = "<img src='img/loading.gif' alt='Recuperando dados...'>";
 		}
 		var d = new Date();
@@ -820,9 +860,9 @@ function salvarVenues() {
 	(totalParaSalvar > 1) ? dijit.byId("dlg_save").set("title", "Salvando " + totalParaSalvar + " venues...") : dijit.byId("dlg_save").set("title", "Salvando 1 venue...");
 	dijit.byId("dlg_save").show();
 	dijit.byId("saveButton").setAttribute("disabled", true);
-	var i, venue, dados, ll, elementName, categoryId, comentario;
+	var i, venue, dados, elementName;
 	console.info("Enviando dados...");
-	comentario = encodeURIComponent(dijit.byId("textarea").value);
+	var comentario = encodeURIComponent(dijit.byId("textarea").value);
 	for (l = 0; l < totalParaSalvar; l++) {
 		i = linhasEditadas[l];
 		dados = "oauth_token=" + oauth_token;
@@ -830,21 +870,42 @@ function salvarVenues() {
 		for (j = 2; j < colunas; j++) {
 			venue = document.forms[i]["venue"].value;
 			elementName = document.forms[i].elements[j].name;
-			if ((elementName != "ll") && (elementName != "categoryId") &&
-					((elementName == "name") || (elementName == "address") || (elementName == "crossStreet") || (elementName == "city") || (elementName == "state") || (elementName == "zip") || (elementName == "twitter") || (elementName == "phone") || (elementName == "url")))
-				//dados += "&" + elementName + "=" + document.forms[i].elements[j].value.replace(/&/g, "%26");
+			//if ((elementName != "ll") && (elementName != "categoryId") &&
+					//((elementName == "name") || (elementName == "address") || (elementName == "crossStreet") || (elementName == "neighborhood") || (elementName == "city") || (elementName == "state") || (elementName == "zip") || (elementName == "parent") || (elementName == "phone") || (elementName == "url") || (elementName == "twitter")))
+			if ((elementName == "name") || (elementName == "address") || (elementName == "crossStreet") || (elementName == "neighborhood") || (elementName == "city") || (elementName == "state") || (elementName == "zip") || (elementName == "parent") || (elementName == "phone") || (elementName == "url") || (elementName == "twitter"))
 				dados += "&" + elementName + "=" + encodeURIComponent(document.forms[i].elements[j].value);
-			else if ((elementName == "description") && (document.forms[i]["description"].readOnly == false)) {
+			else if (elementName == "facebook") {
+				var facebookUsername = document.forms[i].elements[j].value;
+				if ((facebookUsername != "") && (facebookUsername != ""))
+					dados += "&facebookUrl=" + encodeURIComponent("http://facebook.com/" + facebookUsername);
+			} else if ((elementName == "description") && (document.forms[i]["description"].readOnly == false)) {
 				var index = csv[0].indexOf("description")
-				//dados += "&description=" + csv[i + 1][index].slice(1, -1).replace(/&/g, "%26");
 				dados += "&description=" + encodeURIComponent(csv[i + 1][index].slice(1, -1));
 			} else if ((elementName == "categoryId") && (modo == DADOS_COMPLETOS)){
-				categoryId = document.forms[i]["categoryId"].value;
-				if ((categoryId != null) && (categoryId != ""))
-					dados += "&categoryId=" + categoryId;
+				var categoryIds = document.forms[i]["categoryId"].value;
+				if ((categoryIds != null) && (categoryIds != "")) {
+					var categoriasAtuais = new Array();
+					if (categorias[i].ids != undefined)
+						categoriasAtuais = categorias[i].ids.split(",");
+					var categoriasNovas = categoryIds.split(",");
+					categoriasRemover = categoriasAtuais.filter(function(val) {
+						return categoriasNovas.indexOf(val) == -1;
+					});
+					if (categoriasRemover.length > 0)
+						dados += "&removeCategoryIds=" + categoriasRemover.toString();
+					if (categoriasAtuais[0] != categoriasNovas[0])
+						dados += "&primaryCategoryId=" + categoriasNovas[0];
+					try {
+						if ((typeof categoriasNovas[1].ids != undefined) && (categoriasAtuais.indexOf(categoriasNovas[1]) == -1))
+							dados += "&addCategoryIds=" + categoriasNovas[1];
+						if ((typeof categoriasNovas[2].ids != undefined) && (categoriasAtuais.indexOf(categoriasNovas[2]) == -1))
+							dados += "&addCategoryIds=" + categoriasNovas[2];
+					} catch(e) {
+					}
+				}
 			} else if (elementName == "ll") {
-				ll = document.forms[i]["ll"].value;
-				if (ll != null && ll != "")
+				var ll = document.forms[i]["ll"].value;
+				if ((ll != null) && (ll != ""))
 					dados += "&ll=" + document.forms[i]["ll"].value;
 			}
 		}
@@ -852,8 +913,8 @@ function salvarVenues() {
 		console.group("venue=" + venue + " (" + i + ")");
 		console.log(dados);
 		console.groupEnd();
-		var acao = "edit";
-		xmlhttpRequest("POST", "https://api.foursquare.com/v2/venues/" + venue + "/" + acao, dados, i);
+		var acao = "proposeedit";
+		xmlhttpRequest("POST", "https://api.foursquare.com/v2/venues/" + venue + "/" + acao, "edit", dados, i);
 		dojo.byId("result" + i).innerHTML = "<img src='img/loading.gif' alt='Enviando dados...'>";
 	}
 	console.info("Dados enviados!");
@@ -909,7 +970,7 @@ function sinalizarVenues(problema) {
 		//console.group("venue=" + venue + " (" + i + ")");
 		//console.log(dados);
 		//console.groupEnd();
-		xmlhttpRequest("POST", "https://api.foursquare.com/v2/venues/" + venue + "/" + acao, dados, i)
+		xmlhttpRequest("POST", "https://api.foursquare.com/v2/venues/" + venue + "/" + acao, "flag", dados, i)
 		dojo.byId("result" + i).innerHTML = "<img src='img/loading.gif' alt='Enviando dados...'>";
 		}
 	console.info("Dados enviados!");
@@ -926,7 +987,7 @@ function selecionarTodas(valor) {
 
 function carregarListaCategorias() {
 	console.info("Recuperando dados das categorias...");
-	xmlhttpRequest("GET", "https://api.foursquare.com/v2/venues/categories" + "?oauth_token=" + oauth_token + "&v=" + DATA_VERSIONAMENTO, null, null);
+	xmlhttpRequest("GET", "https://api.foursquare.com/v2/venues/categories" + "?oauth_token=" + oauth_token + "&v=" + DATA_VERSIONAMENTO, "load", null, null);
 }
 
 var STR_PAD_LEFT = 1;
