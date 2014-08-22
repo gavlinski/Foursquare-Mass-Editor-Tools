@@ -9,7 +9,7 @@
  * @package		 Foursquare-Mass-Editor-Tools
  * @author		 Elio Gavlinski <gavlinski@gmail.com>
  * @copyright	 Copyleft (c) 2011-2014
- * @version		 1.4
+ * @version		 1.5
  * @link			 https://github.com/gavlinski/Foursquare-Mass-Editor-Tools/blob/master/edit.php
  * @since			 File available since Release 0.5
  * @license		 GPLv3 <http://www.gnu.org/licenses/gpl.txt>
@@ -57,11 +57,17 @@ if ($campos != null) {
 	} else {
 		$editAddress = false;
 	}
-	if (in_array("ruacross", $campos)) {
+	if (in_array("ruatransversal", $campos)) {
 		$editCross = true;
 		$totalCampos++;
 	} else {
 		$editCross = false;
+	}
+	if (in_array("bairro", $campos)) {
+		$editNeighborhood = true;
+		$totalCampos++;
+	} else {
+		$editNeighborhood = false;
 	}
 	if (in_array("cidade", $campos)) {
 		$editCity = true;
@@ -75,17 +81,17 @@ if ($campos != null) {
 	} else {
 		$editState = false;
 	}
-	if (in_array("cep", $campos)) {
+	if (in_array("codidopostal", $campos)) {
 		$editZip = true;
 		$totalCampos++;
 	} else {
 		$editZip = false;
 	}
-	if (in_array("twitter", $campos)) {
-		$editTwitter = true;
+	if (in_array("dentro", $campos)) {
+		$editParent = true;
 		$totalCampos++;
 	} else {
-		$editTwitter = false;
+		$editParent = false;
 	}
 	if (in_array("telefone", $campos)) {
 		$editPhone = true;
@@ -93,11 +99,23 @@ if ($campos != null) {
 	} else {
 		$editPhone = false;
 	}
-	if (in_array("website", $campos)) {
+	if (in_array("sitedaweb", $campos)) {
 		$editUrl = true;
 		$totalCampos++;
 	} else {
 		$editUrl = false;
+	}
+	if (in_array("twitter", $campos)) {
+		$editTwitter = true;
+		$totalCampos++;
+	} else {
+		$editTwitter = false;
+	}
+	if (in_array("facebook", $campos)) {
+		$editFacebook = true;
+		$totalCampos++;
+	} else {
+		$editFacebook = false;
 	}
 	if (in_array("descricao", $campos)) {
 		$editDesc = true;
@@ -105,7 +123,7 @@ if ($campos != null) {
 	} else {
 		$editDesc = false;
 	}
-	if (in_array("latlong", $campos)) {
+	if (in_array("latlng", $campos)) {
 		$editLl = true;
 		$totalCampos++;
 	} else {
@@ -147,7 +165,11 @@ foreach ($file as $f) {
 	}
 
 	if ($editCross) {
-		echo '<input type="text" dojoType="dijit.form.TextBox" name="crossStreet" maxlength="51" value=" " placeHolder="Rua Cross" style="width: ', 9 + $ajusteInput, 'em; margin-left: 5px;" onchange="verificarAlteracao(this, ', $i - 1, ')">', chr(10);
+		echo '<input type="text" dojoType="dijit.form.TextBox" name="crossStreet" maxlength="51" value=" " placeHolder="Rua transversal" style="width: ', 9 + $ajusteInput, 'em; margin-left: 5px;" onchange="verificarAlteracao(this, ', $i - 1, ')">', chr(10);
+	}
+	
+	if ($editNeighborhood) {
+		echo '<input type="text" dojoType="dijit.form.TextBox" name="neighborhood" maxlength="51" value=" " placeHolder="Bairro" style="width: ', 9 + $ajusteInput, 'em; margin-left: 5px;" onchange="verificarAlteracao(this, ', $i - 1, ')">', chr(10);
 	}
 
 	if ($editCity) {
@@ -159,11 +181,11 @@ foreach ($file as $f) {
 	}
 
 	if ($editZip) {
-		echo '<input type="text" dojoType="dijit.form.TextBox" name="zip" maxlength="13" value=" " placeHolder="CEP" style="width: 6em; margin-left: 5px;" onchange="verificarAlteracao(this, ', $i - 1, ')">', chr(10);
+		echo '<input type="text" dojoType="dijit.form.TextBox" name="zip" maxlength="13" value=" " placeHolder="C&oacute;digo postal" style="width: 6em; margin-left: 5px;" onchange="verificarAlteracao(this, ', $i - 1, ')">', chr(10);
 	}
-
-	if ($editTwitter) {
-		echo '<input type="text" dojoType="dijit.form.TextBox" name="twitter" maxlength="51" value=" " placeHolder="Twitter" style="width: ', 7 + $ajusteInput, 'em; margin-left: 5px;" onchange="verificarAlteracao(this, ', $i - 1, ')">', chr(10);
+	
+	if ($editParent) {
+		echo '<input type="text" dojoType="dijit.form.TextBox" name="parent" maxlength="24" value=" " placeHolder="Dentro" style="width: 7em; margin-left: 5px;" onchange="verificarAlteracao(this, ', $i - 1, ')">', chr(10);
 	}
 
 	if ($editPhone) {
@@ -172,6 +194,14 @@ foreach ($file as $f) {
 
 	if ($editUrl) {
 		echo '<input type="text" dojoType="dijit.form.TextBox" name="url" maxlength="256" value=" " placeHolder="Website" style="width: ', 8 + $ajusteInput, 'em; margin-left: 5px;" onchange="verificarAlteracao(this, ', $i - 1, ')">', chr(10);
+	}
+	
+	if ($editTwitter) {
+		echo '<input type="text" dojoType="dijit.form.TextBox" name="twitter" maxlength="51" value=" " placeHolder="Twitter" style="width: ', 7 + $ajusteInput, 'em; margin-left: 5px;" onchange="verificarAlteracao(this, ', $i - 1, ')">', chr(10);
+	}
+	
+	if ($editFacebook) {
+		echo '<input type="text" dojoType="dijit.form.TextBox" name="facebook" maxlength="51" value=" " placeHolder="Facebook" style="width: ', 7 + $ajusteInput, 'em; margin-left: 5px;" onchange="verificarAlteracao(this, ', $i - 1, ')">', chr(10);
 	}
 
 	if ($editDesc) {

@@ -29,7 +29,7 @@ if (!isset($_SESSION["oauth_token"])) {
 <meta http-equiv="cache-control" content="no-cache"/>
 <meta http-equiv="pragma" content="no-cache">
 <?php
-define("VERSION", "Venues Loader 1.3");
+define("VERSION", "Venues Loader 1.4");
 define("LINKS", '<link rel="shortcut icon" href="favicon.ico" type="image/x-icon"/>
 <link rel="stylesheet" type="text/css" href="js/dijit/themes/claro/claro.css"/>
 <link rel="stylesheet" type="text/css" href="estilo.css"/>

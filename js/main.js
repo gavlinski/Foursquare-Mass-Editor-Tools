@@ -74,7 +74,7 @@ dojo.addOnLoad(function() {
 		}
 		//dojo.cookie("pagina", "", { expires: 15 });
 		//dojo.cookie("textarea", "", { expires: 15 });
-		var campos1 = dijit.byId("nome1").checked + "." + dijit.byId("endereco1").checked + "." + dijit.byId("ruacross1").checked + "." + dijit.byId("cidade1").checked + "." + dijit.byId("estado1").checked + "." + dijit.byId("cep1").checked + "." + dijit.byId("twitter1").checked + "." + dijit.byId("telefone1").checked + "." + dijit.byId("website1").checked + "." + dijit.byId("descricao1").checked + "." + dijit.byId("latlong1").checked;
+		var campos1 = dijit.byId("nome1").checked + "." + dijit.byId("endereco1").checked + "." + dijit.byId("ruatransversal1").checked + "." + dijit.byId("bairro1").checked + "." + dijit.byId("cidade1").checked + "." + dijit.byId("estado1").checked + "." + dijit.byId("codigopostal1").checked + "." + dijit.byId("dentro1").checked + "." + dijit.byId("telefone1").checked + "." + dijit.byId("sitedaweb1").checked + "." + dijit.byId("twitter1").checked + "." + dijit.byId("facebook3").checked + "." + dijit.byId("descricao1").checked + "." + dijit.byId("latlng1").checked;
 		dojo.cookie("campos", campos1, { expires: 15 });
 		dojo.cookie("accordion", dijit.byId("accordion").selectedChildWidget.id, { expires: 15 });
 	});
@@ -99,7 +99,7 @@ dojo.addOnLoad(function() {
 		}
 		dojo.cookie("pagina", dijit.byId("pagina").value, { expires: 15 });
 		//dojo.cookie("textarea", "", { expires: 15 });
-		var campos2 = dijit.byId("nome2").checked + "." + dijit.byId("endereco2").checked + "." + dijit.byId("ruacross2").checked + "." + dijit.byId("cidade2").checked + "." + dijit.byId("estado2").checked + "." + dijit.byId("cep2").checked + "." + dijit.byId("twitter2").checked + "." + dijit.byId("telefone2").checked + "." + dijit.byId("website2").checked + "." + dijit.byId("descricao2").checked + "." + dijit.byId("latlong2").checked;
+		var campos2 = dijit.byId("nome2").checked + "." + dijit.byId("endereco2").checked + "." + dijit.byId("ruatransversal2").checked + "." + dijit.byId("bairro2").checked + "." + dijit.byId("cidade2").checked + "." + dijit.byId("estado2").checked + "." + dijit.byId("codigopostal2").checked + "." + dijit.byId("dentro2").checked + "." + dijit.byId("telefone2").checked + "." + dijit.byId("sitedaweb2").checked + "." + dijit.byId("twitter2").checked + "." + dijit.byId("facebook2").checked + "." + dijit.byId("descricao2").checked + "." + dijit.byId("latlng2").checked;
 		dojo.cookie("campos", campos2, { expires: 15 });
 		dojo.cookie("accordion", dijit.byId("accordion").selectedChildWidget.id, { expires: 15 });
 	});
@@ -128,7 +128,7 @@ dojo.addOnLoad(function() {
 		}
 		//dojo.cookie("pagina", "", { expires: 15 });
 		dojo.cookie("textarea", dijit.byId("textarea_ids").value, { expires: 15 });
-		var campos3 = dijit.byId("nome3").checked + "." + dijit.byId("endereco3").checked + "." + dijit.byId("ruacross3").checked + "." + dijit.byId("cidade3").checked + "." + dijit.byId("estado3").checked + "." + dijit.byId("cep3").checked + "." + dijit.byId("twitter3").checked + "." + dijit.byId("telefone3").checked + "." + dijit.byId("website3").checked + "." + dijit.byId("descricao3").checked + "." + dijit.byId("latlong3").checked;
+		var campos3 = dijit.byId("nome3").checked + "." + dijit.byId("endereco3").checked + "." + dijit.byId("ruatransversal3").checked + "." + dijit.byId("bairro3").checked + "." + dijit.byId("cidade3").checked + "." + dijit.byId("estado3").checked + "." + dijit.byId("codigopostal3").checked + "." + dijit.byId("dentro3").checked + "." + dijit.byId("telefone3").checked + "." + dijit.byId("sitedaweb3").checked + "." + dijit.byId("twitter3").checked + "." + dijit.byId("facebook3").checked + "." + dijit.byId("descricao3").checked + "." + dijit.byId("latlng3").checked;
 		dojo.cookie("campos", campos3, { expires: 15 });
 		dojo.cookie("accordion", dijit.byId("accordion").selectedChildWidget.id, { expires: 15 });
 	});
@@ -152,9 +152,14 @@ dojo.addOnLoad(function() {
 		} else {
 			e.preventDefault();
 		}
-		var campos4 = dijit.byId("nome4").checked + "." + dijit.byId("endereco4").checked + "." + dijit.byId("ruacross4").checked + "." + dijit.byId("cidade4").checked + "." + dijit.byId("estado4").checked + "." + dijit.byId("cep4").checked + "." + dijit.byId("twitter4").checked + "." + dijit.byId("telefone4").checked + "." + dijit.byId("website4").checked + ".";
+		var campos4 = dijit.byId("nome4").checked + "." + dijit.byId("endereco4").checked + "." + dijit.byId("ruatransversal4").checked + ".";
+		(dijit.byId("bairro4").disabled) ? campos4 += "false." : campos4 += dijit.byId("bairro4").checked + ".";
+		campos4 += dijit.byId("cidade4").checked + "." + dijit.byId("estado4").checked + "." + dijit.byId("codigopostal4").checked + ".";
+		(dijit.byId("dentro4").disabled) ? campos4 += "false." : campos4 += dijit.byId("dentro4").checked + ".";
+		campos4 += dijit.byId("telefone4").checked + "." + dijit.byId("sitedaweb4").checked + "." + dijit.byId("twitter4").checked + "." + dijit.byId("facebook4").checked + ".";
+		//(dijit.byId("facebook4").disabled) ? campos4 += "false." : campos4 += dijit.byId("facebook4").checked + ".";
 		(dijit.byId("descricao4").disabled) ? campos4 += "false." : campos4 += dijit.byId("descricao4").checked + ".";
-		campos4 += dijit.byId("latlong4").checked;
+		campos4 += dijit.byId("latlng4").checked;
 		var search = [dijit.byId("query").value, dijit.byId("ll").value, dijit.byId("categoryId").value, dijit.byId("radius").value, dijit.byId("intent").value, dijit.byId("limit").value];
 		dojo.cookie("search", JSON.stringify(search), { expires: 15 });
 		dojo.cookie("campos", campos4, { expires: 15 });
@@ -183,27 +188,30 @@ dojo.ready(function() {
 			for (i = 1; i < 5; i++) {
 				dijit.byId("nome" + i).attr("checked", (campos[0] === 'true'));
 				dijit.byId("endereco" + i).attr("checked", (campos[1] === 'true'));
-				dijit.byId("ruacross" + i).attr("checked", (campos[2] === 'true'));
-				dijit.byId("cidade" + i).attr("checked", (campos[3] === 'true'));
-				dijit.byId("estado" + i).attr("checked", (campos[4] === 'true'));
-				dijit.byId("cep" + i).attr("checked", (campos[5] === 'true'));
-				dijit.byId("twitter" + i).attr("checked", (campos[6] === 'true'));
-				dijit.byId("telefone" + i).attr("checked", (campos[7] === 'true'));
-				dijit.byId("website" + i).attr("checked", (campos[8] === 'true'));
-				(dijit.byId("descricao" + i).disabled) ? dijit.byId("descricao" + i).attr("checked", false) : dijit.byId("descricao" + i).attr("checked", (campos[9] === 'true'));
-				dijit.byId("latlong"	+ i).attr("checked", (campos[10] === 'true'));
+				dijit.byId("ruatransversal" + i).attr("checked", (campos[2] === 'true'));
+				(dijit.byId("bairro" + i).disabled) ? dijit.byId("bairro" + i).attr("checked", false) : dijit.byId("bairro" + i).attr("checked", (campos[3] === 'true'));
+				dijit.byId("cidade" + i).attr("checked", (campos[4] === 'true'));
+				dijit.byId("estado" + i).attr("checked", (campos[5] === 'true'));
+				dijit.byId("codigopostal" + i).attr("checked", (campos[6] === 'true'));
+				(dijit.byId("dentro" + i).disabled) ? dijit.byId("dentro" + i).attr("checked", false) : dijit.byId("dentro" + i).attr("checked", (campos[7] === 'true'));
+				dijit.byId("telefone" + i).attr("checked", (campos[8] === 'true'));
+				dijit.byId("sitedaweb" + i).attr("checked", (campos[9] === 'true'));
+				dijit.byId("twitter" + i).attr("checked", (campos[10] === 'true'));
+				dijit.byId("facebook" + i).attr("checked", (campos[11] === 'true'));
+				(dijit.byId("descricao" + i).disabled) ? dijit.byId("descricao" + i).attr("checked", false) : dijit.byId("descricao" + i).attr("checked", (campos[12] === 'true'));
+				dijit.byId("latlng"	+ i).attr("checked", (campos[13] === 'true'));
 			}
 			dijit.byId("accordion").selectChild(dojo.cookie("accordion"), false);
 		} else {
 			for (i = 1; i < 5; i++) {
 				dijit.byId("nome" + i).attr("checked", true);
 				dijit.byId("endereco" + i).attr("checked", true);
-				dijit.byId("ruacross" + i).attr("checked", true);
+				dijit.byId("ruatransversal" + i).attr("checked", true);
 				dijit.byId("cidade" + i).attr("checked", true);
 				dijit.byId("estado" + i).attr("checked", true);
-				dijit.byId("cep" + i).attr("checked", true);
-				dijit.byId("twitter" + i).attr("checked", true);
+				dijit.byId("codigopostal" + i).attr("checked", true);
 				dijit.byId("telefone" + i).attr("checked", true);
+				dijit.byId("sitedaweb" + i).attr("checked", true);
 			}
 			dijit.byId("accordion").selectChild("dijit_layout_ContentPane_3", false);
 		}

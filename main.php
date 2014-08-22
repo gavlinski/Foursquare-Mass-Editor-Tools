@@ -9,7 +9,7 @@
  * @package		 Foursquare-Mass-Editor-Tools
  * @author		 Elio Gavlinski <gavlinski@gmail.com>
  * @copyright	 Copyleft (c) 2012-2014
- * @version		 1.2
+ * @version		 1.3
  * @link			 https://github.com/gavlinski/Foursquare-Mass-Editor-Tools/blob/master/main.php
  * @since			 File available since Release 1.5
  * @license		 GPLv3 <http://www.gnu.org/licenses/gpl.txt>
@@ -86,7 +86,7 @@ function removeLocalCache($key) {
 </head>
 <body class="claro">
 <h2>Edi&ccedil;&atilde;o de venues em massa via API</h2>
-<div style="width: 578px;">
+<div style="width: 730px;">
 <?php
 if ((isset($_COOKIE['name'])) && (strlen($_COOKIE['name']) > 0))
 		echo "<p>Ol&aacute;, <span id=\"name\">" . $_COOKIE['name'] . "</span>!</p>";
@@ -126,7 +126,7 @@ if ((isset($_COOKIE['name'])) && (strlen($_COOKIE['name']) > 0))
 					<div class="row">
 						<span class="label"><label for="campos">Campos:</label></span>
 						<span class="checkboxes">
-							<div class="checkbox" style="width: 5.2em;">
+							<div class="checkbox" style="width: 5em;">
 								<input id="nome1" name="campos[]" dojoType="dijit.form.CheckBox" value="nome">
 								<label for="nome1">
 									Nome
@@ -138,35 +138,41 @@ if ((isset($_COOKIE['name'])) && (strlen($_COOKIE['name']) > 0))
 									Endere&ccedil;o
 								</label>
 							</div>
-							<div class="checkbox" style="width: 6.7em;">
-								<input id="ruacross1" name="campos[]" dojoType="dijit.form.CheckBox" value="ruacross">
-								<label for="ruacross1">
-									Rua Cross
+							<div class="checkbox" style="width: 9em;">
+								<input id="ruatransversal1" name="campos[]" dojoType="dijit.form.CheckBox" value="ruatransversal">
+								<label for="ruatransversal1">
+									Rua transversal
 								</label>
 							</div>
-							<div class="checkbox" style="width: 6.5em;">
+							<div class="checkbox" style="width: 5em;">
+								<input id="bairro1" name="campos[]" dojoType="dijit.form.CheckBox" value="bairro" disabled="disabled">
+								<label for="bairro1">
+									Bairro
+								</label>
+							</div>
+							<div class="checkbox" style="width: 6.4em;">
 								<input id="cidade1" name="campos[]" dojoType="dijit.form.CheckBox" value="cidade">
 								<label for="cidade1">
 									Cidade
 								</label>
 							</div>
-							<div class="checkbox" style="width: 5.8em;">
+							<div class="checkbox" style="width: 6.5em;">
 								<input id="estado1" name="campos[]" dojoType="dijit.form.CheckBox" value="estado">
 								<label for="estado1">
 									Estado
 								</label>
 							</div>
-							<div class="checkbox" style="width: 3.6em;">
-								<input id="cep1" name="campos[]" dojoType="dijit.form.CheckBox" value="cep">
-								<label for="cep1">
-									CEP
+							<div class="checkbox" style="width: 7.5em;">
+								<input id="codigopostal1" name="campos[]" dojoType="dijit.form.CheckBox" value="codigopostal">
+								<label for="codigopostal1">
+									C&oacute;digo postal
 								</label>
 							</div>
 							<br>
-							<div class="checkbox" style="width: 5.2em;">
-								<input id="twitter1" name="campos[]" dojoType="dijit.form.CheckBox" value="twitter">
-								<label for="twitter1">
-									Twitter
+							<div class="checkbox" style="width: 5em;">
+								<input id="dentro1" name="campos[]" dojoType="dijit.form.CheckBox" value="dentro">
+								<label for="dentro1">
+									Dentro
 								</label>
 							</div>
 							<div class="checkbox" style="width: 6.2em;">
@@ -175,10 +181,22 @@ if ((isset($_COOKIE['name'])) && (strlen($_COOKIE['name']) > 0))
 									Telefone
 								</label>
 							</div>
-							<div class="checkbox" style="width: 6.7em;">
-								<input id="website1" name="campos[]" dojoType="dijit.form.CheckBox" value="website">
-								<label for="website1">
-									Website
+							<div class="checkbox" style="width: 9em;">
+								<input id="sitedaweb1" name="campos[]" dojoType="dijit.form.CheckBox" value="sitedaweb">
+								<label for="sitedaweb1">
+									Site da web
+								</label>
+							</div>
+							<div class="checkbox" style="width: 5em;">
+								<input id="twitter1" name="campos[]" dojoType="dijit.form.CheckBox" value="twitter">
+								<label for="twitter1">
+									Twitter
+								</label>
+							</div>
+							<div class="checkbox" style="width: 6.4em;">
+								<input id="facebook1" name="campos[]" dojoType="dijit.form.CheckBox" value="facebook">
+								<label for="facebook1">
+									Facebook
 								</label>
 							</div>
 							<div class="checkbox" style="width: 6.5em;">
@@ -187,17 +205,17 @@ if ((isset($_COOKIE['name'])) && (strlen($_COOKIE['name']) > 0))
 									Descri&ccedil;&atilde;o
 								</label>
 							</div>
-							<div class="checkbox" style="width: 6em;">
-								<input id="latlong1" name="campos[]" dojoType="dijit.form.CheckBox" value="latlong">
-								<label for="latlong1">
-									Lat/Long
+							<div class="checkbox" style="width: 7.5em;">
+								<input id="latlng1" name="campos[]" dojoType="dijit.form.CheckBox" value="latlng">
+								<label for="latlng1">
+									Lat/Lng
 								</label>
 							</div>
 						</span>
 					</div>
 				</div>
 				<!--
-				<button dojoType="dijit.form.Button" type=button onClick="console.log(f.getValues())">
+				<button dojoType="dijit.form.Button" type=button onClick="console.log(f_txt.getValues())">
 					Get Values from form!
 				</button>
 				-->
@@ -209,16 +227,16 @@ if ((isset($_COOKIE['name'])) && (strlen($_COOKIE['name']) > 0))
 			</div>
 		</div>
 		<div dojoType="dijit.layout.ContentPane" title="Importar lista de uma p&aacute;gina web">
-			<div dojoType="dijit.form.Form" enctype="multipart/form-data" accept-charset="iso-8859-1" id="f_lks" jsId="f_lks" action="load.php" method="post">
+			<div dojoType="dijit.form.Form" enctype="multipart/form-data" accodigopostalt-charset="iso-8859-1" id="f_lks" jsId="f_lks" action="load.php" method="post">
 				<div id="toolContainer">
 					<div class="row">
 						<span class="label"><label for="pagina"><a id="dlg_lks" href="javascript:showDialogLks();">Endere&ccedil;o</a>:</label></span>
-						<span class="formw"><input type="text" id="pagina" name="pagina" required="true" dojoType="dijit.form.ValidationTextBox" trim="true" style="width: 34em; margin-bottom: 3px"/></span>
+						<span class="formw"><input type="text" id="pagina" name="pagina" required="true" dojoType="dijit.form.ValidationTextBox" trim="true" style="width: 45.6em; margin-bottom: 3px"/></span>
 					</div>
 					<div class="row">
 						<span class="label"><label for="campos2">Campos:</label></span>
 						<span class="checkboxes">
-							<div class="checkbox" style="width: 5.2em;">
+							<div class="checkbox" style="width: 5em;">
 								<input id="nome2" name="campos2[]" dojoType="dijit.form.CheckBox" value="nome">
 								<label for="nome2">
 									Nome
@@ -230,35 +248,41 @@ if ((isset($_COOKIE['name'])) && (strlen($_COOKIE['name']) > 0))
 									Endere&ccedil;o
 								</label>
 							</div>
-							<div class="checkbox" style="width: 6.7em;">
-								<input id="ruacross2" name="campos2[]" dojoType="dijit.form.CheckBox" value="ruacross">
-								<label for="ruacross2">
-									Rua Cross
+							<div class="checkbox" style="width: 9em;">
+								<input id="ruatransversal2" name="campos2[]" dojoType="dijit.form.CheckBox" value="ruatransversal">
+								<label for="ruatransversal2">
+									Rua transversal
 								</label>
 							</div>
-							<div class="checkbox" style="width: 6.5em;">
+							<div class="checkbox" style="width: 5em;">
+								<input id="bairro2" name="campos2[]" dojoType="dijit.form.CheckBox" value="bairro" disabled="disabled">
+								<label for="bairro2">
+									Bairro
+								</label>
+							</div>
+							<div class="checkbox" style="width: 6.4em;">
 								<input id="cidade2" name="campos2[]" dojoType="dijit.form.CheckBox" value="cidade">
 								<label for="cidade2">
 									Cidade
 								</label>
 							</div>
-							<div class="checkbox" style="width: 5.8em;">
+							<div class="checkbox" style="width: 6.5em;">
 								<input id="estado2" name="campos2[]" dojoType="dijit.form.CheckBox" value="estado">
 								<label for="estado2">
 									Estado
 								</label>
 							</div>
-							<div class="checkbox" style="width: 3.6em;">
-								<input id="cep2" name="campos2[]" dojoType="dijit.form.CheckBox" value="cep">
-								<label for="cep2">
-									CEP
+							<div class="checkbox" style="width: 7.5em;">
+								<input id="codigopostal2" name="campos2[]" dojoType="dijit.form.CheckBox" value="codigopostal">
+								<label for="codigopostal2">
+									C&oacute;digo postal
 								</label>
 							</div>
 							<br>
-							<div class="checkbox" style="width: 5.2em;">
-								<input id="twitter2" name="campos2[]" dojoType="dijit.form.CheckBox" value="twitter">
-								<label for="twitter2">
-									Twitter
+							<div class="checkbox" style="width: 5em;">
+								<input id="dentro2" name="campos2[]" dojoType="dijit.form.CheckBox" value="dentro">
+								<label for="dentro2">
+									Dentro
 								</label>
 							</div>
 							<div class="checkbox" style="width: 6.2em;">
@@ -267,10 +291,22 @@ if ((isset($_COOKIE['name'])) && (strlen($_COOKIE['name']) > 0))
 									Telefone
 								</label>
 							</div>
-							<div class="checkbox" style="width: 6.7em;">
-								<input id="website2" name="campos2[]" dojoType="dijit.form.CheckBox" value="website">
-								<label for="website2">
-									Website
+							<div class="checkbox" style="width: 9em;">
+								<input id="sitedaweb2" name="campos2[]" dojoType="dijit.form.CheckBox" value="sitedaweb">
+								<label for="sitedaweb2">
+									Site da web
+								</label>
+							</div>
+							<div class="checkbox" style="width: 5em;">
+								<input id="twitter2" name="campos2[]" dojoType="dijit.form.CheckBox" value="twitter">
+								<label for="twitter2">
+									Twitter
+								</label>
+							</div>
+							<div class="checkbox" style="width: 6.4em;">
+								<input id="facebook2" name="campos2[]" dojoType="dijit.form.CheckBox" value="facebook">
+								<label for="facebook2">
+									Facebook
 								</label>
 							</div>
 							<div class="checkbox" style="width: 6.5em;">
@@ -279,10 +315,10 @@ if ((isset($_COOKIE['name'])) && (strlen($_COOKIE['name']) > 0))
 									Descri&ccedil;&atilde;o
 								</label>
 							</div>
-							<div class="checkbox" style="width: 6em;">
-								<input id="latlong2" name="campos2[]" dojoType="dijit.form.CheckBox" value="latlong">
-								<label for="latlong2">
-									Lat/Long
+							<div class="checkbox" style="width: 7.5em;">
+								<input id="latlng2" name="campos2[]" dojoType="dijit.form.CheckBox" value="latlng">
+								<label for="latlng2">
+									Lat/Lng
 								</label>
 							</div>
 						</span>
@@ -301,16 +337,16 @@ if ((isset($_COOKIE['name'])) && (strlen($_COOKIE['name']) > 0))
 			</div>
 		</div>
 		<div dojoType="dijit.layout.ContentPane" title="Informar IDs ou URLs das venues">
-			<div dojoType="dijit.form.Form" enctype="multipart/form-data" accept-charset="iso-8859-1" id="f_ids" jsId="f_ids" action="load.php" method="post">
+			<div dojoType="dijit.form.Form" enctype="multipart/form-data" accodigopostalt-charset="iso-8859-1" id="f_ids" jsId="f_ids" action="load.php" method="post">
 				<div id="toolContainer">
 					<div class="row">
 						<span class="label"><label for="textarea_ids"><a id="dlg_ids" href="javascript:showDialogIds();">IDs ou URLs</a>:</label></span>
-						<span class="textarea"><textarea id="textarea_ids" name="textarea" dojoType="dijit.form.SimpleTextarea" maxLength="4000" trim="true" style="font-family: Arial, Helvetica, Verdana, sans-serif; font-size: 13px; resize: none; width: 444px; height: 67px;"></textarea></span>
+						<span class="textarea"><textarea id="textarea_ids" name="textarea" dojoType="dijit.form.SimpleTextarea" maxLength="4000" trim="true" style="font-family: Arial, Helvetica, Verdana, sans-serif; font-size: 13px; resize: none; width: 595px; height: 67px;"></textarea></span>
 					</div>
 					<div class="row">
 						<span class="label"><label for="campos3">Campos:</label></span>
 						<span class="checkboxes">
-							<div class="checkbox" style="width: 5.2em;">
+							<div class="checkbox" style="width: 5em;">
 								<input id="nome3" name="campos3[]" dojoType="dijit.form.CheckBox" value="nome">
 								<label for="nome3">
 									Nome
@@ -322,35 +358,41 @@ if ((isset($_COOKIE['name'])) && (strlen($_COOKIE['name']) > 0))
 									Endere&ccedil;o
 								</label>
 							</div>
-							<div class="checkbox" style="width: 6.7em;">
-								<input id="ruacross3" name="campos3[]" dojoType="dijit.form.CheckBox" value="ruacross">
-								<label for="ruacross3">
-									Rua Cross
+							<div class="checkbox" style="width: 9em;">
+								<input id="ruatransversal3" name="campos3[]" dojoType="dijit.form.CheckBox" value="ruatransversal">
+								<label for="ruatransversal3">
+									Rua transversal
 								</label>
 							</div>
-							<div class="checkbox" style="width: 6.5em;">
+							<div class="checkbox" style="width: 5em;">
+								<input id="bairro3" name="campos3[]" dojoType="dijit.form.CheckBox" value="bairro" disabled="disabled">
+								<label for="bairro3">
+									Bairro
+								</label>
+							</div>
+							<div class="checkbox" style="width: 6.4em;">
 								<input id="cidade3" name="campos3[]" dojoType="dijit.form.CheckBox" value="cidade">
 								<label for="cidade3">
 									Cidade
 								</label>
 							</div>
-							<div class="checkbox" style="width: 5.8em;">
+							<div class="checkbox" style="width: 6.5em;">
 								<input id="estado3" name="campos3[]" dojoType="dijit.form.CheckBox" value="estado">
 								<label for="estado3">
 									Estado
 								</label>
 							</div>
-							<div class="checkbox" style="width: 3.6em;">
-								<input id="cep3" name="campos3[]" dojoType="dijit.form.CheckBox" value="cep">
-								<label for="cep3">
-									CEP
+							<div class="checkbox" style="width: 7.5em;">
+								<input id="codigopostal3" name="campos3[]" dojoType="dijit.form.CheckBox" value="codigopostal">
+								<label for="codigopostal3">
+									C&oacute;digo postal
 								</label>
 							</div>
 							<br>
-							<div class="checkbox" style="width: 5.2em;">
-								<input id="twitter3" name="campos3[]" dojoType="dijit.form.CheckBox" value="twitter">
-								<label for="twitter3">
-									Twitter
+							<div class="checkbox" style="width: 5em;">
+								<input id="dentro3" name="campos3[]" dojoType="dijit.form.CheckBox" value="dentro">
+								<label for="dentro3">
+									Dentro
 								</label>
 							</div>
 							<div class="checkbox" style="width: 6.2em;">
@@ -359,10 +401,22 @@ if ((isset($_COOKIE['name'])) && (strlen($_COOKIE['name']) > 0))
 									Telefone
 								</label>
 							</div>
-							<div class="checkbox" style="width: 6.7em;">
-								<input id="website3" name="campos3[]" dojoType="dijit.form.CheckBox" value="website">
-								<label for="website3">
-									Website
+							<div class="checkbox" style="width: 9em;">
+								<input id="sitedaweb3" name="campos3[]" dojoType="dijit.form.CheckBox" value="sitedaweb">
+								<label for="sitedaweb3">
+									Site da web
+								</label>
+							</div>
+							<div class="checkbox" style="width: 5em;">
+								<input id="twitter3" name="campos3[]" dojoType="dijit.form.CheckBox" value="twitter">
+								<label for="twitter3">
+									Twitter
+								</label>
+							</div>
+							<div class="checkbox" style="width: 6.4em;">
+								<input id="facebook3" name="campos3[]" dojoType="dijit.form.CheckBox" value="facebook">
+								<label for="facebook3">
+									Facebook
 								</label>
 							</div>
 							<div class="checkbox" style="width: 6.5em;">
@@ -371,10 +425,10 @@ if ((isset($_COOKIE['name'])) && (strlen($_COOKIE['name']) > 0))
 									Descri&ccedil;&atilde;o
 								</label>
 							</div>
-							<div class="checkbox" style="width: 6em;">
-								<input id="latlong3" name="campos3[]" dojoType="dijit.form.CheckBox" value="latlong">
-								<label for="latlong3">
-									Lat/Long
+							<div class="checkbox" style="width: 7.5em;">
+								<input id="latlng3" name="campos3[]" dojoType="dijit.form.CheckBox" value="latlng">
+								<label for="latlng3">
+									Lat/Lng
 								</label>
 							</div>
 						</span>
@@ -393,14 +447,14 @@ if ((isset($_COOKIE['name'])) && (strlen($_COOKIE['name']) > 0))
 			</div>
 		</div>
 		<div dojoType="dijit.layout.ContentPane" title="Pesquisar venues" selected="true">
-			<div dojoType="dijit.form.Form" enctype="multipart/form-data" accept-charset="iso-8859-1" id="f_src" jsId="f_src" action="search.php" method="post">
+			<div dojoType="dijit.form.Form" enctype="multipart/form-data" accodigopostalt-charset="iso-8859-1" id="f_src" jsId="f_src" action="search.php" method="post">
 				<input type="hidden" id="oauth_token_scr" name="oauth_token" value="<?= $oauth_token ?>"/>
 				<div id="toolContainer">
 					<div class="row">
 						<span class="label"><label for="query"><a href="https://developer.foursquare.com/docs/venues/search" target="_blank">Consulta</a>:</label></span>
-						<span class="formw"><input type="text" id="query" name="query" required="false" dojoType="dijit.form.ValidationTextBox" trim="true" style="width: 170px"/></span>
+						<span class="formw"><input type="text" id="query" name="query" required="false" dojoType="dijit.form.ValidationTextBox" trim="true" style="width: 269px"/></span>
 						<span class="labelLl"><label for="ll"><a href="https://developer.foursquare.com/docs/venues/search" target="_blank">Local</a>:</label></span>
-						<span class="formw"><input type="text" id="ll" name="ll" required="false" dojoType="dijit.form.ValidationTextBox" trim="true" style="width: 213px"/></span>
+						<span class="formw"><input type="text" id="ll" name="ll" required="false" dojoType="dijit.form.ValidationTextBox" trim="true" style="width: 266px"/></span>
 					</div>
 					<div class="row">
 						<span class="label"><label for="categoryId"><a href="https://developer.foursquare.com/docs/venues/search" target="_blank">Categoria</a>:</label></span>
@@ -491,7 +545,7 @@ if ((isset($_COOKIE['name'])) && (strlen($_COOKIE['name']) > 0))
 					<div class="row">
 						<span class="label"><label for="campos4">Campos:</label></span>
 						<span class="checkboxes">
-							<div class="checkbox" style="width: 5.2em;">
+							<div class="checkbox" style="width: 5em;">
 								<input id="nome4" name="campos4[]" dojoType="dijit.form.CheckBox" value="nome">
 								<label for="nome4">
 									Nome
@@ -503,35 +557,41 @@ if ((isset($_COOKIE['name'])) && (strlen($_COOKIE['name']) > 0))
 									Endere&ccedil;o
 								</label>
 							</div>
-							<div class="checkbox" style="width: 6.7em;">
-								<input id="ruacross4" name="campos4[]" dojoType="dijit.form.CheckBox" value="ruacross">
-								<label for="ruacross4">
-									Rua Cross
+							<div class="checkbox" style="width: 9em;">
+								<input id="ruatransversal4" name="campos4[]" dojoType="dijit.form.CheckBox" value="ruatransversal">
+								<label for="ruatransversal4">
+									Rua transversal
 								</label>
 							</div>
-							<div class="checkbox" style="width: 6.5em;">
+							<div class="checkbox" style="width: 5em;">
+								<input id="bairro4" name="campos4[]" dojoType="dijit.form.CheckBox" value="bairro" disabled="disabled">
+								<label for="bairro4">
+									Bairro
+								</label>
+							</div>
+							<div class="checkbox" style="width: 6.4em;">
 								<input id="cidade4" name="campos4[]" dojoType="dijit.form.CheckBox" value="cidade">
 								<label for="cidade4">
 									Cidade
 								</label>
 							</div>
-							<div class="checkbox" style="width: 5.8em;">
+							<div class="checkbox" style="width: 6.5em;">
 								<input id="estado4" name="campos4[]" dojoType="dijit.form.CheckBox" value="estado">
 								<label for="estado4">
 									Estado
 								</label>
 							</div>
-							<div class="checkbox" style="width: 3.6em;">
-								<input id="cep4" name="campos4[]" dojoType="dijit.form.CheckBox" value="cep">
-								<label for="cep4">
-									CEP
+							<div class="checkbox" style="width: 7.5em;">
+								<input id="codigopostal4" name="campos4[]" dojoType="dijit.form.CheckBox" value="codigopostal">
+								<label for="codigopostal4">
+									C&oacute;digo postal
 								</label>
 							</div>
 							<br>
-							<div class="checkbox" style="width: 5.2em;">
-								<input id="twitter4" name="campos4[]" dojoType="dijit.form.CheckBox" value="twitter">
-								<label for="twitter4">
-									Twitter
+							<div class="checkbox" style="width: 5em;">
+								<input id="dentro4" name="campos4[]" dojoType="dijit.form.CheckBox" value="dentro" disabled="disabled">
+								<label for="dentro4">
+									Dentro
 								</label>
 							</div>
 							<div class="checkbox" style="width: 6.2em;">
@@ -540,10 +600,22 @@ if ((isset($_COOKIE['name'])) && (strlen($_COOKIE['name']) > 0))
 									Telefone
 								</label>
 							</div>
-							<div class="checkbox" style="width: 6.7em;">
-								<input id="website4" name="campos4[]" dojoType="dijit.form.CheckBox" value="website">
-								<label for="website4">
-									Website
+							<div class="checkbox" style="width: 9em;">
+								<input id="sitedaweb4" name="campos4[]" dojoType="dijit.form.CheckBox" value="sitedaweb">
+								<label for="sitedaweb4">
+									Site da web
+								</label>
+							</div>
+							<div class="checkbox" style="width: 5em;">
+								<input id="twitter4" name="campos4[]" dojoType="dijit.form.CheckBox" value="twitter">
+								<label for="twitter4">
+									Twitter
+								</label>
+							</div>
+							<div class="checkbox" style="width: 6.4em;">
+								<input id="facebook4" name="campos4[]" dojoType="dijit.form.CheckBox" value="facebook">
+								<label for="facebook4">
+									Facebook
 								</label>
 							</div>
 							<div class="checkbox" style="width: 6.5em;">
@@ -552,10 +624,10 @@ if ((isset($_COOKIE['name'])) && (strlen($_COOKIE['name']) > 0))
 									Descri&ccedil;&atilde;o
 								</label>
 							</div>
-							<div class="checkbox" style="width: 6em;">
-								<input id="latlong4" name="campos4[]" dojoType="dijit.form.CheckBox" value="latlong">
-								<label for="latlong4">
-									Lat/Long
+							<div class="checkbox" style="width: 7.5em;">
+								<input id="latlng4" name="campos4[]" dojoType="dijit.form.CheckBox" value="latlng">
+								<label for="latlng4">
+									Lat/Lng
 								</label>
 							</div>
 						</span>
