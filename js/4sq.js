@@ -70,8 +70,12 @@ function getDataHora() {
 }
 
 function atualizarDicaResultado(item, imagem, dica) {
-	dojo.byId(item).innerHTML = imagem;
-	createTooltip(item, dica);
+	try {
+		dojo.byId(item).innerHTML = imagem;
+		createTooltip(item, dica);
+	} catch(e) {
+		//console.log(e);
+	}
 }
 
 function atualizarEditadas(i, timeout) {
@@ -195,7 +199,7 @@ function xmlhttpRequest(metodo, endpoint, acao, dados, i) {
 		if (xmlhttp.readyState == 4) {
 			try {
 				var resposta = JSON.parse(xmlhttp.responseText);
-			} catch(err) {
+			} catch(e) {
 				return false;
 			}
 			/*** O erro {"meta":{"code":400,"errorType":"param_error","errorDetail":"Must start with http:\/\/"}} é um bug da API que ocorre quando o campo url é enviado em branco. Mas mesmo dando erro, a venue é corretamente editada. ***/
@@ -208,6 +212,9 @@ function xmlhttpRequest(metodo, endpoint, acao, dados, i) {
 						dojo.byId("info" + i).innerHTML = dojo.byId("info" + i).innerHTML.replace(/%0A/gi, "");
 						var dicaVenue = atualizarDicaVenue(i);
 						createTooltip("venLnk" + i, dicaVenue);
+						categorias[i].ids = document.forms[i]["categoryId"].value;
+						categorias[i].nomes = document.forms[i]["categoryName"].value;
+						categorias[i].icones = document.forms[i]["categoryIcon"].value;
 						dica = "<span style=\"font-size: 12px\">Editada com sucesso</span>";
 						atualizarEditadas(i, false);
 						relatorio.push(new Array(document.forms[i]["name"].value, "editada", getDataHora(), document.forms[i]["venue"].value, dojo.byId("cna" + i).value, dijit.byId("textarea").value));
@@ -472,7 +479,8 @@ function atualizarDicaVenue(i) {
 		} else if (document.forms[i]["crossStreet"].value != "") {
 			dica += "<br>" + document.forms[i]["crossStreet"].value;
 		}
-	} catch(err) { }
+	} catch(e) {
+	}
 	try {
 		if (document.forms[i]["city"].value != "") {
 			dica += "<br>" + document.forms[i]["city"].value;
@@ -1092,9 +1100,14 @@ function atualizarMarcadoresMapa() {
 
 var dlgGuia;
 dojo.addOnLoad(function inicializar() {
+	if (oauth_token == undefined) {
+		console.warn("Token expirado");
+		if (window.confirm('Token expirado. Por favor, autentique-se novamente no Foursquare.'))
+			window.location.href = 'index.php';
+	}
+	
 	dojo.style("mapa", "width", dojo.byId('listContainer').offsetWidth.toString() + "px");
 	
-	// create the dialog:
 	dlg_guia = new dijit.Dialog({
 		title: "Guia de estilo",
 		style: "width: 435px"
