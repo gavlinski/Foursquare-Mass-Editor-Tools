@@ -220,8 +220,8 @@ class FoursquareApi {
 	 */
 	public function GeoLocate($addr){
 		$addr = str_replace(" ", "+", $addr);
-		$geoapi = "http://maps.googleapis.com/maps/api/geocode/json";
-		$params = array("address"=>$addr,"sensor"=>"false");
+		$geoapi = "https://maps.googleapis.com/maps/api/geocode/json";
+		$params = array("address"=>$addr,"key"=>"AIzaSyD9ZfpJz_ZlwOo7crLhiYhxcpJdBPpBVi8","sensor"=>"false");
 		$response = $this->GET($geoapi,$params);
 		$json = json_decode($response);
 		// If Status Code is ZERO_RESULTS, OVER_QUERY_LIMIT, REQUEST_DENIED or INVALID_REQUEST 
