@@ -1,7 +1,7 @@
 body, html {
 	font-family: Arial, Helvetica, Verdana, sans-serif;
 	font-size: 13px;
-	color: #5a5858;
+	color: #4E595D;
 }
 h1 {
 	color: #444444;
@@ -19,23 +19,13 @@ h3 {
 	font-size: 14px;
 	margin-top: 15px;
 }
-a:link {
-	color: #2398c9;
-	text-decoration: none;
-	font-weight: bold;
-}
-a:visited {
-	color: #2398c9;
-	text-decoration: none;
-	font-weight: bold;
-}
-a:active {
-	color: #2398c9;
+a, a:link, a:visited, a:active {
+	color: #2d5be3;
 	text-decoration: none;
 	font-weight: bold;
 }
 a:hover {
-	color: #2398c9;
+	color: #2d5be3;
 	text-decoration: underline;
 	font-weight: bold;
 }
@@ -54,7 +44,7 @@ a:hover {
 	min-width: 699px;
 	background-color: #f9f9f9;
 	border: 1px solid #cccccc;
-	margin-bottom: 15px;
+	margin-bottom: 8px;
 	display: table;
 	min-height: 0;
 	padding: 5px 0px 0px 3px;
@@ -77,7 +67,7 @@ a:hover {
 #toolContainer .row span.labelBlanck {
 	float: left;
 	width: 547px;
-	padding-top: 1px;
+	padding-top: 2px;
 }
 #toolContainer .row span.labelLl {
 	float: left;
@@ -109,18 +99,15 @@ a:hover {
 }
 #toolContainer .row span.button {
 	float: left;
-	padding-bottom: 2px;
-	padding-top: 2px;
 }
 #toolContainer .row span.arquivo {
 	float: left;
-	padding-top: 8px;
+	padding-top: 6px;
 	padding-left: 12px;
 	padding-bottom: 15px;
 }
 .dijitButton.continue .dijitButtonNode {
 	margin-left: -3px;
-	line-height: 17px;
 }
 #toolContainer .row span.checkboxes {
 	float: left;
@@ -135,17 +122,49 @@ a:hover {
 	width: 269px;
 	overflow: hidden;
 }
-#toolContainer .row span.combobox .dijitArrowButtonInner {
-	width: 19px;
+.tundra .dijitSelect .dijitButtonContents, .tundra .dijitTextBox .dijitButtonNode {
+	height: 21px;
 	overflow: hidden;
+	padding-left: 2px;
 }
-.claro .dijitComboBox .dijitHasDropDownOpen .dijitArrowButtonInner {
-	width: 17px !important;
+/*.tundra .dijitComboBox .dijitHasDropDownOpen .dijitArrowButtonInner {*/
+.tundra .dijitArrowButtonInner {
+	margin: 2px 4px;
+}
+.tundra .dijitInputContainer input {
+	margin: 0.2em 0.1em;
+}
+.dijitInputInner {
+	margin-left: 2px !important;
+	margin-right: 2px !important;
 }
 #toolContainer .row span.comboboxes .dijitSelectLabel {
 	width: 72px;
-	height: 16px;
 	overflow: hidden;
+}
+.tundra .dijitValidationTextBoxError .dijitValidationIcon {
+	margin-right: 2px;
+	margin-top: 2px;
+}
+.dijitValidationTextBoxError input.dijitValidationInner, .dijitSelect input, .dijitTextBox input.dijitArrowButtonInner {
+	height: 17px !important;
+}
+.dijitPlaceHolder {
+	left: 2px;
+	top: 3px;
+}
+.tundra .dijitMenuItem td {
+	padding: 4px 4px 4px 2px !important;
+}
+.tundra .dijitDialogCloseIcon {
+	top: 4px;
+	background-position: center center;
+}
+.tundra .dijitDialogCloseIconHover {
+	background-position: center center;
+}
+.dijitDialogPaneActionBar {
+	margin-left: -3px; margin-top: 8px
 }
 .checkbox {
 	float: left;
@@ -156,7 +175,7 @@ a:hover {
 	float: left;
 	padding-left: 3px;
 	padding-bottom: 8px;
-	padding-top: 5px;
+	padding-top: 4px;
 }
 .pb_container {
 	position: relative;
@@ -165,29 +184,26 @@ a:hover {
 .pb_bar {
 	width: 100%;
 	height: 1.3em;
-	border: 1px solid #769dc0;
+	border: 1px solid;
+	border-color: #a2a2a2 #b8b8b8 #b8b8b8 #a2a2a2;
+	background: #ffffff url("js/dijit/themes/tundra/images/progressBarEmpty.png") repeat-x center center;
 }
 .pb_before {
 	float: left;
 	height: 1.3em;
-	background: #abd6ff url("js/dijit/themes/claro/images/progressBarFull.png") repeat-x top;
-}
-.pb_after {
-	float: left;
-	border-right: 1px solid #769dc0;
-	/*background: #ffffff url("js/dijit/themes/claro/images/progressBarEmpty.png") repeat-none left;*/
-	background: #ffffff url("js/dijit/themes/claro/images/progressBarFull.png") repeat-none left;
+	background: #abd6ff url("js/dijit/themes/tundra/images/progressBarFull.png") repeat-x center center;
+	border-right: 1px solid #b8b8b8;
 }
 .pb_indeterminate {
 	float: left;
 	height: 1.3em;
-	background: #efefef url("js/dijit/themes/claro/images/progressBarAnim.gif") repeat-x top;
+	background: #fff url("js/dijit/themes/tundra/images/progressBarAnim.gif") repeat-x center center;
 }
 .pb_text {
 	padding-top: 0.1em;
 	position: absolute;
 	left: 48%;
-	color: #000000;
+	color: #293a4b;
 }
 #listContainer {
 	width: 1px;
@@ -196,7 +212,7 @@ a:hover {
 	background-color: #F7F6F6;
 	border: 1px solid #cccccc;
 	font-size: 12px;
-	margin-bottom: 15px;
+	margin-bottom: 6px;
 	border-radius: 5px;
 	-webkit-border-radius: 5px;
 	-moz-border-radius: 5px;
@@ -249,10 +265,11 @@ a:hover {
 }
 #treeContainer {
 	width: 375px;
-	height: 224px;
+	height: 207px;
 	font-size: 12px;
-	padding-top: 3px;
+	padding-top: 5px;
 	margin-bottom: 6px;
+	margin-left: 1px;
 	-moz-user-select: -moz-none;
 	-khtml-user-select: none;
 	-webkit-user-select: none;
@@ -268,52 +285,45 @@ a:hover {
 }
 .flagIcon {
 	background-image: url(img/flag.png);
-	width: 10px;
-	height: 10px;
+	width: 10px !important;
+	height: 10px !important;
 	margin-left: 2px;
-	margin-right: 2px;
 }
 .doesnt_existIcon {
 	background-image: url(img/doesnt_exist.png);
-	width: 10px;
-	height: 10px;
+	width: 10px !important;
+	height: 10px !important;
 	margin-left: 2px;
-	margin-right: 2px;
 }
 .closedIcon {
 	background-image: url(img/closed.png);
-	width: 10px;
-	height: 10px;
+	width: 10px !important;
+	height: 10px !important;
 	margin-left: 2px;
-	margin-right: 2px;
 }
 .inappropriateIcon {
 	background-image: url(img/inappropriate.png);
-	width: 10px;
-	height: 10px;
+	width: 10px !important;
+	height: 10px !important;
 	margin-left: 2px;
-	margin-right: 2px;
 }
 .event_overIcon {
 	background-image: url(img/event_over.png);
-	width: 10px;
-	height: 10px;
+	width: 10px !important;
+	height: 10px !important;
 	margin-left: 2px;
-	margin-right: 2px;
 }
 .exportIcon {
 	background-image: url(img/export.png);
-	width: 10px;
-	height: 10px;
+	width: 10px !important;
+	height: 10px !important;
 	margin-left: 2px;
-	margin-right: 2px;
 }
 .privateIcon {
 	background-image: url(img/private.png);
-	width: 10px;
-	height: 10px;
+	width: 10px !important;
+	height: 10px !important;
 	margin-left: 2px;
-	margin-right: 2px;
 }
 #mapa {
 	width: 533px;

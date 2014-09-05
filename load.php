@@ -31,11 +31,11 @@ if (!isset($_SESSION["oauth_token"])) {
 <?php
 define("VERSION", "Venues Loader 1.4");
 define("LINKS", '<link rel="shortcut icon" href="favicon.ico" type="image/x-icon"/>
-<link rel="stylesheet" type="text/css" href="js/dijit/themes/claro/claro.css"/>
+<link rel="stylesheet" type="text/css" href="js/dijit/themes/tundra/tundra.css"/>
 <link rel="stylesheet" type="text/css" href="estilo.css"/>
 ');
 define("HBODY", '</head>
-<body class="claro">
+<body class="tundra">
 ');
 define("CARREGANDO", LINKS . HBODY . '<div id="carregando">Carregando venues&hellip;</div>
 ');

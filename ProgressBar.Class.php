@@ -38,7 +38,7 @@ class ProgressBar {
 		<div id="'.$this->textid.'" class="'.$this->textid.'" style="display: none"></div>
 		<div class="pb_bar">
 			<div id="'.$this->pbarid.'" class="pb_indeterminate" style="width: 100%;"></div>
-			<div id="'.$this->tbarid.'" class="pb_after"></div>
+			<div id="'.$this->tbarid.'"></div>
 		</div>
 		<br style="height: 1px; font-size: 1px;"/>
 	</div>';

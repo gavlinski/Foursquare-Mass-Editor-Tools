@@ -31,12 +31,12 @@ if (isset($_SESSION["oauth_token"])) {
 <title>Elio Tools</title>
 <meta http-equiv="Content-type" content="text/html; charset=ISO-8859-1"/>
 <link rel="shortcut icon" href="favicon.ico" type="image/x-icon"/>
-<link rel="stylesheet" type="text/css" href="js/dijit/themes/claro/claro.css"/>
+<link rel="stylesheet" type="text/css" href="js/dijit/themes/tundra/tundra.css"/>
 <link rel="stylesheet" type="text/css" href="estilo.css"/>
 <script src="js/dojo/dojo.js" djConfig="parseOnLoad: true"></script>
 <script type="text/javascript" src="js/4sq.js"></script>
 </head>
-<body class="claro">
+<body class="tundra">
 <h2>Editar venues</h2>
 <p>Antes de salvar suas altera&ccedil;&otilde;es, n&atilde;o deixe de ler nosso <a id="guia" href="javascript:showDialogGuia()">guia de estilo</a> e as <a id="regras" href="https://pt.foursquare.com/info/houserules" target="_blank">regras da casa</a>.</p>
 <div id="mapa"></div>

@@ -40,7 +40,12 @@ if (file_exists($cache_file) && (filemtime($cache_file) > (time() - 3600 * 12)))
 } else {
 	// Our cache is out-of-date, so load the data from our remote server.
 	$response = carregarListaCategorias();
-	$categories = json_decode($response);
+	if (empty($response)) {
+		$categories = new stdClass();
+		$categories->meta = "";
+	} else {
+		$categories = json_decode($response);
+	}
 	if (property_exists($categories->meta, "code") && ($categories->meta->code == "200")) {
 		// JSON data is valid so save it over our cache for next time.
 		$categories_loaded = true;
@@ -81,12 +86,12 @@ function removeLocalCache($key) {
 }
 ?>
 <link rel="shortcut icon" href="favicon.ico" type="image/x-icon" />
-<link rel="stylesheet" type="text/css" href="js/dijit/themes/claro/claro.css"/>
+<link rel="stylesheet" type="text/css" href="js/dijit/themes/tundra/tundra.css"/>
 <link rel="stylesheet" type="text/css" href="estilo.css"/>
 </head>
-<body class="claro">
+<body class="tundra">
 <h2>Edi&ccedil;&atilde;o de venues em massa via API</h2>
-<div style="width: 730px;">
+<div style="width: 716px;">
 <?php
 if ((isset($_COOKIE['name'])) && (strlen($_COOKIE['name']) > 0))
 		echo "<p>Ol&aacute;, <span id=\"name\">" . $_COOKIE['name'] . "</span>!</p>";
@@ -99,7 +104,7 @@ if ((isset($_COOKIE['name'])) && (strlen($_COOKIE['name']) > 0))
 					<div class="row"><span class="labelBlanck"></span></div>
 					<div class="row">
 						<span class="label"><label for="uploader_csv"><a id="dlg_csv" href="javascript:showDialogCsv();">Arquivo</a>:</label></span>
-						<span class="button"><input type="hidden" name="MAX_FILE_SIZE" value="500000" dojoType="dijit.form.TextBox"/><input name="csv" multiple="false" type="file" data-dojo-type="dojox.form.Uploader" label="Escolher arquivo" id="uploader_csv" style="margin-top: 1px;"/></span>
+						<span class="button"><input type="hidden" name="MAX_FILE_SIZE" value="500000" dojoType="dijit.form.TextBox"/><input name="csv" multiple="false" type="file" data-dojo-type="dojox.form.Uploader" label="Escolher arquivo" id="uploader_csv"/></span>
 						<span class="arquivo" id="arquivo_csv">Nenhum arquivo selecionado</span>
 					</div>
 				</div>
@@ -120,7 +125,7 @@ if ((isset($_COOKIE['name'])) && (strlen($_COOKIE['name']) > 0))
 				<div id="toolcontainer">
 					<div class="row">
 						<span class="label"><label for="txt"><a id="dlg_txt" href="javascript:showDialogTxt();">Arquivo</a>:</label></span>
-						<span class="button"><input type="hidden" name="MAX_FILE_SIZE" value="5000000" dojoType="dijit.form.TextBox"/><input name="txt" multiple="false" type="file" data-dojo-type="dojox.form.Uploader" label="Escolher arquivo" id="uploader_txt" style=""/></span>
+						<span class="button"><input type="hidden" name="MAX_FILE_SIZE" value="5000000" dojoType="dijit.form.TextBox"/><input name="txt" multiple="false" type="file" data-dojo-type="dojox.form.Uploader" label="Escolher arquivo" id="uploader_txt"/></span>
 						<span class="arquivo" id="arquivo_txt">Nenhum arquivo selecionado</span>
 					</div>
 					<div class="row">
