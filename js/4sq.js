@@ -271,6 +271,14 @@ function xmlhttpRequest(metodo, endpoint, acao, dados, i) {
 					imagem = "<img src='img/erro.png' alt='Erro 500: Internal Server Error'>";
 					dica = "<span style=\"font-size: 12px\">Erro 500: Internal Server Error</span>";
 					break;
+				case 503:
+					imagem = "<img src='img/erro.png' alt='Erro 503: backend read error'>";
+					dica = "<span style=\"font-size: 12px\">Erro 503: backend read error</span>";
+					break;
+				case 504:
+					imagem = "<img src='img/erro.png' alt='Erro 504: Gateway Time-out'>";
+					dica = "<span style=\"font-size: 12px\">Erro 504: Gateway Time-out</span>";
+					break;					
 				default:
 					imagem = "<img src='img/erro.png' alt='Erro desconhecido: " + xmlhttp.status + "'>";
 					dica = "<span style=\"font-size: 12px\">Erro desconhecido: " + xmlhttp.status + "</span>";
@@ -1447,7 +1455,7 @@ function showDialogComment(caller, comment) {
 function verificarAlteracao(textbox, i) {
 	var index = csv[0].indexOf(textbox.name)
 	if (csv[i + 1][index].slice(1, -1) != textbox.value) {
-		//console.info("changed: " + textbox.name + ", old value: " + csv[i + 1][index].slice(1, -1) + ", new value: " + textbox.value);
+		console.info("changed: " + textbox.name + ", old value: " + csv[i + 1][index].slice(1, -1) + ", new value: " + textbox.value);
 		csv[i + 1][index] = '"' + textbox.value + '"';
 		dojo.byId("result" + i).innerHTML = "";
 		if (linhasEditadas.indexOf(i) == -1)

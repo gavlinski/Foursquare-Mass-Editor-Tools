@@ -114,7 +114,7 @@ if ((isset($_COOKIE['name'])) && (strlen($_COOKIE['name']) > 0))
 				</button>
 				-->
 				<div>
-					<button dojoType="dijit.form.Button" type="submit" class="continue">
+					<button dojoType="dijit.form.Button" type="submit" class="continue" disabled=disabled>
 						Continuar
 					</button>
 				</div>
