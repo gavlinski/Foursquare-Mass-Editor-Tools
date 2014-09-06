@@ -611,22 +611,22 @@ function atualizarTabela(venue, i) {
 				linha = venue.id + '&&' + categorias[i].ids;
 			linha += '&&"' + venue.location.postalCode + '"';
 			break;
-		case "parent":
-			var parent;
+		case "parentId":
+			var parentId;
 			try {
-				(venue.parent.id) ? parent = "" : parent = venue.parent.id;
+				(venue.parent.id) ? parentId = venue.parent.id : parentId = "";
 			} catch(e) {
-				//console.log(e);
+				console.log(e);
 			}
-			document.forms[i]["parent"].value = parent;
+			document.forms[i]["parentId"].value = parentId;
 			if (totalCarregadas == 1) {
 				if (j == 2)
 					csv[0] = ["venue", "categoryId"];
-				csv[0] = csv[0].concat("parent");
+				csv[0] = csv[0].concat("parentId");
 			}
 			if (j == 2)
 				linha = venue.id + '&&' + categorias[i].ids;
-			linha += '&&"' + parent + '"';
+			linha += '&&"' + parentId + '"';
 			break;
 		case "phone":
 			document.forms[i]["phone"].value = venue.contact.phone;
@@ -879,8 +879,8 @@ function salvarVenues() {
 			venue = document.forms[i]["venue"].value;
 			elementName = document.forms[i].elements[j].name;
 			//if ((elementName != "ll") && (elementName != "categoryId") &&
-					//((elementName == "name") || (elementName == "address") || (elementName == "crossStreet") || (elementName == "neighborhood") || (elementName == "city") || (elementName == "state") || (elementName == "zip") || (elementName == "parent") || (elementName == "phone") || (elementName == "url") || (elementName == "twitter")))
-			if ((elementName == "name") || (elementName == "address") || (elementName == "crossStreet") || (elementName == "neighborhood") || (elementName == "city") || (elementName == "state") || (elementName == "zip") || (elementName == "parent") || (elementName == "phone") || (elementName == "url") || (elementName == "twitter"))
+					//((elementName == "name") || (elementName == "address") || (elementName == "crossStreet") || (elementName == "neighborhood") || (elementName == "city") || (elementName == "state") || (elementName == "zip") || (elementName == "parentId") || (elementName == "phone") || (elementName == "url") || (elementName == "twitter")))
+			if ((elementName == "name") || (elementName == "address") || (elementName == "crossStreet") || (elementName == "neighborhood") || (elementName == "city") || (elementName == "state") || (elementName == "zip") || (elementName == "parentId") || (elementName == "phone") || (elementName == "url") || (elementName == "twitter"))
 				dados += "&" + elementName + "=" + encodeURIComponent(document.forms[i].elements[j].value);
 			else if (elementName == "facebook") {
 				var facebookUsername = document.forms[i].elements[j].value;

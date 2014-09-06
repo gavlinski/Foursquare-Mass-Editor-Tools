@@ -81,17 +81,17 @@ if ($campos != null) {
 	} else {
 		$editState = false;
 	}
-	if (in_array("codidopostal", $campos)) {
+	if (in_array("codigopostal", $campos)) {
 		$editZip = true;
 		$totalCampos++;
 	} else {
 		$editZip = false;
 	}
 	if (in_array("dentro", $campos)) {
-		$editParent = true;
+		$editParentId = true;
 		$totalCampos++;
 	} else {
-		$editParent = false;
+		$editParentId = false;
 	}
 	if (in_array("telefone", $campos)) {
 		$editPhone = true;
@@ -184,8 +184,8 @@ foreach ($file as $f) {
 		echo '<input type="text" dojoType="dijit.form.TextBox" name="zip" maxlength="13" value=" " placeHolder="C&oacute;digo postal" style="width: 6em; margin-left: 5px;" onchange="verificarAlteracao(this, ', $i - 1, ')">', chr(10);
 	}
 	
-	if ($editParent) {
-		echo '<input type="text" dojoType="dijit.form.TextBox" name="parent" maxlength="24" value=" " placeHolder="Dentro" style="width: 7em; margin-left: 5px;" onchange="verificarAlteracao(this, ', $i - 1, ')">', chr(10);
+	if ($editParentId) {
+		echo '<input type="text" dojoType="dijit.form.TextBox" name="parentId" maxlength="24" value=" " placeHolder="Dentro" style="width: 7em; margin-left: 5px;" onchange="verificarAlteracao(this, ', $i - 1, ')">', chr(10);
 	}
 
 	if ($editPhone) {
