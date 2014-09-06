@@ -232,17 +232,6 @@ function xmlhttpRequest(metodo, endpoint, acao, dados, i) {
 				} else if ((metodo == "GET") && (resposta.response.categories == undefined)) {
 					atualizarTabela(resposta.response.venue, i);
 				} else if (resposta.response.categories != undefined) {
-					/*** Organiza em ordem alfabética o segundo e terceiro níveis das categorias ***/
-					for (j = 0; j < resposta.response.categories.length; j++) {
-						resposta.response.categories[j].categories.sort(function(el1, el2) {
-							return compare(el1, el2, "name")
-						});
-						for (k = 0; k < resposta.response.categories[j].categories.length; k++)
-							if (resposta.response.categories[j].categories[k].categories.length > 1)
-								resposta.response.categories[j].categories[k].categories.sort(function(el1, el2) {
-									return compare(el1, el2, "name")
-								});
-					}
 					montarArvore(resposta);
 					console.info("Categorias recuperadas!");
 					localStorage.setItem("categorias", JSON.stringify(resposta));
@@ -744,6 +733,17 @@ function atualizarTabela(venue, i) {
 }
 
 function montarArvore(resposta) {
+	/*** Organiza em ordem alfabética o segundo e terceiro níveis das categorias ***/
+	for (j = 0; j < resposta.response.categories.length; j++) {
+		resposta.response.categories[j].categories.sort(function(el1, el2) {
+			return compare(el1, el2, "name")
+		});
+		for (k = 0; k < resposta.response.categories[j].categories.length; k++)
+			if (resposta.response.categories[j].categories[k].categories.length > 1)
+				resposta.response.categories[j].categories[k].categories.sort(function(el1, el2) {
+					return compare(el1, el2, "name")
+				});
+	}
 	var restructuredData = dojo.map(resposta.response.categories, dojo.hitch(this, function categoriasPrimarias(category1) {
 		var newCategory1 = {};
 		newCategory1.id = category1.id;
