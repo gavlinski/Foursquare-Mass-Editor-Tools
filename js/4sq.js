@@ -459,6 +459,8 @@ function formattedTime(unix_timestamp) {
 
 function atualizarDicaVenue(i) {
 	var dica = "<span style=\"font-size: 12px\"><b>" + document.forms[i]["name"].value + "</b>";
+	if (document.forms[i]["verified"].value == "true")
+		dica += "<img src=\"img/verified.png\" width=\"10\" height=\"10\" style=\"margin-left: 7px\">";
 	if ((document.forms[i]["isClosed"].value == "true") || (document.forms[i]["isPrivate"].value == "true") || (document.forms[i]["isDeleted"].value == "true")) {
 		dica += "<br><span style=\"color: #df7a77;\"><b>";
 		var flags = "";
@@ -496,11 +498,10 @@ function atualizarDicaVenue(i) {
 			dica += "<br>" + document.forms[i]["zip"].value;
 		}
 	} catch(err) { }
-	dica += "<br><span style=\"color: #999999;\"><img src=\"img/maps.png\" width=\"8\" height=\"10\" style=\"opacity: 0.4\"> " + document.forms[i]["checkinsCount"].value + "<img src=\"img/person.png\" width=\"10\" height=\"10\" style=\"opacity: 0.4; margin-left: 7px\"> " + document.forms[i]["usersCount"].value + "<img src=\"img/comment.png\" width=\"10\" height=\"10\" style=\"opacity: 0.4; margin-left: 7px; margin-right: 1px\"> " + document.forms[i]["tipCount"].value;
-	if (document.forms[i]["photosCount"].value != "")
-		dica += "<img src=\"img/camera.png\" width=\"10\" height=\"9\" style=\"opacity: 0.4; margin-left: 7px\"> " + document.forms[i]["photosCount"].value;
-	if (document.forms[i]["createdAt"].value)
-		dica += "<br>Criada em " + document.forms[i]["createdAt"].value;
+	dica += "<br><span style=\"color: #999999;\"><img src=\"img/maps.png\" width=\"8\" height=\"10\" style=\"opacity: 0.4\"> " + document.forms[i]["checkinsCount"].value + "<img src=\"img/person.png\" width=\"10\" height=\"10\" style=\"opacity: 0.4; margin-left: 7px\"> " + document.forms[i]["usersCount"].value + "<img src=\"img/comment.png\" width=\"10\" height=\"10\" style=\"opacity: 0.4; margin-left: 7px; margin-right: 1px\"> " + document.forms[i]["tipCount"].value + "<img src=\"img/photo.png\" width=\"10\" height=\"10\" style=\"opacity: 0.4; margin-left: 7px\"> ";
+	(document.forms[i]["photosCount"].value != "") ? dica += document.forms[i]["photosCount"].value : dica += "0";
+	dica += "<img src=\"img/heart.png\" width=\"10\" height=\"10\" style=\"opacity: 0.4; margin-left: 7px\"> " + document.forms[i]["likesCount"].value + "<img src=\"img/list.png\" width=\"10\" height=\"10\" style=\"opacity: 0.4; margin-left: 7px\"> " + document.forms[i]["listedCount"].value;
+	dica += "<br>Criada em " + document.forms[i]["createdAt"].value;
 	dica += "</span></span>";
 	return dica;
 }
@@ -714,16 +715,19 @@ function atualizarTabela(venue, i) {
 		dojo.byId("icone" + i).innerHTML = "<a id='catLnk" + i + "' href='javascript:editarCategorias(" + i + ")'><img id=catImg" + i + " src='" + categorias[i].icones.split(",", 1)[0] + "' style='height: 22px; width: 22px; margin-left: 0px'></a>";
 		createTooltip("catLnk" + i, "<span style=\"font-size: 12px\">" + categorias[i].nomes.replace(/,/gi, ", ") + "</span>");
 	}
-	if (venue.createdAt != undefined)
-		document.forms[i]["createdAt"].value = formattedTime(venue.createdAt);
+	document.forms[i]["verified"].value = venue.verified;
 	document.forms[i]["checkinsCount"].value = venue.stats.checkinsCount;
 	document.forms[i]["usersCount"].value = venue.stats.usersCount;
 	document.forms[i]["tipCount"].value = venue.stats.tipCount;
+	document.forms[i]["likesCount"].value = venue.likes.count;
+	document.forms[i]["listedCount"].value = venue.listed.count;
 	if (venue.photos != undefined)
 	  document.forms[i]["photosCount"].value = venue.photos.count;
 	(venue.closed == undefined) ? document.forms[i]["isClosed"].value = false : document.forms[i]["isClosed"].value = true;
 	(venue.private == undefined) ? document.forms[i]["isPrivate"].value = false : document.forms[i]["isPrivate"].value = true;
 	(venue.deleted == undefined) ? document.forms[i]["isDeleted"].value = false : document.forms[i]["isDeleted"].value = true;
+	if (venue.createdAt != undefined)
+		document.forms[i]["createdAt"].value = formattedTime(venue.createdAt);
 	var dicaVenue = atualizarDicaVenue(i);
 	createTooltip("venLnk" + i, dicaVenue);
 	(modo == DADOS_COMPLETOS) ? csv[i + 1] = csv[i + 1].concat(document.forms[i]["createdAt"].value + ";" + document.forms[i]["checkinsCount"].value + ";" + document.forms[i]["usersCount"].value + ";" + document.forms[i]["tipCount"].value + ";" + document.forms[i]["photosCount"].value + ";" + document.forms[i]["isClosed"].value + ";" + document.forms[i]["isPrivate"].value + ";" + document.forms[i]["isDeleted"].value) : csv[i + 1] = csv[i + 1].concat(document.forms[i]["checkinsCount"].value + ";" + document.forms[i]["usersCount"].value + ";" + document.forms[i]["tipCount"].value);

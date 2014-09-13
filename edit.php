@@ -212,7 +212,7 @@ foreach ($file as $f) {
 		echo '<input type="text" dojoType="dijit.form.TextBox" name="ll" maxlength="402" value=" " placeHolder="Lat/Long" style="width: ', 7 + $ajusteInput, 'em; margin-left: 5px;" onchange="verificarAlteracao(this, ', $i - 1, ')" data-name-ptbr="Lat/Long">', chr(10);
 	}
 	
-	echo '<input type="hidden" id="cid', $i - 1, '" name="categoryId"><input type="hidden" id="cna', $i - 1, '" name="categoryName"><input type="hidden" id="cic', $i - 1, '" name="categoryIcon"><input type="hidden" id="vdt', $i - 1, '" name="createdAt"><input type="hidden" id="vcc', $i - 1, '" name="checkinsCount"><input type="hidden" id="vuc', $i - 1, '" name="usersCount"><input type="hidden" id="vtc', $i - 1, '" name="tipCount"><input type="hidden" id="vpc', $i - 1, '" name="photosCount"><input type="hidden" id="vic', $i - 1, '" name="isClosed"><input type="hidden" id="vip', $i - 1, '" name="isPrivate"><input type="hidden" id="vid', $i - 1, '" name="isDeleted">', chr(10);
+	echo '<input type="hidden" id="cid', $i - 1, '" name="categoryId"><input type="hidden" id="cna', $i - 1, '" name="categoryName"><input type="hidden" id="cic', $i - 1, '" name="categoryIcon"><input type="hidden" id="vdt', $i - 1, '" name="createdAt"><input type="hidden" id="vcc', $i - 1, '" name="checkinsCount"><input type="hidden" id="vuc', $i - 1, '" name="usersCount"><input type="hidden" id="vtc', $i - 1, '" name="tipCount"><input type="hidden" id="vpc', $i - 1, '" name="photosCount"><input type="hidden" id="vhc', $i - 1, '" name="likesCount"><input type="hidden" id="vlc', $i - 1, '" name="listedCount"><input type="hidden" id="vic', $i - 1, '" name="isClosed"><input type="hidden" id="vip', $i - 1, '" name="isPrivate"><input type="hidden" id="vid', $i - 1, '" name="isDeleted"><input type="hidden" id="vrf', $i - 1, '" name="verified">', chr(10);
 	echo '<span id="result', $i - 1, '"></span>', chr(10), '</form>', chr(10), '</div>', chr(10);
 }
 ?>
@@ -228,7 +228,7 @@ foreach ($file as $f) {
 	<div id="catsContainer"></div>
 	<div id="treeContainer"></div>
 	<span class="checkbox">
-		<div class="editAllCheckbox" style="width: 19.2em;">
+		<div class="editAllCheckbox" style="width: 20em;">
 			<input id="editAllCheckbox" name="editAllCheckbox" dojoType="dijit.form.CheckBox" value="editAllCategories">
 				<label for="editAllCheckbox">
 					Aplicar categoria(s) a todas as venues
