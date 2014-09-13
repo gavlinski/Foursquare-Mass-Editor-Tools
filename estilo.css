@@ -283,44 +283,20 @@ a:hover {
   margin-bottom: 6px;
 	font-size: 12px;
 }
+.editIcon {
+	background-image: url(img/edit.png);
+	width: 10px !important;
+	height: 10px !important;
+	margin-left: 2px;
+}
 .flagIcon {
 	background-image: url(img/flag.png);
 	width: 10px !important;
 	height: 10px !important;
 	margin-left: 2px;
 }
-.doesnt_existIcon {
-	background-image: url(img/doesnt_exist.png);
-	width: 10px !important;
-	height: 10px !important;
-	margin-left: 2px;
-}
-.closedIcon {
-	background-image: url(img/closed.png);
-	width: 10px !important;
-	height: 10px !important;
-	margin-left: 2px;
-}
-.inappropriateIcon {
-	background-image: url(img/inappropriate.png);
-	width: 10px !important;
-	height: 10px !important;
-	margin-left: 2px;
-}
-.event_overIcon {
-	background-image: url(img/event_over.png);
-	width: 10px !important;
-	height: 10px !important;
-	margin-left: 2px;
-}
 .exportIcon {
 	background-image: url(img/export.png);
-	width: 10px !important;
-	height: 10px !important;
-	margin-left: 2px;
-}
-.privateIcon {
-	background-image: url(img/private.png);
 	width: 10px !important;
 	height: 10px !important;
 	margin-left: 2px;

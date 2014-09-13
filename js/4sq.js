@@ -12,6 +12,7 @@ dojo.require("dojo.cookie");
 
 var DATA_VERSIONAMENTO = "20140821";
 var MESES = new Array("01", "02", "03", "04", "05", "06", "07", "08", "09", "10", "11", "12");
+var TOTAL_INPUTS_HIDDEN = 14
 
 var modo;
 var DADOS_COMPLETOS = 0;
@@ -149,6 +150,7 @@ function atualizarFalhas(metodo, i, acao, timeout) {
 			/*** Se nenhuma venue tiver sido carregada ***/
 			if (totalNaoCarregadas == document.forms.length) {
 				dijit.byId("menuSelecionar").setAttribute('disabled', true);
+				dijit.byId("menuEditar").setAttribute('disabled', true);
 				dijit.byId("menuExportar").setAttribute('disabled', true);
 			}
 		}
@@ -524,8 +526,6 @@ function atualizarTabela(venue, i) {
 		//console.log(categorias[i].nomes + " (" + categorias[i].ids + ") [" + categorias[i].icones + "]");
 	}
 	document.forms[i]["name"].value = venue.name;
-	/*** 11 = Quantidade de campos ocultos ***/
-	var colunas = document.forms[i].elements.length - 11;
 	var elementName;
 	for (j = 2; j < colunas; j++) {
 		elementName = document.forms[i].elements[j].name;
@@ -882,7 +882,6 @@ function salvarVenues() {
 	for (l = 0; l < totalParaSalvar; l++) {
 		i = linhasEditadas[l];
 		dados = "oauth_token=" + oauth_token;
-		var colunas = document.forms[i].elements.length - 8;
 		for (j = 2; j < colunas; j++) {
 			venue = document.forms[i]["venue"].value;
 			elementName = document.forms[i].elements[j].name;
@@ -1151,65 +1150,93 @@ dojo.addOnLoad(function inicializar() {
 	menu.addChild(menuItem1);
 	
 	menu.addChild(new dijit.MenuSeparator);
-
+	
 	var subMenu2 = new dijit.Menu({
 		style: "display: none;"
 	});
-	var subMenu2Item1 = new dijit.MenuItem({
+	var nomesCampos = new Array();
+	var itemId = 0;
+	var subMenu2Item;
+	colunas = document.forms[0].elements.length - TOTAL_INPUTS_HIDDEN;
+	for (c = 2; c < colunas; c++) {
+		nomesCampos[itemId] = document.forms[0].elements[c].getAttribute("data-name-ptbr");
+		subMenu2Item = new dijit.MenuItem({
+			label: nomesCampos[itemId],
+			id: "menu2Item" + (itemId + 1).toString(),
+			onClick: function() {
+				console.log(this.id + " clicado.");
+			}
+		});
+		subMenu2.addChild(subMenu2Item);
+		itemId++;
+	}
+	
+	var menuItem2 = new dijit.PopupMenuItem({
+		label: "Editar",
+		id: "menuEditar",
+		iconClass: "editIcon",
+		popup: subMenu2
+	});
+	menu.addChild(menuItem2);
+
+	var subMenu3 = new dijit.Menu({
+		style: "display: none;"
+	});
+	var subMenu3Item1 = new dijit.MenuItem({
 		label: "duplicate", // "Duplicadas",
 		id: "menuItemSinalizarDuplicate",
 		onClick: function() {
 			showDialogComment("duplicate", "duplicada");
 		}
 	});
-	subMenu2.addChild(subMenu2Item1);
+	subMenu3.addChild(subMenu3Item1);
 	
-	subMenu2.addChild(new dijit.MenuSeparator);
+	subMenu3.addChild(new dijit.MenuSeparator);
 	
-	var subMenu2Item2 = new dijit.MenuItem({
+	var subMenu3Item2 = new dijit.MenuItem({
 		label: "doesnt_exist", // "N&atilde;o existe",
 		id: "menuItemSinalizarDoesnt_exist",
-		iconClass: "doesnt_existIcon",
+		//iconClass: "doesnt_existIcon",
 		onClick: function() {
 			//dojo.query("input[name=selecao]:checked").forEach("desabilitarLinha(dijit.byId(item.id).value)");
 			showDialogComment("doesnt_exist", deCode("n&#227;o existe"));
 		}
 	});
-	subMenu2.addChild(subMenu2Item2);
+	subMenu3.addChild(subMenu3Item2);
 	
-	var subMenu2Item3 = new dijit.MenuItem({
+	var subMenu3Item3 = new dijit.MenuItem({
 		label: "event_over", // "J&aacute; terminou",
 		id: "menuItemSinalizarEvent_over",
-		iconClass: "event_overIcon",
+		//iconClass: "event_overIcon",
 		onClick: function() {
 			showDialogComment("event_over", deCode("j&#225; terminou"));
 		}
 	});
-	subMenu2.addChild(subMenu2Item3);
+	subMenu3.addChild(subMenu3Item3);
 	
-	var subMenu2Item4 = new dijit.MenuItem({
+	var subMenu3Item4 = new dijit.MenuItem({
 		label: "inappropriate", // "Inadequada",
 		id: "menuItemSinalizarInappropriate",
-		iconClass: "inappropriateIcon",
+		//iconClass: "inappropriateIcon",
 		onClick: function() {
 			showDialogComment("inappropriate", "inadequada");
 		}
 	});
-	subMenu2.addChild(subMenu2Item4);
+	subMenu3.addChild(subMenu3Item4);
 	
-	var subMenu2Item5 = new dijit.MenuItem({
+	var subMenu3Item5 = new dijit.MenuItem({
 		label: "closed", // "Fechada",
 		id: "menuItemSinalizarClosed",
-		iconClass: "closedIcon",
+		//iconClass: "closedIcon",
 		onClick: function() {
 			showDialogComment("closed", "fechada");
 		}
 	});
-	subMenu2.addChild(subMenu2Item5);
+	subMenu3.addChild(subMenu3Item5);
 	
-	subMenu2.addChild(new dijit.MenuSeparator);
+	subMenu3.addChild(new dijit.MenuSeparator);
 	
-	var subMenu2Item6 = new dijit.MenuItem({
+	var subMenu3Item6 = new dijit.MenuItem({
 		label: "home_remove", // "",
 		id: "menuItemSinalizarHome_remove",
 		//iconClass: "closedIcon",
@@ -1217,9 +1244,9 @@ dojo.addOnLoad(function inicializar() {
 			showDialogComment("home_remove", "");
 		}
 	});
-	subMenu2.addChild(subMenu2Item6);
+	subMenu3.addChild(subMenu3Item6);
 	
-	var subMenu2Item7 = new dijit.MenuItem({
+	var subMenu3Item7 = new dijit.MenuItem({
 		label: "home_recategorize", // "",
 		id: "menuItemSinalizarHome_recategorize",
 		//iconClass: "closedIcon",
@@ -1227,11 +1254,11 @@ dojo.addOnLoad(function inicializar() {
 			showDialogComment("home_recategorize", "");
 		}
 	});
-	subMenu2.addChild(subMenu2Item7);
+	subMenu3.addChild(subMenu3Item7);
 	
-	subMenu2.addChild(new dijit.MenuSeparator);
+	subMenu3.addChild(new dijit.MenuSeparator);
 	
-	var subMenu2Item8 = new dijit.MenuItem({
+	var subMenu3Item8 = new dijit.MenuItem({
 		label: "public", // "P&uacute;blica",
 		id: "menuItemSinalizarPublic",
 		//iconClass: "closedIcon",
@@ -1239,21 +1266,21 @@ dojo.addOnLoad(function inicializar() {
 			showDialogComment("public", deCode("p&#250;blica"));
 		}
 	});
-	subMenu2.addChild(subMenu2Item8);
+	subMenu3.addChild(subMenu3Item8);
 	
-	var subMenu2Item9 = new dijit.MenuItem({
+	var subMenu3Item9 = new dijit.MenuItem({
 		label: "private", // "Particular",
 		id: "menuItemSinalizarPrivate",
-		iconClass: "privateIcon",
+		//iconClass: "privateIcon",
 		onClick: function() {
 			showDialogComment("private", "particular");
 		}
 	});
-	subMenu2.addChild(subMenu2Item9);
+	subMenu3.addChild(subMenu3Item9);
 	
-	subMenu2.addChild(new dijit.MenuSeparator);
+	subMenu3.addChild(new dijit.MenuSeparator);
 	
-	var subMenu2Item10 = new dijit.MenuItem({
+	var subMenu3Item10 = new dijit.MenuItem({
 		label: "not_closed", // "Reaberta",
 		id: "menuItemSinalizarNot_closed",
 		//iconClass: "closedIcon",
@@ -1261,9 +1288,9 @@ dojo.addOnLoad(function inicializar() {
 			showDialogComment("not_closed", "reaberta");
 		}
 	});
-	subMenu2.addChild(subMenu2Item10);
+	subMenu3.addChild(subMenu3Item10);
 	
-	var subMenu2Item11 = new dijit.MenuItem({
+	var subMenu3Item11 = new dijit.MenuItem({
 		label: "un_delete", // "",
 		id: "menuItemSinalizarUn_delete",
 		//iconClass: "closedIcon",
@@ -1271,21 +1298,23 @@ dojo.addOnLoad(function inicializar() {
 			showDialogComment("un_delete", "");
 		}
 	});
-	subMenu2.addChild(subMenu2Item11);
+	subMenu3.addChild(subMenu3Item11);
 	
-	var menuItem2 = new dijit.PopupMenuItem({
+	var menuItem3 = new dijit.PopupMenuItem({
 		label: "Sinalizar",
 		id: "menuSinalizar",
 		iconClass: "flagIcon",
 		disabled: true,
-		popup: subMenu2
+		popup: subMenu3
 	});
-	menu.addChild(menuItem2);
+	menu.addChild(menuItem3);
 	
-	var subMenu3 = new dijit.Menu({
+	menu.addChild(new dijit.MenuSeparator);
+	
+	var subMenu4 = new dijit.Menu({
 		style: "display: none;"
 	});
-	var subMenu3Item1 = new dijit.MenuItem({
+	var subMenu4Item1 = new dijit.MenuItem({
 		label: "Arquivo CSV",
 		id: "menuItemExportarCSV",
 		onClick: function() {
@@ -1310,8 +1339,8 @@ dojo.addOnLoad(function inicializar() {
 			window.location.href = "data:text/csv;charset=iso-8859-1," + escape(arq.join("\r\n"));
 		}
 	});
-	subMenu3.addChild(subMenu3Item1);
-	var subMenu3Item2 = new dijit.MenuItem({
+	subMenu4.addChild(subMenu4Item1);
+	var subMenu4Item2 = new dijit.MenuItem({
 		label: "Arquivo TXT",
 		id: "menuItemExportarTXT",
 		onClick: function() {
@@ -1331,8 +1360,8 @@ dojo.addOnLoad(function inicializar() {
 			window.open("data:text/plain;charset=utf-8," + arq.join("\r\n"));
 		}
 	});
-	subMenu3.addChild(subMenu3Item2);
-	var subMenu3Item3 = new dijit.MenuItem({
+	subMenu4.addChild(subMenu4Item2);
+	var subMenu4Item3 = new dijit.MenuItem({
 		label: "Relat&oacute;rio",
 		id: "menuItemExportarRelatorio",
 		disabled: true,
@@ -1389,14 +1418,14 @@ dojo.addOnLoad(function inicializar() {
 			window.open("data:text/html;charset=iso-8859-1," + rel);
 		}
 	});
-	subMenu3.addChild(subMenu3Item3);
-	var menuItem3 = new dijit.PopupMenuItem({
+	subMenu4.addChild(subMenu4Item3);
+	var menuItem4 = new dijit.PopupMenuItem({
 		label: "Exportar",
 		id: "menuExportar",
 		iconClass: "exportIcon",
-		popup: subMenu3
+		popup: subMenu4
 	});
-	menu.addChild(menuItem3);	 
+	menu.addChild(menuItem4);	 
 	var button = new dijit.form.DropDownButton({
 		label: "Mais",
 		name: "menuButton",

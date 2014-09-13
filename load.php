@@ -102,9 +102,9 @@ if (isset($_FILES['txt']['tmp_name'])) {
 		setLocalCache("txt", implode('%0A,', $_SESSION["file"]), "venues");
 		echo EDIT;
 	}
+} else {
+	echo ERRO99;
 }
-
-echo ERRO99;
 
 function filtrarArray($array) {
 	foreach ($array as $i => &$value) {
