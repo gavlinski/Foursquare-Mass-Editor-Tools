@@ -9,6 +9,7 @@ dojo.require("dojo.data.ItemFileReadStore");
 dojo.require("dijit.Tree");
 dojo.require("dijit.Menu");
 dojo.require("dojo.cookie");
+dojo.require("dijit.form.Select");
 
 var DATA_VERSIONAMENTO = "20140821";
 var MESES = new Array("01", "02", "03", "04", "05", "06", "07", "08", "09", "10", "11", "12");
@@ -219,7 +220,7 @@ function xmlhttpRequest(metodo, endpoint, acao, dados, i) {
 						categorias[i].icones = document.forms[i]["categoryIcon"].value;
 						dica = "<span style=\"font-size: 12px\">Editada com sucesso</span>";
 						atualizarEditadas(i, false);
-						relatorio.push(new Array(document.forms[i]["name"].value, "editada", getDataHora(), document.forms[i]["venue"].value, dojo.byId("cna" + i).value, dijit.byId("textarea").value));
+						relatorio.push(new Array(document.forms[i]["name"].value, "editada", getDataHora(), document.forms[i]["venue"].value, dojo.byId("cna" + i).value, dijit.byId("textareaComment").value));
 						dijit.byId("menuItemExportarRelatorio").setAttribute("disabled", false);
 					} else if (acao == "flag") {
 						dica = "<span style=\"font-size: 12px\">Sinalizada com sucesso</span>";
@@ -227,7 +228,7 @@ function xmlhttpRequest(metodo, endpoint, acao, dados, i) {
 						if ((problema != "public") && (problema != "private") && (problema != "not_closed") && (problema != "un_delete"))
 							desabilitarLinha(i);
 						atualizarSinalizadas(i, false);
-						relatorio.push(new Array(document.forms[i]["name"].value, "sinalizada", getDataHora(), document.forms[i]["venue"].value, categorias[i].nomes, dijit.byId("textarea").value));
+						relatorio.push(new Array(document.forms[i]["name"].value, "sinalizada", getDataHora(), document.forms[i]["venue"].value, categorias[i].nomes, dijit.byId("textareaComment").value));
 						dijit.byId("menuItemExportarRelatorio").setAttribute("disabled", false);
 					}
 					atualizarDicaResultado(item, imagem, dica);
@@ -971,7 +972,7 @@ function sinalizarVenues(problema) {
 	dijit.byId("menuSinalizar").setAttribute("disabled", true);
 	var venue, dados, acao, comentario;
 	console.info("Enviando dados...");
-	comentario = encodeURIComponent(dijit.byId("textarea").value);
+	comentario = encodeURIComponent(dijit.byId("textareaComment").value);
 	for (l = 0; l < totalParaSinalizar; l++) {
 		i = linhasSelecionadas[l].value;
 		venue = document.forms[i]["venue"].value;
@@ -1111,25 +1112,32 @@ function atualizarMarcadoresMapa() {
 
 var dlgGuia;
 dojo.addOnLoad(function inicializar() {
+	/*** Valida OAuth Token ***/
 	if (oauth_token == undefined) {
 		console.warn("Token expirado");
 		if (window.confirm('Token expirado. Por favor, autentique-se novamente no Foursquare.'))
 			window.location.href = 'index.php';
 	}
 	
+	/*** Autoajusta o tamanho do mapa conforme largura da lista ***/
 	dojo.style("mapa", "width", dojo.byId('listContainer').offsetWidth.toString() + "px");
 	
+	/*** Guia de Estilo ***/
 	dlg_guia = new dijit.Dialog({
 		title: "Guia de estilo",
 		style: "width: 435px"
 	});
+	
+	/*** DropDown do menu Mais ***/
 	var menu = new dijit.Menu({
 		style: "display: none;"
 	});
 	
+	/*** Submenu Selecionar ***/
 	var subMenu1 = new dijit.Menu({
 		style: "display: none;"
 	});
+	
 	var subMenu1Item1 = new dijit.MenuItem({
 		label: "Todas",
 		id: "menuItemSelecionarTodas",
@@ -1138,6 +1146,7 @@ dojo.addOnLoad(function inicializar() {
 		}
 	});
 	subMenu1.addChild(subMenu1Item1);
+	
 	var subMenu1Item2 = new dijit.MenuItem({
 		label: "Nenhuma",
 		id: "menuItemSelecionarNenhuma",
@@ -1146,33 +1155,42 @@ dojo.addOnLoad(function inicializar() {
 		}
 	});
 	subMenu1.addChild(subMenu1Item2);
+	
 	var menuItem1 = new dijit.PopupMenuItem({
 		label: "Selecionar",
 		id: "menuSelecionar",
 		popup: subMenu1
 	});
+	
 	menu.addChild(menuItem1);
 	
+	/*** Separador ***/
 	menu.addChild(new dijit.MenuSeparator);
 	
+	/*** Submenu Editar ***/
 	var subMenu2 = new dijit.Menu({
 		style: "display: none;"
 	});
-	var nomesCampos = new Array();
-	var itemId = 0;
+	
+	var elementName;	
+	var nomeCampo;
+	var options = new Array();
+	var select = dijit.byId("selectEditField");
 	var subMenu2Item;
 	colunas = document.forms[0].elements.length - TOTAL_INPUTS_HIDDEN;
 	for (c = 2; c < colunas; c++) {
-		nomesCampos[itemId] = document.forms[0].elements[c].getAttribute("data-name-ptbr");
+		elementName = document.forms[0].elements[c].name;
+		nomeCampo = document.forms[0].elements[c].getAttribute("data-name-ptbr");
 		subMenu2Item = new dijit.MenuItem({
-			label: nomesCampos[itemId],
-			id: "menu2Item" + (itemId + 1).toString(),
+			label: nomeCampo,
+			id: "menu2Item" + elementName,
 			onClick: function() {
-				console.log(this.id + " clicado.");
+				showDialogEditField(this.id.substring(9));
+				//console.log(this.id + " clicado.");
 			}
 		});
 		subMenu2.addChild(subMenu2Item);
-		itemId++;
+		options.push({ value: elementName, label: nomeCampo, selected: false });
 	}
 	
 	var menuItem2 = new dijit.PopupMenuItem({
@@ -1181,11 +1199,14 @@ dojo.addOnLoad(function inicializar() {
 		iconClass: "editIcon",
 		popup: subMenu2
 	});
+	
 	menu.addChild(menuItem2);
 
+	/*** Submenu Sinalizar ***/
 	var subMenu3 = new dijit.Menu({
 		style: "display: none;"
 	});
+	
 	var subMenu3Item1 = new dijit.MenuItem({
 		label: "duplicate", // "Duplicadas",
 		id: "menuItemSinalizarDuplicate",
@@ -1195,6 +1216,7 @@ dojo.addOnLoad(function inicializar() {
 	});
 	subMenu3.addChild(subMenu3Item1);
 	
+	/*** Separador (item) ***/
 	subMenu3.addChild(new dijit.MenuSeparator);
 	
 	var subMenu3Item2 = new dijit.MenuItem({
@@ -1238,6 +1260,7 @@ dojo.addOnLoad(function inicializar() {
 	});
 	subMenu3.addChild(subMenu3Item5);
 	
+	/*** Separador (item) ***/
 	subMenu3.addChild(new dijit.MenuSeparator);
 	
 	var subMenu3Item6 = new dijit.MenuItem({
@@ -1260,6 +1283,7 @@ dojo.addOnLoad(function inicializar() {
 	});
 	subMenu3.addChild(subMenu3Item7);
 	
+	/*** Separador (item) ***/
 	subMenu3.addChild(new dijit.MenuSeparator);
 	
 	var subMenu3Item8 = new dijit.MenuItem({
@@ -1282,6 +1306,7 @@ dojo.addOnLoad(function inicializar() {
 	});
 	subMenu3.addChild(subMenu3Item9);
 	
+	/*** Separador (item) ***/
 	subMenu3.addChild(new dijit.MenuSeparator);
 	
 	var subMenu3Item10 = new dijit.MenuItem({
@@ -1313,11 +1338,14 @@ dojo.addOnLoad(function inicializar() {
 	});
 	menu.addChild(menuItem3);
 	
+	/*** Separador (Submenu) ***/
 	menu.addChild(new dijit.MenuSeparator);
 	
+	/*** Submenu Exportar ***/
 	var subMenu4 = new dijit.Menu({
 		style: "display: none;"
 	});
+	
 	var subMenu4Item1 = new dijit.MenuItem({
 		label: "Arquivo CSV",
 		id: "menuItemExportarCSV",
@@ -1344,6 +1372,7 @@ dojo.addOnLoad(function inicializar() {
 		}
 	});
 	subMenu4.addChild(subMenu4Item1);
+	
 	var subMenu4Item2 = new dijit.MenuItem({
 		label: "Arquivo TXT",
 		id: "menuItemExportarTXT",
@@ -1365,6 +1394,7 @@ dojo.addOnLoad(function inicializar() {
 		}
 	});
 	subMenu4.addChild(subMenu4Item2);
+	
 	var subMenu4Item3 = new dijit.MenuItem({
 		label: "Relat&oacute;rio",
 		id: "menuItemExportarRelatorio",
@@ -1423,13 +1453,16 @@ dojo.addOnLoad(function inicializar() {
 		}
 	});
 	subMenu4.addChild(subMenu4Item3);
+	
 	var menuItem4 = new dijit.PopupMenuItem({
 		label: "Exportar",
 		id: "menuExportar",
 		iconClass: "exportIcon",
 		popup: subMenu4
 	});
-	menu.addChild(menuItem4);	 
+	menu.addChild(menuItem4);
+	
+	/*** Menu Mais ***/
 	var button = new dijit.form.DropDownButton({
 		label: "Mais",
 		name: "menuButton",
@@ -1472,10 +1505,15 @@ function showDialogComment(caller, comment) {
 		dijit.byId('dlg_comment').show();
 		if (typeof(comment) == "undefined")
 			var comment = "";
-		if ((dijit.byId("textarea").value) == "")
-			dijit.byId("textarea").attr("value", comment);
+		if ((dijit.byId("textareaComment").value) == "")
+			dijit.byId("textareaComment").attr("value", comment);
 	}
 	actionButton = caller;
+}
+
+function showDialogEditField(field) {
+	dijit.byId("selectEditField").attr("value", field);
+	dijit.byId('dlg_editField').show();
 }
 //var node = dojo.byId("forms");
 //dojo.connect(node, "onkeypress", function(e) {
@@ -1503,4 +1541,23 @@ function atualizarItensMenuMais(i) {
 	totalSelecionadas = dojo.query("input[name=selecao]:checked").length;
 	(totalSelecionadas > 0) ? dijit.byId("menuSinalizar").setAttribute("disabled", false) : dijit.byId("menuSinalizar").setAttribute("disabled", true);
 	(totalSelecionadas > 1) ? dijit.byId("menuItemSinalizarDuplicate").setAttribute("disabled", false) : dijit.byId("menuItemSinalizarDuplicate").setAttribute("disabled", true);
+}
+
+function editField(campo, valor) {
+	var inputId, index;
+	for (i = 0; i <= document.forms.length - 1; i++) {
+		if (dojo.query("input[name=selecao]")[i].disabled != true) {
+			inputId = dojo.query("input[name=" + campo + "]")[i].id;
+			if ((dijit.byId(inputId).textbox.value != valor) && (dijit.byId(inputId).readOnly == false) && (dijit.byId(inputId).disabled == false)) {
+				dijit.byId(inputId).set("value", valor);
+				//console.log(campo, dijit.byId(inputId).value);
+				index = csv[0].indexOf(campo);
+				csv[parseInt(i) + 1][index] = dijit.byId(inputId).value;
+				dojo.byId("result" + i).innerHTML = "";
+				if (linhasEditadas.indexOf(parseInt(i)) == -1)
+					linhasEditadas.push(parseInt(i));
+				//console.log(csv[parseInt(i) + 1][2], csv[parseInt(i) + 1][index]);
+			}
+		}
+	}
 }

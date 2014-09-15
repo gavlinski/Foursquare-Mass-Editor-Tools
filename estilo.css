@@ -312,3 +312,9 @@ a:hover {
 	-webkit-border-radius: 5px;
 	-moz-border-radius: 5px;
 }
+#editFieldContainer .row span.label {
+	float: left;
+	width: 52px;
+	padding-top: 3px;
+	padding-right: 3px;
+}

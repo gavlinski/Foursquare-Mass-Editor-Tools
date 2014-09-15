@@ -250,11 +250,29 @@ id="saveProgress">
 <!-- Janela de Digitacao de Comentario -->
 <div id="dlg_comment" data-dojo-type="dijit.Dialog" data-dojo-props="title:'Coment&aacute;rios'" style="display:none; width: 356px;">
 	<div class="dijitDialogPaneContentArea">
-		<textarea id="textarea" name="textarea" data-dojo-type="dijit/form/Textarea" maxLength="200" trim="true"></textarea>
+		<textarea id="textareaComment" name="textareaComment" data-dojo-type="dijit/form/Textarea" maxLength="200" trim="true"></textarea>
 	</div>
 	<div class="dijitDialogPaneActionBar">
 		<button data-dojo-type="dijit.form.Button" type="submit" id="saveCommentButton" data-dojo-props="onClick:function(){ (actionButton == 'saveButton') ? salvarVenues() : sinalizarVenues(actionButton); }">OK</button>
 		<button data-dojo-type="dijit.form.Button" type="button" data-dojo-props="onClick:function(){ dijit.byId('dlg_comment').onCancel(); }">Cancelar</button>
+	</div>
+</div>
+<!-- Janela de Edicao Multipla -->
+<div id="dlg_editField" data-dojo-type="dijit.Dialog" data-dojo-props="title:'Edi&ccedil;&atilde;o M&uacute;ltipla'" style="display:none; width: 275px;">
+	<div id="editFieldContainer" class="dijitDialogPaneContentArea">
+		<div class="row">
+			<span class="label"><label for="selectEditField">Campo:</label></span>
+			<select data-dojo-id="selectEditField" name="selectEditField" id="selectEditField" data-dojo-type="dijit/form/Select" style="width: 15.1em; margin-bottom: 9px" data-dojo-props="onChange:function(){ dijit.byId('inputEditField').attr('value', ''); dijit.byId('inputEditField').attr('placeHolder', this.attr('displayedValue')); }"></select>
+		</div>
+		<div class="row">
+			<span class="label"><label for="selectEditField">Valor:</label></span>
+			<input type="text" id="inputEditField" name="inputEditField1" dojoType="dijit.form.TextBox" trim="true" style="width: 15.1em"/>
+		</div>
+	</div>
+	<div class="dijitDialogPaneActionBar">
+		<button data-dojo-type="dijit.form.Button" type="submit" id="editFieldOkButton" data-dojo-props="onClick:function(){ editField(dijit.byId('selectEditField').value, dijit.byId('inputEditField').value); }">OK</button>
+		<button data-dojo-type="dijit.form.Button" type="button" id="editFieldApplyButton" data-dojo-props="onClick:function(){ editField(dijit.byId('selectEditField').value, dijit.byId('inputEditField').value); }">Aplicar</button>
+		<button data-dojo-type="dijit.form.Button" type="button" data-dojo-props="onClick:function(){ dijit.byId('dlg_editField').onCancel(); }">Cancelar</button>
 	</div>
 </div>
 </body>
