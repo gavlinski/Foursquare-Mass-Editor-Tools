@@ -423,7 +423,7 @@ function salvarCategorias() {
 				dojo.byId("cid" + i).value = dojo.byId("catsIds").innerHTML;
 				dojo.byId("cic" + i).value = dojo.byId("catsIcones").innerHTML;
 				dojo.byId("icone" + i).innerHTML = "<a id='catLnk" + i + "' href='javascript:editarCategorias(" + i + ")'><img id=catImg" + i + " src='" + dojo.byId("cic" + i).value.split(",", 1)[0] + "' style='height: 22px; width: 22px; margin-left: 0px'></a>";
-				var index = csv[0].indexOf("categoryId")
+				var index = csv[0].indexOf("categoryId");
 				csv[parseInt(i) + 1][index] = dojo.byId("cid" + i).value;
 				dojo.byId("result" + i).innerHTML = "";
 				if (linhasEditadas.indexOf(parseInt(i)) == -1)
@@ -499,10 +499,17 @@ function atualizarDicaVenue(i) {
 			dica += "<br>" + document.forms[i]["zip"].value;
 		}
 	} catch(err) { }
-	dica += "<br><span style=\"color: #999999;\"><img src=\"img/maps.png\" width=\"8\" height=\"10\" style=\"opacity: 0.4\"> " + document.forms[i]["checkinsCount"].value + "<img src=\"img/person.png\" width=\"10\" height=\"10\" style=\"opacity: 0.4; margin-left: 7px\"> " + document.forms[i]["usersCount"].value + "<img src=\"img/comment.png\" width=\"10\" height=\"10\" style=\"opacity: 0.4; margin-left: 7px; margin-right: 1px\"> " + document.forms[i]["tipCount"].value + "<img src=\"img/photo.png\" width=\"10\" height=\"10\" style=\"opacity: 0.4; margin-left: 7px\"> ";
-	(document.forms[i]["photosCount"].value != "") ? dica += document.forms[i]["photosCount"].value : dica += "0";
-	dica += "<img src=\"img/heart.png\" width=\"10\" height=\"10\" style=\"opacity: 0.4; margin-left: 7px\"> " + document.forms[i]["likesCount"].value + "<img src=\"img/list.png\" width=\"10\" height=\"10\" style=\"opacity: 0.4; margin-left: 7px\"> " + document.forms[i]["listedCount"].value;
-	dica += "<br>Criada em " + document.forms[i]["createdAt"].value;
+	dica += "<br><span style=\"color: #999999;\"><img src=\"img/maps.png\" width=\"8\" height=\"10\" style=\"opacity: 0.4\"> " + document.forms[i]["checkinsCount"].value + "<img src=\"img/person.png\" width=\"10\" height=\"10\" style=\"opacity: 0.4; margin-left: 7px\"> " + document.forms[i]["usersCount"].value + "<img src=\"img/comment.png\" width=\"10\" height=\"10\" style=\"opacity: 0.4; margin-left: 7px; margin-right: 1px\"> " + document.forms[i]["tipCount"].value;
+	if (modo == DADOS_COMPLETOS) {
+		dica += "<img src=\"img/photo.png\" width=\"10\" height=\"10\" style=\"opacity: 0.4; margin-left: 7px\"> ";
+		(document.forms[i]["photosCount"].value != "") ? dica += document.forms[i]["photosCount"].value : dica += "0";
+		dica += "<img src=\"img/heart.png\" width=\"10\" height=\"10\" style=\"opacity: 0.4; margin-left: 7px\"> ";
+		(document.forms[i]["likesCount"].value != "") ? dica += document.forms[i]["likesCount"].value : dica += "0";
+		dica += "<img src=\"img/list.png\" width=\"10\" height=\"10\" style=\"opacity: 0.4; margin-left: 7px\"> ";
+		(document.forms[i]["listedCount"].value != "") ? dica += document.forms[i]["listedCount"].value : dica += "0";
+		if (document.forms[i]["createdAt"].value != "")
+			dica += "<br>Criada em " + document.forms[i]["createdAt"].value;
+	}
 	dica += "</span></span>";
 	return dica;
 }
@@ -720,8 +727,10 @@ function atualizarTabela(venue, i) {
 	document.forms[i]["checkinsCount"].value = venue.stats.checkinsCount;
 	document.forms[i]["usersCount"].value = venue.stats.usersCount;
 	document.forms[i]["tipCount"].value = venue.stats.tipCount;
-	document.forms[i]["likesCount"].value = venue.likes.count;
-	document.forms[i]["listedCount"].value = venue.listed.count;
+	if (venue.likes != undefined)
+		document.forms[i]["likesCount"].value = venue.likes.count;
+	if ((venue.listed != undefined) && (venue.listed.count != undefined))
+		document.forms[i]["listedCount"].value = venue.listed.count;
 	if (venue.photos != undefined)
 	  document.forms[i]["photosCount"].value = venue.photos.count;
 	(venue.closed == undefined) ? document.forms[i]["isClosed"].value = false : document.forms[i]["isClosed"].value = true;
@@ -883,7 +892,7 @@ function salvarVenues() {
 	dijit.byId("saveButton").setAttribute("disabled", true);
 	var i, venue, dados, elementName;
 	console.info("Enviando dados...");
-	var comentario = encodeURIComponent(dijit.byId("textarea").value);
+	var comentario = encodeURIComponent(dijit.byId("textareaComment").value);
 	for (l = 0; l < totalParaSalvar; l++) {
 		i = linhasEditadas[l];
 		dados = "oauth_token=" + oauth_token;
@@ -899,7 +908,7 @@ function salvarVenues() {
 				if ((facebookUsername != "") && (facebookUsername != ""))
 					dados += "&facebookUrl=" + encodeURIComponent("http://facebook.com/" + facebookUsername);
 			} else if ((elementName == "description") && (document.forms[i]["description"].readOnly == false)) {
-				var index = csv[0].indexOf("description")
+				var index = csv[0].indexOf("description");
 				dados += "&description=" + encodeURIComponent(csv[i + 1][index].slice(1, -1));
 			} else if ((elementName == "categoryId") && (modo == DADOS_COMPLETOS)){
 				var categoryIds = document.forms[i]["categoryId"].value;
@@ -1192,6 +1201,7 @@ dojo.addOnLoad(function inicializar() {
 		subMenu2.addChild(subMenu2Item);
 		options.push({ value: elementName, label: nomeCampo, selected: false });
 	}
+	select.addOption(options);
 	
 	var menuItem2 = new dijit.PopupMenuItem({
 		label: "Editar",
@@ -1524,7 +1534,7 @@ function showDialogEditField(field) {
 //});
 
 function verificarAlteracao(textbox, i) {
-	var index = csv[0].indexOf(textbox.name)
+	var index = csv[0].indexOf(textbox.name);
 	if (csv[i + 1][index].slice(1, -1) != textbox.value) {
 		console.info("changed: " + textbox.name + ", old value: " + csv[i + 1][index].slice(1, -1) + ", new value: " + textbox.value);
 		csv[i + 1][index] = '"' + textbox.value + '"';
