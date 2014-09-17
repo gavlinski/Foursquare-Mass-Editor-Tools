@@ -56,6 +56,8 @@ var marcadores = new Array();
 var map, bounds;
 var mapaCarregado = false;
 
+var colunas = 0;
+
 function addZero(i) {
 	if (i < 10)
 		i = "0" + i;
@@ -896,7 +898,7 @@ function salvarVenues() {
 	for (l = 0; l < totalParaSalvar; l++) {
 		i = linhasEditadas[l];
 		dados = "oauth_token=" + oauth_token;
-		for (j = 2; j < colunas; j++) {
+		for (j = 2; j < colunas + 1; j++) {
 			venue = document.forms[i]["venue"].value;
 			elementName = document.forms[i].elements[j].name;
 			//if ((elementName != "ll") && (elementName != "categoryId") &&
@@ -1186,6 +1188,7 @@ dojo.addOnLoad(function inicializar() {
 	var options = new Array();
 	var select = dijit.byId("selectEditField");
 	var subMenu2Item;
+	/*** Total de campos editáveis MENOS categoryId (último campo antes dos ocultos) ***/
 	colunas = document.forms[0].elements.length - TOTAL_INPUTS_HIDDEN;
 	for (c = 2; c < colunas; c++) {
 		elementName = document.forms[0].elements[c].name;
