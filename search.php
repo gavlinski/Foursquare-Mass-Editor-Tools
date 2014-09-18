@@ -31,11 +31,11 @@ if (!isset($_SESSION["oauth_token"])) {
 <?php
 define("VERSION", "Venues Searcher 1.0");
 define("LINKS", '<link rel="shortcut icon" href="favicon.ico" type="image/x-icon"/>
-<link rel="stylesheet" type="text/css" href="js/dijit/themes/claro/claro.css"/>
+<link rel="stylesheet" type="text/css" href="js/dijit/themes/tundra/tundra.css"/>
 <link rel="stylesheet" type="text/css" href="estilo.css"/>
 ');
 define("HBODY", '</head>
-<body class="claro">
+<body class="tundra">
 ');
 define("PESQUISANDO", LINKS . HBODY . '<div id="carregando">Pesquisando venues&hellip;</div>
 ');

@@ -41,10 +41,10 @@
 	<meta http-equiv="Content-type" content="text/html; charset=utf-8"/>
 	<script src="js/dojo/dojo.js" djConfig="parseOnLoad: true"></script>
 	<link rel="shortcut icon" href="favicon.ico" type="image/x-icon" />
-	<link rel="stylesheet" type="text/css" href="js/dijit/themes/claro/claro.css"/>
+	<link rel="stylesheet" type="text/css" href="js/dijit/themes/tundra/tundra.css"/>
 	<link rel="stylesheet" type="text/css" href="estilo.css"/>
 </head>
-<body class="claro">
+<body class="tundra">
 <p>
 	<?php
 

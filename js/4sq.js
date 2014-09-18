@@ -894,7 +894,6 @@ function salvarVenues() {
 	dijit.byId("saveButton").setAttribute("disabled", true);
 	var i, venue, dados, elementName;
 	console.info("Enviando dados...");
-	var comentario = encodeURIComponent(dijit.byId("textareaComment").value);
 	for (l = 0; l < totalParaSalvar; l++) {
 		i = linhasEditadas[l];
 		dados = "oauth_token=" + oauth_token;
@@ -940,6 +939,7 @@ function salvarVenues() {
 					dados += "&ll=" + document.forms[i]["ll"].value;
 			}
 		}
+		var comentario = encodeURIComponent(dijit.byId("textareaComment").value);
 		dados += "&comment=" + comentario + "&v=" + DATA_VERSIONAMENTO;
 		console.group("venue=" + venue + " (" + i + ")");
 		console.log(dados);
@@ -975,36 +975,52 @@ function sinalizarVenues(problema) {
 	} else {
 		totalParaSinalizar = totalSelecionadas;
 	}
+	
 	totalProgresso = 0;
 	totalTimeout = 0;
 	dijit.byId("saveProgress").update({maximum: totalParaSinalizar, progress: totalSinalizadas});
 	(totalParaSinalizar > 1) ? dijit.byId("dlg_save").set("title", "Sinalizando " + totalParaSinalizar + " venues...") : dijit.byId("dlg_save").set("title", "Sinalizando 1 venue...");
 	dijit.byId("dlg_save").show();
 	dijit.byId("menuSinalizar").setAttribute("disabled", true);
-	var venue, dados, acao, comentario;
 	console.info("Enviando dados...");
-	comentario = encodeURIComponent(dijit.byId("textareaComment").value);
-	for (l = 0; l < totalParaSinalizar; l++) {
-		i = linhasSelecionadas[l].value;
-		venue = document.forms[i]["venue"].value;
-		dados = "oauth_token=" + oauth_token;
-		if (problema == "home_remove") {
-			dados += "&removeCategoryIds=" + CATEGORIA_HOME;
-			acao = "proposeedit";
-		} else {
-			dados += "&problem=" + problema;
-			acao = "flag";
-		}
-		dados += "&comment=" + comentario + "&v=" + DATA_VERSIONAMENTO;
-		if (problema == "duplicate")
-			dados += "&venueId=" + venueId;
-		//console.group("venue=" + venue + " (" + i + ")");
-		//console.log(dados);
-		//console.groupEnd();
-		xmlhttpRequest("POST", "https://api.foursquare.com/v2/venues/" + venue + "/" + acao, "flag", dados, i)
-		dojo.byId("result" + i).innerHTML = "<img src='img/loading.gif' alt='Enviando dados...'>";
-		}
-	console.info("Dados enviados!");
+	
+	var l = 0;
+	var linhas = linhasSelecionadas.slice(0);
+	function sinalizar(delayTime) {
+		setTimeout(function () {
+			var venue, dados, acao, comentario;
+			var i = linhas[l].value;
+			venue = document.forms[i]["venue"].value;
+			dados = "oauth_token=" + oauth_token;
+			if (problema == "home_remove") {
+				dados += "&removeCategoryIds=" + CATEGORIA_HOME;
+				acao = "proposeedit";
+			} else {
+				dados += "&problem=" + problema;
+				acao = "flag";
+			}
+			comentario = encodeURIComponent(dijit.byId("textareaComment").value);
+			dados += "&comment=" + comentario + "&v=" + DATA_VERSIONAMENTO;
+			if (problema == "duplicate") {
+				dados += "&venueId=" + venueId;
+				delayTime = 5000;
+			}
+			console.group("venue=" + venue + " (" + i + ")");
+			console.log(dados);
+			console.groupEnd();
+			xmlhttpRequest("POST", "https://api.foursquare.com/v2/venues/" + venue + "/" + acao, "flag", dados, i);
+			dojo.byId("result" + i).innerHTML = "<img src='img/loading.gif' alt='Enviando dados...'>";
+
+			l++;
+			if (l < totalParaSinalizar) {
+				sinalizar(delayTime);
+			} else {
+				console.info("Dados enviados!");
+			}
+		}, delayTime); // wait 0 or 5000 milliseconds (API duplicate bug) to flag
+	}
+	
+	sinalizar(0);
 }
 
 function selecionarTodas(valor) {
