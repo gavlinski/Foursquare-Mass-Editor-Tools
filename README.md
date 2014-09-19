@@ -5,7 +5,7 @@ This is a collection of Superuser Tools for Foursquare venues mass editing and s
 
 It was built using HTML, CSS and JavaScript with Dojo Toolkit on client-side, and also PHP for some legacy features on server-side. Future implementations may be rebuilt from scratch using only JavaScript in a single-page application (SPA).
 
-Key features
+Key Features
 ------------
 
 * Import full data from a CSV file (temporarily disabled)
@@ -25,14 +25,16 @@ Key features
 * Multiple fields editing
 * Google Maps locations pin points
 
-Requirements for (super)use
+Requirements for (Super)Use
 ---------------------------
 
 1. Be a Foursquare Superuser (not tested with normal users)
 2. Go to http://4sq.gcp.net.br or http://4sq.neuralab.cc
 3. Allow application access to your account
 
-If you are not familiar with brazilian portuguese language, please translate it using you favorite tool.
+If you are not familiar with Brazilian Portuguese language, please translate it using you favorite browser tool. English users report that it works well and is easily understood.
+
+Internet Explorer obviously not supported. Please use Mozilla Firefox, Google Chrome or Apple Safari.
 
 User abuses will not be tolerated, so please be warned.
 
