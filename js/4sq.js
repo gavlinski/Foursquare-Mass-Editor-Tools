@@ -338,6 +338,7 @@ function editarCategorias(i) {
 	dojo.byId("venueIndex").innerHTML = i;
 	dijit.byId("dlg_cats").show();
 	dijit.byId("editAllCheckbox").attr("checked", false);
+	dijit.byId("editAllCheckbox").attr("disabled", false);
 }
 
 function removerCategoria(i) {
@@ -853,8 +854,8 @@ function treeOnClick(item) {
 function carregarDadosVenues() {
 	var venue;
 	var linhas = document.forms.length;
-	if (localStorage && localStorage.getItem('venues'))
-		json = JSON.parse(localStorage.getItem('venues'));
+	//if (localStorage && localStorage.getItem('venues'))
+		//json = JSON.parse(localStorage.getItem('venues'));
 	if (json == "") {
 		console.info("Recuperando dados completos das venues...");
 		modo = DADOS_COMPLETOS;
@@ -1139,6 +1140,9 @@ function atualizarMarcadoresMapa() {
 
 var dlgGuia;
 dojo.addOnLoad(function inicializar() {
+	if (localStorage && localStorage.getItem('venues'))
+		json = JSON.parse(localStorage.getItem('venues'));
+
 	/*** Valida OAuth Token ***/
 	if (oauth_token == undefined) {
 		console.warn("Token expirado");
@@ -1204,6 +1208,21 @@ dojo.addOnLoad(function inicializar() {
 	var options = new Array();
 	var select = dijit.byId("selectEditField");
 	var subMenu2Item;
+	if (json == "") { // modo == DADOS_COMPLETOS
+		subMenu2Item = new dijit.MenuItem({
+			label: "Categorias",
+			id: "menu2ItemCategories",
+			onClick: function() {
+				atualizarCategorias(new Array(), "", "");
+				dijit.byId("dlg_cats").show();
+				dijit.byId("editAllCheckbox").attr("checked", true);
+				dijit.byId("editAllCheckbox").attr("disabled", true);
+				console.log(this.id + " clicado.");
+			}
+		});
+		subMenu2.addChild(subMenu2Item);
+		subMenu2.addChild(new dijit.MenuSeparator);
+	}
 	/*** Total de campos editáveis MENOS categoryId (último campo antes dos ocultos) ***/
 	colunas = document.forms[0].elements.length - TOTAL_INPUTS_HIDDEN;
 	for (c = 2; c < colunas; c++) {
