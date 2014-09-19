@@ -1,9 +1,9 @@
-Foursquare-Mass-Editor-Tools
-============================
+Foursquare Mass Editor Tools (Elio Tools)
+=========================================
 
-A collection of superuser tools for Foursquare venues mass editing and searching, also known as Elio Tools.
+This is a collection of Superuser Tools for Foursquare venues mass editing and searching.
 
-It's mainly built in client-side JavaScript with Dojo Toolkit, but also uses server-side PHP for some legacy funcionalities. Future implementations may be rebuilt from scratch using only JavaScript in a single-page application (SPA).
+It was built using HTML, CSS and JavaScript with Dojo Toolkit on client-side, and also PHP for some legacy features on server-side. Future implementations may be rebuilt from scratch using only JavaScript in a single-page application (SPA).
 
 Key features
 ------------
@@ -17,7 +17,7 @@ Key features
 * Almost all fields editing
 * All types of flagging
 * Export options:
-  * Full CSV file
+  * Full CSV file (Western Europe ISO-8859-1)
   * Venues URLs only
   * Editing and flagging Report
 * Hierarchical tree viewing of categories
@@ -25,12 +25,16 @@ Key features
 * Multiple fields editing
 * Google Maps locations pin points
 
-Requirements for using
-----------------------
+Requirements for (super)use
+---------------------------
 
 1. Be a Foursquare Superuser (not tested with normal users)
 2. Go to http://4sq.gcp.net.br or http://4sq.neuralab.cc
 3. Allow application access to your account
+
+If you are not familiar with brazilian portuguese language, please translate it using you favorite tool.
+
+User abuses will not be tolerated, so please be warned.
 
 Requirements for development
 ----------------------------
@@ -38,8 +42,6 @@ Requirements for development
 * Dojo Toolkit v1.8.0
 * PHP v5.4.24
 
-User abuses will not be tolerated, so please be warned.
-
-Contributions are always welcome.
+Contributions are always welcome. :)
 
 Thanks for reading!
