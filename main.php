@@ -9,7 +9,7 @@
  * @package		 Foursquare-Mass-Editor-Tools
  * @author		 Elio Gavlinski <gavlinski@gmail.com>
  * @copyright	 Copyleft (c) 2012-2014
- * @version		 2.0.0
+ * @version		 2.1.1
  * @link			 https://github.com/gavlinski/Foursquare-Mass-Editor-Tools/blob/master/main.php
  * @since			 File available since Release 1.5
  * @license		 GPLv3 <http://www.gnu.org/licenses/gpl.txt>
@@ -96,7 +96,7 @@ function removeLocalCache($key) {
 if ((isset($_COOKIE['name'])) && (strlen($_COOKIE['name']) > 0))
 		echo "<p>Ol&aacute;, <span id=\"name\">" . $_COOKIE['name'] . "</span>!</p>";
 ?>
-	<p>Para ajudar a manter atualizadas as venues do foursquare, disponibilizamos aos superusu&aacute;rios ferramentas que permitem edit&aacute;-las em massa. Obrigado por ajudar a melhorar as listagens de venues do foursquare.<p>
+	<p>Para ajudar a manter atualizadas as venues do Foursquare, disponibilizamos aos superusu&aacute;rios ferramentas que permitem edit&aacute;-las em massa. Obrigado por ajudar a melhorar as listagens de venues do Foursquare.<p>
 	<div id="accordion" dojoType="dijit.layout.AccordionContainer" doLayout="false">
 		<div dojoType="dijit.layout.ContentPane" title="Importar dados de um arquivo CSV">
 			<div dojoType="dijit.form.Form" enctype="multipart/form-data" accept-charset="iso-8859-1" id="f_csv" jsId="f_csv" action="load_csv.php" method="post">

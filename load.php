@@ -9,7 +9,7 @@
  * @package		 Foursquare-Mass-Editor-Tools
  * @author		 Elio Gavlinski <gavlinski@gmail.com>
  * @copyright	 Copyleft (c) 2011-2012
- * @version		 2.0.0
+ * @version		 2.1.1
  * @link			 https://github.com/gavlinski/Foursquare-Mass-Editor-Tools/blob/master/load.php
  * @since			 File available since Release 1.1
  * @license		 GPLv3 <http://www.gnu.org/licenses/gpl.txt>
@@ -98,7 +98,10 @@ if (isset($_FILES['txt']['tmp_name'])) {
 		echo ERRO03;
 		exit;
 	} else {
-		$_SESSION["campos"] = $_POST["campos3"];
+		if (isset($_POST["campos3"]))
+			$_SESSION["campos"] = $_POST["campos3"];
+		else
+			$_SESSION["campos"] = null;
 		setLocalCache("txt", implode('%0A,', $_SESSION["file"]), "venues");
 		echo EDIT;
 	}

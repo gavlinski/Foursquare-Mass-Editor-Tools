@@ -13,7 +13,6 @@ dojo.require("dijit.form.Select");
 
 var DATA_VERSIONAMENTO = "20140821";
 var MESES = new Array("01", "02", "03", "04", "05", "06", "07", "08", "09", "10", "11", "12");
-var TOTAL_INPUTS_HIDDEN = 14
 
 var modo;
 var DADOS_COMPLETOS = 0;
@@ -56,7 +55,10 @@ var marcadores = new Array();
 var map, bounds;
 var mapaCarregado = false;
 
+var totalInputsHidden = 14;
 var colunas = 0;
+
+var venuellOriginais = new Array();
 
 function addZero(i) {
 	if (i < 10)
@@ -220,6 +222,8 @@ function xmlhttpRequest(metodo, endpoint, acao, dados, i) {
 						categorias[i].ids = document.forms[i]["categoryId"].value;
 						categorias[i].nomes = document.forms[i]["categoryName"].value;
 						categorias[i].icones = document.forms[i]["categoryIcon"].value;
+						if (venuellOriginais[i] != document.forms[i]["venuell"].value)
+							venuellOriginais[i] = document.forms[i]["venuell"].value;
 						dica = "<span style=\"font-size: 12px\">Editada com sucesso</span>";
 						atualizarEditadas(i, false);
 						relatorio.push(new Array(document.forms[i]["name"].value, "editada", getDataHora(), document.forms[i]["venue"].value, dojo.byId("cna" + i).value, dijit.byId("textareaComment").value));
@@ -538,6 +542,8 @@ function atualizarTabela(venue, i) {
 		//console.log(categorias[i].nomes + " (" + categorias[i].ids + ") [" + categorias[i].icones + "]");
 	}
 	document.forms[i]["name"].value = venue.name;
+	document.forms[i]["venuell"].value = (venue.location.lat + ', ' + venue.location.lng).replace(/undefined/gi, "0.0");
+	linha = venue.id + '&&' + categorias[i].ids;
 	var elementName;
 	for (j = 2; j < colunas; j++) {
 		elementName = document.forms[i].elements[j].name;
@@ -545,79 +551,30 @@ function atualizarTabela(venue, i) {
 		switch (elementName) {
 		case "name":
 			//document.forms[i]["name"].value = venue.name;
-			if (totalCarregadas == 1) {
-				if (j == 2)
-					csv[0] = ["venue", "categoryId"];
-				csv[0] = csv[0].concat("name");
-			}
-			if (j == 2)
-				linha = venue.id + '&&' + categorias[i].ids;
 			linha += '&&"' + venue.name + '"';
 			break;
 		case "address":
 			document.forms[i]["address"].value = venue.location.address;
-			if (totalCarregadas == 1) {
-				if (j == 2)
-					csv[0] = ["venue", "categoryId"];
-				csv[0] = csv[0].concat("address");
-			}
-			if (j == 2)
-				linha = venue.id + '&&' + categorias[i].ids;
 			linha += '&&"' + venue.location.address + '"';
 			break;
 		case "crossStreet":
 			document.forms[i]["crossStreet"].value = venue.location.crossStreet;
-			if (totalCarregadas == 1) {
-				if (j == 2)
-					csv[0] = ["venue", "categoryId"];
-				csv[0] = csv[0].concat("crossStreet");
-			}
-			if (j == 2)
-				linha = venue.id + '&&' + categorias[i].ids;
 			linha += '&&"' + venue.location.crossStreet + '"';
 			break;
 		case "neighborhood":
 			document.forms[i]["neighborhood"].value = venue.neighborhood;
-			if (totalCarregadas == 1) {
-				if (j == 2)
-					csv[0] = ["venue", "categoryId"];
-				csv[0] = csv[0].concat("neighborhood");
-			}
-			if (j == 2)
-				linha = venue.id + '&&' + categorias[i].ids;
 			linha += '&&"' + venue.neighborhood + '"';
 			break;
 		case "city":
 			document.forms[i]["city"].value = venue.location.city;
-			if (totalCarregadas == 1) {
-				if (j == 2)
-					csv[0] = ["venue", "categoryId"];
-				csv[0] = csv[0].concat("city");
-			}
-			if (j == 2)
-				linha = venue.id + '&&' + categorias[i].ids;
 			linha += '&&"' + venue.location.city + '"';
 			break;
 		case "state":
 			document.forms[i]["state"].value = venue.location.state;
-			if (totalCarregadas == 1) {
-				if (j == 2)
-					csv[0] = ["venue", "categoryId"];
-				csv[0] = csv[0].concat("state");
-			}
-			if (j == 2)
-				linha = venue.id + '&&' + categorias[i].ids;
 			linha += '&&"' + venue.location.state + '"';
 			break;
 		case "zip":
 			document.forms[i]["zip"].value = venue.location.postalCode;
-			if (totalCarregadas == 1) {
-				if (j == 2)
-					csv[0] = ["venue", "categoryId"];
-				csv[0] = csv[0].concat("zip");
-			}
-			if (j == 2)
-				linha = venue.id + '&&' + categorias[i].ids;
 			linha += '&&"' + venue.location.postalCode + '"';
 			break;
 		case "parentId":
@@ -628,81 +585,32 @@ function atualizarTabela(venue, i) {
 				console.log(e);
 			}
 			document.forms[i]["parentId"].value = parentId;
-			if (totalCarregadas == 1) {
-				if (j == 2)
-					csv[0] = ["venue", "categoryId"];
-				csv[0] = csv[0].concat("parentId");
-			}
-			if (j == 2)
-				linha = venue.id + '&&' + categorias[i].ids;
 			linha += '&&"' + parentId + '"';
 			break;
 		case "phone":
 			document.forms[i]["phone"].value = venue.contact.phone;
-			if (totalCarregadas == 1) {
-				if (j == 2)
-					csv[0] = ["venue", "categoryId"];
-				csv[0] = csv[0].concat("phone");
-			}
-			if (j == 2)
-				linha = venue.id + '&&' + categorias[i].ids;
 			linha += '&&"' + venue.contact.phone + '"';
 			break;
 		case "url":
 			document.forms[i]["url"].value = venue.url;
-			if (totalCarregadas == 1) {
-				if (j == 2)
-					csv[0] = ["venue", "categoryId"];
-				csv[0] = csv[0].concat("url");
-			}
-			if (j == 2)
-				linha = venue.id + '&&' + categorias[i].ids;
 			linha += '&&"' + venue.url + '"';
 			break;
 		case "twitter":
 			document.forms[i]["twitter"].value = venue.contact.twitter;
-			if (totalCarregadas == 1) {
-				if (j == 2)
-					csv[0] = ["venue", "categoryId"];
-				csv[0] = csv[0].concat("twitter");
-			}
-			if (j == 2)
-				linha = venue.id + '&&' + categorias[i].ids;
 			linha += '&&"' + venue.contact.twitter + '"';
 			break;
 		case "facebook":
 			document.forms[i]["facebook"].value = venue.contact.facebookUsername;
-			if (totalCarregadas == 1) {
-				if (j == 2)
-					csv[0] = ["venue", "categoryId"];
-				csv[0] = csv[0].concat("facebook");
-			}
-			if (j == 2)
-				linha = venue.id + '&&' + categorias[i].ids;
 			linha += '&&"' + venue.contact.facebookUsername + '"';
 			break;
 		case "description":
 			document.forms[i]["description"].value = venue.description;
-			if (totalCarregadas == 1) {
-				if (j == 2)
-					csv[0] = ["venue", "categoryId"];
-				csv[0] = csv[0].concat("description");
-			}
-			if (j == 2)
-				linha = venue.id + '&&' + categorias[i].ids;
 			linha += '&&"' + venue.description + '"';
 			if (venue.verified == true)
 				dijit.byId(dojo.query("input[name=description]")[i].id).attr("readOnly", true);
 			break;
-		case "ll":
-			document.forms[i]["ll"].value = (venue.location.lat + ', ' + venue.location.lng).replace(/undefined/gi, "0.0");
-			if (totalCarregadas == 1) {
-				if (j == 2)
-					csv[0] = ["venue", "categoryId"];
-				csv[0] = csv[0].concat("ll");
-			}
-			if (j == 2)
-				linha = venue.id + '&&' + categorias[i].ids;
+		case "venuell":
+			//document.forms[i]["venuell"].value = (venue.location.lat + ', ' + venue.location.lng).replace(/undefined/gi, "0.0");
 			linha += '&&"' + venue.location.lat + ', ' + venue.location.lng + '"';
 			break;
 		default:
@@ -715,6 +623,7 @@ function atualizarTabela(venue, i) {
 	if ((venue.categories[0] != undefined) && (venue.categories[0].id == CATEGORIA_HOME))
 		desabilitarLinha(i);
 	csv[i + 1] = linha.replace(/undefined/gi, "").split("&&");
+	venuellOriginais[i] = document.forms[i]["venuell"].value;
 	if (venue.categories[0] == undefined) {
 		(modo == DADOS_COMPLETOS) ? dojo.byId("icone" + i).innerHTML = "<a id='catLnk" + i + "' href='javascript:editarCategorias(" + i + ")'><img id=catImg" + i + " src='https://foursquare.com/img/categories_v2/none_bg_32.png' style='height: 22px; width: 22px; margin-left: 0px'></a>" : dojo.byId("icone" + i).innerHTML = "<img id=catImg" + i + " src='https://foursquare.com/img/categories_v2/none_bg_32.png' style='height: 22px; width: 22px; margin-left: 0px'>";
 	} else if ((venue.categories[0].id == CATEGORIA_HOME) || (modo == DADOS_PARCIAIS)) {
@@ -893,15 +802,14 @@ function salvarVenues() {
 	(totalParaSalvar > 1) ? dijit.byId("dlg_save").set("title", "Salvando " + totalParaSalvar + " venues...") : dijit.byId("dlg_save").set("title", "Salvando 1 venue...");
 	dijit.byId("dlg_save").show();
 	dijit.byId("saveButton").setAttribute("disabled", true);
-	var i, venue, dados, elementName;
+	var i, venueId, dados, elementName;
 	console.info("Enviando dados...");
 	for (l = 0; l < totalParaSalvar; l++) {
 		i = linhasEditadas[l];
 		dados = "oauth_token=" + oauth_token;
 		for (j = 2; j < colunas + 1; j++) {
-			venue = document.forms[i]["venue"].value;
 			elementName = document.forms[i].elements[j].name;
-			//if ((elementName != "ll") && (elementName != "categoryId") &&
+			//if ((elementName != "venuell") && (elementName != "categoryId") &&
 					//((elementName == "name") || (elementName == "address") || (elementName == "crossStreet") || (elementName == "neighborhood") || (elementName == "city") || (elementName == "state") || (elementName == "zip") || (elementName == "parentId") || (elementName == "phone") || (elementName == "url") || (elementName == "twitter")))
 			if ((elementName == "name") || (elementName == "address") || (elementName == "crossStreet") || (elementName == "neighborhood") || (elementName == "city") || (elementName == "state") || (elementName == "zip") || (elementName == "parentId") || (elementName == "phone") || (elementName == "url") || (elementName == "twitter"))
 				dados += "&" + elementName + "=" + encodeURIComponent(document.forms[i].elements[j].value);
@@ -934,19 +842,20 @@ function salvarVenues() {
 					} catch(e) {
 					}
 				}
-			} else if (elementName == "ll") {
-				var ll = document.forms[i]["ll"].value;
-				if ((ll != null) && (ll != ""))
-					dados += "&ll=" + document.forms[i]["ll"].value;
+			} else if (elementName == "venuell") {
+				var ll = document.forms[i]["venuell"].value;
+				if ((ll != null) && (ll != "") && (ll != venuellOriginais[i]))
+					dados += "&venuell=" + encodeURIComponent(ll.replace(/ /g, ""));
 			}
 		}
 		var comentario = encodeURIComponent(dijit.byId("textareaComment").value);
 		dados += "&comment=" + comentario + "&v=" + DATA_VERSIONAMENTO;
-		console.group("venue=" + venue + " (" + i + ")");
+		venueId = document.forms[i]["venue"].value;
+		console.group("venue=" + venueId + " (" + i + ")");
 		console.log(dados);
 		console.groupEnd();
 		var acao = "proposeedit";
-		xmlhttpRequest("POST", "https://api.foursquare.com/v2/venues/" + venue + "/" + acao, "edit", dados, i);
+		xmlhttpRequest("POST", "https://api.foursquare.com/v2/venues/" + venueId + "/" + acao, "edit", dados, i);
 		dojo.byId("result" + i).innerHTML = "<img src='img/loading.gif' alt='Enviando dados...'>";
 	}
 	console.info("Dados enviados!");
@@ -1129,7 +1038,22 @@ function atualizarMarcadoresMapa() {
 			});
 			google.maps.event.addListener(marcadores[i], 'dragend', function(evt) {
 				//console.log(this);
-				console.info('Marcador ' + this.title.charAt(0) + ' movido: ' + evt.latLng.lat() + ', ' + evt.latLng.lng());
+				var j = parseInt(this.title.charAt(0)) - 1;
+				var novaPosicao = evt.latLng.lat() + ', ' + evt.latLng.lng();
+				//console.info('Marcador ' + this.title.charAt(0) + ' movido: ' + novaPosicao);
+				if (dojo.query("input[name=selecao]")[j].disabled != true) {
+					inputId = dojo.query("input[name=venuell]")[j].id;
+					if ((inputId == "") || ((dijit.byId(inputId).textbox.value != novaPosicao) && (dijit.byId(inputId).readOnly == false) && (dijit.byId(inputId).disabled == false))) {
+						(inputId == "") ? dojo.query("input[name=venuell]")[j].value = novaPosicao : dijit.byId(inputId).set("value", novaPosicao);
+						//console.log("venuell", novaPosicao);
+						index = csv[0].indexOf("venuell");
+						csv[parseInt(j) + 1][index] = novaPosicao;
+						dojo.byId("result" + j).innerHTML = "";
+						if (linhasEditadas.indexOf(parseInt(j)) == -1)
+							linhasEditadas.push(parseInt(j));
+						//console.log(csv[parseInt(i) + 1][2], csv[parseInt(i) + 1][index]);
+					}
+				}				
 			});
 			bounds.extend(marcadores[i].position);
 		}
@@ -1224,10 +1148,15 @@ dojo.addOnLoad(function inicializar() {
 		subMenu2.addChild(new dijit.MenuSeparator);
 	}
 	/*** Total de campos editáveis MENOS categoryId (último campo antes dos ocultos) ***/
-	colunas = document.forms[0].elements.length - TOTAL_INPUTS_HIDDEN;
+	if (document.form1.name.type == "hidden")
+		totalInputsHidden++;
+	if (document.form1.venuell.type == "hidden")
+		totalInputsHidden++;
+	csv[0] = ["venue", "categoryId"];
+	colunas = document.form1.elements.length - totalInputsHidden;
 	for (c = 2; c < colunas; c++) {
-		elementName = document.forms[0].elements[c].name;
-		nomeCampo = document.forms[0].elements[c].getAttribute("data-name-ptbr");
+		elementName = document.form1.elements[c].name;
+		nomeCampo = document.form1.elements[c].getAttribute("data-name-ptbr");
 		subMenu2Item = new dijit.MenuItem({
 			label: nomeCampo,
 			id: "menu2Item" + elementName,
@@ -1238,6 +1167,7 @@ dojo.addOnLoad(function inicializar() {
 		});
 		subMenu2.addChild(subMenu2Item);
 		options.push({ value: elementName, label: nomeCampo, selected: false });
+		csv[0] = csv[0].concat(elementName);
 	}
 	select.addOption(options);
 	
@@ -1259,7 +1189,7 @@ dojo.addOnLoad(function inicializar() {
 		label: "duplicate", // "Duplicadas",
 		id: "menuItemSinalizarDuplicate",
 		onClick: function() {
-			showDialogComment("duplicate", "duplicada");
+			showDialogComment("duplicate", "Duplicada");
 		}
 	});
 	subMenu3.addChild(subMenu3Item1);
@@ -1273,7 +1203,7 @@ dojo.addOnLoad(function inicializar() {
 		//iconClass: "doesnt_existIcon",
 		onClick: function() {
 			//dojo.query("input[name=selecao]:checked").forEach("desabilitarLinha(dijit.byId(item.id).value)");
-			showDialogComment("doesnt_exist", deCode("n&#227;o existe"));
+			showDialogComment("doesnt_exist", deCode("N&#227;o existe"));
 		}
 	});
 	subMenu3.addChild(subMenu3Item2);
@@ -1283,7 +1213,7 @@ dojo.addOnLoad(function inicializar() {
 		id: "menuItemSinalizarEvent_over",
 		//iconClass: "event_overIcon",
 		onClick: function() {
-			showDialogComment("event_over", deCode("j&#225; terminou"));
+			showDialogComment("event_over", deCode("J&#225; terminou"));
 		}
 	});
 	subMenu3.addChild(subMenu3Item3);
@@ -1293,7 +1223,7 @@ dojo.addOnLoad(function inicializar() {
 		id: "menuItemSinalizarInappropriate",
 		//iconClass: "inappropriateIcon",
 		onClick: function() {
-			showDialogComment("inappropriate", "inadequada");
+			showDialogComment("inappropriate", "Inadequada");
 		}
 	});
 	subMenu3.addChild(subMenu3Item4);
@@ -1303,7 +1233,7 @@ dojo.addOnLoad(function inicializar() {
 		id: "menuItemSinalizarClosed",
 		//iconClass: "closedIcon",
 		onClick: function() {
-			showDialogComment("closed", "fechada");
+			showDialogComment("closed", "Fechada");
 		}
 	});
 	subMenu3.addChild(subMenu3Item5);
@@ -1339,7 +1269,7 @@ dojo.addOnLoad(function inicializar() {
 		id: "menuItemSinalizarPublic",
 		//iconClass: "closedIcon",
 		onClick: function() {
-			showDialogComment("public", deCode("p&#250;blica"));
+			showDialogComment("public", deCode("P&#250;blica"));
 		}
 	});
 	subMenu3.addChild(subMenu3Item8);
@@ -1349,7 +1279,7 @@ dojo.addOnLoad(function inicializar() {
 		id: "menuItemSinalizarPrivate",
 		//iconClass: "privateIcon",
 		onClick: function() {
-			showDialogComment("private", "particular");
+			showDialogComment("private", "Particular");
 		}
 	});
 	subMenu3.addChild(subMenu3Item9);
@@ -1362,7 +1292,7 @@ dojo.addOnLoad(function inicializar() {
 		id: "menuItemSinalizarNot_closed",
 		//iconClass: "closedIcon",
 		onClick: function() {
-			showDialogComment("not_closed", "reaberta");
+			showDialogComment("not_closed", "Reaberta");
 		}
 	});
 	subMenu3.addChild(subMenu3Item10);
@@ -1574,7 +1504,7 @@ function showDialogEditField(field) {
 function verificarAlteracao(textbox, i) {
 	var index = csv[0].indexOf(textbox.name);
 	if (csv[i + 1][index].slice(1, -1) != textbox.value) {
-		console.info("changed: " + textbox.name + ", old value: " + csv[i + 1][index].slice(1, -1) + ", new value: " + textbox.value);
+		//console.info("changed: " + textbox.name + ", old value: " + csv[i + 1][index].slice(1, -1) + ", new value: " + textbox.value);
 		csv[i + 1][index] = '"' + textbox.value + '"';
 		dojo.byId("result" + i).innerHTML = "";
 		if (linhasEditadas.indexOf(i) == -1)
