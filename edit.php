@@ -3,7 +3,7 @@
 /**
  * List Venues Editor
  *
- * Edição de venues a partir dos campos e dados recebidos do load.php
+ * EdiÃ§Ã£o de venues a partir dos campos e dados recebidos do load.php
  *
  * @category	 Foursquare
  * @package		 Foursquare-Mass-Editor-Tools
@@ -29,7 +29,7 @@ if (isset($_SESSION["oauth_token"])) {
 <html>
 <head>
 <title>Elio Tools</title>
-<meta http-equiv="Content-type" content="text/html; charset=ISO-8859-1"/>
+<meta http-equiv="Content-type" content="text/html; charset=utf-8"/>
 <link rel="shortcut icon" href="favicon.ico" type="image/x-icon"/>
 <link rel="stylesheet" type="text/css" href="js/dijit/themes/tundra/tundra.css"/>
 <link rel="stylesheet" type="text/css" href="estilo.css"/>

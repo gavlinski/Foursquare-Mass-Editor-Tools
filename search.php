@@ -9,7 +9,7 @@
  * @package		 Foursquare-Mass-Editor-Tools
  * @author		 Elio Gavlinski <gavlinski@gmail.com>
  * @copyright	 Copyleft (c) 2012
- * @version		 2.0.0
+ * @version		 2.1.1
  * @link			 https://github.com/gavlinski/Foursquare-Mass-Editor-Tools/blob/master/search.php
  * @since			 File available since Release 1.5
  * @license		 GPLv3 <http://www.gnu.org/licenses/gpl.txt
@@ -25,7 +25,7 @@ if (!isset($_SESSION["oauth_token"])) {
 <html>
 <head>
 <title>Pesquisando...</title>
-<meta http-equiv="content-type" content="text/html; charset=UTF-8"/>
+<meta http-equiv="content-type" content="text/html; charset=utf-8"/>
 <meta http-equiv="cache-control" content="no-cache"/>
 <meta http-equiv="pragma" content="no-cache">
 <?php

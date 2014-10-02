@@ -3,7 +3,7 @@
 /**
  * CSV Venues Flag
  *
- * Flag de venues inválidas a partir com os dados recebidos do load_csv.php
+ * Flag de venues invÃ¡lidas a partir com os dados recebidos do load_csv.php
  *
  * @category	 Foursquare
  * @package		 Foursquare-Mass-Editor-Tools
@@ -28,7 +28,7 @@ if (isset($_SESSION["oauth_token"])) {
 <html>
 <head>
 <title>Elio Tools</title>
-<meta http-equiv="Content-type" content="text/html; charset=ISO-8859-1"/>
+<meta http-equiv="Content-type" content="text/html; charset=utf-8"/>
 <link rel="shortcut icon" href="favicon.ico" type="image/x-icon"/>
 <link rel="stylesheet" type="text/css" href="js/dijit/themes/claro/claro.css"/>
 <link rel="stylesheet" type="text/css" href="estilo.css"/>

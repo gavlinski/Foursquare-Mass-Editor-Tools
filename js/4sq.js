@@ -1346,7 +1346,7 @@ dojo.addOnLoad(function inicializar() {
 						j++;
 				}
 			}
-			window.location.href = "data:text/csv;charset=iso-8859-1," + escape(arq.join("\r\n"));
+			window.location.href = "data:text/csv;charset=utf-8," + encodeURIComponent(arq.join("\r\n"));
 		}
 	});
 	subMenu4.addChild(subMenu4Item1);
@@ -1404,7 +1404,7 @@ dojo.addOnLoad(function inicializar() {
 					comments = true;
 			}
 			var html = new Array();
-			html[0] = "<!DOCTYPE html><html><head><meta http-equiv=\"text/html; charset=iso-8859-1\"></head><body><pre>";
+			html[0] = "<!DOCTYPE html><html><head><meta http-equiv=\"text/html; charset=utf-8\"></head><body><pre>";
 			html[1] = pad("name", NAME_MAX_SIZE + 1) + pad("action", ACTION_MAX_SIZE + 1) + pad("date", 11) + pad("time", 9) + pad("id", 24);
 			if ((json == "") && (comments))
 				html[1] += pad(" categories", CATEGORIES_MAX_SIZE + 2) + "comments";
@@ -1427,7 +1427,7 @@ dojo.addOnLoad(function inicializar() {
 			var rel = escape(html.join("\r\n"));
 			while (rel.indexOf("%u") !== -1)
 				rel = rel.substring(0, rel.indexOf("%u")) + " " + rel.substring(rel.indexOf("%u") + 6);
-			window.open("data:text/html;charset=iso-8859-1," + rel);
+			window.open("data:text/html;charset=utf-8," + rel);
 		}
 	});
 	subMenu4.addChild(subMenu4Item3);

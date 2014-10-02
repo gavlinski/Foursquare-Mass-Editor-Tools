@@ -332,7 +332,7 @@ dojo.addOnLoad(function() {
 				(relatorio[i][COL_CATEGORIES].length > 0) ? hasCategory = true : hasCategory = false;
 			}
 			var html = new Array();
-			html[0] = "<!DOCTYPE html><html><head><meta http-equiv=\"text/html; charset=iso-8859-1\"></head><body><pre>";
+			html[0] = "<!DOCTYPE html><html><head><meta http-equiv=\"text/html; charset=utf-8\"></head><body><pre>";
 			if (hasName)
 				html[1] = pad("name", NAME_MAX_SIZE + 1) + pad("action", ACTION_MAX_SIZE + 1) + pad("date", 11) + pad("time", 9) + pad("id", 25);
 			else
@@ -350,7 +350,7 @@ dojo.addOnLoad(function() {
 				j++;
 			}
 			html.push("</pre></body></html>");
-			window.open("data:text/html;charset=iso-8859-1," + escape(html.join("\r\n")));
+			window.location.href = "data:text/csv;charset=utf-8," + encodeURIComponent(arq.join("\r\n"));
 		}
 	});
 	menu2.addChild(menu2Item1);	 

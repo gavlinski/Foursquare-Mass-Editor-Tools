@@ -99,7 +99,7 @@ if ((isset($_COOKIE['name'])) && (strlen($_COOKIE['name']) > 0))
 	<p>Para ajudar a manter atualizadas as venues do Foursquare, disponibilizamos aos superusu&aacute;rios ferramentas que permitem edit&aacute;-las em massa. Obrigado por ajudar a melhorar as listagens de venues do Foursquare.<p>
 	<div id="accordion" dojoType="dijit.layout.AccordionContainer" doLayout="false">
 		<div dojoType="dijit.layout.ContentPane" title="Importar dados de um arquivo CSV">
-			<div dojoType="dijit.form.Form" enctype="multipart/form-data" accept-charset="iso-8859-1" id="f_csv" jsId="f_csv" action="load_csv.php" method="post">
+			<div dojoType="dijit.form.Form" enctype="multipart/form-data" accept-charset="utf-8" id="f_csv" jsId="f_csv" action="load_csv.php" method="post">
 				<div id="toolContainer">
 					<div class="row"><span class="labelBlanck"></span></div>
 					<div class="row">
@@ -114,14 +114,14 @@ if ((isset($_COOKIE['name'])) && (strlen($_COOKIE['name']) > 0))
 				</button>
 				-->
 				<div>
-					<button dojoType="dijit.form.Button" type="submit" class="continue" disabled=disabled>
+					<button dojoType="dijit.form.Button" type="submit" class="continue">
 						Continuar
 					</button>
 				</div>
 			</div>
 		</div>
 		<div dojoType="dijit.layout.ContentPane" title="Importar lista de um arquivo de texto">
-			<div dojoType="dijit.form.Form" enctype="multipart/form-data" accept-charset="iso-8859-1" id="f_txt" jsId="f_txt" action="load.php" method="post">
+			<div dojoType="dijit.form.Form" enctype="multipart/form-data" accept-charset="utf-8" id="f_txt" jsId="f_txt" action="load.php" method="post">
 				<div id="toolcontainer">
 					<div class="row">
 						<span class="label"><label for="txt"><a id="dlg_txt" href="javascript:showDialogTxt();">Arquivo</a>:</label></span>
@@ -232,7 +232,7 @@ if ((isset($_COOKIE['name'])) && (strlen($_COOKIE['name']) > 0))
 			</div>
 		</div>
 		<div dojoType="dijit.layout.ContentPane" title="Importar lista de uma p&aacute;gina web">
-			<div dojoType="dijit.form.Form" enctype="multipart/form-data" accodigopostalt-charset="iso-8859-1" id="f_lks" jsId="f_lks" action="load.php" method="post">
+			<div dojoType="dijit.form.Form" enctype="multipart/form-data" accodigopostalt-charset="utf-8" id="f_lks" jsId="f_lks" action="load.php" method="post">
 				<div id="toolContainer">
 					<div class="row">
 						<span class="label"><label for="pagina"><a id="dlg_lks" href="javascript:showDialogLks();">Endere&ccedil;o</a>:</label></span>
@@ -342,7 +342,7 @@ if ((isset($_COOKIE['name'])) && (strlen($_COOKIE['name']) > 0))
 			</div>
 		</div>
 		<div dojoType="dijit.layout.ContentPane" title="Informar IDs ou URLs das venues">
-			<div dojoType="dijit.form.Form" enctype="multipart/form-data" accodigopostalt-charset="iso-8859-1" id="f_ids" jsId="f_ids" action="load.php" method="post">
+			<div dojoType="dijit.form.Form" enctype="multipart/form-data" accodigopostalt-charset="utf-8" id="f_ids" jsId="f_ids" action="load.php" method="post">
 				<div id="toolContainer">
 					<div class="row">
 						<span class="label"><label for="textarea_ids"><a id="dlg_ids" href="javascript:showDialogIds();">IDs ou URLs</a>:</label></span>
@@ -452,7 +452,7 @@ if ((isset($_COOKIE['name'])) && (strlen($_COOKIE['name']) > 0))
 			</div>
 		</div>
 		<div dojoType="dijit.layout.ContentPane" title="Pesquisar venues" selected="true">
-			<div dojoType="dijit.form.Form" enctype="multipart/form-data" accodigopostalt-charset="iso-8859-1" id="f_src" jsId="f_src" action="search.php" method="post">
+			<div dojoType="dijit.form.Form" enctype="multipart/form-data" accodigopostalt-charset="utf-8" id="f_src" jsId="f_src" action="search.php" method="post">
 				<input type="hidden" id="oauth_token_scr" name="oauth_token" value="<?= $oauth_token ?>"/>
 				<div id="toolContainer">
 					<div class="row">

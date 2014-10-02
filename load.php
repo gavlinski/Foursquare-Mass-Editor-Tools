@@ -3,7 +3,7 @@
 /**
  * List Venues Loader
  *
- * Carrega venues a partir de um endereço web, arquivo de texto ou IDs
+ * Carrega venues a partir de um endereÃ§o web, arquivo de texto ou IDs
  *
  * @category	 Foursquare
  * @package		 Foursquare-Mass-Editor-Tools
@@ -25,7 +25,7 @@ if (!isset($_SESSION["oauth_token"])) {
 <html>
 <head>
 <title>Carregando...</title>
-<meta http-equiv="content-type" content="text/html; charset=ISO-8859-1"/>
+<meta http-equiv="content-type" content="text/html; charset=utf-8"/>
 <meta http-equiv="cache-control" content="no-cache"/>
 <meta http-equiv="pragma" content="no-cache">
 <?php
@@ -64,7 +64,7 @@ define("EDIT", '<script type="text/javascript">
 	window.location = "edit.php"
 </script>;');
 
-// Importação de dados de um arquivo texto
+// ImportaÃ§Ã£o de dados de um arquivo texto
 if (isset($_FILES['txt']['tmp_name'])) {
 	$arquivo = $_FILES['txt']['tmp_name'];
 	if (is_uploaded_file($arquivo)) {
@@ -74,7 +74,7 @@ if (isset($_FILES['txt']['tmp_name'])) {
 		echo EDIT;
 	}
 
-// Importação de lista de uma página web
+// ImportaÃ§Ã£o de lista de uma pÃ¡gina web
 } else if (isset($_POST["pagina"])) {
 	$pagina = $_POST["pagina"];
 	if ($pagina != "") {

@@ -25,7 +25,7 @@ if (!isset($_SESSION["oauth_token"])) {
 <html>
 <head>
 <title>Carregando...</title>
-<meta http-equiv="content-type" content="text/html; charset=ISO-8859-1"/>
+<meta http-equiv="content-type" content="text/html; charset=utf-8"/>
 <meta http-equiv="cache-control" content="no-cache"/>
 <meta http-equiv="pragma" content="no-cache">
 <?php
