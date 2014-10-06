@@ -9,7 +9,7 @@
  * @package		 Foursquare-Mass-Editor-Tools
  * @author		 Elio Gavlinski <gavlinski@gmail.com>
  * @copyright	 Copyleft (c) 2011-2012
- * @version		 1.3
+ * @version		 2.1.1
  * @link			 https://github.com/gavlinski/Foursquare-Mass-Editor-Tools/blob/master/load_csv.php
  * @since			 File available since Release 1.1
  * @license		 GPLv3 <http://www.gnu.org/licenses/gpl.txt>
@@ -21,26 +21,26 @@ if (!isset($_SESSION["oauth_token"])) {
 	header('Location: index.php');
 }
 ?>
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
-<html>
+<!doctype html>
+<html lang="pt-BR">
 <head>
-<title>Carregando...</title>
-<meta http-equiv="content-type" content="text/html; charset=utf-8"/>
-<meta http-equiv="cache-control" content="no-cache"/>
+<meta charset="utf-8">
+<meta http-equiv="cache-control" content="no-cache">
 <meta http-equiv="pragma" content="no-cache">
+<title>Carregando...</title>
 <?php
-define("VERSION", "CSV Venues Editor 1.3");
-define("LINKS", '<link rel="shortcut icon" href="favicon.ico" type="image/x-icon"/>
-<link rel="stylesheet" type="text/css" href="js/dijit/themes/claro/claro.css"/>
-<link rel="stylesheet" type="text/css" href="estilo.css"/>
+define("VERSION", "CSV Venues Editor 2.1.1");
+define("LINKS", '<link rel="shortcut icon" href="favicon.ico" type="image/x-icon">
+<link rel="stylesheet" type="text/css" href="js/dijit/themes/tundra/tundra.css">
+<link rel="stylesheet" type="text/css" href="estilo.css">
 ');
 define("HBODY", '</head>
-<body class="claro">
+<body class="tundra">
 ');
 define("CARREGANDO", LINKS . HBODY . '<div id="carregando">Carregando venues&hellip;</div>
 ');
 define("TEMPLATE1", '<script src="js/dojo/dojo.js" djConfig="parseOnLoad: true"></script>
-<script type="text/javascript">
+<script>
 dojo.require("dijit.form.Button");
 document.getElementById("pb").style.display = "none";
 document.getElementById("carregando").style.display = "none";
@@ -61,10 +61,10 @@ define("ERRO99", '<meta http-equiv="refresh" content="5; url=index.php">
 <p>Erro na leitura dos dados.</p>
 </body>
 </html>');
-define("EDIT", '<script type="text/javascript">
+define("EDIT", '<script>
 	window.location = "edit_csv.php"
 </script>;');
-define("FLAG", '<script type="text/javascript">
+define("FLAG", '<script>
 	window.location = "flag_csv.php"
 </script>;');
 
@@ -83,7 +83,7 @@ if (is_uploaded_file($csv)) {
 		exit;
 	}
 	$_SESSION["file"] = $file;
-	if (stripos($filename, "delete") !== false)
+	if (stripos($filename, "flag") !== false)
 		echo FLAG;
 	else
 		echo EDIT;

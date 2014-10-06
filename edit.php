@@ -25,21 +25,28 @@ if (isset($_SESSION["oauth_token"])) {
 	header('Location: index.php'); /* Redirect browser */
 }
 ?>
-<!DOCTYPE html>
-<html>
+<!doctype html>
+<html lang="pt-BR">
 <head>
 <title>Elio Tools</title>
-<meta http-equiv="Content-type" content="text/html; charset=utf-8"/>
-<link rel="shortcut icon" href="favicon.ico" type="image/x-icon"/>
-<link rel="stylesheet" type="text/css" href="js/dijit/themes/tundra/tundra.css"/>
-<link rel="stylesheet" type="text/css" href="estilo.css"/>
+<meta charset="utf-8">
+<link rel="shortcut icon" href="favicon.ico" type="image/x-icon">
+<link rel="stylesheet" type="text/css" href="js/dijit/themes/tundra/tundra.css">
+<link rel="stylesheet" type="text/css" href="estilo.css">
 <script src="js/dojo/dojo.js" djConfig="parseOnLoad: true"></script>
-<script type="text/javascript" src="js/4sq.js"></script>
+<script src="js/4sq.js"></script>
 </head>
 <body class="tundra">
-<h2>Editar venues</h2>
-<p>Antes de salvar suas altera&ccedil;&otilde;es, n&atilde;o deixe de ler nosso <a id="guia" href="javascript:showDialogGuia()">guia de estilo</a> e as <a id="regras" href="https://pt.foursquare.com/info/houserules" target="_blank">regras da casa</a>.</p>
+<header>
+	<h2>Editar venues</h2>
+</header>
+<article>
+	<p>Antes de salvar suas altera&ccedil;&otilde;es, n&atilde;o deixe de ler nosso <a id="guia" href="javascript:showDialogGuia()">guia de estilo</a> e as <a id="regras" href="https://pt.foursquare.com/info/houserules" target="_blank">regras da casa</a>.</p>
+</article>
+<article>
 <div id="mapa"></div>
+</article>
+<article>
 <div id="listContainer">
 <?php
 $totalCampos = 0;
@@ -153,7 +160,7 @@ $i = 0;
 foreach ($file as $f) {
 	$i++;
 
-	echo '<div id="linha', $i - 1, '" class="row">', chr(10), '<form name="form', $i, '" accept-charset="utf-8" encType="multipart/form-data" method="post">', chr(10);
+	echo '<section id="linha', $i - 1, '" class="row">', chr(10), '<form name="form', $i, '" accept-charset="utf-8" encType="multipart/form-data" method="post">', chr(10);
 
 	$venue = $venues[$i - 1];	 
 	echo '<div class="selectbox"><input name="selecao" data-dojo-type="dijit/form/CheckBox" value="', $i - 1, '" onChange="atualizarItensMenuMais(this.value)"></div>', chr(10);
@@ -230,16 +237,17 @@ foreach ($file as $f) {
 	}
 	
 	echo '<input type="hidden" id="cid', $i - 1, '" name="categoryId"><input type="hidden" id="cna', $i - 1, '" name="categoryName"><input type="hidden" id="cic', $i - 1, '" name="categoryIcon"><input type="hidden" id="vdt', $i - 1, '" name="createdAt"><input type="hidden" id="vcc', $i - 1, '" name="checkinsCount"><input type="hidden" id="vuc', $i - 1, '" name="usersCount"><input type="hidden" id="vtc', $i - 1, '" name="tipCount"><input type="hidden" id="vpc', $i - 1, '" name="photosCount"><input type="hidden" id="vhc', $i - 1, '" name="likesCount"><input type="hidden" id="vlc', $i - 1, '" name="listedCount"><input type="hidden" id="vic', $i - 1, '" name="isClosed"><input type="hidden" id="vip', $i - 1, '" name="isPrivate"><input type="hidden" id="vid', $i - 1, '" name="isDeleted"><input type="hidden" id="vrf', $i - 1, '" name="verified">', chr(10);
-	echo '<span id="result', $i - 1, '"></span>', chr(10), '</form>', chr(10), '</div>', chr(10);
+	echo '<span id="result', $i - 1, '"></span>', chr(10), '</form>', chr(10), '</section>', chr(10);
 }
 ?>
 </div>
+</article>
 <!-- Botoes Salvar, Cancelar e Mais -->
-<div>
+<article>
 	<button id="saveButton" dojoType="dijit.form.Button" type="submit" name="saveButton" onclick="javascript:showDialogComment(this.name)" style="float: left; padding-right: 3px; margin-left: 0px; margin-bottom: 15px" disabled>Salvar</button>
 	<button id="cancelButton" dojoType="dijit.form.Button" type="button" onclick="history.go(-1)" name="cancelButton" style="float: left; padding-right: 3px;">Cancelar</button>
 	<div id="dropdownButtonContainer" style="float: left"></div>
-</div>
+</article>
 <!-- Janela de Edicao das Categorias -->
 <div data-dojo-type="dijit.Dialog" id="dlg_cats" data-dojo-props='title:"Categorias"'>
 	<div id="catsContainer"></div>
@@ -265,7 +273,7 @@ id="saveProgress">
 	</div>
 </div>
 <!-- Janela de Digitacao de Comentario -->
-<div id="dlg_comment" data-dojo-type="dijit.Dialog" data-dojo-props="title:'Coment&aacute;rios'" style="display:none; width: 356px;">
+<div id="dlg_comment" data-dojo-type="dijit.Dialog" data-dojo-props="title:'Coment&aacute;rios para o aprovador'" style="display:none; width: 356px;">
 	<div class="dijitDialogPaneContentArea">
 		<textarea id="textareaComment" name="textareaComment" data-dojo-type="dijit/form/Textarea" maxLength="200" trim="true"></textarea>
 	</div>

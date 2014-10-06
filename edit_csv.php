@@ -9,7 +9,7 @@
  * @package		 Foursquare-Mass-Editor-Tools
  * @author		 Elio Gavlinski <gavlinski@gmail.com>
  * @copyright	 Copyleft (c) 2011-2014
- * @version		 1.4
+ * @version		 2.1.1
  * @link			 https://github.com/gavlinski/Foursquare-Mass-Editor-Tools/blob/master/edit_csv.php
  * @since			 File available since Release 0.3
  * @license		 GPLv3 <http://www.gnu.org/licenses/gpl.txt>
@@ -24,20 +24,25 @@ if (isset($_SESSION["oauth_token"])) {
 	header('Location: index.php'); /* Redirect browser */
 }
 ?>
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
-<html>
+<!doctype html>
+<html lang="pt-BR">
 <head>
 <title>Elio Tools</title>
-<meta http-equiv="Content-type" content="text/html; charset=utf-8"/>
-<link rel="shortcut icon" href="favicon.ico" type="image/x-icon"/>
-<link rel="stylesheet" type="text/css" href="js/dijit/themes/claro/claro.css"/>
-<link rel="stylesheet" type="text/css" href="estilo.css"/>
+<meta charset="utf-8">
+<link rel="shortcut icon" href="favicon.ico" type="image/x-icon">
+<link rel="stylesheet" type="text/css" href="js/dijit/themes/tundra/tundra.css">
+<link rel="stylesheet" type="text/css" href="estilo.css">
 <script src="js/dojo/dojo.js" djConfig="parseOnLoad: true"></script>
-<script type="text/javascript" src="js/4sq_csv.js"></script>
+<script src="js/4sq_csv.js"></script>
 </head>
-<body class="claro">
-<h2>Editar venues</h2>
-<p>Antes de salvar suas altera&ccedil;&otilde;es, n&atilde;o deixe de ler nosso <a href="javascript:showDialogGuia();">guia de estilo</a> e as <a href="https://pt.foursquare.com/info/houserules" target="_blank">regras da casa</a>.</p>
+<body class="tundra">
+<header>
+	<h2>Editar venues</h2>
+</header>
+<article>
+	<p>Antes de salvar suas altera&ccedil;&otilde;es, n&atilde;o deixe de ler nosso <a href="javascript:showDialogGuia();">guia de estilo</a> e as <a href="https://pt.foursquare.com/info/houserules" target="_blank">regras da casa</a>.</p>
+</article>
+<article>
 <div id="listContainer">
 <?php
 if (array_key_exists("name", $file[0])) {
@@ -106,7 +111,7 @@ $i = 0;
 foreach ($file as $f) {
 	$i++;
 
-	echo '<div class="row">', chr(10), '<form name="form', $i, '" accept-charset="utf-8" encType="multipart/form-data" method="post">', chr(10);
+	echo '<section class="row">', chr(10), '<form name="form', $i, '" accept-charset="utf-8" encType="multipart/form-data" method="post">', chr(10);
 
 	$venue = $f['venue'];
 	echo '<input type="hidden" name="venue" value="', $venue, '"><a href="https://foursquare.com/v/', $venue, '" target="_blank"';
@@ -194,14 +199,15 @@ foreach ($file as $f) {
 		//}
 	}
 
-	echo '<span id="result', $i - 1, '"></span>', chr(10), '</form>', chr(10), '</div>', chr(10);
+	echo '<span id="result', $i - 1, '"></span>', chr(10), '</form>', chr(10), '</section>', chr(10);
 }
 ?>
 </div>
-<div>
+</article>
+<article>
 <button id="saveButton" dojoType="dijit.form.Button" type="submit" name="saveButton" onclick="salvarVenues()" style="float: left; padding-right: 3px; margin-left: 0px; margin-bottom: 15px">Salvar</button>
 <button id="cancelButton" dojoType="dijit.form.Button" type="button" onclick="history.go(-1)" name="cancelButton" style="float: left">Cancelar</button>
 <div id="dropdownButtonContainer2" style="float: left"></div>
-</div>
+</article>
 </body>
 </html>

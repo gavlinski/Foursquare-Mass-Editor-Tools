@@ -21,18 +21,18 @@ if (!isset($_SESSION["oauth_token"])) {
 	header('Location: index.php');
 }
 ?>
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
-<html>
+<!doctype html>
+<html lang="pt-BR">
 <head>
 <title>Carregando...</title>
-<meta http-equiv="content-type" content="text/html; charset=utf-8"/>
-<meta http-equiv="cache-control" content="no-cache"/>
+<meta charset="utf-8">
+<meta http-equiv="cache-control" content="no-cache">
 <meta http-equiv="pragma" content="no-cache">
 <?php
-define("VERSION", "Venues Loader 1.4");
-define("LINKS", '<link rel="shortcut icon" href="favicon.ico" type="image/x-icon"/>
-<link rel="stylesheet" type="text/css" href="js/dijit/themes/tundra/tundra.css"/>
-<link rel="stylesheet" type="text/css" href="estilo.css"/>
+define("VERSION", "Venues Loader 2.1.1");
+define("LINKS", '<link rel="shortcut icon" href="favicon.ico" type="image/x-icon">
+<link rel="stylesheet" type="text/css" href="js/dijit/themes/tundra/tundra.css">
+<link rel="stylesheet" type="text/css" href="estilo.css">
 ');
 define("HBODY", '</head>
 <body class="tundra">
@@ -40,7 +40,7 @@ define("HBODY", '</head>
 define("CARREGANDO", LINKS . HBODY . '<div id="carregando">Carregando venues&hellip;</div>
 ');
 define("TEMPLATE1", '<script src="js/dojo/dojo.js" djConfig="parseOnLoad: true"></script>
-<script type="text/javascript">dojo.require("dijit.form.Button");</script>
+<script>dojo.require("dijit.form.Button");</script>
 ');
 define("TEMPLATE2", '<p><button dojoType="dijit.form.Button" type="button" onclick="history.go(-1)" style="margin-left: 0px;">Voltar</button></p>
 </body>
@@ -60,7 +60,7 @@ define("ERRO99", '<meta http-equiv="refresh" content="5; url=index.php">
 <p>Erro na leitura dos dados.</p>
 </body>
 </html>');
-define("EDIT", '<script type="text/javascript">
+define("EDIT", '<script>
 	window.location = "edit.php"
 </script>;');
 
@@ -311,13 +311,13 @@ function parseVenues($html) {
 		return $ret;
 	} else {
 		echo LINKS . HBODY;
-		print('<script type="text/javascript">document.title = "Erro";</script>'."\r");
+		print('<script>document.title = "Erro";</script>'."\r");
 		return false;
 	}
 }
 
 function setLocalCache($key, $data, $key2) {
-	print('<script type="text/javascript">'."\n\r".'	localStorage.setItem(\''.$key.'\', \''.$data.'\');'."\n\r".'	localStorage.removeItem(\''.$key2.'\');'."\n\r".'</script>');
+	print('<script>'."\n\r".'	localStorage.setItem(\''.$key.'\', \''.$data.'\');'."\n\r".'	localStorage.removeItem(\''.$key2.'\');'."\n\r".'</script>');
 	print str_pad('', intval(ini_get('output_buffering'))) . "\n\r";
 	flush();
 }

@@ -46,12 +46,12 @@ class ProgressBar {
 
 	function setProgressBarProgress($percentDone, $text = '') {
 		if ($this->indeterminate) {
-			print('<script type="text/javascript">'."\n\r".'	document.getElementById("'.$this->pbarid.'").setAttribute("class", "pb_before");'."\n\r".'	document.getElementById("'.$this->textid.'").style.display = "inline";'."\n\r".'</script>'."\n\r");
+			print('<script>'."\n\r".'	document.getElementById("'.$this->pbarid.'").setAttribute("class", "pb_before");'."\n\r".'	document.getElementById("'.$this->textid.'").style.display = "inline";'."\n\r".'</script>'."\n\r");
 			$this->indeterminate = false;
 		}
 		$this->percentDone = $percentDone;
 		$text = $text ? $text : number_format($this->percentDone, $this->decimals, '.', '').'%';
-		print('<script type="text/javascript">'."\n\r".'if (document.getElementById("'.$this->pbarid.'")) {
+		print('<script>'."\n\r".'if (document.getElementById("'.$this->pbarid.'")) {
 	document.getElementById("'.$this->pbarid.'").style.width = "'.$percentDone.'%";'."\n\r");
 		if ($percentDone == 100) {
 			//print('document.getElementById("'.$this->pbid.'").style.display = "none";');
@@ -69,7 +69,7 @@ class ProgressBar {
 	}
 	
 	function hide() {
-		print('<script type="text/javascript">'."\n\r".'document.getElementById("'.$this->pbid.'").style.display = "none";'."\n\r".'document.getElementById("carregando").style.display = "none";'."\n\r".'document.title = "Erro";'."\n\r".'</script>'."\n\r");
+		print('<script>'."\n\r".'document.getElementById("'.$this->pbid.'").style.display = "none";'."\n\r".'document.getElementById("carregando").style.display = "none";'."\n\r".'document.title = "Erro";'."\n\r".'</script>'."\n\r");
 		$this->flush();
 	}
 

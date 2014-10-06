@@ -13,6 +13,7 @@ h2 {
 	font-size: 20px;
 	font-weight: bold;
 	margin-bottom: 5px;
+	margin-top: 0px;
 }
 h3 {
 	font-weight: bold;
@@ -29,18 +30,13 @@ a:hover {
 	text-decoration: underline;
 	font-weight: bold;
 }
-/*
-*:focus {
-	outline: none;
+#intro, #options {
+	width: 716px;
 }
-*::-moz-focus-inner {
-	border: none;
+#poweredbyfoursquare {
+	margin-top: 15px;
 }
-*/
-.dj_webkit .dijitTextBoxDisabled input {
-	color: gray;
-}
-#toolContainer {
+.toolcontainer {
 	min-width: 699px;
 	background-color: #f9f9f9;
 	border: 1px solid #cccccc;
@@ -52,75 +48,119 @@ a:hover {
 	-webkit-border-radius: 5px;
 	-moz-border-radius: 5px;
 }
-#toolContainer .row {
+.toolcontainer > .row {
 	clear: both;
 	overflow: hidden;
 	white-space: nowrap;
+	display: table-row;
 }
-#toolContainer .row span.label {
+.toolcontainer > .row > .filelabel {
 	float: left;
 	width: 80px;
 	padding-left: 5px;
-	padding-top: 8px;
+	padding-top: 6px;
 	padding-right: 5px;
 }
-#toolContainer .row span.labelBlanck {
+.toolcontainer > .row > .uploadbutton {
 	float: left;
-	width: 547px;
-	padding-top: 2px;
 }
-#toolContainer .row span.labelLl {
+.toolcontainer > .row > .selectedfile {
 	float: left;
-	width: 39px;
-	padding-left: 1px;
-	padding-top: 8px;
-	padding-right: 4px;
+	padding-top: 6px;
+	padding-left: 12px;
+	padding-bottom: 15px;
 }
-#toolContainer .row span.labelIntent {
+.toolcontainer > .row > .fieldslabel {
 	float: left;
-	width: 53px;
-	padding-left: 0;
-	padding-top: 8px;
-	padding-right: 7px;
+	width: 80px;
+	padding-left: 5px;
+	padding-top: 12px;
+	padding-right: 5px;
 }
-#toolContainer .row span.labelRadius {
+.toolcontainer > .row > .checkboxes {
 	float: left;
-	width: 8px;
-	padding-left: 1px;
-	padding-top: 8px;
-	padding-right: 35px;
+	padding-left: 3px;
+	padding-bottom: 8px;
+	padding-right: 12px;
 }
-#toolContainer .row span.formw {
+.toolcontainer > .row > .checkboxes > .checkbox {
+	float: left;
+	margin-top: 1px;
+	margin-bottom: 2px;
+}
+.toolcontainer > .row > .urlinputlabel,
+.toolcontainer > .row > .queryinputlabel,
+.toolcontainer > .row > .categoryidcomboboxlabel,
+.toolcontainer > .row > .limitcomboboxlabel {
+	float: left;
+	width: 80px;
+	padding-left: 5px;
+	padding-top: 9px;
+	padding-right: 5px;
+}
+.toolcontainer > .row > .urlinput,
+.toolcontainer > .row > .queryinput,
+.toolcontainer > .row > .llinput,
+.toolcontainer > .row > .categoryidcombobox,
+.toolcontainer > .row > .radiuscombobox,
+.toolcontainer > .row > .intentcombobox,
+.toolcontainer > .row > .limitcombobox {
 	float: left;
 	padding-left: 3px;
 	padding-bottom: 5px;
 	padding-top: 5px;
 	padding-right: 10px;
 }
-#toolContainer .row span.button {
+.toolcontainer > .row > .urlstextarealabel {
 	float: left;
+	width: 80px;
+	padding-left: 5px;
+	padding-top: 9px;
+	padding-right: 5px;
 }
-#toolContainer .row span.arquivo {
+.toolcontainer > .row > .urlstextarea {
 	float: left;
-	padding-top: 6px;
-	padding-left: 12px;
-	padding-bottom: 15px;
+	padding-left: 3px;
+	padding-bottom: 8px;
+	padding-top: 4px;
+}
+.toolcontainer > .row > .llinputlabel {
+	float: left;
+	width: 39px;
+	padding-left: 1px;
+	padding-top: 9px;
+	padding-right: 4px;
+}
+.toolcontainer > .row > .categoryidcombobox > .combobox > .dijitTextBox {
+	width: 269px;
+	overflow: hidden;
+}
+.toolcontainer > .row > .radiuscomboboxlabel {
+	float: left;
+	width: 8px;
+	padding-left: 1px;
+	padding-top: 9px;
+	padding-right: 35px;
+}
+.toolcontainer > .row > .radiuscombobox > .comboboxes .dijitSelectLabel,
+.toolcontainer > .row > .intentcombobox > .comboboxes .dijitSelectLabel,
+.toolcontainer > .row > .limitcombobox > .comboboxes .dijitSelectLabel {
+	width: 72px;
+	overflow: hidden;
+	margin-top: 3px;
+}
+.toolcontainer > .row > .intentcomboboxlabel {
+	float: left;
+	width: 53px;
+	padding-left: 0;
+	padding-top: 9px;
+	padding-right: 7px;
 }
 .dijitButton.continue .dijitButtonNode {
 	margin-left: -3px;
 }
-#toolContainer .row span.checkboxes {
-	float: left;
-	padding-left: 3px;
-	padding-bottom: 8px;
-	padding-right: 12px;
-}
 .dijitSelect .dijitButtonText {
 	text-align: left;
-}
-#toolContainer .row span.combobox .dijitTextBox {
-	width: 269px;
-	overflow: hidden;
 }
 .tundra .dijitSelect .dijitButtonContents, .tundra .dijitTextBox .dijitButtonNode {
 	height: 21px;
@@ -133,14 +173,11 @@ a:hover {
 }
 .tundra .dijitInputContainer input {
 	margin: 0.2em 0.1em;
+	padding-top: 0.02em;
 }
 .dijitInputInner {
 	margin-left: 2px !important;
 	margin-right: 2px !important;
-}
-#toolContainer .row span.comboboxes .dijitSelectLabel {
-	width: 72px;
-	overflow: hidden;
 }
 .tundra .dijitValidationTextBoxError .dijitValidationIcon {
 	margin-right: 2px;
@@ -166,16 +203,8 @@ a:hover {
 .dijitDialogPaneActionBar {
 	margin-left: -3px; margin-top: 8px
 }
-.checkbox {
-	float: left;
-	margin-top: 1px;
-	margin-bottom: 2px;
-}
-#toolContainer .row span.textarea {
-	float: left;
-	padding-left: 3px;
-	padding-bottom: 8px;
-	padding-top: 4px;
+.tundra .dijitAccordionContainer-dijitContentPane {
+  margin-bottom: 3px;
 }
 .pb_container {
 	position: relative;
@@ -317,4 +346,7 @@ a:hover {
 	width: 52px;
 	padding-top: 3px;
 	padding-right: 3px;
+}
+.dj_webkit .dijitTextBoxDisabled input {
+	color: gray;
 }

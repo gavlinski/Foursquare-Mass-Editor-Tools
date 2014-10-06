@@ -815,7 +815,7 @@ function salvarVenues() {
 				dados += "&" + elementName + "=" + encodeURIComponent(document.forms[i].elements[j].value);
 			else if (elementName == "facebook") {
 				var facebookUsername = document.forms[i].elements[j].value;
-				if ((facebookUsername != "") && (facebookUsername != ""))
+				if ((facebookUsername != null) && (facebookUsername != ""))
 					dados += "&facebookUrl=" + encodeURIComponent("http://facebook.com/" + facebookUsername);
 			} else if ((elementName == "description") && (document.forms[i]["description"].readOnly == false)) {
 				var index = csv[0].indexOf("description");

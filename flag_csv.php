@@ -24,20 +24,25 @@ if (isset($_SESSION["oauth_token"])) {
 	header('Location: index.php'); /* Redirect browser */
 }
 ?>
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
-<html>
+<!doctype html>
+<html lang="pt-BR">
 <head>
 <title>Elio Tools</title>
-<meta http-equiv="Content-type" content="text/html; charset=utf-8"/>
-<link rel="shortcut icon" href="favicon.ico" type="image/x-icon"/>
-<link rel="stylesheet" type="text/css" href="js/dijit/themes/claro/claro.css"/>
-<link rel="stylesheet" type="text/css" href="estilo.css"/>
+<meta charset="utf-8">
+<link rel="shortcut icon" href="favicon.ico" type="image/x-icon">
+<link rel="stylesheet" type="text/css" href="js/dijit/themes/tundra/tundra.css">
+<link rel="stylesheet" type="text/css" href="estilo.css">
 <script src="js/dojo/dojo.js" djConfig="parseOnLoad: true"></script>
-<script type="text/javascript" src="js/4sq_csv.js"></script>
+<script src="js/4sq_csv.js"></script>
 </head>
-<body class="claro">
-<h2>Sinalizar venues</h2>
-<p>Antes de sinalizar as venues, n&atilde;o deixe de ler nosso <a href="javascript:showDialog_guia();">guia de estilo</a> e as <a href="https://pt.foursquare.com/info/houserules" target="_blank">regras da casa</a>.</p>
+<body class="tundra">
+<header>
+	<h2>Sinalizar venues</h2>
+</header>
+<article>
+	<p>Antes de sinalizar as venues, n&atilde;o deixe de ler nosso <a href="javascript:showDialog_guia();">guia de estilo</a> e as <a href="https://pt.foursquare.com/info/houserules" target="_blank">regras da casa</a>.</p>
+</article>
+<article>
 <div id="listContainer">
 <?php
 if (array_key_exists("name", $file[0])) {
@@ -106,7 +111,7 @@ $i = 0;
 foreach ($file as $f) {
 	$i++;
 
-	echo '<div class="row">', chr(10), '<form name="form', $i, '" accept-charset="utf-8" encType="multipart/form-data" method="post">', chr(10);
+	echo '<section class="row">', chr(10), '<form name="form', $i, '" accept-charset="utf-8" encType="multipart/form-data" method="post">', chr(10);
 
 	$venue = $f['venue'];
 	echo '<input type="hidden" name="venue" value="', $venue, '"><a href="https://foursquare.com/v/', $venue, '" target="_blank"';
@@ -186,16 +191,16 @@ foreach ($file as $f) {
 		echo '<input type="text" dojoType="dijit.form.TextBox" name="categoryId" value="', $categoryId, '" placeHolder="Categorias" style="width: 9em; margin-left: 5px;" disabled>', chr(10);
 	}
 
-	echo '<span id="result', $i - 1, '"></span>', chr(10), '</form>', chr(10), '</div>', chr(10);
+	echo '<span id="result', $i - 1, '"></span>', chr(10), '</form>', chr(10), '</section>', chr(10);
 }
 ?>
 </div>
-<div>
+</article>
+<article>
 <div id="dropdownButtonContainer1" style="float: left; padding-right: 3px; margin-left: 0px; margin-bottom: 15px"></div>
-</div>
 <!--<button id="flagButton" dojoType="dijit.form.Button" type="submit" name="flagButton" onclick="sinalizarVenues()" style="float: left; padding-right: 3px;">Flag</button>-->
 <button id="cancelButton" dojoType="dijit.form.Button" type="button" onclick="history.go(-1)" name="cancelButton" style="float: left">Cancelar</button>
 <div id="dropdownButtonContainer2" style="float: left"></div>
-</div>
+</article>
 </body>
 </html>
