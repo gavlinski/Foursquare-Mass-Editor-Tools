@@ -1038,20 +1038,21 @@ function atualizarMarcadoresMapa() {
 			});
 			google.maps.event.addListener(marcadores[i], 'dragend', function(evt) {
 				//console.log(this);
-				var j = parseInt(this.title.charAt(0)) - 1;
+				var marcador = this.title.split(".", 1)[0];
+				var j = parseInt(marcador) - 1;
 				var novaPosicao = evt.latLng.lat() + ', ' + evt.latLng.lng();
-				//console.info('Marcador ' + this.title.charAt(0) + ' movido: ' + novaPosicao);
+				//console.info('Marcador ' + marcador + ' movido: ' + novaPosicao);
 				if (dojo.query("input[name=selecao]")[j].disabled != true) {
 					inputId = dojo.query("input[name=venuell]")[j].id;
 					if ((inputId == "") || ((dijit.byId(inputId).textbox.value != novaPosicao) && (dijit.byId(inputId).readOnly == false) && (dijit.byId(inputId).disabled == false))) {
 						(inputId == "") ? dojo.query("input[name=venuell]")[j].value = novaPosicao : dijit.byId(inputId).set("value", novaPosicao);
-						//console.log("venuell", novaPosicao);
+						//console.log(inputId, novaPosicao);
 						index = csv[0].indexOf("venuell");
 						csv[parseInt(j) + 1][index] = novaPosicao;
 						dojo.byId("result" + j).innerHTML = "";
 						if (linhasEditadas.indexOf(parseInt(j)) == -1)
 							linhasEditadas.push(parseInt(j));
-						//console.log(csv[parseInt(i) + 1][2], csv[parseInt(i) + 1][index]);
+						//console.log(csv[parseInt(j) + 1][2], csv[parseInt(j) + 1][index]);
 					}
 				}				
 			});
@@ -1424,7 +1425,7 @@ dojo.addOnLoad(function inicializar() {
 				j++;
 			}
 			html.push("</pre></body></html>");
-			var rel = escape(html.join("\r\n"));
+			var rel = encodeURIComponent(html.join("\r\n"));
 			while (rel.indexOf("%u") !== -1)
 				rel = rel.substring(0, rel.indexOf("%u")) + " " + rel.substring(rel.indexOf("%u") + 6);
 			window.open("data:text/html;charset=utf-8," + rel);
@@ -1509,6 +1510,12 @@ function verificarAlteracao(textbox, i) {
 		dojo.byId("result" + i).innerHTML = "";
 		if (linhasEditadas.indexOf(i) == -1)
 			linhasEditadas.push(i);
+		if (textbox.name == "venuell") {
+			var latlng = textbox.value.replace(/ /g, "").split(",");
+			//console.log(latlng, marcadores[i].getPosition());
+			var novaPosicao = new google.maps.LatLng(parseFloat(latlng[0]), parseFloat(latlng[1]));
+			marcadores[i].setPosition(novaPosicao);
+		}
 		//console.debug(textbox.style);
 		//var domNode = dijit.byId(textbox.id).domNode;
 		//dojo.style(domNode, "background", "#FFFFE0");
