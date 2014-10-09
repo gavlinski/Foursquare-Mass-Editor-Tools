@@ -193,7 +193,7 @@ function validarVenues($lines) {
 				echo ERRO02;
 				exit;
 			}
-			if ($length > 25) {
+			if ($length > 24) {
 				$l = $length - 2;
 				if ($line[$l] === "/")
 					$line = substr($line, 0, $l);

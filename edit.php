@@ -41,7 +41,7 @@ if (isset($_SESSION["oauth_token"])) {
 	<h2>Editar venues</h2>
 </header>
 <article>
-	<p>Antes de salvar suas altera&ccedil;&otilde;es, n&atilde;o deixe de ler nosso <a id="guia" href="javascript:showDialogGuia()">guia de estilo</a> e as <a id="regras" href="https://pt.foursquare.com/info/houserules" target="_blank">regras da casa</a>.</p>
+	<p>Antes de salvar suas propostas de altera&ccedil;&otilde;es, n&atilde;o deixe de ler nosso <a id="guia" href="javascript:showDialogGuia()">guia de estilo</a> e as <a id="regras" href="https://pt.foursquare.com/info/houserules" target="_blank">regras da casa</a>.</p>
 </article>
 <article>
 <div id="mapa"></div>
@@ -273,7 +273,7 @@ id="saveProgress">
 	</div>
 </div>
 <!-- Janela de Digitacao de Comentario -->
-<div id="dlg_comment" data-dojo-type="dijit.Dialog" data-dojo-props="title:'Coment&aacute;rios para o aprovador'" style="display:none; width: 356px;">
+<div id="dlg_comment" data-dojo-type="dijit.Dialog" data-dojo-props="title:'Coment&aacute;rios'" style="display:none; width: 356px;">
 	<div class="dijitDialogPaneContentArea">
 		<textarea id="textareaComment" name="textareaComment" data-dojo-type="dijit/form/Textarea" maxLength="200" trim="true"></textarea>
 	</div>

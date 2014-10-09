@@ -126,7 +126,7 @@ if ((isset($_COOKIE['name'])) && (strlen($_COOKIE['name']) > 0))
 				</button>
 			</div>
 		</div>
-		<div dojoType="dijit.layout.ContentPane" title="Importar lista de um arquivo de texto">
+		<div dojoType="dijit.layout.ContentPane" title="Importar lista de um arquivo de texto simples">
 			<div dojoType="dijit.form.Form" enctype="multipart/form-data" accept-charset="utf-8" id="f_txt" jsId="f_txt" action="load.php" method="post">
 				<section class="toolcontainer">
 					<div class="row">
