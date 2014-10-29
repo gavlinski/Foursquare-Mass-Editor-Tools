@@ -17,7 +17,7 @@
 
 if (!isset($_SESSION))
 	session_start();
-if (isset($_SESSION["oauth_token"])) {
+if ((isset($_SESSION["oauth_token"])) && ($_SESSION["file"] != null)) {
 	$file = $_SESSION["file"];
 	$venues = $_SESSION["venues"];
 	$campos = $_SESSION["campos"];

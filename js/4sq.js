@@ -11,7 +11,7 @@ dojo.require("dijit.Menu");
 dojo.require("dojo.cookie");
 dojo.require("dijit.form.Select");
 
-var DATA_VERSIONAMENTO = "20140821";
+var DATA_VERSIONAMENTO = "20141029";
 var MESES = new Array("01", "02", "03", "04", "05", "06", "07", "08", "09", "10", "11", "12");
 
 var modo;
@@ -19,6 +19,13 @@ var DADOS_COMPLETOS = 0;
 var DADOS_PARCIAIS = 1;
 
 var CATEGORIA_HOME = "4bf58dd8d48988d103941735";
+/*** States & Municipalities: City, County, Country, Neighborhood, State, Town, Village ***/
+var CATEGORIAS_STATES_MUNICIPALITIES = [
+	"530e33ccbcbc57f1066bbfe4", "50aa9e094b90af0d42d5de0d", "5345731ebcbc57f1066c39b2",
+	"530e33ccbcbc57f1066bbff7", "4f2a25ac4b909258e854f55f", "530e33ccbcbc57f1066bbff8",
+	"530e33ccbcbc57f1066bbff3", "530e33ccbcbc57f1066bbff9"
+];
+var CATEGORIA_CITY = "50aa9e094b90af0d42d5de0d";
 
 var oauth_token = dojo.cookie("oauth_token");
 var txt = "";
@@ -650,8 +657,23 @@ function atualizarTabela(venue, i) {
 			dijit.byId(dojo.query("input[name=" + elementName + "]")[i].id).set("value", "");
 	}
 	dojo.byId("result" + i).innerHTML = "";
-	if ((venue.categories[0] != undefined) && (venue.categories[0].id == CATEGORIA_HOME))
-		desabilitarLinha(i);
+	if (venue.categories[0] != undefined) {
+		if (venue.categories[0].id == CATEGORIA_HOME)
+			desabilitarLinha(i);
+		else if ((CATEGORIAS_STATES_MUNICIPALITIES.indexOf(venue.categories[0].id) > -1) ||
+			((venue.categories[1] != undefined) && (CATEGORIAS_STATES_MUNICIPALITIES.indexOf(venue.categories[1].id) > -1)) ||
+			((venue.categories[2] != undefined) && (CATEGORIAS_STATES_MUNICIPALITIES.indexOf(venue.categories[2].id) > -1))) {
+			//console.info("Venue " + i + " dentro de Estado ou Município");
+			if (document.forms[i]["address"])
+				dijit.byId(dojo.query("input[name=address]")[i].id).setAttribute("disabled", true);
+			if (document.forms[i]["crossStreet"])
+				dijit.byId(dojo.query("input[name=crossStreet]")[i].id).setAttribute("disabled", true);
+			if ((document.forms[i]["city"]) && (venue.categories[0].id == CATEGORIA_CITY))
+				dijit.byId(dojo.query("input[name=city]")[i].id).setAttribute("disabled", true);
+			if (document.forms[i]["phone"])
+				dijit.byId(dojo.query("input[name=phone]")[i].id).attr("readOnly", true);
+		}
+	}
 	csv[i + 1] = linha.replace(/undefined/gi, "").split("&&");
 	venuellOriginais[i] = document.forms[i]["venuell"].value;
 	if (venue.categories[0] == undefined) {
@@ -837,11 +859,9 @@ function salvarVenues() {
 	for (l = 0; l < totalParaSalvar; l++) {
 		i = linhasEditadas[l];
 		dados = "oauth_token=" + oauth_token;
-		for (j = 2; j < colunas + 1; j++) {
+		for (j = columnsStartIndex; j < colunas; j++) {
 			elementName = document.forms[i].elements[j].name;
-			//if ((elementName != "venuell") && (elementName != "categoryId") &&
-					//((elementName == "name") || (elementName == "address") || (elementName == "crossStreet") || (elementName == "neighborhood") || (elementName == "city") || (elementName == "state") || (elementName == "zip") || (elementName == "parentId") || (elementName == "phone") || (elementName == "url") || (elementName == "twitter")))
-			if ((elementName == "name") || (elementName == "address") || (elementName == "crossStreet") || (elementName == "neighborhood") || (elementName == "city") || (elementName == "state") || (elementName == "zip") || (elementName == "parentId") || (elementName == "phone") || (elementName == "url") || (elementName == "twitter"))
+			if ((['name', 'address', 'crossStreet', 'neighborhood', 'city', 'state', 'parentId', 'zip', 'phone', 'url', 'twitter'].indexOf(elementName) > -1) && (dojo.query("input[name=" + elementName + "]")[i].disabled != true) && (document.forms[i][elementName].readOnly == false))
 				dados += "&" + elementName + "=" + encodeURIComponent(document.forms[i].elements[j].value);
 			else if (elementName == "facebook") {
 				var facebookUsername = document.forms[i].elements[j].value;
@@ -879,7 +899,9 @@ function salvarVenues() {
 			}
 		}
 		var comentario = encodeURIComponent(dijit.byId("textareaComment").value);
-		dados += "&comment=" + comentario + "&v=" + DATA_VERSIONAMENTO;
+		if (comentario != "")
+			dados += "&comment=" + comentario;
+		dados += "&v=" + DATA_VERSIONAMENTO;
 		venueId = document.forms[i]["venue"].value;
 		console.group("venue=" + venueId + " (" + i + ")");
 		console.log(dados);
@@ -1176,16 +1198,18 @@ dojo.addOnLoad(function inicializar() {
 			}
 		});
 		subMenu2.addChild(subMenu2Item);
-		subMenu2.addChild(new dijit.MenuSeparator);
 	}
-	/*** Total de campos editáveis MENOS categoryId (último campo antes dos ocultos) ***/
 	if (document.form1.name.type == "hidden")
-		totalInputsHidden++;
+		columnsStartIndex++;
 	if (document.form1.venuell.type == "hidden")
 		totalInputsHidden++;
-	csv[0] = ["venue", "categoryId"];
+	csv[0] = ["venue"];
+	if (json == "") // modo == DADOS_COMPLETOS
+		csv[0] = csv[0].concat("categoryId");
 	colunas = document.form1.elements.length - totalInputsHidden;
-	for (c = 2; c < colunas; c++) {
+	if (columnsStartIndex != colunas)
+		subMenu2.addChild(new dijit.MenuSeparator);
+	for (c = columnsStartIndex; c < colunas; c++) {
 		elementName = document.form1.elements[c].name;
 		nomeCampo = document.form1.elements[c].getAttribute("data-name-ptbr");
 		subMenu2Item = new dijit.MenuItem({

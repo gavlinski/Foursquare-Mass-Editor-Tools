@@ -80,6 +80,11 @@ else
 	echo ERRO99;
 
 $_SESSION["file"] = filtrarArray($file);
+if ($_SESSION["file"] == null) {
+	$pbar->hide();
+	echo ERRO02;
+	exit;
+}
 $_SESSION["venues"] = filtrarArray($venues);
 $_SESSION["campos"] = $_POST["campos4"];
 setLocalCache("txt", implode('%0A,', $_SESSION["file"]));
@@ -236,10 +241,16 @@ function pesquisarVenues($params) {
 			$response = json_encode(array_merge($response, $response_venues));
 		}
 
-	} else {
+	} else if (isset($json->meta->code)) {
 		$pbar->hide();
 		echo TEMPLATE1 . '<p><b>Erro ' . $json->meta->code . ':</b> ' . $json->meta->errorType . '</p>
 <p><b>Detalhe:</b> ' . $json->meta->errorDetail . '</p>
+' . TEMPLATE2;
+		exit;
+	} else {
+		$pbar->hide();
+		echo TEMPLATE1 . '<p><b>Erro:</b> Desconhecido</p>
+<p><b>Detalhe:</b> Desconhecido</p>
 ' . TEMPLATE2;
 		exit;
 	}
