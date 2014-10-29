@@ -40,7 +40,7 @@ if (isset($_SESSION["oauth_token"])) {
 	<h2>Editar venues</h2>
 </header>
 <article>
-	<p>Antes de salvar suas altera&ccedil;&otilde;es, n&atilde;o deixe de ler nosso <a href="javascript:showDialogGuia();">guia de estilo</a> e as <a href="https://pt.foursquare.com/info/houserules" target="_blank">regras da casa</a>.</p>
+	<p>Antes de salvar suas propostas de altera&ccedil;&otilde;es, n&atilde;o deixe de ler nosso <a id="guia" href="javascript:showDialogGuia();">guia de estilo</a> e as <a id="regras" href="https://pt.foursquare.com/info/houserules" target="_blank">regras da casa</a>.</p>
 </article>
 <article>
 <div id="listContainer">
@@ -56,9 +56,9 @@ if (array_key_exists("address", $file[0])) {
 	$hasAddress = false;
 }
 if (array_key_exists("crossStreet", $file[0])) {
-	$hasCross = true;
+	$hasCrossStreet = true;
 } else {
-	$hasCross = false;
+	$hasCrossStreet = false;
 }
 if (array_key_exists("city", $file[0])) {
 	$hasCity = true;
@@ -75,10 +75,10 @@ if (array_key_exists("zip", $file[0])) {
 } else {
 	$hasZip = false;
 }
-if (array_key_exists("twitter", $file[0])) {
-	$hasTwitter = true;
+if (array_key_exists("parentId", $file[0])) {
+	$hasParentId = true;
 } else {
-	$hasTwitter = false;
+	$hasParentId = false;
 }
 if (array_key_exists("phone", $file[0])) {
 	$hasPhone = true;
@@ -90,20 +90,45 @@ if (array_key_exists("url", $file[0])) {
 } else {
 	$hasUrl = false;
 }
-if (array_key_exists("description", $file[0])) {
-	$hasDesc = true;
+if (array_key_exists("twitter", $file[0])) {
+	$hasTwitter = true;
 } else {
-	$hasDesc = false;
+	$hasTwitter = false;
 }
-if (array_key_exists("ll", $file[0])) {
-	$hasLl = true;
+if (array_key_exists("facebook", $file[0])) {
+	$hasfacebook = true;
 } else {
-	$hasLl = false;
+	$hasfacebook = false;
+}
+if (array_key_exists("description", $file[0])) {
+	$hasDescription = true;
+} else {
+	$hasDescription = false;
+}
+if (array_key_exists("venuell", $file[0])) {
+	$hasVenuell = true;
+} else {
+	$hasVenuell = false;
 }
 if (array_key_exists("categoryId", $file[0])) {
 	$hasCategoryId = true;
 } else {
 	$hasCategoryId = false;
+}
+if (array_key_exists("primaryCategoryId", $file[0])) {
+	$hasPrimaryCategoryId = true;
+} else {
+	$hasPrimaryCategoryId = false;
+}
+if (array_key_exists("addCategoryIds", $file[0])) {
+	$hasAddCategoryIds = true;
+} else {
+	$hasAddCategoryIds = false;
+}
+if (array_key_exists("removeCategoryIds", $file[0])) {
+	$hasRemoveCategoryIds = true;
+} else {
+	$hasRemoveCategoryIds = false;
 }
 
 $i = 0;
@@ -141,9 +166,9 @@ foreach ($file as $f) {
 		echo '<input type="text" dojoType="dijit.form.TextBox" name="address" maxlength="128" value="', $address, '" placeHolder="Endere&ccedil;o" style="width: 11em; margin-left: 5px;" onchange="verificarAlteracao(this, ', $i - 1, ')">', chr(10);
 	}
 
-	if ($hasCross) {
+	if ($hasCrossStreet) {
 		$crossStreet = htmlentities($f['crossStreet'], ENT_QUOTES, 'utf-8');
-		echo '<input type="text" dojoType="dijit.form.TextBox" name="crossStreet" maxlength="51" value="', $crossStreet, '" placeHolder="Rua Cross" style="width: 9em; margin-left: 5px;" onchange="verificarAlteracao(this, ', $i - 1, ')">', chr(10);
+		echo '<input type="text" dojoType="dijit.form.TextBox" name="crossStreet" maxlength="51" value="', $crossStreet, '" placeHolder="Rua transversal" style="width: 9em; margin-left: 5px;" onchange="verificarAlteracao(this, ', $i - 1, ')">', chr(10);
 	}
 
 	if ($hasCity) {
@@ -158,12 +183,12 @@ foreach ($file as $f) {
 
 	if ($hasZip) {
 		$zip = $f['zip'];
-		echo '<input type="text" dojoType="dijit.form.TextBox" name="zip" maxlength="13" value="', $zip, '" placeHolder="CEP" style="width: 6em; margin-left: 5px;" onchange="verificarAlteracao(this, ', $i - 1, ')">', chr(10);
+		echo '<input type="text" dojoType="dijit.form.TextBox" name="zip" maxlength="13" value="', $zip, '" placeHolder="C&oacute;digo postal" style="width: 7em; margin-left: 5px;" onchange="verificarAlteracao(this, ', $i - 1, ')">', chr(10);
 	}
-
-	if ($hasTwitter) {
-		$twitter = $f['twitter'];
-		echo '<input type="text" dojoType="dijit.form.TextBox" name="twitter" maxlength="51" value="', $twitter, '" placeHolder="Twitter" style="width: 7em; margin-left: 5px;" onchange="verificarAlteracao(this, ', $i - 1, ')">', chr(10);
+	
+	if ($hasParentId) {
+		$parentId = $f['parentId'];
+		echo '<input type="text" dojoType="dijit.form.TextBox" name="parentId" maxlength="24" value="', $parentId, '" placeHolder="Dentro" style="width: 14em; margin-left: 5px;" onchange="verificarAlteracao(this, ', $i - 1, ')">', chr(10);
 	}
 
 	if ($hasPhone) {
@@ -175,28 +200,53 @@ foreach ($file as $f) {
 		$url = $f['url'];
 		echo '<input type="text" dojoType="dijit.form.TextBox" name="url" maxlength="256" value="', $url, '" placeHolder="Website" style="width: 8em; margin-left: 5px;" onchange="verificarAlteracao(this, ', $i - 1, ')">', chr(10);
 	}
+	
+	if ($hasTwitter) {
+		$twitter = $f['twitter'];
+		echo '<input type="text" dojoType="dijit.form.TextBox" name="twitter" maxlength="51" value="', $twitter, '" placeHolder="Twitter" style="width: 7em; margin-left: 5px;" onchange="verificarAlteracao(this, ', $i - 1, ')">', chr(10);
+	}
+	
+	if ($hasfacebook) {
+		$facebook = $f['facebook'];
+		echo '<input type="text" dojoType="dijit.form.TextBox" name="facebook" maxlength="51" value="', $facebook, '" placeHolder="Facebook" style="width: 7em; margin-left: 5px;" onchange="verificarAlteracao(this, ', $i - 1, ')">', chr(10);
+	}
 
-	if ($hasDesc) {
+	if ($hasDescription) {
 		$description = htmlentities($f['description'], ENT_QUOTES, 'utf-8');
 		echo '<input type="text" dojoType="dijit.form.TextBox" name="description" maxlength="300" value="', $description, '" placeHolder="Descri&ccedil;&atilde;o" style="width: 8em; margin-left: 5px;" onchange="verificarAlteracao(this, ', $i - 1, ')">', chr(10);
 	}
 
-	if ($hasLl) {
-		$ll = $f['ll'];
-		//if (($ll != '') && ($ll != ' ')) {
-			echo '<input type="text" dojoType="dijit.form.TextBox" name="ll" maxlength="402" value="', $ll, '" placeHolder="Lat/Long" style="width: 7em; margin-left: 5px;" onchange="verificarAlteracao(this, ', $i - 1, ')">', chr(10);
+	if ($hasVenuell) {
+		$venuell = $f['venuell'];
+		//if (($venuell != '') && ($venuell != ' ')) {
+			echo '<input type="text" dojoType="dijit.form.TextBox" name="venuell" maxlength="402" value="', $venuell, '" placeHolder="Lat/Long" style="width: 12em; margin-left: 5px;" onchange="verificarAlteracao(this, ', $i - 1, ')">', chr(10);
 		//} else {
-			//echo '<input type="text" dojoType="dijit.form.TextBox" name="ll" placeHolder="Lat/Long" style="width: 9em; margin-left: 5px;" disabled>', chr(10);
+			//echo '<input type="text" dojoType="dijit.form.TextBox" name="venuell" placeHolder="Lat/Long" style="width: 9em; margin-left: 5px;" disabled>', chr(10);
 		//}
 	}
 
 	if ($hasCategoryId) {
 		$categoryId = $f['categoryId'];
 		//if (($categoryId != '') && ($categoryId != ' ')) {
-			echo '<input type="text" dojoType="dijit.form.TextBox" name="categoryId" maxlength="75" value="', $categoryId, '" placeHolder="Categorias" style="width: 9em; margin-left: 5px;" onchange="verificarAlteracao(this, ', $i - 1, ')">', chr(10);
+			echo '<input type="text" dojoType="dijit.form.TextBox" name="categoryId" maxlength="75" value="', $categoryId, '" placeHolder="Categoria(s)" style="width: 14em; margin-left: 5px;" readonly>', chr(10);
 		//} else {
 			//echo '<input type="text" dojoType="dijit.form.TextBox" name="categoryId" placeHolder="Categorias" style="width: 9em; margin-left: 5px;" disabled>', chr(10);
 		//}
+	}
+	
+	if ($hasPrimaryCategoryId) {
+		$primaryCategoryId = $f['primaryCategoryId'];
+		echo '<input type="text" dojoType="dijit.form.TextBox" name="primaryCategoryId" maxlength="24" value="', $primaryCategoryId, '" placeHolder="Categoria Prim&aacute;ria" style="width: 14em; margin-left: 5px;" onchange="verificarAlteracao(this, ', $i - 1, ')">', chr(10);
+	}
+	
+	if ($hasAddCategoryIds) {
+		$addCategoryIds = $f['addCategoryIds'];
+		echo '<input type="text" dojoType="dijit.form.TextBox" name="addCategoryIds" maxlength="75" value="', $addCategoryIds, '" placeHolder="Adicionar Categoria(s)" style="width: 14em; margin-left: 5px;" onchange="verificarAlteracao(this, ', $i - 1, ')">', chr(10);
+	}
+	
+	if ($hasRemoveCategoryIds) {
+		$removeCategoryIds = $f['removeCategoryIds'];
+		echo '<input type="text" dojoType="dijit.form.TextBox" name="removeCategoryIds" maxlength="75" value="', $removeCategoryIds, '" placeHolder="Remover Categoria(s)" style="width: 14em; margin-left: 5px;" onchange="verificarAlteracao(this, ', $i - 1, ')">', chr(10);
 	}
 
 	echo '<span id="result', $i - 1, '"></span>', chr(10), '</form>', chr(10), '</section>', chr(10);
@@ -205,9 +255,9 @@ foreach ($file as $f) {
 </div>
 </article>
 <article>
-<button id="saveButton" dojoType="dijit.form.Button" type="submit" name="saveButton" onclick="salvarVenues()" style="float: left; padding-right: 3px; margin-left: 0px; margin-bottom: 15px">Salvar</button>
-<button id="cancelButton" dojoType="dijit.form.Button" type="button" onclick="history.go(-1)" name="cancelButton" style="float: left">Cancelar</button>
-<div id="dropdownButtonContainer2" style="float: left"></div>
+	<button id="saveButton" dojoType="dijit.form.Button" type="submit" name="saveButton" onclick="salvarVenues()" style="float: left; padding-right: 3px; margin-left: 0px; margin-bottom: 15px">Salvar</button>
+	<button id="cancelButton" dojoType="dijit.form.Button" type="button" onclick="history.go(-1)" name="cancelButton" style="float: left">Cancelar</button>
+	<div id="dropdownButtonContainer2" style="float: left"></div>
 </article>
 </body>
 </html>

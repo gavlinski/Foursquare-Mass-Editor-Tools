@@ -9,7 +9,7 @@
  * @package		 Foursquare-Mass-Editor-Tools
  * @author		 Elio Gavlinski <gavlinski@gmail.com>
  * @copyright	 Copyleft (c) 2011-2012
- * @version		 1.1
+ * @version		 2.1.1
  * @link			 https://github.com/gavlinski/Foursquare-Mass-Editor-Tools/blob/master/flag_csv.php
  * @since			 File available since Release 1.1
  * @license		 GPLv3 <http://www.gnu.org/licenses/gpl.txt>
@@ -40,7 +40,7 @@ if (isset($_SESSION["oauth_token"])) {
 	<h2>Sinalizar venues</h2>
 </header>
 <article>
-	<p>Antes de sinalizar as venues, n&atilde;o deixe de ler nosso <a href="javascript:showDialog_guia();">guia de estilo</a> e as <a href="https://pt.foursquare.com/info/houserules" target="_blank">regras da casa</a>.</p>
+	<p>Antes de sinalizar as venues, n&atilde;o deixe de ler nosso <a id="guia" href="javascript:showDialogGuia();">guia de estilo</a> e as <a id="regras" href="https://pt.foursquare.com/info/houserules" target="_blank">regras da casa</a>.</p>
 </article>
 <article>
 <div id="listContainer">
@@ -56,9 +56,9 @@ if (array_key_exists("address", $file[0])) {
 	$hasAddress = false;
 }
 if (array_key_exists("crossStreet", $file[0])) {
-	$hasCross = true;
+	$hasCrossStreet = true;
 } else {
-	$hasCross = false;
+	$hasCrossStreet = false;
 }
 if (array_key_exists("city", $file[0])) {
 	$hasCity = true;
@@ -75,10 +75,10 @@ if (array_key_exists("zip", $file[0])) {
 } else {
 	$hasZip = false;
 }
-if (array_key_exists("twitter", $file[0])) {
-	$hasTwitter = true;
+if (array_key_exists("parentId", $file[0])) {
+	$hasParentId = true;
 } else {
-	$hasTwitter = false;
+	$hasParentId = false;
 }
 if (array_key_exists("phone", $file[0])) {
 	$hasPhone = true;
@@ -90,20 +90,45 @@ if (array_key_exists("url", $file[0])) {
 } else {
 	$hasUrl = false;
 }
-if (array_key_exists("description", $file[0])) {
-	$hasDesc = true;
+if (array_key_exists("twitter", $file[0])) {
+	$hasTwitter = true;
 } else {
-	$hasDesc = false;
+	$hasTwitter = false;
 }
-if (array_key_exists("ll", $file[0])) {
-	$hasLl = true;
+if (array_key_exists("facebook", $file[0])) {
+	$hasfacebook = true;
 } else {
-	$hasLl = false;
+	$hasfacebook = false;
+}
+if (array_key_exists("description", $file[0])) {
+	$hasDescription = true;
+} else {
+	$hasDescription = false;
+}
+if (array_key_exists("venuell", $file[0])) {
+	$hasVenuell = true;
+} else {
+	$hasVenuell = false;
 }
 if (array_key_exists("categoryId", $file[0])) {
 	$hasCategoryId = true;
 } else {
 	$hasCategoryId = false;
+}
+if (array_key_exists("primaryCategoryId", $file[0])) {
+	$hasPrimaryCategoryId = true;
+} else {
+	$hasPrimaryCategoryId = false;
+}
+if (array_key_exists("addCategoryIds", $file[0])) {
+	$hasAddCategoryIds = true;
+} else {
+	$hasAddCategoryIds = false;
+}
+if (array_key_exists("removeCategoryIds", $file[0])) {
+	$hasRemoveCategoryIds = true;
+} else {
+	$hasRemoveCategoryIds = false;
 }
 
 $i = 0;
@@ -132,63 +157,88 @@ foreach ($file as $f) {
 	}
 
 	if ($hasName) {
-		$name = htmlentities($f['name']);
-		echo '<input type="text" dojoType="dijit.form.TextBox" name="name" value="', $name, '" placeHolder="Nome" style="width: 9em; margin-left: 5px;" disabled>', chr(10);
+		$name = htmlentities($f['name'], ENT_QUOTES, 'utf-8');
+		echo '<input type="text" dojoType="dijit.form.TextBox" name="name" value="', $name, '" placeHolder="Nome" style="width: 11em; margin-left: 5px;" disabled>', chr(10);
 	}
 
 	if ($hasAddress) {
-		$address = htmlentities($f['address']);
-		echo '<input type="text" dojoType="dijit.form.TextBox" name="address" value="', $address, '" placeHolder="Endere&ccedil;o" style="width: 9em; margin-left: 5px;" disabled>', chr(10);
+		$address = htmlentities($f['address'], ENT_QUOTES, 'utf-8');
+		echo '<input type="text" dojoType="dijit.form.TextBox" name="address" value="', $address, '" placeHolder="Endere&ccedil;o" style="width: 11em; margin-left: 5px;" disabled>', chr(10);
 	}
 
-	if ($hasCross) {
-		$crossStreet = htmlentities($f['crossStreet']);
-		echo '<input type="text" dojoType="dijit.form.TextBox" name="crossStreet" value="', $crossStreet, '" placeHolder="Rua Cross" style="width: 9em; margin-left: 5px;" disabled>', chr(10);
+	if ($hasCrossStreet) {
+		$crossStreet = htmlentities($f['crossStreet'], ENT_QUOTES, 'utf-8');
+		echo '<input type="text" dojoType="dijit.form.TextBox" name="crossStreet" value="', $crossStreet, '" placeHolder="Rua transversal" style="width: 9em; margin-left: 5px;" disabled>', chr(10);
 	}
 
 	if ($hasCity) {
-		$city = htmlentities($f['city']);
-		echo '<input type="text" dojoType="dijit.form.TextBox" name="city" value="', $city, '" placeHolder="Cidade" style="width: 9em; margin-left: 5px;" disabled>', chr(10);
+		$city = htmlentities($f['city'], ENT_QUOTES, 'utf-8');
+		echo '<input type="text" dojoType="dijit.form.TextBox" name="city" value="', $city, '" placeHolder="Cidade" style="width: 7em; margin-left: 5px;" disabled>', chr(10);
 	}
 
 	if ($hasState) {
-		$state = htmlentities($f['state']);
+		$state = htmlentities($f['state'], ENT_QUOTES, 'utf-8');
 		echo '<input type="text" dojoType="dijit.form.TextBox" name="state" value="', $state, '" placeHolder="UF" style="width: 2.5em; margin-left: 5px;" disabled>', chr(10);
 	}
 
 	if ($hasZip) {
 		$zip = $f['zip'];
-		echo '<input type="text" dojoType="dijit.form.TextBox" name="zip" value="', $zip, '" placeHolder="CEP" style="width: 6em; margin-left: 5px;" disabled>', chr(10);
+		echo '<input type="text" dojoType="dijit.form.TextBox" name="zip" value="', $zip, '" placeHolder="C&oacute;digo postal" style="width: 7em; margin-left: 5px;" disabled>', chr(10);
 	}
 
-	if ($hasTwitter) {
-		$twitter = $f['twitter'];
-		echo '<input type="text" dojoType="dijit.form.TextBox" name="twitter" value="', $twitter, '" placeHolder="Twitter" style="width: 8em; margin-left: 5px;" disabled>', chr(10);
+	if ($hasParentId) {
+		$parentId = $f['parentId'];
+		echo '<input type="text" dojoType="dijit.form.TextBox" name="parentId" value="', $parentId, '" placeHolder="Dentro" style="width: 14em; margin-left: 5px;" disabled>', chr(10);
 	}
 
 	if ($hasPhone) {
 		$phone = $f['phone'];
-		echo '<input type="text" dojoType="dijit.form.TextBox" name="phone" value="', $phone, '" placeHolder="Telefone" style="width: 8em; margin-left: 5px;" disabled>', chr(10);
+		echo '<input type="text" dojoType="dijit.form.TextBox" name="phone" value="', $phone, '" placeHolder="Telefone" style="width: 7em; margin-left: 5px;" disabled>', chr(10);
 	}
 
 	if ($hasUrl) {
 		$url = $f['url'];
-		echo '<input type="text" dojoType="dijit.form.TextBox" name="url" value="', $url, '" placeHolder="Website" style="width: 9em; margin-left: 5px;" disabled>', chr(10);
+		echo '<input type="text" dojoType="dijit.form.TextBox" name="url" value="', $url, '" placeHolder="Website" style="width: 8em; margin-left: 5px;" disabled>', chr(10);
+	}
+	
+	if ($hasTwitter) {
+		$twitter = $f['twitter'];
+		echo '<input type="text" dojoType="dijit.form.TextBox" name="twitter" value="', $twitter, '" placeHolder="Twitter" style="width: 7em; margin-left: 5px;" disabled>', chr(10);
+	}
+	
+	if ($hasfacebook) {
+		$facebook = $f['facebook'];
+		echo '<input type="text" dojoType="dijit.form.TextBox" name="facebook" value="', $facebook, '" placeHolder="Facebook" style="width: 7em; margin-left: 5px;" disabled>', chr(10);
 	}
 
-	if ($hasDesc) {
+	if ($hasDescription) {
 		$description = htmlentities($f['description']);
-		echo '<input type="text" dojoType="dijit.form.TextBox" name="description" value="', $description, '" placeHolder="Descri&ccedil;&atilde;o" style="width: 9em; margin-left: 5px;" disabled>', chr(10);
+		echo '<input type="text" dojoType="dijit.form.TextBox" name="description" value="', $description, '" placeHolder="Descri&ccedil;&atilde;o" style="width: 8em; margin-left: 5px;" disabled>', chr(10);
 	}
 
-	if ($hasLl) {
-		$ll = $f['ll'];
-		echo '<input type="text" dojoType="dijit.form.TextBox" name="ll" value="', $ll, '" placeHolder="Lat/Long" style="width: 9em; margin-left: 5px;" disabled>', chr(10);
+	if ($hasVenuell) {
+		$venuell = $f['venuell'];
+		echo '<input type="text" dojoType="dijit.form.TextBox" name="venuell" value="', $venuell, '" placeHolder="Lat/Long" style="width: 12em; margin-left: 5px;" disabled>', chr(10);
 	}
 
 	if ($hasCategoryId) {
-		$categoryId = htmlentities($f['categoryId']);
-		echo '<input type="text" dojoType="dijit.form.TextBox" name="categoryId" value="', $categoryId, '" placeHolder="Categorias" style="width: 9em; margin-left: 5px;" disabled>', chr(10);
+		$categoryId = $f['categoryId'];
+		echo '<input type="text" dojoType="dijit.form.TextBox" name="categoryId" value="', $categoryId, '" placeHolder="Categoria(s)" style="width: 14em; margin-left: 5px;" disabled>', chr(10);
+	}
+	
+	if ($hasPrimaryCategoryId) {
+		$primaryCategoryId = $f['primaryCategoryId'];
+		echo '<input type="text" dojoType="dijit.form.TextBox" name="primaryCategoryId" value="', $primaryCategoryId, '" placeHolder="Categoria Prim&aacute;ria" style="width: 14em; margin-left: 5px;" disabled>', chr(10);
+	}
+	
+	if ($hasAddCategoryIds) {
+		$addCategoryIds = $f['addCategoryIds'];
+		echo '<input type="text" dojoType="dijit.form.TextBox" name="addCategoryIds" value="', $addCategoryIds, '" placeHolder="Adicionar Categoria(s)" style="width: 14em; margin-left: 5px;" disabled>', chr(10);
+	}
+	
+	if ($hasRemoveCategoryIds) {
+		$removeCategoryIds = $f['removeCategoryIds'];
+		echo '<input type="text" dojoType="dijit.form.TextBox" name="removeCategoryIds" value="', $removeCategoryIds, '" placeHolder="Remover Categoria(s)" style="width: 14em; margin-left: 5px;" disabled>', chr(10);
 	}
 
 	echo '<span id="result', $i - 1, '"></span>', chr(10), '</form>', chr(10), '</section>', chr(10);
@@ -197,10 +247,10 @@ foreach ($file as $f) {
 </div>
 </article>
 <article>
-<div id="dropdownButtonContainer1" style="float: left; padding-right: 3px; margin-left: 0px; margin-bottom: 15px"></div>
-<!--<button id="flagButton" dojoType="dijit.form.Button" type="submit" name="flagButton" onclick="sinalizarVenues()" style="float: left; padding-right: 3px;">Flag</button>-->
-<button id="cancelButton" dojoType="dijit.form.Button" type="button" onclick="history.go(-1)" name="cancelButton" style="float: left">Cancelar</button>
-<div id="dropdownButtonContainer2" style="float: left"></div>
+	<div id="dropdownButtonContainer1" style="float: left; padding-right: 3px; margin-left: 0px; margin-bottom: 15px"></div>
+	<!--<button id="flagButton" dojoType="dijit.form.Button" type="submit" name="flagButton" onclick="sinalizarVenues()" style="float: left; padding-right: 3px;">Flag</button>-->
+	<button id="cancelButton" dojoType="dijit.form.Button" type="button" onclick="history.go(-1)" name="cancelButton" style="float: left">Cancelar</button>
+	<div id="dropdownButtonContainer2" style="float: left"></div>
 </article>
 </body>
 </html>

@@ -5,16 +5,16 @@ dojo.require("dijit.Tooltip");
 dojo.require("dijit.Menu");
 dojo.require("dojo.cookie");
 
-var DATA_VERSIONAMENTO = "20140206";
+var DATA_VERSIONAMENTO = "20141015";
 var MESES = new Array("01", "02", "03", "04", "05", "06", "07", "08", "09", "10", "11", "12");
 
 var oauth_token = dojo.cookie("oauth_token");
 
-var relatorio = new Array();
+var relatorio = [];
 
 var total = 0;
 var timer;
-var categorias = new Array();
+var categorias = [];
 
 function addZero(i) {
 	if (i < 10)
@@ -45,9 +45,9 @@ function atualizarResultado(i, imagem, dica) {
 	}
 }
 
-function xmlhttpRequest(metodo, endpoint, dados, i) {
+function xmlhttpRequest(metodo, endpoint, acao, dados, i) {
 	var xmlhttp = new XMLHttpRequest();
-	var acao = endpoint.substr(-4);
+	var imagem, dica;
 	xmlhttp.onreadystatechange = function() {
 		if (xmlhttp.readyState == 4) {
 			try {
@@ -63,7 +63,7 @@ function xmlhttpRequest(metodo, endpoint, dados, i) {
 					var name = "";
 					if (document.forms[i]["name"] != undefined)
 						name = document.forms[i]["name"].value;
-					var categoryId = new Array();
+					var categoryId = [];
 					if (document.forms[i]["categoryId"] != undefined)
 						categoryId = document.forms[i]["categoryId"].value.split(",", 3);
 					if (acao == "edit")
@@ -92,21 +92,50 @@ function xmlhttpRequest(metodo, endpoint, dados, i) {
 			} else if (xmlhttp.status == 403) {
 				clearTimeout(xmlhttpTimeout);
 				atualizarResultado(i, "<img src='img/erro.png' alt='Erro 403: Forbidden'>", "<span style=\"font-size: 12px\">Erro 403: Forbidden, Tipo: " + resposta.meta.errorType + ",<br>Detalhe: " + resposta.meta.errorDetail + "</span>");
-			} else if (xmlhttp.status == 404) {
-				clearTimeout(xmlhttpTimeout);
-				atualizarResultado(i, "<img src='img/erro.png' alt='Erro 404: Not Found'>", "<span style=\"font-size: 12px\">Erro 404: Not Found</span>");
-			} else if (xmlhttp.status == 405) {
-				clearTimeout(xmlhttpTimeout);
-				atualizarResultado(i, "<img src='img/erro.png' alt='Erro 405: Method Not Allowed'>", "<span style=\"font-size: 12px\">Erro 405: Method Not Allowed</span>");
-			} else if (xmlhttp.status == 409) {
-				clearTimeout(xmlhttpTimeout);
-				atualizarResultado(i, "<img src='img/erro.png' alt='Erro 409: Conflict'>", "<span style=\"font-size: 12px\">Erro 409: Conflict</span>");
-			} else if (xmlhttp.status == 500) {
-				clearTimeout(xmlhttpTimeout);
-				atualizarResultado(i, "<img src='img/erro.png' alt='Erro 500: Internal Server Error'>", "<span style=\"font-size: 12px\">Erro 500: Internal Server Error</span>");
 			} else {
 				clearTimeout(xmlhttpTimeout);
-				atualizarResultado(i, "<img src='img/erro.png' alt='Erro desconhecido: " + xmlhttp.status + "'>", "<span style=\"font-size: 12px\">Erro desconhecido: " + xmlhttp.status + "</span>");
+				switch (xmlhttp.status) {
+				case 400:
+					imagem = "<img src='img/erro.png' alt='Erro 400: Bad Request, Tipo: " + resposta.meta.errorType + ", Detalhe: " + resposta.meta.errorDetail + "'>";
+					dica = "<span style=\"font-size: 12px\">Erro 400: Bad Request, Tipo: " + resposta.meta.errorType + ",<br>Detalhe: " + resposta.meta.errorDetail + "</span>";
+					break;
+				case 401:
+					imagem = "<img src='img/erro.png' alt='Erro 401: Unauthorized, Tipo: " + resposta.meta.errorType + ", Detalhe: " + resposta.meta.errorDetail + "'>";
+					dica = "<span style=\"font-size: 12px\">Erro 401: Unauthorized, Tipo: " + resposta.meta.errorType + ",<br>Detalhe: " + resposta.meta.errorDetail + "</span>";
+					break;
+				case 403:
+					imagem = "<img src='img/erro.png' alt='Erro 403: Forbidden, Tipo: " + resposta.meta.errorType + ", Detalhe: " + resposta.meta.errorDetail + "'>";
+					dica = "<span style=\"font-size: 12px\">Erro 403: Forbidden, Tipo: " + resposta.meta.errorType + ",<br>Detalhe: " + resposta.meta.errorDetail + "</span>";
+					break;
+				case 404:
+					imagem = "<img src='img/erro.png' alt='Erro 404: Not Found'>";
+					dica = "<span style=\"font-size: 12px\">Erro 404: Not Found</span>";
+					break;
+				case 405:
+					imagem = "<img src='img/erro.png' alt='Erro 405: Method Not Allowed'>";
+					dica = "<span style=\"font-size: 12px\">Erro 405: Method Not Allowed</span>";
+					break;
+				case 409:
+					imagem  = "<img src='img/erro.png' alt='Erro 409: Conflict'>";
+					dica = "<span style=\"font-size: 12px\">Erro 409: Conflict</span>";
+					break;
+				case 500:
+					imagem = "<img src='img/erro.png' alt='Erro 500: Internal Server Error'>";
+					dica = "<span style=\"font-size: 12px\">Erro 500: Internal Server Error</span>";
+					break;
+				case 503:
+					imagem = "<img src='img/erro.png' alt='Erro 503: backend read error'>";
+					dica = "<span style=\"font-size: 12px\">Erro 503: backend read error</span>";
+					break;
+				case 504:
+					imagem = "<img src='img/erro.png' alt='Erro 504: Gateway Time-out'>";
+					dica = "<span style=\"font-size: 12px\">Erro 504: Gateway Time-out</span>";
+					break;					
+				default:
+					imagem = "<img src='img/erro.png' alt='Erro desconhecido: " + xmlhttp.status + "'>";
+					dica = "<span style=\"font-size: 12px\">Erro desconhecido: " + xmlhttp.status + "</span>";
+				} // switch
+				atualizarResultado(i, imagem, dica);
 			}
 		}
 	}
@@ -160,56 +189,109 @@ function recuperarNomesCategorias(categoryId, separador) {
 	return nomes;
 }
 
+function adicionarCategoriaPrimaria(textboxValue, categoryId) { 
+	if ((textboxValue in categorias) && (categoryId.length < 3))
+		categoryId.unshift(textboxValue);
+	return categoryId;
+}
+
+function adicionarCategorias(textboxValue, categoryId) {
+	var addCategoryIds = textboxValue.split(",", 3);
+	for (j = 0; j < addCategoryIds.length; j++)
+		if ((addCategoryIds[j] in categorias) && (categoryId.length < 3))
+			categoryId.push(addCategoryIds[j]);
+	return categoryId;
+}
+
+function removerCategorias(textboxValue, categoryId) {
+	var removeCategoryIds = textboxValue.split(",", 3);
+	var index;
+	for (j = 0; j < removeCategoryIds.length; j++)
+		if (removeCategoryIds[j] in categorias) {
+			index = categoryId.indexOf(removeCategoryIds[j]);
+			if (index > -1)
+				categoryId.splice(index, 1);
+		}
+	return categoryId;
+}
+
 function salvarCategoria(i) {
-	categoryId = document.forms[i]["categoryId"].value.split(",", 3);
+	var categoryId = document.forms[i]["categoryId"].value.split(",", 3);
+	var textboxValue;
+	//console.group("Atualizando categorias (" + i + ")");
+	if (document.forms[i]["removeCategoryIds"]) {
+		textboxValue = document.forms[i]["removeCategoryIds"].value;
+		if ((textboxValue != "") && (textboxValue.length > 23)) {
+			categoryId = removerCategorias(textboxValue, categoryId);
+			//console.log("Remove: ", categoryId);
+		}
+	}
+	if (document.forms[i]["primaryCategoryId"]) {
+		textboxValue = document.forms[i]["primaryCategoryId"].value;
+		if ((textboxValue != "") && (textboxValue.length == 24)) {
+			categoryId = adicionarCategoriaPrimaria(textboxValue, categoryId);
+			//console.log("Unshift: ", categoryId);
+		}
+	}
+	if (document.forms[i]["addCategoryIds"]) {
+		textboxValue = document.forms[i]["addCategoryIds"].value;
+		if ((textboxValue != "") && (textboxValue.length > 23)) {
+			categoryId = adicionarCategorias(textboxValue, categoryId);
+			//console.log("Push: ", categoryId);
+		}
+	}
 	if ((categoryId[0] != "") && (categoryId[0] != " ") && (categoryId[0] in categorias)) {
 		dojo.byId("icone" + i).innerHTML = "<img id=catImg" + i + " src='" + categorias[categoryId[0]].icone + "' style='height: 22px; width: 22px; margin-left: 0px'>";
 		createTooltip("catImg" + i, "<span style=\"font-size: 12px\">" + recuperarNomesCategorias(categoryId, ", ") + "</span>");
-	} else {
+	} else if ((categoryId[0] == "") || (categoryId[0] == undefined)) {
 		dojo.byId("icone" + i).innerHTML = "<img id=catImg" + i + " src='https://foursquare.com/img/categories_v2/none_bg_32.png' style='height: 22px; width: 22px; margin-left: 0px'>";
 	}
+	//console.groupEnd();
 }
 
 function atualizarCategorias() {
 	var totalLinhas = document.forms.length;
-	var nomes;
 	for (i = 0; i < totalLinhas; i++) {
-		salvarCategoria(i);
+		salvarCategoria(i, "categoryId");
 	}
 }
 
 function salvarVenues() {
 	total = 0;
 	dijit.byId("saveButton").setAttribute("disabled", true);
-	var venue, dados, categoryId, ll, elementName;
+	var venueId, dados, elementName;
 	console.info("Enviando dados...");
 	var totalLinhas = document.forms.length;
 	for (i = 0; i < totalLinhas; i++) {
-		venue = document.forms[i]["venue"].value;
 		dados = "oauth_token=" + oauth_token;
 		//var form = dojo.formToObject("form" + (i + 1));
 		//console.info(dojo.toJson(form, true));
 		var totalColunas = document.forms[i].elements.length;
 		for (j = 1; j < totalColunas; j++) {
 			elementName = document.forms[i].elements[j].name;
-			if ((elementName != "ll") && (elementName != "categoryId") &&
-					((elementName == "name") || (elementName == "address") || (elementName == "crossStreet") || (elementName == "city") || (elementName == "state") || (elementName == "zip") || (elementName == "twitter") || (elementName == "phone") || (elementName == "url") || (elementName == "description")))
-				dados += "&" + elementName + "=" + document.forms[i].elements[j].value.replace(/&/g, "%26");
-			else if (elementName == "categoryId") {
-				categoryId = document.forms[i]["categoryId"].value;
-				if (categoryId != null && categoryId != "")
-					dados += "&categoryId=" + document.forms[i]["categoryId"].value;
-			} else if (elementName == "ll") {
-				ll = document.forms[i]["ll"].value;
+			if (['name', 'address', 'crossStreet', 'city', 'state', 'parentId', 'zip', 'phone', 'url', 'twitter', 'description'].indexOf(elementName) > -1)
+				dados += "&" + elementName + "=" + encodeURIComponent(document.forms[i].elements[j].value);
+			else if (elementName == "facebook") {
+				var facebookUsername = document.forms[i].elements[j].value;
+				if ((facebookUsername != null) && (facebookUsername != ""))
+					dados += "&facebookUrl=" + encodeURIComponent("http://facebook.com/" + facebookUsername);
+			} else if (elementName == "venuell") {
+				var ll = document.forms[i]["venuell"].value;
 				if (ll != null && ll != "")
-					dados += "&ll=" + document.forms[i]["ll"].value;
+					dados += "&venuell=" + encodeURIComponent(ll.replace(/ /g, ""));
+			} else if (['primaryCategoryId', 'addCategoryIds', 'removeCategoryIds'].indexOf(elementName) > -1) {
+				var id = document.forms[i].elements[j].value;
+				if (id != null && id != "")
+					dados += "&" + elementName + "=" + id;
 			}
 		}
 		dados += "&v=" + DATA_VERSIONAMENTO;
-		//console.group("venue=" + venue + " (" + i + ")");
+		venueId = document.forms[i]["venue"].value;
+		//console.group("venue=" + venueId + " (" + i + ")");
 		//console.log(dados);
 		//console.groupEnd();
-		xmlhttpRequest("POST", "https://api.foursquare.com/v2/venues/" + venue + "/edit", dados, i);
+		var acao = "proposeedit";
+		xmlhttpRequest("POST", "https://api.foursquare.com/v2/venues/" + venueId + "/" + acao, "edit", dados, i);
 		dojo.byId("result" + i).innerHTML = "<img src='img/loading.gif' alt='Enviando dados...'>";
 	}
 	console.info("Dados enviados!");
@@ -218,16 +300,16 @@ function salvarVenues() {
 function sinalizarVenues(problema) {
 	total = 0;
 	dijit.byId("flagButton").setAttribute("disabled", true);
-	var venue, dados;
+	var venueId, dados;
 	console.info("Enviando dados...");
 	var totalLinhas = document.forms.length;
 	for (i = 0; i < totalLinhas; i++) {
-		venue = document.forms[i]["venue"].value;
 		dados = "oauth_token=" + oauth_token + "&problem=" + problema + "&v=" + DATA_VERSIONAMENTO;
-		//console.group("venue=" + venue + " (" + i + ")");
+		venueId = document.forms[i]["venue"].value;
+		//console.group("venue=" + venueId + " (" + i + ")");
 		//console.log(dados);
 		//console.groupEnd();
-		xmlhttpRequest("POST", "https://api.foursquare.com/v2/venues/" + venue + "/flag", dados, i);
+		xmlhttpRequest("POST", "https://api.foursquare.com/v2/venues/" + venueId + "/flag", dados, i);
 		dojo.byId("result" + i).innerHTML = "<img src='img/loading.gif' alt='Enviando dados...'>";
 	}
 	console.info("Dados enviados!");
@@ -265,32 +347,105 @@ function pad(str, len, pad, dir) {
 
 var dlg_guia;
 dojo.addOnLoad(function() {
-	// create the dialog:
+	/*** Valida OAuth Token ***/
+	if (oauth_token == undefined) {
+		console.warn("Token expirado");
+		if (window.confirm('Token expirado. Por favor, autentique-se novamente no Foursquare.'))
+			window.location.href = 'index.php';
+	}
+	
+	/*** Guia de Estilo ***/
 	dlg_guia = new dijit.Dialog({
 		title: "Guia de estilo",
 		style: "width: 435px"
 	});
 	
+	/*** Submenu Sinalizar ***/
 	if (dojo.query('#dropdownButtonContainer1').length != 0) {
 		var menu1 = new dijit.Menu({
 			style: "display: none;"
 		});
+		
 		var menuItem1 = new dijit.MenuItem({
-			label: "Inappropriate",
-			onClick: function() {
-				sinalizarVenues("inappropriate");
-			}
-		});
-		menu1.addChild(menuItem1);
-		var menuItem2 = new dijit.MenuItem({
 			label: "Doesn't exist",
 			onClick: function() {
 				sinalizarVenues("doesnt_exist");
 			}
 		});
+		menu1.addChild(menuItem1);
+		
+		var menuItem2 = new dijit.MenuItem({
+			label: "Event over",
+			onClick: function() {
+				sinalizarVenues("event_over");
+			}
+		});
 		menu1.addChild(menuItem2);
+		
+		var menuItem3 = new dijit.MenuItem({
+			label: "Inappropriate",
+			onClick: function() {
+				sinalizarVenues("inappropriate");
+			}
+		});
+		menu1.addChild(menuItem3);
+		
+		var menuItem4 = new dijit.MenuItem({
+			label: "Closed",
+			onClick: function() {
+				sinalizarVenues("closed");
+			}
+		});
+		menu1.addChild(menuItem4);
+		
+		var menuItem5 = new dijit.MenuItem({
+			label: "Doesn't exist",
+			onClick: function() {
+				sinalizarVenues("doesnt_exist");
+			}
+		});
+		menu1.addChild(menuItem5);
+		
+		/*** Separador (item) ***/
+		menu1.addChild(new dijit.MenuSeparator);
+		
+		var menuItem6 = new dijit.MenuItem({
+			label: "Public",
+			onClick: function() {
+				sinalizarVenues("public");
+			}
+		});
+		menu1.addChild(menuItem6);
+		
+		var menuItem7 = new dijit.MenuItem({
+			label: "Private",
+			onClick: function() {
+				sinalizarVenues("private");
+			}
+		});
+		menu1.addChild(menuItem7);
+		
+		/*** Separador (item) ***/
+		menu1.addChild(new dijit.MenuSeparator);
+		
+		var menuItem8= new dijit.MenuItem({
+			label: "Not Closed",
+			onClick: function() {
+				sinalizarVenues("not_closed");
+			}
+		});
+		menu1.addChild(menuItem8);
+		
+		var menuItem9 = new dijit.MenuItem({
+			label: "Undelete",
+			onClick: function() {
+				sinalizarVenues("un_delete");
+			}
+		});
+		menu1.addChild(menuItem9);
+		
 		var button1 = new dijit.form.DropDownButton({
-			label: "Flag",
+			label: "Sinalizar",
 			name: "menuButton",
 			dropDown: menu1,
 			id: "flagButton"
@@ -331,7 +486,7 @@ dojo.addOnLoad(function() {
 					CATEGORIES_MAX_SIZE = relatorio[i][COL_CATEGORIES].length;
 				(relatorio[i][COL_CATEGORIES].length > 0) ? hasCategory = true : hasCategory = false;
 			}
-			var html = new Array();
+			var html = [];
 			html[0] = "<!DOCTYPE html><html><head><meta http-equiv=\"text/html; charset=utf-8\"></head><body><pre>";
 			if (hasName)
 				html[1] = pad("name", NAME_MAX_SIZE + 1) + pad("action", ACTION_MAX_SIZE + 1) + pad("date", 11) + pad("time", 9) + pad("id", 25);
@@ -350,7 +505,7 @@ dojo.addOnLoad(function() {
 				j++;
 			}
 			html.push("</pre></body></html>");
-			window.location.href = "data:text/csv;charset=utf-8," + encodeURIComponent(arq.join("\r\n"));
+			window.location.href = "data:text/html;charset=utf-8," + encodeURIComponent(html.join("\r\n"));
 		}
 	});
 	menu2.addChild(menu2Item1);	 
@@ -379,13 +534,14 @@ dojo.addOnLoad(function() {
 
 function showDialogGuia() {
 	// set the content of the dialog:
-	dlg_guia.attr("content", "<ul><li><p>Use sempre a ortografia, acentua&ccedil;&atilde;o e as letras mai&uacute;sculas e min&uacute;sculas corretas.</p></li><li><p>Em redes ou venues com v&aacute;rios locais, n&atilde;o &eacute; preciso adicionar um sufixo de local. Portanto, pode deixar &quot;Subway&quot; ou &quot;Loja Americanas&quot; (em vez de &quot;Subway - Ponta Verde&quot; ou &quot;Lojas Americanas - Iguatemi&quot;).</p></li><li><p>Os nomes das venues devem respeitar o grafia original do lugar sem abrevia&ccedil;&otilde;es (principalmente nomes de empresas).</p></li><li><p>Sempre use abrevia&ccedil;&otilde;es nos endere&ccedil;os: &quot;Av.&quot; em vez de &quot;Avenida&quot;, &quot;R.&quot; em vez de &quot;Rua&quot;, etc., observando as <a href='http://www.buscacep.correios.com.br' target='_blank'>diretrizes postais locais</a>.</p></li><li>O preenchimento da Rua Cross &eacute; opcional e deve ser realizado da seguinte forma:<ul><li>R. Bela Cintra (para venues em uma esquina)</li><li>R. Bela Cintra x R. Haddock Lobo (para venues entre duas quadras)</li></ul><br></li><li>Na Rua Cross tamb&eacute;m podem ser inclu&iacute;dos:<ul><li>Bairro, complemento, ponto de refer&ecirc;ncia ou via de acesso (quando relevante)</li><li>Bloco, piso, loja ou setor (para subvenues)</li></ul></li><li><p>Os nomes de Estados devem ser abreviados: &quot;RJ&quot; em vez de &quot;Rio de Janeiro&quot;.</p></li><li><p>Em caso de d&uacute;vida sobre a cria&ccedil;&atilde;o e edi&ccedil;&atilde;o de venues no foursquare, consulte nossas <a href='https://pt.foursquare.com/info/houserules' target='_blank'>regras da casa</a> e as <a href='http://support.foursquare.com/forums/191151-venue-help' target='_blank'>perguntas frequentes sobre venues</a>.</p></li></ul>");
+	dlg_guia.attr("content", "<ul style='width: 415px; padding-left: 18px; margin-top: -10px'><li><p>Use sempre a ortografia, acentua&ccedil;&atilde;o e as letras mai&uacute;sculas e min&uacute;sculas corretas.</p></li><li><p>Em redes ou venues com v&aacute;rios locais, n&atilde;o &eacute; preciso adicionar um sufixo de local. Portanto, pode deixar &quot;Subway&quot; ou &quot;Loja Americanas&quot; (em vez de &quot;Subway - Ponta Verde&quot; ou &quot;Lojas Americanas - Iguatemi&quot;).</p></li><li><p>Os nomes das venues devem respeitar o grafia original do lugar sem abrevia&ccedil;&otilde;es (principalmente nomes de empresas).</p></li><li><p>Sempre use abrevia&ccedil;&otilde;es nos endere&ccedil;os: &quot;Av.&quot; em vez de &quot;Avenida&quot;, &quot;R.&quot; em vez de &quot;Rua&quot;, etc., observando as <a href='http://www.buscacep.correios.com.br' target='_blank'>diretrizes postais locais</a>.</p></li><li><p>O preenchimento da Rua transversal &eacute; opcional no Brasil.</p></li><li>Na Rua transversal tamb&eacute;m podem ser inclu&iacute;dos:<ul style='padding-left: 18px; margin-top: 4px'><li>Complemento, ponto de refer&ecirc;ncia ou via de acesso (quando relevante)</li><li>Bloco, piso, loja ou setor (para subvenues)</li><li>Regi&atilde;o Administrativa (RA) considerada bairro do Distrito Federal</li></ul></li><li><p>Os nomes de Estados devem ser abreviados: &quot;RJ&quot; em vez de &quot;Rio de Janeiro&quot;.</p></li><li><p>Em caso de d&uacute;vida sobre a cria&ccedil;&atilde;o e edi&ccedil;&atilde;o de venues no Foursquare, consulte nossas <a href='https://pt.foursquare.com/info/houserules' target='_blank'>regras da casa</a> e as <a href='http://support.foursquare.com/forums/191151-venue-help' target='_blank'>perguntas frequentes sobre venues</a>.</p></li></ul>");
 	dlg_guia.show();
+	dlg_guia.attr("style", "width: 455px;");
 }
 
 function verificarAlteracao(textbox, i) {
 	dojo.byId("result" + i).innerHTML = "";
 	//console.info("changed: " + textbox.name + ", new value: " + textbox.value);
-	if (textbox.name == "categoryId")
+	if ((textbox.name == "primaryCategoryId") || (textbox.name == "addCategoryIds") || (textbox.name == "removeCategoryIds"))
 		salvarCategoria(i);
 }

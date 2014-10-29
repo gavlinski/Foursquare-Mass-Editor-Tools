@@ -24,10 +24,10 @@ var oauth_token = dojo.cookie("oauth_token");
 var txt = "";
 var json = "";
 
-var csv = new Array();
-var relatorio = new Array();
+var csv = [];
+var relatorio = [];
 
-var categorias = new Array();
+var categorias = [];
 var store = {};
 
 var timer;
@@ -35,11 +35,11 @@ var timer;
 var totalCarregadas = 0;
 var totalNaoCarregadas = 0;
 
-var linhasEditadas = new Array();
+var linhasEditadas = [];
 var totalParaSalvar = 0;
 var totalEditadas = 0;
 
-var linhasSelecionadas = new Array();
+var linhasSelecionadas = [];
 var totalSelecionadas = 0;
 var totalParaSinalizar = 0;
 var totalSinalizadas = 0;
@@ -50,15 +50,16 @@ var totalTimeout = 0;
 
 var actionButton = "";
 
-var locais = new Array();
-var marcadores = new Array();
+var locais = [];
+var marcadores = [];
 var map, bounds;
 var mapaCarregado = false;
 
+var columnsStartIndex = 2;
 var totalInputsHidden = 14;
 var colunas = 0;
 
-var venuellOriginais = new Array();
+var venuellOriginais = [];
 
 function addZero(i) {
 	if (i < 10)
@@ -330,7 +331,7 @@ function atualizarCategorias(nomes, ids, icones) {
 }
 
 function editarCategorias(i) {
-	var nomes = new Array();
+	var nomes = [];
 	var ids =	 "";
 	var icones = "";
 	if (dojo.byId("cid" + i).value != "") {
@@ -350,7 +351,7 @@ function removerCategoria(i) {
 		clearTimeout(timer);
 	timer = setTimeout(function remover() {
 		//console.info('Remover a categoria ' + i);
-		var nomes = new Array();
+		var nomes = [];
 		var ids = "";
 		var icones = "";
 		if ((dojo.byId("categoria1") !== null) && (i != 1)) {
@@ -375,7 +376,7 @@ function removerCategoria(i) {
 function tornarCategoriaPrimaria(i) {
 	clearTimeout(timer);
 	//console.info("Tornar a categoria " + i + " primaria");
-	var nomes = new Array();
+	var nomes = [];
 	var ids = "";
 	var icones = "";
 	nomes.push(dojo.byId("categoria" + i).innerHTML.replace(/,/gi, ""));
@@ -430,8 +431,35 @@ function salvarCategorias() {
 				dojo.byId("cid" + i).value = dojo.byId("catsIds").innerHTML;
 				dojo.byId("cic" + i).value = dojo.byId("catsIcones").innerHTML;
 				dojo.byId("icone" + i).innerHTML = "<a id='catLnk" + i + "' href='javascript:editarCategorias(" + i + ")'><img id=catImg" + i + " src='" + dojo.byId("cic" + i).value.split(",", 1)[0] + "' style='height: 22px; width: 22px; margin-left: 0px'></a>";
-				var index = csv[0].indexOf("categoryId");
-				csv[parseInt(i) + 1][index] = dojo.byId("cid" + i).value;
+				//var index = csv[0].indexOf("categoryId");
+				//csv[parseInt(i) + 1][index] = dojo.byId("cid" + i).value;
+				var categoryIds = dojo.byId("cid" + i).value;
+				var categoriasAtuais = [];
+				if (categorias[i].ids != undefined)
+					categoriasAtuais = categorias[i].ids.split(",");
+				var categoriasNovas = categoryIds.split(",");
+				categoriasRemover = categoriasAtuais.filter(function(val) {
+					return categoriasNovas.indexOf(val) == -1;
+				});
+				if (categoriasRemover.length > 0) {
+					var index = csv[0].indexOf("removeCategoryIds");
+					csv[parseInt(i) + 1][index] = '"' + categoriasRemover.toString() + '"';
+				}
+				if (categoriasAtuais[0] != categoriasNovas[0]) {
+					var index = csv[0].indexOf("primaryCategoryId");
+					csv[parseInt(i) + 1][index] = '"' + categoriasNovas[0] + '"';
+				}
+				try {
+					var index = csv[0].indexOf("addCategoryIds");
+					var addCategoryIds;
+					if ((typeof categoriasNovas[1].ids != undefined) && (categoriasAtuais.indexOf(categoriasNovas[1]) == -1))
+						addCategoryIds = categoriasNovas[1];
+					if ((typeof categoriasNovas[2].ids != undefined) && (categoriasAtuais.indexOf(categoriasNovas[2]) == -1))
+						addCategoryIds += "," + categoriasNovas[2];
+					if (addCategoryIds != "")
+						csv[parseInt(i) + 1][index] = '"' + addCategoryIds + '"';
+				} catch(e) {
+				}
 				dojo.byId("result" + i).innerHTML = "";
 				if (linhasEditadas.indexOf(parseInt(i)) == -1)
 					linhasEditadas.push(parseInt(i));
@@ -543,9 +571,11 @@ function atualizarTabela(venue, i) {
 	}
 	document.forms[i]["name"].value = venue.name;
 	document.forms[i]["venuell"].value = (venue.location.lat + ', ' + venue.location.lng).replace(/undefined/gi, "0.0");
-	linha = venue.id + '&&' + categorias[i].ids;
+	linha = '"' + venue.id + '"';
+	if (modo == DADOS_COMPLETOS) 
+		linha += '&&' + '"' + categorias[i].ids + '"';
 	var elementName;
-	for (j = 2; j < colunas; j++) {
+	for (j = columnsStartIndex; j < colunas; j++) {
 		elementName = document.forms[i].elements[j].name;
 		//console.log(elementName);
 		switch (elementName) {
@@ -652,9 +682,9 @@ function atualizarTabela(venue, i) {
 		document.forms[i]["createdAt"].value = formattedTime(venue.createdAt);
 	var dicaVenue = atualizarDicaVenue(i);
 	createTooltip("venLnk" + i, dicaVenue);
-	(modo == DADOS_COMPLETOS) ? csv[i + 1] = csv[i + 1].concat(document.forms[i]["createdAt"].value + ";" + document.forms[i]["checkinsCount"].value + ";" + document.forms[i]["usersCount"].value + ";" + document.forms[i]["tipCount"].value + ";" + document.forms[i]["photosCount"].value + ";" + document.forms[i]["isClosed"].value + ";" + document.forms[i]["isPrivate"].value + ";" + document.forms[i]["isDeleted"].value) : csv[i + 1] = csv[i + 1].concat(document.forms[i]["checkinsCount"].value + ";" + document.forms[i]["usersCount"].value + ";" + document.forms[i]["tipCount"].value);
+	(modo == DADOS_COMPLETOS) ? csv[i + 1] = csv[i + 1].concat("", "", "", document.forms[i]["createdAt"].value + ";" + document.forms[i]["checkinsCount"].value + ";" + document.forms[i]["usersCount"].value + ";" + document.forms[i]["tipCount"].value + ";" + document.forms[i]["likesCount"].value + ";" + document.forms[i]["listedCount"].value + ";" + document.forms[i]["photosCount"].value + ";" + document.forms[i]["isClosed"].value + ";" + document.forms[i]["isPrivate"].value + ";" + document.forms[i]["isDeleted"].value) : csv[i + 1] = csv[i + 1].concat(document.forms[i]["checkinsCount"].value + ";" + document.forms[i]["usersCount"].value + ";" + document.forms[i]["tipCount"].value);
 	if (totalCarregadas == document.forms.length - totalNaoCarregadas) {
-		(modo == DADOS_COMPLETOS) ? csv[0] = csv[0].concat("createdAt;checkins;users;tips;photos;closed;private;deleted") : csv[0] = csv[0].concat("checkins;users;tips");
+		(modo == DADOS_COMPLETOS) ? csv[0] = csv[0].concat("createdAt;checkins;users;tips;likes;listed;photos;closed;private;deleted") : csv[0] = csv[0].concat("checkins;users;tips");
 		if (dojo.query("input[name=selecao]:enabled").length == 0)
 			dijit.byId("menuSelecionar").setAttribute('disabled', true);
 	}
@@ -820,32 +850,32 @@ function salvarVenues() {
 			} else if ((elementName == "description") && (document.forms[i]["description"].readOnly == false)) {
 				var index = csv[0].indexOf("description");
 				dados += "&description=" + encodeURIComponent(csv[i + 1][index].slice(1, -1));
-			} else if ((elementName == "categoryId") && (modo == DADOS_COMPLETOS)){
-				var categoryIds = document.forms[i]["categoryId"].value;
-				if ((categoryIds != null) && (categoryIds != "")) {
-					var categoriasAtuais = new Array();
-					if (categorias[i].ids != undefined)
-						categoriasAtuais = categorias[i].ids.split(",");
-					var categoriasNovas = categoryIds.split(",");
-					categoriasRemover = categoriasAtuais.filter(function(val) {
-						return categoriasNovas.indexOf(val) == -1;
-					});
-					if (categoriasRemover.length > 0)
-						dados += "&removeCategoryIds=" + categoriasRemover.toString();
-					if (categoriasAtuais[0] != categoriasNovas[0])
-						dados += "&primaryCategoryId=" + categoriasNovas[0];
-					try {
-						if ((typeof categoriasNovas[1].ids != undefined) && (categoriasAtuais.indexOf(categoriasNovas[1]) == -1))
-							dados += "&addCategoryIds=" + categoriasNovas[1];
-						if ((typeof categoriasNovas[2].ids != undefined) && (categoriasAtuais.indexOf(categoriasNovas[2]) == -1))
-							dados += "&addCategoryIds=" + categoriasNovas[2];
-					} catch(e) {
-					}
+			}
+		}
+		var ll = document.forms[i]["venuell"].value;
+		if ((ll != null) && (ll != "") && (ll != venuellOriginais[i]))
+			dados += "&venuell=" + encodeURIComponent(ll.replace(/ /g, ""));
+		if (modo == DADOS_COMPLETOS) {
+			var categoryIds = document.forms[i]["categoryId"].value;
+			if ((categoryIds != null) && (categoryIds != "")) {
+				var categoriasAtuais = [];
+				if (categorias[i].ids != undefined)
+					categoriasAtuais = categorias[i].ids.split(",");
+				var categoriasNovas = categoryIds.split(",");
+				categoriasRemover = categoriasAtuais.filter(function(val) {
+					return categoriasNovas.indexOf(val) == -1;
+				});
+				if (categoriasRemover.length > 0)
+					dados += "&removeCategoryIds=" + categoriasRemover.toString();
+				if (categoriasAtuais[0] != categoriasNovas[0])
+					dados += "&primaryCategoryId=" + categoriasNovas[0];
+				try {
+					if ((typeof categoriasNovas[1].ids != undefined) && (categoriasAtuais.indexOf(categoriasNovas[1]) == -1))
+						dados += "&addCategoryIds=" + categoriasNovas[1];
+					if ((typeof categoriasNovas[2].ids != undefined) && (categoriasAtuais.indexOf(categoriasNovas[2]) == -1))
+						dados += "," + categoriasNovas[2];
+				} catch(e) {
 				}
-			} else if (elementName == "venuell") {
-				var ll = document.forms[i]["venuell"].value;
-				if ((ll != null) && (ll != "") && (ll != venuellOriginais[i]))
-					dados += "&venuell=" + encodeURIComponent(ll.replace(/ /g, ""));
 			}
 		}
 		var comentario = encodeURIComponent(dijit.byId("textareaComment").value);
@@ -1130,7 +1160,7 @@ dojo.addOnLoad(function inicializar() {
 	
 	var elementName;	
 	var nomeCampo;
-	var options = new Array();
+	var options = [];
 	var select = dijit.byId("selectEditField");
 	var subMenu2Item;
 	if (json == "") { // modo == DADOS_COMPLETOS
@@ -1138,7 +1168,7 @@ dojo.addOnLoad(function inicializar() {
 			label: "Categorias",
 			id: "menu2ItemCategories",
 			onClick: function() {
-				atualizarCategorias(new Array(), "", "");
+				atualizarCategorias([], "", "");
 				dijit.byId("dlg_cats").show();
 				dijit.byId("editAllCheckbox").attr("checked", true);
 				dijit.byId("editAllCheckbox").attr("disabled", true);
@@ -1170,6 +1200,8 @@ dojo.addOnLoad(function inicializar() {
 		options.push({ value: elementName, label: nomeCampo, selected: false });
 		csv[0] = csv[0].concat(elementName);
 	}
+	if (json == "") // modo == DADOS_COMPLETOS
+		csv[0] = csv[0].concat("primaryCategoryId", "addCategoryIds", "removeCategoryIds");
 	select.addOption(options);
 	
 	var menuItem2 = new dijit.PopupMenuItem({
@@ -1404,7 +1436,7 @@ dojo.addOnLoad(function inicializar() {
 				if (relatorio[i][COL_COMMENTS].length > 0)
 					comments = true;
 			}
-			var html = new Array();
+			var html = [];
 			html[0] = "<!DOCTYPE html><html><head><meta http-equiv=\"text/html; charset=utf-8\"></head><body><pre>";
 			html[1] = pad("name", NAME_MAX_SIZE + 1) + pad("action", ACTION_MAX_SIZE + 1) + pad("date", 11) + pad("time", 9) + pad("id", 24);
 			if ((json == "") && (comments))
@@ -1505,7 +1537,7 @@ function showDialogEditField(field) {
 function verificarAlteracao(textbox, i) {
 	var index = csv[0].indexOf(textbox.name);
 	if (csv[i + 1][index].slice(1, -1) != textbox.value) {
-		//console.info("changed: " + textbox.name + ", old value: " + csv[i + 1][index].slice(1, -1) + ", new value: " + textbox.value);
+		//console.info("changed (" + i + "): " + textbox.name + ", old value: " + csv[i + 1][index].slice(1, -1) + ", new value: " + textbox.value);
 		csv[i + 1][index] = '"' + textbox.value + '"';
 		dojo.byId("result" + i).innerHTML = "";
 		if (linhasEditadas.indexOf(i) == -1)
