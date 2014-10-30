@@ -249,8 +249,7 @@ function pesquisarVenues($params) {
 		exit;
 	} else {
 		$pbar->hide();
-		echo TEMPLATE1 . '<p><b>Erro:</b> Desconhecido</p>
-<p><b>Detalhe:</b> Desconhecido</p>
+		echo TEMPLATE1 . '<p><b>Ocorreu um erro desconhecido. Por favor, tente novamente. Caso o problema persista, reinicie o seu navegador.</p>
 ' . TEMPLATE2;
 		exit;
 	}

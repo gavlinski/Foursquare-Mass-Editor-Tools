@@ -890,10 +890,13 @@ function salvarVenues() {
 				if (categoriasAtuais[0] != categoriasNovas[0])
 					dados += "&primaryCategoryId=" + categoriasNovas[0];
 				try {
-					if ((typeof categoriasNovas[1].ids != undefined) && (categoriasAtuais.indexOf(categoriasNovas[1]) == -1))
+					if ((typeof categoriasNovas[1].ids != undefined) && (categoriasAtuais.indexOf(categoriasNovas[1]) == -1)) {
 						dados += "&addCategoryIds=" + categoriasNovas[1];
-					if ((typeof categoriasNovas[2].ids != undefined) && (categoriasAtuais.indexOf(categoriasNovas[2]) == -1))
-						dados += "," + categoriasNovas[2];
+						if ((typeof categoriasNovas[2].ids != undefined) && (categoriasAtuais.indexOf(categoriasNovas[2]) == -1))
+							dados += "," + categoriasNovas[2];
+					} else if ((typeof categoriasNovas[2].ids != undefined) && (categoriasAtuais.indexOf(categoriasNovas[2]) == -1)) {
+						dados += "&addCategoryIds=" + categoriasNovas[2];
+					}
 				} catch(e) {
 				}
 			}
