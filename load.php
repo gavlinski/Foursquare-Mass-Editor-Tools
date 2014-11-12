@@ -9,11 +9,19 @@
  * @package		 Foursquare-Mass-Editor-Tools
  * @author		 Elio Gavlinski <gavlinski@gmail.com>
  * @copyright	 Copyleft (c) 2011-2012
- * @version		 2.2.0
+ * @version		 2.2.1
  * @link			 https://github.com/gavlinski/Foursquare-Mass-Editor-Tools/blob/master/load.php
  * @since			 File available since Release 1.1
  * @license		 GPLv3 <http://www.gnu.org/licenses/gpl.txt>
  */
+ 
+/**
+ * Variáveis de Sessão:
+ *
+ * $_SESSION["file"]) = URL completa, caso informada
+ * $_SESSION["venues"] = IDs parseados das venues
+ * $_SESSION["campos"] = Campos editáveis
+*/
 
 if (!isset($_SESSION))
 	session_start();
@@ -102,6 +110,20 @@ if (isset($_FILES['txt']['tmp_name'])) {
 			$_SESSION["campos"] = $_POST["campos3"];
 		else
 			$_SESSION["campos"] = null;
+		setLocalCache("txt", implode('%0A,', $_SESSION["file"]), "venues");
+		echo EDIT;
+	}
+} else if (isset($_GET["venues"])) {
+	$lista = explode(",", $_GET["venues"]);
+	$_SESSION["file"] = validarVenues($lista);
+	if ($_SESSION["file"] == false) {
+		$p->hide();
+		echo ERRO03;
+		exit;
+	} else {
+		$_SESSION["campos"] = array("nome", "endereco", "ruatransversal", "cidade",
+			"estado", "codigopostal", "dentro", "telefone", "sitedaweb", "twitter",
+			"facebook", "descricao", "latlng");
 		setLocalCache("txt", implode('%0A,', $_SESSION["file"]), "venues");
 		echo EDIT;
 	}
