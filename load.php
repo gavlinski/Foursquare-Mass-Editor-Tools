@@ -5,14 +5,14 @@
  *
  * Carrega venues a partir de um endereço web, arquivo de texto ou IDs
  *
- * @category	 Foursquare
- * @package		 Foursquare-Mass-Editor-Tools
- * @author		 Elio Gavlinski <gavlinski@gmail.com>
- * @copyright	 Copyleft (c) 2011-2012
- * @version		 2.2.1
- * @link			 https://github.com/gavlinski/Foursquare-Mass-Editor-Tools/blob/master/load.php
- * @since			 File available since Release 1.1
- * @license		 GPLv3 <http://www.gnu.org/licenses/gpl.txt>
+ * @category   Foursquare
+ * @package    Foursquare-Mass-Editor-Tools
+ * @author     Elio Gavlinski <gavlinski@gmail.com>
+ * @copyright  Copyleft (c) 2011-2012
+ * @version    2.2.2
+ * @link       https://github.com/gavlinski/Foursquare-Mass-Editor-Tools/blob/master/load.php
+ * @since      File available since Release 1.1
+ * @license    GPLv3 <http://www.gnu.org/licenses/gpl.txt>
  */
  
 /**
@@ -56,9 +56,9 @@ define("TEMPLATE2", '<p><button dojoType="dijit.form.Button" type="button" oncli
 define("ERRO01", TEMPLATE1 . '<p>O limite da API &eacute; de 500 requisi&ccedil;&otilde;es por hora por conjunto de endpoints por OAuth.</p>
 <p>Reduza a quantidade de linhas e tente novamente.</p>
 ' . TEMPLATE2);
-define("ERRO02", TEMPLATE1 . '<p>Erro na leitura do ID ou URL de uma das venues.</p>
-<p>Verifique o arquivo ou a lista e tente novamente.</p>
-' . TEMPLATE2);
+//define("ERRO02", TEMPLATE1 . '<p>Erro na leitura do ID ou URL de uma das venues.</p>
+//<p>Verifique o arquivo ou a lista e tente novamente.</p>
+//' . TEMPLATE2);
 define("ERRO03", TEMPLATE1 . '<p>Nenhuma venue encontrada no endere&ccedil;o informado.</p>
 <p>Verifique a p&aacute;gina e tente novamente.</p>
 ' . TEMPLATE2);
@@ -72,7 +72,7 @@ define("EDIT", '<script>
 	window.location = "edit.php"
 </script>;');
 
-// Importação de dados de um arquivo texto
+/*** Importação de dados de um arquivo texto ***/
 if (isset($_FILES['txt']['tmp_name'])) {
 	$arquivo = $_FILES['txt']['tmp_name'];
 	if (is_uploaded_file($arquivo)) {
@@ -82,7 +82,7 @@ if (isset($_FILES['txt']['tmp_name'])) {
 		echo EDIT;
 	}
 
-// Importação de lista de uma página web
+/*** Importação de lista de uma página web ***/
 } else if (isset($_POST["pagina"])) {
 	$pagina = $_POST["pagina"];
 	if ($pagina != "") {
@@ -97,7 +97,7 @@ if (isset($_FILES['txt']['tmp_name'])) {
 		}
 	}
 
-// IDs ou URLs informados manualmente
+/*** IDs ou URLs informados manualmente ***/
 } else if ((isset($_POST["textarea"])) && ($_POST["textarea"] != "")) {
 	$lista = explode("\n", $_POST["textarea"]);
 	$_SESSION["file"] = validarVenues($lista);
@@ -134,7 +134,7 @@ if (isset($_FILES['txt']['tmp_name'])) {
 function filtrarArray($array) {
 	foreach ($array as $i => &$value) {
 		$value = trim($value);
-		if (strlen($value) < 24)
+		if (((strlen($value) < 24) || (strlen(basename($value)) != 24) ||  (!ctype_xdigit(basename($value)))))
 			unset($array[$i]);
 	}
 	unset($value);
@@ -145,7 +145,7 @@ function filtrarArrayPorId($array) {
 	$new_array = array();
 	foreach ($array as $i => &$value) {
 		$vid = basename($value);
-		if (!in_array($vid, $new_array))
+		if ((strlen($vid) == 24) && ((!in_array($vid, $new_array)) && (ctype_xdigit($vid))))
 			$new_array[] = $vid;
 		else
 			unset($array[$i]);
@@ -210,16 +210,18 @@ function validarVenues($lines) {
 		foreach ($lines as &$line) {
 			$line = trim($line);
 			$length = strlen($line);
-			if ((stripos($line, "foursquare.com/v") === false) && ($length > 25)) {
-				$p->hide();
-				echo ERRO02;
-				exit;
-			}
+			//if ((stripos($line, "foursquare.com/v") === false) && ($length > 25)) {
+				//$p->hide();
+				//echo ERRO02;
+				//exit;
+			//}
 			if ($length > 24) {
 				$l = $length - 2;
 				if ($line[$l] === "/")
 					$line = substr($line, 0, $l);
+				$line = str_replace("/edit_history", "", $line);
 				$line = str_replace("/edit", "", $line);
+				$line = str_replace("/history", "", $line);
 				//$venues[$i] = substr($line, strrpos($line, "/") + 1, 24);
 				$venues[$i] = basename($line);
 			} else if ($length == 24) {

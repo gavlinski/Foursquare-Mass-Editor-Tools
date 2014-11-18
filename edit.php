@@ -5,14 +5,14 @@
  *
  * Edição de venues a partir dos campos e dados recebidos do load.php
  *
- * @category	 Foursquare
- * @package		 Foursquare-Mass-Editor-Tools
- * @author		 Elio Gavlinski <gavlinski@gmail.com>
- * @copyright	 Copyleft (c) 2011-2014
- * @version		 2.2.0
- * @link			 https://github.com/gavlinski/Foursquare-Mass-Editor-Tools/blob/master/edit.php
- * @since			 File available since Release 0.5
- * @license		 GPLv3 <http://www.gnu.org/licenses/gpl.txt>
+ * @category   Foursquare
+ * @package    Foursquare-Mass-Editor-Tools
+ * @author     Elio Gavlinski <gavlinski@gmail.com>
+ * @copyright  Copyleft (c) 2011-2014
+ * @version    2.2.2
+ * @link       https://github.com/gavlinski/Foursquare-Mass-Editor-Tools/blob/master/edit.php
+ * @since      File available since Release 0.5
+ * @license    GPLv3 <http://www.gnu.org/licenses/gpl.txt>
  */
 
 if (!isset($_SESSION))
@@ -246,9 +246,11 @@ foreach ($file as $f) {
 </article>
 <!-- Botoes Salvar, Cancelar e Mais -->
 <article>
-	<button id="saveButton" dojoType="dijit.form.Button" type="submit" name="saveButton" onclick="javascript:showDialogComment(this.name)" style="float: left; padding-right: 3px; margin-left: 0px; margin-bottom: 15px" disabled>Salvar</button>
-	<button id="cancelButton" dojoType="dijit.form.Button" type="button" onclick="history.go(-1)" name="cancelButton" style="float: left; padding-right: 3px;">Cancelar</button>
-	<div id="dropdownButtonContainer" style="float: left"></div>
+	<div id="fixedtray">
+		<button id="saveButton" dojoType="dijit.form.Button" type="submit" name="saveButton" onclick="javascript:showDialogComment(this.name)" style="float: left; padding-right: 3px;" disabled>Salvar</button>
+		<button id="cancelButton" dojoType="dijit.form.Button" type="button" onclick="history.go(-1)" name="cancelButton" style="float: left; padding-right: 3px;">Cancelar</button>
+		<div id="dropdownButtonContainer" style="float: left"></div>
+	</div>
 </article>
 <!-- Janela de Edicao das Categorias -->
 <div data-dojo-type="dijit.Dialog" id="dlg_cats" data-dojo-props='title:"Categorias"'>

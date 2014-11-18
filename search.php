@@ -5,14 +5,14 @@
  *
  * Pesquisa venues utilizando a API https://api.foursquare.com/v2/venues/search
  *
- * @category	 Foursquare
- * @package		 Foursquare-Mass-Editor-Tools
- * @author		 Elio Gavlinski <gavlinski@gmail.com>
- * @copyright	 Copyleft (c) 2012
- * @version		 2.2.0
- * @link			 https://github.com/gavlinski/Foursquare-Mass-Editor-Tools/blob/master/search.php
- * @since			 File available since Release 1.5
- * @license		 GPLv3 <http://www.gnu.org/licenses/gpl.txt
+ * @category   Foursquare
+ * @package    Foursquare-Mass-Editor-Tools
+ * @author     Elio Gavlinski <gavlinski@gmail.com>
+ * @copyright  Copyleft (c) 2012
+ * @version    2.2.0
+ * @link       https://github.com/gavlinski/Foursquare-Mass-Editor-Tools/blob/master/search.php
+ * @since      File available since Release 1.5
+ * @license    GPLv3 <http://www.gnu.org/licenses/gpl.txt
  */
 
 if (!isset($_SESSION))
@@ -249,7 +249,7 @@ function pesquisarVenues($params) {
 		exit;
 	} else {
 		$pbar->hide();
-		echo TEMPLATE1 . '<p><b>Ocorreu um erro desconhecido. Por favor, tente novamente. Caso o problema persista, reinicie o seu navegador.</p>
+		echo TEMPLATE1 . '<p>Ocorreu um erro desconhecido. Por favor, tente novamente. Caso o problema persista, reinicie o seu navegador.</p>
 ' . TEMPLATE2;
 		exit;
 	}

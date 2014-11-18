@@ -241,7 +241,7 @@ a:hover {
 	background-color: #F7F6F6;
 	border: 1px solid #cccccc;
 	font-size: 12px;
-	margin-bottom: 6px;
+	margin-bottom: 38px;
 	border-radius: 5px;
 	-webkit-border-radius: 5px;
 	-moz-border-radius: 5px;
@@ -349,4 +349,12 @@ a:hover {
 }
 .dj_webkit .dijitTextBoxDisabled input {
 	color: gray;
+}
+#fixedtray {
+	position: fixed;
+	left: 0;
+	bottom: 0;
+	display: block;
+	background: rgba(255, 255, 255, 0.9);
+	padding: 5px;
 }
