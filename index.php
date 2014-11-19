@@ -83,7 +83,10 @@
 			setcookie("coordinates", $coordinates, time()+60*60*24*1);
 		}
 		
-		header('Location: main.php');
+		if (isset($_SESSION["venues"]))
+			header('Location: load.php');
+		else
+			header('Location: main.php');
 	}
 ?>
 

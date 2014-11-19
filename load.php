@@ -18,13 +18,16 @@
 /**
  * Variáveis de Sessão:
  *
- * $_SESSION["file"]) = URL completa, caso informada
- * $_SESSION["venues"] = IDs parseados das venues
- * $_SESSION["campos"] = Campos editáveis
+ * $_SESSION["file"]) = Array com as URLs completas, caso informadas
+ * $_SESSION["venuesIds"] = Array com os IDs parseados das venues
+ * $_SESSION["venues"] = String com os IDs das venues (v1,v2,...)
+ * $_SESSION["campos"] = Array com os campos editáveis
 */
 
 if (!isset($_SESSION))
 	session_start();
+if (isset($_GET["venues"]))
+	$_SESSION["venues"] = $_GET["venues"];
 if (!isset($_SESSION["oauth_token"])) {
 	header('Location: index.php');
 }
@@ -113,8 +116,8 @@ if (isset($_FILES['txt']['tmp_name'])) {
 		setLocalCache("txt", implode('%0A,', $_SESSION["file"]), "venues");
 		echo EDIT;
 	}
-} else if (isset($_GET["venues"])) {
-	$lista = explode(",", $_GET["venues"]);
+} else if (isset($_SESSION["venues"])) {
+	$lista = explode(",", $_SESSION["venues"]);
 	$_SESSION["file"] = validarVenues($lista);
 	if ($_SESSION["file"] == false) {
 		$p->hide();
@@ -156,8 +159,8 @@ function filtrarArrayPorId($array) {
 
 function validarVenues($lines) {
 	$ret = array();
-	global $venues;
-	$venues = array();
+	global $venuesIds;
+	$venuesIds = array();
 	$i = 0;
 	
 	require_once 'ProgressBar.Class.php';
@@ -186,8 +189,8 @@ function validarVenues($lines) {
 		$size = count($ret);
 		foreach ($ret as &$r) {
 			$vid = substr($r, 0, 24);
-			if ((stripos($vid, ' ') === false) && (!in_array($vid, $venues))) {
-				$venues[] = $vid;
+			if ((stripos($vid, ' ') === false) && (!in_array($vid, $venuesIds))) {
+				$venuesIds[] = $vid;
 				$r = "https://foursquare.com/v/" . $vid;
 			} else {
 				$r = "";
@@ -199,7 +202,7 @@ function validarVenues($lines) {
 		/*** break the reference with the last element ***/
 		unset($r);
 
-		$_SESSION["venues"] = $venues;
+		$_SESSION["venuesIds"] = $venuesIds;
 		return filtrarArray($ret);
 	} else if (count($lines) > 500) {
 		$p->hide();
@@ -222,12 +225,12 @@ function validarVenues($lines) {
 				$line = str_replace("/edit_history", "", $line);
 				$line = str_replace("/edit", "", $line);
 				$line = str_replace("/history", "", $line);
-				//$venues[$i] = substr($line, strrpos($line, "/") + 1, 24);
-				$venues[$i] = basename($line);
+				//$venuesIds[$i] = substr($line, strrpos($line, "/") + 1, 24);
+				$venuesIds[$i] = basename($line);
 			} else if ($length == 24) {
-				$venues[$i] = $line;
+				$venuesIds[$i] = $line;
 				$line = "https://foursquare.com/v/" . $line;
-				//$line = "" + $venues[$i];
+				//$line = "" + $venuesIds[$i];
 			}
 			$i++;
 			$p->setProgressBarProgress($i*100/$size);
@@ -242,8 +245,8 @@ function validarVenues($lines) {
 			exit;
 		}
 
-		$_SESSION["venues"] = filtrarArray($venues);
-		if (count($_SESSION["venues"]) != count($lines))
+		$_SESSION["venuesIds"] = filtrarArray($venuesIds);
+		if (count($_SESSION["venuesIds"]) != count($lines))
 			$lines = filtrarArrayPorId($lines);
 		return $lines;
 	}
@@ -252,8 +255,8 @@ function validarVenues($lines) {
 function parseVenues($html) {
 	$lines = @file($html);
 	$ret = array();
-	global $venues;
-	$venues = array();
+	global $venuesIds;
+	$venuesIds = array();
 	$i = 0;
 
 	if ($lines) {
@@ -302,8 +305,8 @@ function parseVenues($html) {
 						$vid = substr($tag->getAttribute('href'), -62, 24);
 					else
 						$vid = substr($tag->getAttribute('href'), -24);
-					if (!in_array($vid, $venues)) { 
-						$venues[$i] = $vid;
+					if (!in_array($vid, $venuesIds)) { 
+						$venuesIds[$i] = $vid;
 						if (stripos($tag->getAttribute('href'), "foursquare.com") !== false)
 							$ret[$i] = $tag->getAttribute('href');
 						else
@@ -318,8 +321,8 @@ function parseVenues($html) {
 		} else {
 			$size = count($ret);
 			foreach ($ret as &$r) {
-				$venues[$i] = substr($r, 0, 24);
-				$r = "https://foursquare.com/v/" . $venues[$i];
+				$venuesIds[$i] = substr($r, 0, 24);
+				$r = "https://foursquare.com/v/" . $venuesIds[$i];
 				$i++;
 				$p->setProgressBarProgress($i*100/$size);
 				usleep(50000*0.1);
@@ -331,7 +334,7 @@ function parseVenues($html) {
 			$p->hide();
 		else if (count($ret) > 500)
 			$ret = array_slice($ret, 0, 500);
-		$_SESSION["venues"] = $venues;
+		$_SESSION["venuesIds"] = $venuesIds;
 		return $ret;
 	} else {
 		echo LINKS . HBODY;

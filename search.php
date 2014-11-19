@@ -85,7 +85,7 @@ if ($_SESSION["file"] == null) {
 	echo ERRO02;
 	exit;
 }
-$_SESSION["venues"] = filtrarArray($venues);
+$_SESSION["venuesIds"] = filtrarArray($venuesIds);
 $_SESSION["campos"] = $_POST["campos4"];
 setLocalCache("txt", implode('%0A,', $_SESSION["file"]));
 setLocalCache("venues", addslashes($data));
@@ -100,8 +100,8 @@ function filtrarArray($array) {
 }
 
 function pesquisarVenues($params) {
-	global $venues;
-	$venues = array();
+	global $venuesIds;
+	$venuesIds = array();
 	global $file;
 	$file = array();
 		
@@ -194,7 +194,7 @@ function pesquisarVenues($params) {
 			$size = count($json->response->venues);
 			if ($size > 0) {
 				$array = extrairVenuesIdsUrls($json->response->venues, $pbar, $size, 0);
-				$venues = $array["venues"];
+				$venuesIds = $array["venues"];
 				$file = $array["file"];
 			} else {
 				$pbar->hide();
@@ -212,9 +212,9 @@ function pesquisarVenues($params) {
 				if (count($resp->response->venues) > 0) {
 					$array = extrairVenuesIdsUrls($resp->response->venues, $pbar, $size, $i);
 					$r = $response["response"]["responses"][$i/50]["response"]["venues"];
-					if (count($venues) > 0) {
+					if (count($venuesIds) > 0) {
 						foreach ($r as $key => &$value)
-							if (!in_array($value["id"], $venues))
+							if (!in_array($value["id"], $venuesIds))
 								$response_venues["response"]["venues"][] = $r[$key];
 							else
 								unset($r[$key]); // remove venue duplicada
@@ -222,7 +222,7 @@ function pesquisarVenues($params) {
 					} else {
 						$response_venues["response"]["venues"] = $r;
 					}
-					$venues = array_merge($venues, $array["venues"]);
+					$venuesIds = array_merge($venuesIds, $array["venues"]);
 					$file = array_merge($file, $array["file"]);
 					$i += 50;
 				} else {
