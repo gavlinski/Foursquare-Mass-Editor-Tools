@@ -1118,6 +1118,20 @@ function atualizarMarcadoresMapa() {
 	console.info("Marcadores posicionados!");
 }
 
+function removerNaoSelecionadas(arq, startIndex) {
+	var j = startIndex;
+	var l = arq.length;
+	linhasSelecionadas = [];
+	dojo.query("input[name=selecao]:checked").forEach("linhasSelecionadas.push(dijit.byId(item.id).value)");
+	for (i = 0; i < l; i++) {
+		if (linhasSelecionadas.indexOf(i.toString()) == -1)
+			arq.splice(j, 1);
+		else
+			j++;
+	}
+	return arq;
+}
+
 var dlgGuia;
 dojo.addOnLoad(function inicializar() {
 	if (localStorage && localStorage.getItem('venues'))
@@ -1210,7 +1224,7 @@ dojo.addOnLoad(function inicializar() {
 	if (json == "") // modo == DADOS_COMPLETOS
 		csv[0] = csv[0].concat("categoryId");
 	colunas = document.form1.elements.length - totalInputsHidden;
-	if (columnsStartIndex != colunas)
+	if (subMenu2Item != undefined)
 		subMenu2.addChild(new dijit.MenuSeparator);
 	for (c = columnsStartIndex; c < colunas; c++) {
 		elementName = document.form1.elements[c].name;
@@ -1394,18 +1408,8 @@ dojo.addOnLoad(function inicializar() {
 				if (csv[i] != undefined)
 					arq[j++] = csv[i].join(";");
 			}
-			if (totalSelecionadas > 0) {
-				var j = 1;
-				var l = arq.length;
-				linhasSelecionadas = [];
-				dojo.query("input[name=selecao]:checked").forEach("linhasSelecionadas.push(dijit.byId(item.id).value)");
-				for (i = 0; i < l; i++) {
-					if (linhasSelecionadas.indexOf(i.toString()) == -1)
-						arq.splice(j, 1);
-					else
-						j++;
-				}
-			}
+			if (totalSelecionadas > 0)
+				arq = removerNaoSelecionadas(arq, 1);
 			window.location.href = "data:text/csv;charset=utf-8," + encodeURIComponent(arq.join("\r\n"));
 		}
 	});
@@ -1416,24 +1420,31 @@ dojo.addOnLoad(function inicializar() {
 		id: "menuItemExportarTXT",
 		onClick: function() {
 			var arq = txt.slice(0);
-			if (totalSelecionadas > 0) {
-				var j = 0;
-				var l = arq.length;
-				linhasSelecionadas = [];
-				dojo.query("input[name=selecao]:checked").forEach("linhasSelecionadas.push(dijit.byId(item.id).value)");
-				for (i = 0; i < l; i++) {
-					if (linhasSelecionadas.indexOf(i.toString()) == -1)
-						arq.splice(j, 1);
-					else
-						j++;
-				}
-			}
+			if (totalSelecionadas > 0)
+				arq = removerNaoSelecionadas(arq, 0);
 			window.open("data:text/plain;charset=utf-8," + arq.join("\r\n"));
 		}
 	});
 	subMenu4.addChild(subMenu4Item2);
 	
 	var subMenu4Item3 = new dijit.MenuItem({
+		label: "URL direta",
+		id: "menuItemExportarURL",
+		onClick: function() {
+			var arq = txt.slice(0);
+			for (i = 0; i < arq.length; i++) {
+				arq[i] = arq[i].split("/").pop().slice(0, 24); 
+			}
+			if (totalSelecionadas > 0)
+				arq = removerNaoSelecionadas(arq, 0);
+			window.open("data:text/plain;charset=utf-8,http://4sq.neuralab.cc/load.php?venues=" + arq.toString());
+		}
+	});
+	subMenu4.addChild(subMenu4Item3);
+	
+	subMenu4.addChild(new dijit.MenuSeparator);
+	
+	var subMenu4Item4 = new dijit.MenuItem({
 		label: "Relat&oacute;rio",
 		id: "menuItemExportarRelatorio",
 		disabled: true,
@@ -1490,7 +1501,7 @@ dojo.addOnLoad(function inicializar() {
 			window.open("data:text/html;charset=utf-8," + rel);
 		}
 	});
-	subMenu4.addChild(subMenu4Item3);
+	subMenu4.addChild(subMenu4Item4);
 	
 	var menuItem4 = new dijit.PopupMenuItem({
 		label: "Exportar",

@@ -9,7 +9,7 @@
  * @package    Foursquare-Mass-Editor-Tools
  * @author     Elio Gavlinski <gavlinski@gmail.com>
  * @copyright  Copyleft (c) 2011-2014
- * @version    2.2.0
+ * @version    2.2.2
  * @link       https://github.com/gavlinski/Foursquare-Mass-Editor-Tools/blob/master/edit_csv.php
  * @since      File available since Release 0.3
  * @license    GPLv3 <http://www.gnu.org/licenses/gpl.txt>
