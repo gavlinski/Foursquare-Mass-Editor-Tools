@@ -350,7 +350,7 @@ dojo.addOnLoad(function() {
 	/*** Valida OAuth Token ***/
 	if (oauth_token == undefined) {
 		console.warn("Token expirado");
-		if (window.confirm('Token expirado. Por favor, autentique-se novamente no Foursquare&reg;.'))
+		if (window.confirm('Token expirado. Por favor, autentique-se novamente no Foursquare®.'))
 			window.location.href = 'index.php';
 	}
 	
