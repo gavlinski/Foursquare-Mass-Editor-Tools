@@ -46,7 +46,7 @@ if ((isset($_SESSION["oauth_token"])) && ($_SESSION["file"] != null)) {
 	<p>Antes de salvar suas propostas de altera&ccedil;&otilde;es, n&atilde;o deixe de ler nosso <a id="guia" href="javascript:showDialogGuia()">guia de estilo</a> e as <a id="regras" href="https://pt.foursquare.com/info/houserules" target="_blank">regras da casa</a>.</p>
 </article>
 <article>
-<div id="mapa"></div>
+	<div id="mapa"></div>
 </article>
 <article>
 <div id="listContainer">
@@ -250,7 +250,7 @@ foreach ($file as $f) {
 <article>
 	<div id="fixedtray">
 		<button id="saveButton" dojoType="dijit.form.Button" type="submit" name="saveButton" onclick="javascript:showDialogComment(this.name)" style="float: left; padding-right: 3px;" disabled>Salvar</button>
-		<button id="cancelButton" dojoType="dijit.form.Button" type="button" onclick="history.go(-1)" name="cancelButton" style="float: left; padding-right: 3px;">Cancelar</button>
+		<button id="cancelButton" dojoType="dijit.form.Button" type="button" onclick="location.href='main.php'" name="cancelButton" style="float: left; padding-right: 3px;">Cancelar</button>
 		<div id="dropdownButtonContainer" style="float: left"></div>
 	</div>
 </article>

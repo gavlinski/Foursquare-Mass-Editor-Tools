@@ -14,6 +14,8 @@
  * @since      File available since Release 1.5
  * @license    GPLv3 <http://www.gnu.org/licenses/gpl.txt>
  */
+ 
+$VERSAO = "2.2.2";
 
 if (!isset($_SESSION))
 	session_start();
@@ -92,7 +94,7 @@ function removeLocalCache($key) {
 </head>
 <body class="tundra">
 <header>
-	<h2>Edi&ccedil;&atilde;o de venues em massa via API</h2>
+	<h2>Edi&ccedil;&atilde;o de venues em massa via API <span>(v<?php echo $VERSAO; ?>)</span></h2>
 </header>
 <article id="intro">
 <?php
@@ -100,7 +102,7 @@ if ((isset($_COOKIE['name'])) && (strlen($_COOKIE['name']) > 0))
 	//echo "<p>Ol&aacute;, <span id=\"name\">" . $_COOKIE['name'] . "</span>!</p>";
 	echo "<p>Ol&aacute;, " . $_COOKIE['name'] . "!</p>";
 ?>
-	<p>Para ajudar a manter atualizadas as listagens de venues do Foursquare, h&aacute; ferramentas confi&aacute;veis que permitem ao usu&aacute;rio editar, atualizar ou sinalizar lugares. Obrigado por ajudar a melhorar as listagens de venues do Foursquare.<p>
+	<p>Este aplicativo usa a API do Foursquare&reg;, mas n&atilde;o &eacute; endossado ou certificado pelo Foursquare Labs, Inc. Todos os logos do Foursquare&reg; e marcas registradas exibidas neste aplicativo s&atilde;o de propriedade do Foursquare Labs, Inc.</p>
 </article>
 <article id="options">
 	<div id="accordion" dojoType="dijit.layout.AccordionContainer" doLayout="false">
@@ -545,11 +547,20 @@ if ((isset($_COOKIE['name'])) && (strlen($_COOKIE['name']) > 0))
 		</div>
 	</div>
 </article>
-<footer id="poweredbyfoursquare">
-	<a href="https://foursquare.com" target="_blank"><img src="img/poweredByFoursquare.png" alt="foursquare" width="230" height="25" style="margin-left: 7px; margin-bottom: 7px"></a>
-	<!-- <a href="http://groups.google.com/group/brazilian-4sq-superusers-forum" style="font-weight: normal;">Brazilian 4SQ Superusers Forum</a> - <a href="https://foursquare.com/admin/" style="font-weight: normal;">Superuser Tools</a> -->
-<!-- Start of StatCounter Code for Default Guide -->
+<footer id="links">
+	<div id="fixedlinks">
+		<div class="social">
+			<a href="https://github.com"><img src="img/GitHub-Mark-16px.png"></a><a href="https://github.com/gavlinski">gavlinski</a> / <a href="https://github.com/gavlinski/Foursquare-Mass-Editor-Tools">Foursquare-Mass-Editor-Tools</a> / <a href="https://github.com/gavlinski/Foursquare-Mass-Editor-Tools/releases">releases</a>
+		</div>
+		<div class="social">
+			<a href="https://groups.google.com/d/overview"><img src="img/groups-16.png"></a><a href="https://groups.google.com/group/brazilian-4sq-superusers-forum">Brazilian 4SQ Superusers Forum</a>
+		</div>
+		<div class="social">
+			<a href="https://twitter.com"><img src="img/twitter-bird-16x16.png"></a><a href="https://twitter.com/gavlinski">@gavlinski</a>
+		</div>
+	</div>
 </footer>
+<!-- Start of StatCounter Code for Default Guide -->
 <script type="text/javascript">
 var sc_project=7288306;
 var sc_invisible=1;

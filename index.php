@@ -48,7 +48,7 @@
 <p>
 	<?php
 
-		echo "<a href='" . $foursquare->AuthenticationLink($redirect_uri) . "'><img src='img/connect-blue@2x.png' alt='Connect to this app via Foursquare'></a>";
+		echo "<a href='" . $foursquare->AuthenticationLink($redirect_uri) . "'><img src='img/connectTo@2x-f07c1cb7c6ed8894bb14dedd1001bcf3.png' alt='Connect to this app via Foursquare'></a>";
 
 	?>
 </p>
