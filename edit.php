@@ -26,6 +26,9 @@ if ((isset($_SESSION["oauth_token"])) && ($_SESSION["file"] != null)) {
 } else {
 	header('Location: index.php'); /* Redirect browser */
 }
+
+// Set client key and secret
+include 'includes/app_credentials.php';
 ?>
 <!doctype html>
 <html lang="pt-BR">
@@ -168,7 +171,8 @@ foreach ($file as $f) {
 		$venue = $venuesIds[$i - 1];
 		echo '<div class="selectbox"><input name="selecao" data-dojo-type="dijit/form/CheckBox" value="', $i - 1, '" onChange="atualizarItensMenuMais(this.value)"></div>', chr(10);
 
-		echo '<input type="hidden" name="venue" value="', $venue, '"><span id="info', $i - 1, '"><a id="venLnk', $i - 1, '" href="', $f, '" target="_blank" style="margin-left: 23px; margin-right: 5px; vertical-align: -1px;">';
+		$venueLink = $f . '?ref=' . $client_key;
+		echo '<input type="hidden" name="venue" value="', $venue, '"><span id="info', $i - 1, '"><a id="venLnk', $i - 1, '" href="', $venueLink , '" target="_blank" style="margin-left: 23px; margin-right: 5px; vertical-align: -1px;">';
 		if (count($file) < 10)
 			echo $i;
 		else if (count($file) < 100)

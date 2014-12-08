@@ -1059,11 +1059,27 @@ function inicializarMapa() {
 	var mapOptions = {
 		zoom: myZoom,
 		center: myLatlng,
-		mapTypeId: google.maps.MapTypeId.ROADMAP
+		mapTypeId: google.maps.MapTypeId.ROADMAP,
+		mapTypeControl: true,
+		mapTypeControlOptions: {
+			style: google.maps.MapTypeControlStyle.HORIZONTAL_BAR,
+			position: google.maps.ControlPosition.RIGHT_TOP
+		}
 	}
+	var controlDiv;
+	require(["dojo/dom-construct"], function(domConstruct) {
+  	controlDiv = domConstruct.create("div", { style: { padding: "0px 5px 2px 0px" } });
+  	var image = '<img src="img/poweredByFoursquare.png" width="230" height="25">'; 
+  	var link = domConstruct.create("a", {
+  		href: "https://foursquare.com",
+  		title: "Foursquare",
+  		innerHTML: image
+  	}, controlDiv);
+  });
 
 	// Exibir o mapa na div #mapa;
 	map = new google.maps.Map(dojo.byId('mapa'), mapOptions);
+  map.controls[google.maps.ControlPosition.RIGHT_BOTTOM].push(controlDiv);	
 	bounds = new google.maps.LatLngBounds();
 	mapaCarregado = true;
 	console.info("Mapa carregado!");
