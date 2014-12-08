@@ -1079,7 +1079,7 @@ function inicializarMapa() {
 
 	// Exibir o mapa na div #mapa;
 	map = new google.maps.Map(dojo.byId('mapa'), mapOptions);
-  map.controls[google.maps.ControlPosition.RIGHT_BOTTOM].push(controlDiv);	
+	map.controls[google.maps.ControlPosition.RIGHT_BOTTOM].push(controlDiv);
 	bounds = new google.maps.LatLngBounds();
 	mapaCarregado = true;
 	console.info("Mapa carregado!");
