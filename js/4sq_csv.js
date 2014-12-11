@@ -269,7 +269,7 @@ function salvarVenues() {
 		var totalColunas = document.forms[i].elements.length;
 		for (j = 1; j < totalColunas; j++) {
 			elementName = document.forms[i].elements[j].name;
-			if (['name', 'address', 'crossStreet', 'city', 'state', 'parentId', 'zip', 'phone', 'url', 'twitter', 'description'].indexOf(elementName) > -1)
+			if (['name', 'address', 'crossStreet', 'neighborhood', 'city', 'state', 'parentId', 'zip', 'phone', 'url', 'twitter', 'description'].indexOf(elementName) > -1)
 				dados += "&" + elementName + "=" + encodeURIComponent(document.forms[i].elements[j].value);
 			else if (elementName == "facebook") {
 				var facebookUsername = document.forms[i].elements[j].value;

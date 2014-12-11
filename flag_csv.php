@@ -9,7 +9,7 @@
  * @package    Foursquare-Mass-Editor-Tools
  * @author     Elio Gavlinski <gavlinski@gmail.com>
  * @copyright  Copyleft (c) 2011-2012
- * @version    2.2.2
+ * @version    2.2.3
  * @link       https://github.com/gavlinski/Foursquare-Mass-Editor-Tools/blob/master/flag_csv.php
  * @since      File available since Release 1.1
  * @license    GPLv3 <http://www.gnu.org/licenses/gpl.txt>
@@ -59,6 +59,11 @@ if (array_key_exists("crossStreet", $file[0])) {
 	$hasCrossStreet = true;
 } else {
 	$hasCrossStreet = false;
+}
+if (array_key_exists("neighborhood", $file[0])) {
+	$hasNeighborhood = true;
+} else {
+	$hasNeighborhood = false;
 }
 if (array_key_exists("city", $file[0])) {
 	$hasCity = true;
@@ -170,6 +175,11 @@ foreach ($file as $f) {
 		$crossStreet = htmlentities($f['crossStreet'], ENT_QUOTES, 'utf-8');
 		echo '<input type="text" dojoType="dijit.form.TextBox" name="crossStreet" value="', $crossStreet, '" placeHolder="Rua transversal" style="width: 9em; margin-left: 5px;" disabled>', chr(10);
 	}
+	
+	if ($hasNeighborhood) {
+		$neighborhood = htmlentities($f['neighborhood'], ENT_QUOTES, 'utf-8');
+		echo '<input type="text" dojoType="dijit.form.TextBox" name="neighborhood" value="', $neighborhood, '" placeHolder="Bairro" style="width: 9em; margin-left: 5px;" disabled>', chr(10);
+	}
 
 	if ($hasCity) {
 		$city = htmlentities($f['city'], ENT_QUOTES, 'utf-8');
@@ -247,10 +257,11 @@ foreach ($file as $f) {
 </div>
 </article>
 <article>
-	<div id="dropdownButtonContainer1" style="float: left; padding-right: 3px; margin-left: 0px; margin-bottom: 15px"></div>
-	<!--<button id="flagButton" dojoType="dijit.form.Button" type="submit" name="flagButton" onclick="sinalizarVenues()" style="float: left; padding-right: 3px;">Flag</button>-->
-	<button id="cancelButton" dojoType="dijit.form.Button" type="button" onclick="history.go(-1)" name="cancelButton" style="float: left">Cancelar</button>
-	<div id="dropdownButtonContainer2" style="float: left"></div>
+	<div id="fixedtray">
+		<div id="dropdownButtonContainer1" style="float: left; padding-right: 3px;"></div>
+		<button id="cancelButton" dojoType="dijit.form.Button" type="button" onclick="history.go(-1)" name="cancelButton" style="float: left">Cancelar</button>
+		<div id="dropdownButtonContainer2" style="float: left"></div>
+	</div>
 </article>
 </body>
 </html>

@@ -194,11 +194,11 @@ foreach ($file as $f) {
 		}
 
 		if ($editCross) {
-			echo '<input type="text" dojoType="dijit.form.TextBox" name="crossStreet" maxlength="51" value=" " placeHolder="Rua transversal" style="width: ', 9 + $ajusteInput, 'em; margin-left: 5px;" onchange="verificarAlteracao(this, ', $i - 1, ')" data-name-ptbr="Rua transversal">', chr(10);
+			echo '<input type="text" dojoType="dijit.form.TextBox" name="crossStreet" maxlength="128" value=" " placeHolder="Rua transversal" style="width: ', 9 + $ajusteInput, 'em; margin-left: 5px;" onchange="verificarAlteracao(this, ', $i - 1, ')" data-name-ptbr="Rua transversal">', chr(10);
 		}
 	
 		if ($editNeighborhood) {
-			echo '<input type="text" dojoType="dijit.form.TextBox" name="neighborhood" maxlength="51" value=" " placeHolder="Bairro" style="width: ', 9 + $ajusteInput, 'em; margin-left: 5px;" onchange="verificarAlteracao(this, ', $i - 1, ')" data-name-ptbr="Bairro">', chr(10);
+			echo '<input type="text" dojoType="dijit.form.TextBox" name="neighborhood" maxlength="128" value=" " placeHolder="Bairro" style="width: ', 9 + $ajusteInput, 'em; margin-left: 5px;" onchange="verificarAlteracao(this, ', $i - 1, ')" data-name-ptbr="Bairro">', chr(10);
 		}
 
 		if ($editCity) {

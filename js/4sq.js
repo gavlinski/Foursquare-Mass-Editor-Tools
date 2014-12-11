@@ -668,6 +668,8 @@ function atualizarTabela(venue, i) {
 				dijit.byId(dojo.query("input[name=address]")[i].id).setAttribute("disabled", true);
 			if (document.forms[i]["crossStreet"])
 				dijit.byId(dojo.query("input[name=crossStreet]")[i].id).setAttribute("disabled", true);
+			if (document.forms[i]["neighborhood"])
+				dijit.byId(dojo.query("input[name=neighborhood]")[i].id).setAttribute("disabled", true);
 			if ((document.forms[i]["city"]) && (venue.categories[0].id == CATEGORIA_CITY))
 				dijit.byId(dojo.query("input[name=city]")[i].id).setAttribute("disabled", true);
 			if (document.forms[i]["phone"])
