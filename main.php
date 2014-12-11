@@ -9,13 +9,13 @@
  * @package    Foursquare-Mass-Editor-Tools
  * @author     Elio Gavlinski <gavlinski@gmail.com>
  * @copyright  Copyleft (c) 2012-2014
- * @version    2.2.2
+ * @version    2.2.3
  * @link       https://github.com/gavlinski/Foursquare-Mass-Editor-Tools/blob/master/main.php
  * @since      File available since Release 1.5
  * @license    GPLv3 <http://www.gnu.org/licenses/gpl.txt>
  */
  
-$VERSAO = "2.2.2";
+$VERSAO = "2.2.3";
 
 if (!isset($_SESSION))
 	session_start();
@@ -155,7 +155,7 @@ if ((isset($_COOKIE['name'])) && (strlen($_COOKIE['name']) > 0))
 								<label for="ruatransversal1">Rua transversal</label>
 							</div>
 							<div class="checkbox" style="width: 5em;">
-								<input id="bairro1" name="campos[]" dojoType="dijit.form.CheckBox" value="bairro" disabled>
+								<input id="bairro1" name="campos[]" dojoType="dijit.form.CheckBox" value="bairro">
 								<label for="bairro1">Bairro</label>
 							</div>
 							<div class="checkbox" style="width: 6.4em;">
@@ -235,7 +235,7 @@ if ((isset($_COOKIE['name'])) && (strlen($_COOKIE['name']) > 0))
 								<label for="ruatransversal2">Rua transversal</label>
 							</div>
 							<div class="checkbox" style="width: 5em;">
-								<input id="bairro2" name="campos2[]" dojoType="dijit.form.CheckBox" value="bairro" disabled>
+								<input id="bairro2" name="campos2[]" dojoType="dijit.form.CheckBox" value="bairro">
 								<label for="bairro2">Bairro</label>
 							</div>
 							<div class="checkbox" style="width: 6.4em;">
@@ -315,7 +315,7 @@ if ((isset($_COOKIE['name'])) && (strlen($_COOKIE['name']) > 0))
 								<label for="ruatransversal3">Rua transversal</label>
 							</div>
 							<div class="checkbox" style="width: 5em;">
-								<input id="bairro3" name="campos3[]" dojoType="dijit.form.CheckBox" value="bairro" disabled>
+								<input id="bairro3" name="campos3[]" dojoType="dijit.form.CheckBox" value="bairro">
 								<label for="bairro3">Bairro</label>
 							</div>
 							<div class="checkbox" style="width: 6.4em;">

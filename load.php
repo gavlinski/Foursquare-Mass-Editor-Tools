@@ -9,7 +9,7 @@
  * @package    Foursquare-Mass-Editor-Tools
  * @author     Elio Gavlinski <gavlinski@gmail.com>
  * @copyright  Copyleft (c) 2011-2012
- * @version    2.2.2
+ * @version    2.2.3
  * @link       https://github.com/gavlinski/Foursquare-Mass-Editor-Tools/blob/master/load.php
  * @since      File available since Release 1.1
  * @license    GPLv3 <http://www.gnu.org/licenses/gpl.txt>
@@ -124,9 +124,9 @@ if (isset($_FILES['txt']['tmp_name'])) {
 		echo ERRO03;
 		exit;
 	} else {
-		$_SESSION["campos"] = array("nome", "endereco", "ruatransversal", "cidade",
-			"estado", "codigopostal", "dentro", "telefone", "sitedaweb", "twitter",
-			"facebook", "descricao", "latlng");
+		$_SESSION["campos"] = array("nome", "endereco", "ruatransversal", "bairro",
+			"cidade", "estado", "codigopostal", "dentro", "telefone", "sitedaweb",
+			"twitter", "facebook", "descricao", "latlng");
 		setLocalCache("txt", implode('%0A,', $_SESSION["file"]), "venues");
 		echo EDIT;
 	}

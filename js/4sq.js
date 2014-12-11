@@ -599,8 +599,8 @@ function atualizarTabela(venue, i) {
 			linha += '&&"' + venue.location.crossStreet + '"';
 			break;
 		case "neighborhood":
-			document.forms[i]["neighborhood"].value = venue.neighborhood;
-			linha += '&&"' + venue.neighborhood + '"';
+			document.forms[i]["neighborhood"].value = venue.location.neighborhood;
+			linha += '&&"' + venue.location.neighborhood + '"';
 			break;
 		case "city":
 			document.forms[i]["city"].value = venue.location.city;
