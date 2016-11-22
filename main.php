@@ -8,14 +8,14 @@
  * @category   Foursquare
  * @package    Foursquare-Mass-Editor-Tools
  * @author     Elio Gavlinski <gavlinski@gmail.com>
- * @copyright  Copyleft (c) 2012-2014
- * @version    2.2.3
+ * @copyright  Copyleft (c) 2012-2016
+ * @version    2.2.4
  * @link       https://github.com/gavlinski/Foursquare-Mass-Editor-Tools/blob/master/main.php
  * @since      File available since Release 1.5
  * @license    GPLv3 <http://www.gnu.org/licenses/gpl.txt>
  */
  
-$VERSAO = "2.2.3";
+$VERSAO = "2.2.4";
 
 if (!isset($_SESSION))
 	session_start();
@@ -404,6 +404,12 @@ if ((isset($_COOKIE['name'])) && (strlen($_COOKIE['name']) > 0))
 							if (property_exists($category3, "name")) {
 								$categories_names[$category3->id] = $category3->name;
 							}
+							if (property_exists($category3, "categories"))
+								foreach ($category3->categories as $category4):
+									if (property_exists($category4, "name")) {
+										$categories_names[$category4->id] = $category4->name;
+									}
+								endforeach;
 						endforeach;
 				endforeach;
 		endforeach;

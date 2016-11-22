@@ -11,7 +11,7 @@ dojo.require("dijit.Menu");
 dojo.require("dojo.cookie");
 dojo.require("dijit.form.Select");
 
-var DATA_VERSIONAMENTO = "20141029";
+var DATA_VERSIONAMENTO = "20160528";
 var MESES = new Array("01", "02", "03", "04", "05", "06", "07", "08", "09", "10", "11", "12");
 
 var modo;
@@ -721,16 +721,22 @@ function atualizarTabela(venue, i) {
 }
 
 function montarArvore(resposta) {
-	/*** Organiza em ordem alfabética o segundo e terceiro níveis das categorias ***/
+	/*** Organiza em ordem alfabética o segundo, terceiro e quarto níveis das categorias ***/
 	for (j = 0; j < resposta.response.categories.length; j++) {
 		resposta.response.categories[j].categories.sort(function(el1, el2) {
 			return compare(el1, el2, "name")
 		});
-		for (k = 0; k < resposta.response.categories[j].categories.length; k++)
+		for (k = 0; k < resposta.response.categories[j].categories.length; k++) {
 			if (resposta.response.categories[j].categories[k].categories.length > 1)
 				resposta.response.categories[j].categories[k].categories.sort(function(el1, el2) {
 					return compare(el1, el2, "name")
 				});
+			for (l = 0; l < resposta.response.categories[j].categories[k].categories.length; l++)
+				if (resposta.response.categories[j].categories[k].categories[l].categories.length > 1)
+					resposta.response.categories[j].categories[k].categories[l].categories.sort(function(el1, el2) {
+						return compare(el1, el2, "name")
+					});
+		}
 	}
 	var restructuredData = dojo.map(resposta.response.categories, dojo.hitch(this, function categoriasPrimarias(category1) {
 		var newCategory1 = {};
@@ -750,6 +756,16 @@ function montarArvore(resposta) {
 					newCategory3.id = category3.id;
 					newCategory3.name = category3.name;
 					newCategory3.icon = category3.icon.prefix + "bg_32" + category3.icon.suffix;
+					if (category3.categories != "") {
+						newCategory3.children = dojo.map(category3.categories, dojo.hitch(this, function categoriasQuaternarias(idPrefix, category4) {
+							var newCategory4 = {};
+							//newCategory4.id = idPrefix + "_" + category4.id;
+							newCategory4.id = category4.id;
+							newCategory4.name = category4.name;
+							newCategory4.icon = category4.icon.prefix + "bg_32" + category4.icon.suffix;
+							return newCategory4;
+						}, newCategory3.id));
+					}
 					return newCategory3;
 				}, newCategory2.id));
 			}
@@ -757,8 +773,8 @@ function montarArvore(resposta) {
 		}, newCategory1.id));
 	return newCategory1;
 	}));
-	//JSONText = JSON.stringify(restructuredData);
-	//console.log(JSONText);
+	JSONText = JSON.stringify(restructuredData);
+	console.log(JSONText);
 	store = new dojo.data.ItemFileReadStore({
 		data: {
 			"identifier": "id",
