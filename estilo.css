@@ -35,7 +35,7 @@ a:hover {
 	font-weight: bold;
 }
 #intro, #options, #links {
-	width: 716px;
+	width: 776px;
 }
 #fixedlinks {
 	margin-top: 12px;
@@ -59,7 +59,7 @@ a:hover {
 	display: inline;
 }
 .toolcontainer {
-	min-width: 699px;
+	min-width: 759px;
 	background-color: #f9f9f9;
 	border: 1px solid #cccccc;
 	margin-bottom: 8px;
@@ -96,7 +96,7 @@ a:hover {
 	float: left;
 	width: 80px;
 	padding-left: 5px;
-	padding-top: 12px;
+	padding-top: 20px;
 	padding-right: 5px;
 }
 .toolcontainer > .row > .checkboxes {
@@ -154,7 +154,7 @@ a:hover {
 	padding-right: 4px;
 }
 .toolcontainer > .row > .categoryidcombobox > .combobox > .dijitTextBox {
-	width: 269px;
+	width: 299px;
 	overflow: hidden;
 }
 .toolcontainer > .row > .radiuscomboboxlabel {
@@ -167,7 +167,7 @@ a:hover {
 .toolcontainer > .row > .radiuscombobox > .comboboxes .dijitSelectLabel,
 .toolcontainer > .row > .intentcombobox > .comboboxes .dijitSelectLabel,
 .toolcontainer > .row > .limitcombobox > .comboboxes .dijitSelectLabel {
-	width: 72px;
+	width: 87px;
 	overflow: hidden;
 	margin-top: 3px;
 }
