@@ -9,7 +9,7 @@
  * @package    Foursquare-Mass-Editor-Tools
  * @author     Elio Gavlinski <gavlinski@gmail.com>
  * @copyright  Copyleft (c) 2011-2014
- * @version    2.2.3
+ * @version    2.3.0
  * @link       https://github.com/gavlinski/Foursquare-Mass-Editor-Tools/blob/master/edit.php
  * @since      File available since Release 0.5
  * @license    GPLv3 <http://www.gnu.org/licenses/gpl.txt>
@@ -85,7 +85,7 @@ if ($campos != null) {
 		$editCity = true;
 		$totalCampos++;
 	} else {
-	$editCity = false;
+		$editCity = false;
 	}
 	if (in_array("estado", $campos)) {
 		$editState = true;
@@ -129,11 +129,11 @@ if ($campos != null) {
 	} else {
 		$editFacebook = false;
 	}
-	if (in_array("descricao", $campos)) {
-		$editDesc = true;
+	if (in_array("instagram", $campos)) {
+		$editInstagram = true;
 		$totalCampos++;
 	} else {
-		$editDesc = false;
+		$editInstagram = false;
 	}
 	if (in_array("latlng", $campos)) {
 		$editVenuell = true;
@@ -141,6 +141,24 @@ if ($campos != null) {
 	} else {
 		$editVenuell = false;
 	}
+	if (in_array("descricao", $campos)) {
+		$editDesc = true;
+		$totalCampos++;
+	} else {
+		$editDesc = false;
+	}
+	if (in_array("menu", $campos)) {
+		$editMenu = true;
+		$totalCampos++;
+	} else {
+		$editMenu = false;
+	}
+	//if (in_array("horas", $campos)) {
+		//$editHours = true;
+		//$totalCampos++;
+	//} else {
+		//$editHours = false;
+	//}
 } else {
 	$editName = false;
 	$editAddress = false;
@@ -154,8 +172,11 @@ if ($campos != null) {
 	$editUrl = false;
 	$editTwitter = false;
 	$editFacebook = false;
+	$editInstagram = false;
 	$editVenuell = false;
 	$editDesc = false;
+	$editMenu = false;
+	//$editHours = false;
 }
 
 $ajusteInput = 11 - $totalCampos;
@@ -232,9 +253,9 @@ foreach ($file as $f) {
 		if ($editFacebook) {
 			echo '<input type="text" dojoType="dijit.form.TextBox" name="facebook" maxlength="51" value=" " placeHolder="Facebook" style="width: ', 7 + $ajusteInput, 'em; margin-left: 5px;" onchange="verificarAlteracao(this, ', $i - 1, ')" data-name-ptbr="Facebook">', chr(10);
 		}
-
-		if ($editDesc) {
-			echo '<input type="text" dojoType="dijit.form.TextBox" name="description" maxlength="300" value=" " placeHolder="Descri&ccedil;&atilde;o" style="width: ', 8 + $ajusteInput, 'em; margin-left: 5px;" onchange="verificarAlteracao(this, ', $i - 1, ')" data-name-ptbr="Descri&ccedil;&atilde;o">', chr(10);
+		
+		if ($editInstagram) {
+			echo '<input type="text" dojoType="dijit.form.TextBox" name="instagram" maxlength="51" value=" " placeHolder="Instagram" style="width: ', 7 + $ajusteInput, 'em; margin-left: 5px;" onchange="verificarAlteracao(this, ', $i - 1, ')" data-name-ptbr="Instagram">', chr(10);
 		}
 
 		if ($editVenuell) {
@@ -242,6 +263,18 @@ foreach ($file as $f) {
 		} else {
 			echo '<input type="hidden" name="venuell">', chr(10);
 		}
+		
+		if ($editDesc) {
+			echo '<input type="text" dojoType="dijit.form.TextBox" name="description" maxlength="300" value=" " placeHolder="Descri&ccedil;&atilde;o" style="width: ', 8 + $ajusteInput, 'em; margin-left: 5px;" onchange="verificarAlteracao(this, ', $i - 1, ')" data-name-ptbr="Descri&ccedil;&atilde;o">', chr(10);
+		}
+		
+		if ($editMenu) {
+			echo '<input type="text" dojoType="dijit.form.TextBox" name="menu" maxlength="256" value=" " placeHolder="Menu" style="width: ', 8 + $ajusteInput, 'em; margin-left: 5px;" onchange="verificarAlteracao(this, ', $i - 1, ')" data-name-ptbr="Menu">', chr(10);
+		}
+		
+		//if ($editHours) {
+			//echo '<input type="text" dojoType="dijit.form.TextBox" name="hours" maxlength="256" value=" " placeHolder="Horas" style="width: ', 8 + $ajusteInput, 'em; margin-left: 5px;" onchange="verificarAlteracao(this, ', $i - 1, ')" data-name-ptbr="Horas">', chr(10);
+		//}
 	
 		echo '<input type="hidden" id="cid', $i - 1, '" name="categoryId"><input type="hidden" id="cna', $i - 1, '" name="categoryName"><input type="hidden" id="cic', $i - 1, '" name="categoryIcon"><input type="hidden" id="vdt', $i - 1, '" name="createdAt"><input type="hidden" id="vcc', $i - 1, '" name="checkinsCount"><input type="hidden" id="vuc', $i - 1, '" name="usersCount"><input type="hidden" id="vtc', $i - 1, '" name="tipCount"><input type="hidden" id="vpc', $i - 1, '" name="photosCount"><input type="hidden" id="vhc', $i - 1, '" name="likesCount"><input type="hidden" id="vlc', $i - 1, '" name="listedCount"><input type="hidden" id="vic', $i - 1, '" name="isClosed"><input type="hidden" id="vip', $i - 1, '" name="isPrivate"><input type="hidden" id="vid', $i - 1, '" name="isDeleted"><input type="hidden" id="vrf', $i - 1, '" name="verified">', chr(10);
 		echo '<span id="result', $i - 1, '"></span>', chr(10), '</form>', chr(10), '</section>', chr(10);
@@ -250,11 +283,11 @@ foreach ($file as $f) {
 ?>
 </div>
 </article>
-<!-- Botoes Salvar, Cancelar e Mais -->
+<!-- Botoes Salvar, Voltar e Mais -->
 <article>
 	<div id="fixedtray">
 		<button id="saveButton" dojoType="dijit.form.Button" type="submit" name="saveButton" onclick="javascript:showDialogComment(this.name)" style="float: left; padding-right: 3px;" disabled>Salvar</button>
-		<button id="cancelButton" dojoType="dijit.form.Button" type="button" onclick="location.href='main.php'" name="cancelButton" style="float: left; padding-right: 3px;">Cancelar</button>
+		<button id="backButton" dojoType="dijit.form.Button" type="button" onclick="location.href='main.php'" name="backButton" style="float: left; padding-right: 3px;">Voltar</button>
 		<div id="dropdownButtonContainer" style="float: left"></div>
 	</div>
 </article>
