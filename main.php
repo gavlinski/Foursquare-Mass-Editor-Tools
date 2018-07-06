@@ -205,11 +205,11 @@ if ((isset($_COOKIE['name'])) && (strlen($_COOKIE['name']) > 0))
 								<label for="descricao1">Descri&ccedil;&atilde;o</label>
 							</div>
 							<div class="checkbox" style="width: 6.8em;">
-								<input id="menu1" name="campos1[]" dojoType="dijit.form.CheckBox" value="menu">
+								<input id="menu1" name="campos1[]" dojoType="dijit.form.CheckBox" value="menu" disabled>
 								<label for="menu1">Menu</label>
 							</div>
 							<div class="checkbox" style="width: 9.5em;">
-								<input id="horas1" name="campos1[]" dojoType="dijit.form.CheckBox" value="horas">
+								<input id="horas1" name="campos1[]" dojoType="dijit.form.CheckBox" value="horas" disabled>
 								<label for="horas1">Horas</label>
 							</div>
 						</div>
@@ -298,11 +298,11 @@ if ((isset($_COOKIE['name'])) && (strlen($_COOKIE['name']) > 0))
 								<label for="descricao2">Descri&ccedil;&atilde;o</label>
 							</div>
 							<div class="checkbox" style="width: 6.8em;">
-								<input id="menu2" name="campos2[]" dojoType="dijit.form.CheckBox" value="menu">
+								<input id="menu2" name="campos2[]" dojoType="dijit.form.CheckBox" value="menu" disabled>
 								<label for="menu2">Menu</label>
 							</div>
 							<div class="checkbox" style="width: 9.5em;">
-								<input id="horas2" name="campos2[]" dojoType="dijit.form.CheckBox" value="horas">
+								<input id="horas2" name="campos2[]" dojoType="dijit.form.CheckBox" value="horas" disabled>
 								<label for="horas2">Horas</label>
 							</div>
 						</div>
@@ -391,11 +391,11 @@ if ((isset($_COOKIE['name'])) && (strlen($_COOKIE['name']) > 0))
 								<label for="descricao3">Descri&ccedil;&atilde;o</label>
 							</div>
 							<div class="checkbox" style="width: 6.8em;">
-								<input id="menu3" name="campos3[]" dojoType="dijit.form.CheckBox" value="menu">
+								<input id="menu3" name="campos3[]" dojoType="dijit.form.CheckBox" value="menu" disabled>
 								<label for="menu3">Menu</label>
 							</div>
 							<div class="checkbox" style="width: 9.5em;">
-								<input id="horas3" name="campos3[]" dojoType="dijit.form.CheckBox" value="horas">
+								<input id="horas3" name="campos3[]" dojoType="dijit.form.CheckBox" value="horas" disabled>
 								<label for="horas3">Horas</label>
 							</div>
 						</div>

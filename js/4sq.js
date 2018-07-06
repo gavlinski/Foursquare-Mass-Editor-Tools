@@ -63,9 +63,9 @@ var map, bounds;
 var mapaCarregado = false;
 
 var columnsStartIndex = 2;
-var totalInputsHidden = 14;
+//var totalInputsHidden = 14;
 /*** Visible/editable input fields ***/
-var colunas = 0;
+//var colunas = 0;
 
 var venuellOriginais = [];
 
@@ -619,7 +619,8 @@ function atualizarTabela(venue, i) {
 			case "parentId":
 				var parentId;
 				try {
-					(venue.parent.id) ? parentId = venue.parent.id : parentId = "";
+					if (venue.parent)
+						(venue.parent.id) ? parentId = venue.parent.id : parentId = "";
 				} catch(e) {
 					console.log(e);
 				}
@@ -659,7 +660,8 @@ function atualizarTabela(venue, i) {
 			case "menu":
 				var menuUrl;
 				try {
-					(venue.menu.url) ? menuUrl = venue.menu.url : menuUrl = "";
+					if (venue.menu)
+						(venue.menu.url) ? menuUrl = venue.menu.url : menuUrl = "";
 				} catch(e) {
 					console.log(e);
 				}
@@ -682,9 +684,9 @@ function atualizarTabela(venue, i) {
 			}
 			if (document.forms[i].elements[j].value == "undefined")
 				dijit.byId(dojo.query("input[name=" + elementName + "]")[i].id).set("value", "");
-			console.log(j, elementName, "adicionado");
-		} else
-			console.log(j, document.forms[i].elements[j].name, "ignorado");
+			//console.log(j, elementName, "adicionado");
+		} //else
+			//console.log(j, document.forms[i].elements[j].name, "ignorado");
 	}
 	dojo.byId("result" + i).innerHTML = "";
 	if (venue.categories[0] != undefined) {
@@ -804,7 +806,7 @@ function montarArvore(resposta) {
 	return newCategory1;
 	}));
 	JSONText = JSON.stringify(restructuredData);
-	console.log(JSONText);
+	//console.log(JSONText);
 	store = new dojo.data.ItemFileReadStore({
 		data: {
 			"identifier": "id",
@@ -907,18 +909,25 @@ function salvarVenues() {
 	for (l = 0; l < totalParaSalvar; l++) {
 		i = linhasEditadas[l];
 		dados = "oauth_token=" + oauth_token;
-		for (j = columnsStartIndex; j < colunas; j++) {
+		var length = document.forms[i].elements.length;
+		for (j = columnsStartIndex; j < length; j++) {
 			elementName = document.forms[i].elements[j].name;
-			if ((['name', 'address', 'crossStreet', 'neighborhood', 'city', 'state', 'parentId', 'zip', 'phone', 'url', 'twitter'].indexOf(elementName) > -1) && (dojo.query("input[name=" + elementName + "]")[i].disabled != true) && (document.forms[i][elementName].readOnly == false))
-				dados += "&" + elementName + "=" + encodeURIComponent(document.forms[i].elements[j].value);
-			else if (elementName == "facebook") {
-				var facebookUsername = document.forms[i].elements[j].value;
-				if ((facebookUsername != null) && (facebookUsername != ""))
-					dados += "&facebookUrl=" + encodeURIComponent("http://facebook.com/" + facebookUsername);
-			} else if ((elementName == "description") && (document.forms[i]["description"].readOnly == false)) {
-				var index = csv[0].indexOf("description");
-				dados += "&description=" + encodeURIComponent(csv[i + 1][index].slice(1, -1));
-			}
+			if (document.forms[i].elements[j].type == "text") {
+				//console.log(elementName + ' adicionado');
+				if ((['name', 'address', 'crossStreet', 'neighborhood', 'city', 'state', 'zip', 'parentId', 'phone', 'url', 'twitter', 'instagram'].indexOf(elementName) > -1) && (dojo.query("input[name=" + elementName + "]")[i].disabled != true) && (document.forms[i][elementName].readOnly == false))
+					dados += "&" + elementName + "=" + encodeURIComponent(document.forms[i].elements[j].value);
+				else if (elementName == "facebook") {
+					var facebookUsername = document.forms[i].elements[j].value;
+					if ((facebookUsername != null) && (facebookUsername != ""))
+						dados += "&facebookUrl=" + encodeURIComponent("http://facebook.com/" + facebookUsername);
+				} else if ((elementName == "description") && (document.forms[i]["description"].readOnly == false)) {
+					var index = csv[0].indexOf("description");
+					dados += "&description=" + encodeURIComponent(csv[i + 1][index].slice(1, -1));
+				} else if (elementName == "menu") {
+						dados += "&menuUrl=" + encodeURIComponent(document.forms[i].elements[j].value);
+				}
+			} //else
+				//console.log(elementName + ' ignorado');
 		}
 		var ll = document.forms[i]["venuell"].value;
 		if ((ll != null) && (ll != "") && (ll != venuellOriginais[i]))
@@ -1079,7 +1088,7 @@ function pad(str, len, pad, dir) {
 function carregarMapa() {
 	var script = document.createElement("script");
 	script.type = "text/javascript";
-	script.src = "http://maps.googleapis.com/maps/api/js?key=AIzaSyD9ZfpJz_ZlwOo7crLhiYhxcpJdBPpBVi8&sensor=false&callback=inicializarMapa";
+	script.src = "http://maps.googleapis.com/maps/api/js?key=AIzaSyD9ZfpJz_ZlwOo7crLhiYhxcpJdBPpBVi8&callback=inicializarMapa";
 	document.body.appendChild(script);
 }
 
@@ -1276,20 +1285,20 @@ dojo.addOnLoad(function inicializar() {
 				dijit.byId("dlg_cats").show();
 				dijit.byId("editAllCheckbox").attr("checked", true);
 				dijit.byId("editAllCheckbox").attr("disabled", true);
-				console.log(this.id + " clicado.");
+				//console.log(this.id + " clicado.");
 			}
 		});
 		subMenu2.addChild(subMenu2Item);
 	}
 	if (document.form1.name.type == "hidden")
 		columnsStartIndex++;
-	if (document.form1.venuell.type == "hidden")
-		totalInputsHidden++;
+	//if (document.form1.venuell.type == "hidden")
+		//totalInputsHidden++;
 	csv[0] = ["venue"];
 	if (json == "") // modo == DADOS_COMPLETOS
 		csv[0] = csv[0].concat("categoryId");
 	elements = document.form1.elements;
-	colunas = elements.length - totalInputsHidden;
+	//colunas = elements.length - totalInputsHidden;
 	if (subMenu2Item != undefined)
 		subMenu2.addChild(new dijit.MenuSeparator);
 	for (c = columnsStartIndex; c < elements.length; c++) {
@@ -1307,9 +1316,9 @@ dojo.addOnLoad(function inicializar() {
 			subMenu2.addChild(subMenu2Item);
 			options.push({ value: elementName, label: nomeCampo, selected: false });
 			csv[0] = csv[0].concat(elementName);
-			console.info(c, elementName, nomeCampo, "adicionado");
-		} else 
-			console.info(c, elements[c].name, "ignorado");
+			//console.info(c, elementName, nomeCampo, "adicionado");
+		} //else 
+			//console.info(c, elements[c].name, "ignorado");
 	}
 	if (json == "") // modo == DADOS_COMPLETOS
 		csv[0] = csv[0].concat("primaryCategoryId", "addCategoryIds", "removeCategoryIds");
