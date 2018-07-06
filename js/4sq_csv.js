@@ -269,7 +269,7 @@ function salvarVenues() {
 		var totalColunas = document.forms[i].elements.length;
 		for (j = 1; j < totalColunas; j++) {
 			elementName = document.forms[i].elements[j].name;
-			if (['name', 'address', 'crossStreet', 'neighborhood', 'city', 'state', 'parentId', 'zip', 'phone', 'url', 'twitter', 'description'].indexOf(elementName) > -1)
+			if (['name', 'address', 'crossStreet', 'neighborhood', 'city', 'state', 'parentId', 'zip', 'phone', 'url', 'twitter', 'instagram', 'description'].indexOf(elementName) > -1)
 				dados += "&" + elementName + "=" + encodeURIComponent(document.forms[i].elements[j].value);
 			else if (elementName == "facebook") {
 				var facebookUsername = document.forms[i].elements[j].value;
@@ -279,6 +279,8 @@ function salvarVenues() {
 				var ll = document.forms[i]["venuell"].value;
 				if (ll != null && ll != "")
 					dados += "&venuell=" + encodeURIComponent(ll.replace(/ /g, ""));
+			} else if (elementName == "menu") {
+					dados += "&menuUrl=" + encodeURIComponent(document.forms[i].elements[j].value);
 			} else if (['primaryCategoryId', 'addCategoryIds', 'removeCategoryIds'].indexOf(elementName) > -1) {
 				var id = document.forms[i].elements[j].value;
 				if (id != null && id != "")
