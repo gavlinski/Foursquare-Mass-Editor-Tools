@@ -30,7 +30,7 @@ Requirements for (Super)Use
 ---------------------------
 
 1. To be a Foursquare user or superuser (preferably)
-2. Go to http://4sq.neuralab.cc
+2. Go to http://4sq.eliotools.site
 3. Allow application access to your account
 
 If you are not familiar with Brazilian Portuguese language, please translate it using you favorite browser tool. English users report that it works well and is easily understood.
