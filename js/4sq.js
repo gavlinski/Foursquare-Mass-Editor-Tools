@@ -1554,7 +1554,7 @@ dojo.addOnLoad(function inicializar() {
 					comments = true;
 			}
 			var html = [];
-			html[0] = "<!DOCTYPE html><html><head><meta http-equiv=\"text/html; charset=utf-8\"></head><body><pre>";
+			html[0] = "<!DOCTYPE html><html><head><meta http-equiv=\"text/html; charset=utf-8\"><title>Relat&oacute;rio</title></head><body><pre>";
 			html[1] = pad("name", NAME_MAX_SIZE + 1) + pad("action", ACTION_MAX_SIZE + 1) + pad("date", 11) + pad("time", 9) + pad("id", 24);
 			if ((json == "") && (comments))
 				html[1] += pad(" categories", CATEGORIES_MAX_SIZE + 2) + "comments";
@@ -1574,10 +1574,11 @@ dojo.addOnLoad(function inicializar() {
 				j++;
 			}
 			html.push("</pre></body></html>");
-			var rel = encodeURIComponent(html.join("\r\n"));
-			while (rel.indexOf("%u") !== -1)
-				rel = rel.substring(0, rel.indexOf("%u")) + " " + rel.substring(rel.indexOf("%u") + 6);
-			window.open("data:text/html;charset=utf-8," + rel);
+			//var rel = encodeURIComponent(html.join("\r\n"));
+			//while (rel.indexOf("%u") !== -1)
+				//rel = rel.substring(0, rel.indexOf("%u")) + " " + rel.substring(rel.indexOf("%u") + 6);
+			var reportWindow = window.open("", "ReportWindow");
+			reportWindow.document.write(html.join("\r\n"));
 		}
 	});
 	subMenu4.addChild(subMenu4Item4);
