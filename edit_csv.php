@@ -8,8 +8,8 @@
  * @category   Foursquare
  * @package    Foursquare-Mass-Editor-Tools
  * @author     Elio Gavlinski <gavlinski@gmail.com>
- * @copyright  Copyleft (c) 2011-2014
- * @version    2.2.3
+ * @copyright  Copyleft (c) 2011-2018
+ * @version    2.3.0
  * @link       https://github.com/gavlinski/Foursquare-Mass-Editor-Tools/blob/master/edit_csv.php
  * @since      File available since Release 0.3
  * @license    GPLv3 <http://www.gnu.org/licenses/gpl.txt>
@@ -101,19 +101,29 @@ if (array_key_exists("twitter", $file[0])) {
 	$hasTwitter = false;
 }
 if (array_key_exists("facebook", $file[0])) {
-	$hasfacebook = true;
+	$hasFacebook = true;
 } else {
-	$hasfacebook = false;
+	$hasFacebook = false;
+}
+if (array_key_exists("instagram", $file[0])) {
+	$hasInstagram = true;
+} else {
+	$hasInstagram = false;
+}
+if (array_key_exists("venuell", $file[0])) {
+	$hasVenuell = true;
+} else {
+	$hasVenuell = false;
 }
 if (array_key_exists("description", $file[0])) {
 	$hasDescription = true;
 } else {
 	$hasDescription = false;
 }
-if (array_key_exists("venuell", $file[0])) {
-	$hasVenuell = true;
+if (array_key_exists("menu", $file[0])) {
+	$hasMenu = true;
 } else {
-	$hasVenuell = false;
+	$hasMenu = false;
 }
 if (array_key_exists("categoryId", $file[0])) {
 	$hasCategoryId = true;
@@ -216,14 +226,14 @@ foreach ($file as $f) {
 		echo '<input type="text" dojoType="dijit.form.TextBox" name="twitter" maxlength="51" value="', $twitter, '" placeHolder="Twitter" style="width: 7em; margin-left: 5px;" onchange="verificarAlteracao(this, ', $i - 1, ')">', chr(10);
 	}
 	
-	if ($hasfacebook) {
+	if ($hasFacebook) {
 		$facebook = $f['facebook'];
 		echo '<input type="text" dojoType="dijit.form.TextBox" name="facebook" maxlength="51" value="', $facebook, '" placeHolder="Facebook" style="width: 7em; margin-left: 5px;" onchange="verificarAlteracao(this, ', $i - 1, ')">', chr(10);
 	}
-
-	if ($hasDescription) {
-		$description = htmlentities($f['description'], ENT_QUOTES, 'utf-8');
-		echo '<input type="text" dojoType="dijit.form.TextBox" name="description" maxlength="300" value="', $description, '" placeHolder="Descri&ccedil;&atilde;o" style="width: 8em; margin-left: 5px;" onchange="verificarAlteracao(this, ', $i - 1, ')">', chr(10);
+	
+	if ($hasInstagram) {
+		$instagram = $f['instagram'];
+		echo '<input type="text" dojoType="dijit.form.TextBox" name="instagram" maxlength="51" value="', $instagram, '" placeHolder="Instagram" style="width: 7em; margin-left: 5px;" onchange="verificarAlteracao(this, ', $i - 1, ')">', chr(10);
 	}
 
 	if ($hasVenuell) {
@@ -233,6 +243,16 @@ foreach ($file as $f) {
 		//} else {
 			//echo '<input type="text" dojoType="dijit.form.TextBox" name="venuell" placeHolder="Lat/Long" style="width: 9em; margin-left: 5px;" disabled>', chr(10);
 		//}
+	}
+
+	if ($hasDescription) {
+		$description = htmlentities($f['description'], ENT_QUOTES, 'utf-8');
+		echo '<input type="text" dojoType="dijit.form.TextBox" name="description" maxlength="300" value="', $description, '" placeHolder="Descri&ccedil;&atilde;o" style="width: 8em; margin-left: 5px;" onchange="verificarAlteracao(this, ', $i - 1, ')">', chr(10);
+	}
+	
+	if ($hasMenu) {
+		$menu = $f['menu'];
+		echo '<input type="text" dojoType="dijit.form.TextBox" name="menu" maxlength="256" value="', $menu, '" placeHolder="Menu" style="width: 8em; margin-left: 5px;" onchange="verificarAlteracao(this, ', $i - 1, ')">', chr(10);
 	}
 
 	if ($hasCategoryId) {
@@ -267,7 +287,7 @@ foreach ($file as $f) {
 <article>
 	<div id="fixedtray">
 		<button id="saveButton" dojoType="dijit.form.Button" type="submit" name="saveButton" onclick="salvarVenues()" style="float: left; padding-right: 3px;">Salvar</button>
-		<button id="cancelButton" dojoType="dijit.form.Button" type="button" onclick="history.go(-1)" name="cancelButton" style="float: left">Cancelar</button>
+		<button id="backButton" dojoType="dijit.form.Button" type="button" onclick="history.go(-1)" name="backButton" style="float: left">Voltar</button>
 		<div id="dropdownButtonContainer2" style="float: left"></div>
 	</div>
 </article>

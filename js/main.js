@@ -74,7 +74,7 @@ dojo.addOnLoad(function() {
 		}
 		//dojo.cookie("pagina", "", { expires: 15 });
 		//dojo.cookie("textarea", "", { expires: 15 });
-		var campos1 = dijit.byId("nome1").checked + "." + dijit.byId("endereco1").checked + "." + dijit.byId("ruatransversal1").checked + "." + dijit.byId("bairro1").checked + "." + dijit.byId("cidade1").checked + "." + dijit.byId("estado1").checked + "." + dijit.byId("codigopostal1").checked + "." + dijit.byId("dentro1").checked + "." + dijit.byId("telefone1").checked + "." + dijit.byId("sitedaweb1").checked + "." + dijit.byId("twitter1").checked + "." + dijit.byId("facebook3").checked + "." + dijit.byId("descricao1").checked + "." + dijit.byId("latlng1").checked;
+		var campos1 = dijit.byId("nome1").checked + "." + dijit.byId("endereco1").checked + "." + dijit.byId("ruatransversal1").checked + "." + dijit.byId("bairro1").checked + "." + dijit.byId("cidade1").checked + "." + dijit.byId("estado1").checked + "." + dijit.byId("codigopostal1").checked + "." + dijit.byId("dentro1").checked + "." + dijit.byId("telefone1").checked + "." + dijit.byId("sitedaweb1").checked + "." + dijit.byId("twitter1").checked + "." + dijit.byId("facebook1").checked + "." + dijit.byId("instagram1").checked + "." + dijit.byId("latlng1").checked + "." + dijit.byId("descricao1").checked + "." + dijit.byId("menu1").checked + "." + dijit.byId("horas1").checked;
 		dojo.cookie("campos", campos1, { expires: 15 });
 		dojo.cookie("accordion", dijit.byId("accordion").selectedChildWidget.id, { expires: 15 });
 	});
@@ -99,7 +99,7 @@ dojo.addOnLoad(function() {
 		}
 		dojo.cookie("pagina", dijit.byId("pagina").value, { expires: 15 });
 		//dojo.cookie("textarea", "", { expires: 15 });
-		var campos2 = dijit.byId("nome2").checked + "." + dijit.byId("endereco2").checked + "." + dijit.byId("ruatransversal2").checked + "." + dijit.byId("bairro2").checked + "." + dijit.byId("cidade2").checked + "." + dijit.byId("estado2").checked + "." + dijit.byId("codigopostal2").checked + "." + dijit.byId("dentro2").checked + "." + dijit.byId("telefone2").checked + "." + dijit.byId("sitedaweb2").checked + "." + dijit.byId("twitter2").checked + "." + dijit.byId("facebook2").checked + "." + dijit.byId("descricao2").checked + "." + dijit.byId("latlng2").checked;
+		var campos2 = dijit.byId("nome2").checked + "." + dijit.byId("endereco2").checked + "." + dijit.byId("ruatransversal2").checked + "." + dijit.byId("bairro2").checked + "." + dijit.byId("cidade2").checked + "." + dijit.byId("estado2").checked + "." + dijit.byId("codigopostal2").checked + "." + dijit.byId("dentro2").checked + "." + dijit.byId("telefone2").checked + "." + dijit.byId("sitedaweb2").checked + "." + dijit.byId("twitter2").checked + "." + dijit.byId("facebook2").checked + "." + dijit.byId("instagram2").checked + "." + dijit.byId("latlng2").checked + "." + dijit.byId("descricao2").checked + "." + dijit.byId("menu2").checked + "." + dijit.byId("horas2").checked;
 		dojo.cookie("campos", campos2, { expires: 15 });
 		dojo.cookie("accordion", dijit.byId("accordion").selectedChildWidget.id, { expires: 15 });
 	});
@@ -128,7 +128,7 @@ dojo.addOnLoad(function() {
 		}
 		//dojo.cookie("pagina", "", { expires: 15 });
 		dojo.cookie("textarea", dijit.byId("textarea_ids").value, { expires: 15 });
-		var campos3 = dijit.byId("nome3").checked + "." + dijit.byId("endereco3").checked + "." + dijit.byId("ruatransversal3").checked + "." + dijit.byId("bairro3").checked + "." + dijit.byId("cidade3").checked + "." + dijit.byId("estado3").checked + "." + dijit.byId("codigopostal3").checked + "." + dijit.byId("dentro3").checked + "." + dijit.byId("telefone3").checked + "." + dijit.byId("sitedaweb3").checked + "." + dijit.byId("twitter3").checked + "." + dijit.byId("facebook3").checked + "." + dijit.byId("descricao3").checked + "." + dijit.byId("latlng3").checked;
+		var campos3 = dijit.byId("nome3").checked + "." + dijit.byId("endereco3").checked + "." + dijit.byId("ruatransversal3").checked + "." + dijit.byId("bairro3").checked + "." + dijit.byId("cidade3").checked + "." + dijit.byId("estado3").checked + "." + dijit.byId("codigopostal3").checked + "." + dijit.byId("dentro3").checked + "." + dijit.byId("telefone3").checked + "." + dijit.byId("sitedaweb3").checked + "." + dijit.byId("twitter3").checked + "." + dijit.byId("facebook3").checked + "." + dijit.byId("instagram3").checked + "." + dijit.byId("latlng3").checked + "." + dijit.byId("descricao3").checked + "." + dijit.byId("menu3").checked + "." + dijit.byId("horas3").checked;
 		dojo.cookie("campos", campos3, { expires: 15 });
 		dojo.cookie("accordion", dijit.byId("accordion").selectedChildWidget.id, { expires: 15 });
 	});
@@ -158,8 +158,11 @@ dojo.addOnLoad(function() {
 		(dijit.byId("dentro4").disabled) ? campos4 += "false." : campos4 += dijit.byId("dentro4").checked + ".";
 		campos4 += dijit.byId("telefone4").checked + "." + dijit.byId("sitedaweb4").checked + "." + dijit.byId("twitter4").checked + "." + dijit.byId("facebook4").checked + ".";
 		//(dijit.byId("facebook4").disabled) ? campos4 += "false." : campos4 += dijit.byId("facebook4").checked + ".";
+		(dijit.byId("instagram4").disabled) ? campos4 += "false." : campos4 += dijit.byId("instagram4").checked + ".";
+		campos4 += dijit.byId("latlng4").checked + ".";
 		(dijit.byId("descricao4").disabled) ? campos4 += "false." : campos4 += dijit.byId("descricao4").checked + ".";
-		campos4 += dijit.byId("latlng4").checked;
+		(dijit.byId("menu4").disabled) ? campos4 += "false." : campos4 += dijit.byId("menu4").checked + ".";
+		(dijit.byId("horas4").disabled) ? campos4 += "false." : campos4 += dijit.byId("horas4").checked;
 		var search = [dijit.byId("query").value, dijit.byId("ll").value, dijit.byId("categoryId").value, dijit.byId("radius").value, dijit.byId("intent").value, dijit.byId("limit").value];
 		dojo.cookie("search", JSON.stringify(search), { expires: 15 });
 		dojo.cookie("campos", campos4, { expires: 15 });
@@ -198,8 +201,11 @@ dojo.ready(function() {
 				dijit.byId("sitedaweb" + i).attr("checked", (campos[9] === 'true'));
 				dijit.byId("twitter" + i).attr("checked", (campos[10] === 'true'));
 				dijit.byId("facebook" + i).attr("checked", (campos[11] === 'true'));
-				(dijit.byId("descricao" + i).disabled) ? dijit.byId("descricao" + i).attr("checked", false) : dijit.byId("descricao" + i).attr("checked", (campos[12] === 'true'));
+				(dijit.byId("instagram" + i).disabled) ? dijit.byId("instagram" + i).attr("checked", false) : dijit.byId("instagram" + i).attr("checked", (campos[12] === 'true'));
 				dijit.byId("latlng"	+ i).attr("checked", (campos[13] === 'true'));
+				(dijit.byId("descricao" + i).disabled) ? dijit.byId("descricao" + i).attr("checked", false) : dijit.byId("descricao" + i).attr("checked", (campos[14] === 'true'));
+				(dijit.byId("menu" + i).disabled) ? dijit.byId("menu" + i).attr("checked", false) : dijit.byId("menu" + i).attr("checked", (campos[15] === 'true'));
+				(dijit.byId("horas" + i).disabled) ? dijit.byId("horas" + i).attr("checked", false) : dijit.byId("horas" + i).attr("checked", (campos[16] === 'true'));
 			}
 			dijit.byId("accordion").selectChild(dojo.cookie("accordion"), false);
 		} else {
@@ -231,7 +237,8 @@ dojo.ready(function() {
 
 function showDialogCsv() {
 	// set the content of the dialog:
-	dlg_csv.attr("content", "Os programas de planilha eletr&ocirc;nica, como o Microsoft Excel, o LibreOffice Calc e o Planilhas Google, facilitam a cria&ccedil;&atilde;o e a edi&ccedil;&atilde;o de arquivos CSV. Ele deve ser formatado como uma tabela e deve incluir um cabe&ccedil;alho, ou primeira linha, que defina os campos nessa tabela.<p>Veja alguns detalhes importantes que devem ser considerados durante a cria&ccedil;&atilde;o do arquivo:<ul><li><b>Cabe&ccedil;alho:</b> venue, name, address, crossStreet, neighborhood, city, state, zip, parentId, phone, url, twitter, facebook, venuell, description, categoryId, primaryCategoryId, addCategoryIds, removeCategoryIds</li><li><b>Conjunto de caracteres:</b> Unicode (UTF-8)</li><li><b>Delimitador de campo:</b> ;</li><li><b>Delimitador de texto:</b> &quot;</li></ul><p>O campo <b>venue</b> &eacute; o &uacute;nico obrigat&oacute;rio e deve conter o ID da venue. O campo <b>categoryId</b> é somente leitura. Os campos <b>primaryCategoryId</b>, <b>addCategoryIds</b> e <b>removeCategoryIds</b> devem conter os IDs das categorias da venue separados por v&iacute;rgulas.</p><p><b>Exemplo de arquivo CSV:</b></p><p style='font-family: courier, monospace;'>venue;name;address;crossStreet;city;state;zip;phone;<br>&quot;4e666afcae60c9631d5e13c9&quot;;&quot;Voo Gol G3 1087&quot;;&quot;Aeroporto Salgado Filho&quot;;&quot;POA-GIG&quot;;&quot;Porto Alegre&quot;;&quot;RS&quot;;&quot;90200-310&quot;;&quot;08007040465&quot;;<br>&quot;4dda410efa76ad96d166f02c&quot;;&quot;Voo Gol G3 1241&quot;;&quot;Aeroporto Salgado Filho&quot;;&quot;POA-CGH&quot;;&quot;Porto Alegre&quot;;&quot;RS&quot;;&quot;90200-310&quot;;&quot;08007040465&quot;;</p>");
+	//dlg_csv.attr("content", "Os programas de planilha eletr&ocirc;nica, como o Microsoft Excel, o LibreOffice Calc e o Planilhas Google, facilitam a cria&ccedil;&atilde;o e a edi&ccedil;&atilde;o de arquivos CSV. Ele deve ser formatado como uma tabela e deve incluir um cabe&ccedil;alho, ou primeira linha, que defina os campos nessa tabela.<p>Veja alguns detalhes importantes que devem ser considerados durante a cria&ccedil;&atilde;o do arquivo:<ul><li><b>Cabe&ccedil;alho:</b> venue, name, address, crossStreet, neighborhood, city, state, zip, parentId, phone, url, twitter, facebook, instagram, venuell, description, menu, hours, categoryId, primaryCategoryId, addCategoryIds, removeCategoryIds</li><li><b>Conjunto de caracteres:</b> Unicode (UTF-8)</li><li><b>Delimitador de campo:</b> ;</li><li><b>Delimitador de texto:</b> &quot;</li></ul><p>O campo <b>venue</b> &eacute; o &uacute;nico obrigat&oacute;rio e deve conter o ID da venue. O campo <b>categoryId</b> é somente leitura. Os campos <b>primaryCategoryId</b>, <b>addCategoryIds</b> e <b>removeCategoryIds</b> devem conter os IDs das categorias da venue separados por v&iacute;rgulas.</p><p><b>Exemplo de arquivo CSV:</b></p><p style='font-family: courier, monospace;'>venue;name;address;crossStreet;city;state;zip;phone;<br>&quot;4e666afcae60c9631d5e13c9&quot;;&quot;Voo Gol G3 1087&quot;;&quot;Aeroporto Salgado Filho&quot;;&quot;POA-GIG&quot;;&quot;Porto Alegre&quot;;&quot;RS&quot;;&quot;90200-310&quot;;&quot;08007040465&quot;;<br>&quot;4dda410efa76ad96d166f02c&quot;;&quot;Voo Gol G3 1241&quot;;&quot;Aeroporto Salgado Filho&quot;;&quot;POA-CGH&quot;;&quot;Porto Alegre&quot;;&quot;RS&quot;;&quot;90200-310&quot;;&quot;08007040465&quot;;</p>");
+	dlg_csv.attr("content", "Os programas de planilha eletr&ocirc;nica, como o Microsoft Excel, o LibreOffice Calc e o Planilhas Google, facilitam a cria&ccedil;&atilde;o e a edi&ccedil;&atilde;o de arquivos CSV. Ele deve ser formatado como uma tabela e deve incluir um cabe&ccedil;alho, ou primeira linha, que defina os campos nessa tabela.<p>Veja alguns detalhes importantes que devem ser considerados durante a cria&ccedil;&atilde;o do arquivo:<ul><li><b>Cabe&ccedil;alho:</b> venue, name, address, crossStreet, neighborhood, city, state, zip, parentId, phone, url, twitter, facebook, instagram, venuell, description, menu, categoryId, primaryCategoryId, addCategoryIds, removeCategoryIds</li><li><b>Conjunto de caracteres:</b> Unicode (UTF-8)</li><li><b>Delimitador de campo:</b> ;</li><li><b>Delimitador de texto:</b> &quot;</li></ul><p>O campo <b>venue</b> &eacute; o &uacute;nico obrigat&oacute;rio e deve conter o ID da venue. O campo <b>categoryId</b> é somente leitura. Os campos <b>primaryCategoryId</b>, <b>addCategoryIds</b> e <b>removeCategoryIds</b> devem conter os IDs das categorias da venue separados por v&iacute;rgulas.</p><p><b>Exemplo de arquivo CSV:</b></p><p style='font-family: courier, monospace;'>venue;name;address;crossStreet;city;state;zip;phone;<br>&quot;4e666afcae60c9631d5e13c9&quot;;&quot;Voo Gol G3 1087&quot;;&quot;Aeroporto Salgado Filho&quot;;&quot;POA-GIG&quot;;&quot;Porto Alegre&quot;;&quot;RS&quot;;&quot;90200-310&quot;;&quot;08007040465&quot;;<br>&quot;4dda410efa76ad96d166f02c&quot;;&quot;Voo Gol G3 1241&quot;;&quot;Aeroporto Salgado Filho&quot;;&quot;POA-CGH&quot;;&quot;Porto Alegre&quot;;&quot;RS&quot;;&quot;90200-310&quot;;&quot;08007040465&quot;;</p>");
 	dlg_csv.show();
 }
 

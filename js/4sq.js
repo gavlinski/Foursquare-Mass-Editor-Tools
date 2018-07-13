@@ -63,8 +63,9 @@ var map, bounds;
 var mapaCarregado = false;
 
 var columnsStartIndex = 2;
-var totalInputsHidden = 14;
-var colunas = 0;
+//var totalInputsHidden = 14;
+/*** Visible/editable input fields ***/
+//var colunas = 0;
 
 var venuellOriginais = [];
 
@@ -582,79 +583,110 @@ function atualizarTabela(venue, i) {
 	if (modo == DADOS_COMPLETOS) 
 		linha += '&&' + '"' + categorias[i].ids + '"';
 	var elementName;
-	for (j = columnsStartIndex; j < colunas; j++) {
-		elementName = document.forms[i].elements[j].name;
-		//console.log(elementName);
-		switch (elementName) {
-		case "name":
-			//document.forms[i]["name"].value = venue.name;
-			linha += '&&"' + venue.name + '"';
-			break;
-		case "address":
-			document.forms[i]["address"].value = venue.location.address;
-			linha += '&&"' + venue.location.address + '"';
-			break;
-		case "crossStreet":
-			document.forms[i]["crossStreet"].value = venue.location.crossStreet;
-			linha += '&&"' + venue.location.crossStreet + '"';
-			break;
-		case "neighborhood":
-			document.forms[i]["neighborhood"].value = venue.location.neighborhood;
-			linha += '&&"' + venue.location.neighborhood + '"';
-			break;
-		case "city":
-			document.forms[i]["city"].value = venue.location.city;
-			linha += '&&"' + venue.location.city + '"';
-			break;
-		case "state":
-			document.forms[i]["state"].value = venue.location.state;
-			linha += '&&"' + venue.location.state + '"';
-			break;
-		case "zip":
-			document.forms[i]["zip"].value = venue.location.postalCode;
-			linha += '&&"' + venue.location.postalCode + '"';
-			break;
-		case "parentId":
-			var parentId;
-			try {
-				(venue.parent.id) ? parentId = venue.parent.id : parentId = "";
-			} catch(e) {
-				console.log(e);
+	var length = document.forms[i].elements.length;
+	for (j = columnsStartIndex; j < length; j++) {
+		if (document.forms[i].elements[j].type == "text") {
+			elementName = document.forms[i].elements[j].name;
+			switch (elementName) {
+			case "name":
+				//document.forms[i]["name"].value = venue.name;
+				linha += '&&"' + venue.name + '"';
+				break;
+			case "address":
+				document.forms[i]["address"].value = venue.location.address;
+				linha += '&&"' + venue.location.address + '"';
+				break;
+			case "crossStreet":
+				document.forms[i]["crossStreet"].value = venue.location.crossStreet;
+				linha += '&&"' + venue.location.crossStreet + '"';
+				break;
+			case "neighborhood":
+				document.forms[i]["neighborhood"].value = venue.location.neighborhood;
+				linha += '&&"' + venue.location.neighborhood + '"';
+				break;
+			case "city":
+				document.forms[i]["city"].value = venue.location.city;
+				linha += '&&"' + venue.location.city + '"';
+				break;
+			case "state":
+				document.forms[i]["state"].value = venue.location.state;
+				linha += '&&"' + venue.location.state + '"';
+				break;
+			case "zip":
+				document.forms[i]["zip"].value = venue.location.postalCode;
+				linha += '&&"' + venue.location.postalCode + '"';
+				break;
+			case "parentId":
+				var parentId;
+				try {
+					if (venue.parent)
+						(venue.parent.id) ? parentId = venue.parent.id : parentId = "";
+				} catch(e) {
+					console.log(e);
+				}
+				document.forms[i]["parentId"].value = parentId;
+				linha += '&&"' + parentId + '"';
+				break;
+			case "phone":
+				document.forms[i]["phone"].value = venue.contact.phone;
+				linha += '&&"' + venue.contact.phone + '"';
+				break;
+			case "url":
+				document.forms[i]["url"].value = venue.url;
+				linha += '&&"' + venue.url + '"';
+				break;
+			case "twitter":
+				document.forms[i]["twitter"].value = venue.contact.twitter;
+				linha += '&&"' + venue.contact.twitter + '"';
+				break;
+			case "facebook":
+				document.forms[i]["facebook"].value = venue.contact.facebookUsername;
+				linha += '&&"' + venue.contact.facebookUsername + '"';
+				break;
+			case "instagram":
+				document.forms[i]["instagram"].value = venue.contact.instagram;
+				linha += '&&"' + venue.contact.instagram + '"';
+				break;
+			case "venuell":
+				//document.forms[i]["venuell"].value = (venue.location.lat + ', ' + venue.location.lng).replace(/undefined/gi, "0.0");
+				linha += '&&"' + venue.location.lat + ', ' + venue.location.lng + '"';
+				break;
+			case "description":
+				document.forms[i]["description"].value = venue.description;
+				linha += '&&"' + venue.description + '"';
+				if (venue.verified == true)
+					dijit.byId(dojo.query("input[name=description]")[i].id).attr("readOnly", true);
+				break;
+			case "menu":
+				var menuUrl;
+				try {
+					if (venue.menu)
+						(venue.menu.url) ? menuUrl = venue.menu.url : menuUrl = "";
+				} catch(e) {
+					console.log(e);
+				}
+				document.forms[i]["menu"].value = menuUrl;
+				linha += '&&"' + menuUrl + '"';
+				break;
+			//case "hours":
+			//	var hours;
+			//	try {
+			//		(venue.hours) ? hours = "horas existem" : hours = "";
+			//		//(venue.hours) ? hours = venue.hours.timeframes.open.renderedTime : hours = "";
+			//	} catch(e) {
+			//		console.log(e);
+			//	}
+			//	document.forms[i]["hours"].value = hours;
+			//	linha += '&&"' + hours + '"';
+			//	break;
+			default:
+				break;
 			}
-			document.forms[i]["parentId"].value = parentId;
-			linha += '&&"' + parentId + '"';
-			break;
-		case "phone":
-			document.forms[i]["phone"].value = venue.contact.phone;
-			linha += '&&"' + venue.contact.phone + '"';
-			break;
-		case "url":
-			document.forms[i]["url"].value = venue.url;
-			linha += '&&"' + venue.url + '"';
-			break;
-		case "twitter":
-			document.forms[i]["twitter"].value = venue.contact.twitter;
-			linha += '&&"' + venue.contact.twitter + '"';
-			break;
-		case "facebook":
-			document.forms[i]["facebook"].value = venue.contact.facebookUsername;
-			linha += '&&"' + venue.contact.facebookUsername + '"';
-			break;
-		case "description":
-			document.forms[i]["description"].value = venue.description;
-			linha += '&&"' + venue.description + '"';
-			if (venue.verified == true)
-				dijit.byId(dojo.query("input[name=description]")[i].id).attr("readOnly", true);
-			break;
-		case "venuell":
-			//document.forms[i]["venuell"].value = (venue.location.lat + ', ' + venue.location.lng).replace(/undefined/gi, "0.0");
-			linha += '&&"' + venue.location.lat + ', ' + venue.location.lng + '"';
-			break;
-		default:
-			break;
-		}
-		if (document.forms[i].elements[j].value == "undefined")
-			dijit.byId(dojo.query("input[name=" + elementName + "]")[i].id).set("value", "");
+			if (document.forms[i].elements[j].value == "undefined")
+				dijit.byId(dojo.query("input[name=" + elementName + "]")[i].id).set("value", "");
+			//console.log(j, elementName, "adicionado");
+		} //else
+			//console.log(j, document.forms[i].elements[j].name, "ignorado");
 	}
 	dojo.byId("result" + i).innerHTML = "";
 	if (venue.categories[0] != undefined) {
@@ -774,7 +806,7 @@ function montarArvore(resposta) {
 	return newCategory1;
 	}));
 	JSONText = JSON.stringify(restructuredData);
-	console.log(JSONText);
+	//console.log(JSONText);
 	store = new dojo.data.ItemFileReadStore({
 		data: {
 			"identifier": "id",
@@ -877,18 +909,25 @@ function salvarVenues() {
 	for (l = 0; l < totalParaSalvar; l++) {
 		i = linhasEditadas[l];
 		dados = "oauth_token=" + oauth_token;
-		for (j = columnsStartIndex; j < colunas; j++) {
+		var length = document.forms[i].elements.length;
+		for (j = columnsStartIndex; j < length; j++) {
 			elementName = document.forms[i].elements[j].name;
-			if ((['name', 'address', 'crossStreet', 'neighborhood', 'city', 'state', 'parentId', 'zip', 'phone', 'url', 'twitter'].indexOf(elementName) > -1) && (dojo.query("input[name=" + elementName + "]")[i].disabled != true) && (document.forms[i][elementName].readOnly == false))
-				dados += "&" + elementName + "=" + encodeURIComponent(document.forms[i].elements[j].value);
-			else if (elementName == "facebook") {
-				var facebookUsername = document.forms[i].elements[j].value;
-				if ((facebookUsername != null) && (facebookUsername != ""))
-					dados += "&facebookUrl=" + encodeURIComponent("http://facebook.com/" + facebookUsername);
-			} else if ((elementName == "description") && (document.forms[i]["description"].readOnly == false)) {
-				var index = csv[0].indexOf("description");
-				dados += "&description=" + encodeURIComponent(csv[i + 1][index].slice(1, -1));
-			}
+			if (document.forms[i].elements[j].type == "text") {
+				//console.log(elementName + ' adicionado');
+				if ((['name', 'address', 'crossStreet', 'neighborhood', 'city', 'state', 'zip', 'parentId', 'phone', 'url', 'twitter', 'instagram'].indexOf(elementName) > -1) && (dojo.query("input[name=" + elementName + "]")[i].disabled != true) && (document.forms[i][elementName].readOnly == false))
+					dados += "&" + elementName + "=" + encodeURIComponent(document.forms[i].elements[j].value);
+				else if (elementName == "facebook") {
+					var facebookUsername = document.forms[i].elements[j].value;
+					if ((facebookUsername != null) && (facebookUsername != ""))
+						dados += "&facebookUrl=" + encodeURIComponent("http://facebook.com/" + facebookUsername);
+				} else if ((elementName == "description") && (document.forms[i]["description"].readOnly == false)) {
+					var index = csv[0].indexOf("description");
+					dados += "&description=" + encodeURIComponent(csv[i + 1][index].slice(1, -1));
+				} else if (elementName == "menu") {
+						dados += "&menuUrl=" + encodeURIComponent(document.forms[i].elements[j].value);
+				}
+			} //else
+				//console.log(elementName + ' ignorado');
 		}
 		var ll = document.forms[i]["venuell"].value;
 		if ((ll != null) && (ll != "") && (ll != venuellOriginais[i]))
@@ -1049,7 +1088,7 @@ function pad(str, len, pad, dir) {
 function carregarMapa() {
 	var script = document.createElement("script");
 	script.type = "text/javascript";
-	script.src = "http://maps.googleapis.com/maps/api/js?key=AIzaSyD9ZfpJz_ZlwOo7crLhiYhxcpJdBPpBVi8&sensor=false&callback=inicializarMapa";
+	script.src = "http://maps.googleapis.com/maps/api/js?key=AIzaSyD9ZfpJz_ZlwOo7crLhiYhxcpJdBPpBVi8&callback=inicializarMapa";
 	document.body.appendChild(script);
 }
 
@@ -1231,6 +1270,7 @@ dojo.addOnLoad(function inicializar() {
 		style: "display: none;"
 	});
 	
+	var elements;
 	var elementName;	
 	var nomeCampo;
 	var options = [];
@@ -1245,35 +1285,40 @@ dojo.addOnLoad(function inicializar() {
 				dijit.byId("dlg_cats").show();
 				dijit.byId("editAllCheckbox").attr("checked", true);
 				dijit.byId("editAllCheckbox").attr("disabled", true);
-				console.log(this.id + " clicado.");
+				//console.log(this.id + " clicado.");
 			}
 		});
 		subMenu2.addChild(subMenu2Item);
 	}
 	if (document.form1.name.type == "hidden")
 		columnsStartIndex++;
-	if (document.form1.venuell.type == "hidden")
-		totalInputsHidden++;
+	//if (document.form1.venuell.type == "hidden")
+		//totalInputsHidden++;
 	csv[0] = ["venue"];
 	if (json == "") // modo == DADOS_COMPLETOS
 		csv[0] = csv[0].concat("categoryId");
-	colunas = document.form1.elements.length - totalInputsHidden;
+	elements = document.form1.elements;
+	//colunas = elements.length - totalInputsHidden;
 	if (subMenu2Item != undefined)
 		subMenu2.addChild(new dijit.MenuSeparator);
-	for (c = columnsStartIndex; c < colunas; c++) {
-		elementName = document.form1.elements[c].name;
-		nomeCampo = document.form1.elements[c].getAttribute("data-name-ptbr");
-		subMenu2Item = new dijit.MenuItem({
-			label: nomeCampo,
-			id: "menu2Item" + elementName,
-			onClick: function() {
-				showDialogEditField(this.id.substring(9));
-				//console.log(this.id + " clicado.");
-			}
-		});
-		subMenu2.addChild(subMenu2Item);
-		options.push({ value: elementName, label: nomeCampo, selected: false });
-		csv[0] = csv[0].concat(elementName);
+	for (c = columnsStartIndex; c < elements.length; c++) {
+		if (elements[c].type == "text") {
+			elementName = elements[c].name;
+			nomeCampo = elements[c].getAttribute("data-name-ptbr");
+			subMenu2Item = new dijit.MenuItem({
+				label: nomeCampo,
+				id: "menu2Item" + elementName,
+				onClick: function() {
+					showDialogEditField(this.id.substring(9));
+					//console.log(this.id + " clicado.");
+				}
+			});
+			subMenu2.addChild(subMenu2Item);
+			options.push({ value: elementName, label: nomeCampo, selected: false });
+			csv[0] = csv[0].concat(elementName);
+			//console.info(c, elementName, nomeCampo, "adicionado");
+		} //else 
+			//console.info(c, elements[c].name, "ignorado");
 	}
 	if (json == "") // modo == DADOS_COMPLETOS
 		csv[0] = csv[0].concat("primaryCategoryId", "addCategoryIds", "removeCategoryIds");
@@ -1509,7 +1554,7 @@ dojo.addOnLoad(function inicializar() {
 					comments = true;
 			}
 			var html = [];
-			html[0] = "<!DOCTYPE html><html><head><meta http-equiv=\"text/html; charset=utf-8\"></head><body><pre>";
+			html[0] = "<!DOCTYPE html><html><head><meta http-equiv=\"text/html; charset=utf-8\"><title>Relat&oacute;rio</title></head><body><pre>";
 			html[1] = pad("name", NAME_MAX_SIZE + 1) + pad("action", ACTION_MAX_SIZE + 1) + pad("date", 11) + pad("time", 9) + pad("id", 24);
 			if ((json == "") && (comments))
 				html[1] += pad(" categories", CATEGORIES_MAX_SIZE + 2) + "comments";
@@ -1529,10 +1574,11 @@ dojo.addOnLoad(function inicializar() {
 				j++;
 			}
 			html.push("</pre></body></html>");
-			var rel = encodeURIComponent(html.join("\r\n"));
-			while (rel.indexOf("%u") !== -1)
-				rel = rel.substring(0, rel.indexOf("%u")) + " " + rel.substring(rel.indexOf("%u") + 6);
-			window.open("data:text/html;charset=utf-8," + rel);
+			//var rel = encodeURIComponent(html.join("\r\n"));
+			//while (rel.indexOf("%u") !== -1)
+				//rel = rel.substring(0, rel.indexOf("%u")) + " " + rel.substring(rel.indexOf("%u") + 6);
+			var reportWindow = window.open("", "ReportWindow");
+			reportWindow.document.write(html.join("\r\n"));
 		}
 	});
 	subMenu4.addChild(subMenu4Item4);
