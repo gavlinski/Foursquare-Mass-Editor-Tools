@@ -8,14 +8,14 @@
  * @category   Foursquare
  * @package    Foursquare-Mass-Editor-Tools
  * @author     Elio Gavlinski <gavlinski@gmail.com>
- * @copyright  Copyleft (c) 2012-2016
- * @version    2.3.0
+ * @copyright  Copyleft (c) 2012-2018
+ * @version    2.3.1
  * @link       https://github.com/gavlinski/Foursquare-Mass-Editor-Tools/blob/master/main.php
  * @since      File available since Release 1.5
  * @license    GPLv3 <http://www.gnu.org/licenses/gpl.txt>
  */
  
-$VERSAO = "2.3.0";
+$VERSAO = "2.3.1";
 
 if (!isset($_SESSION))
 	session_start();
@@ -140,7 +140,7 @@ if ((isset($_COOKIE['name'])) && (strlen($_COOKIE['name']) > 0))
 						<div class="selectedfile" id="arquivo_txt">Nenhum arquivo selecionado</div>
 					</div>
 					<div class="row">
-						<div class="fieldslabel"><label for="campos">Campos:</label></div>
+						<div class="fieldslabel"><label for="campos1">Campos:</label></div>
 						<div class="checkboxes">
 							<div class="checkbox" style="width: 6.8em;">
 								<input id="nome1" name="campos1[]" dojoType="dijit.form.CheckBox" value="nome">

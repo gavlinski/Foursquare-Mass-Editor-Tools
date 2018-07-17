@@ -8,8 +8,8 @@
  * @category   Foursquare
  * @package    Foursquare-Mass-Editor-Tools
  * @author     Elio Gavlinski <gavlinski@gmail.com>
- * @copyright  Copyleft (c) 2011-2012
- * @version    2.3.0
+ * @copyright  Copyleft (c) 2011-2018
+ * @version    2.3.1
  * @link       https://github.com/gavlinski/Foursquare-Mass-Editor-Tools/blob/master/load.php
  * @since      File available since Release 1.1
  * @license    GPLv3 <http://www.gnu.org/licenses/gpl.txt>
@@ -40,7 +40,7 @@ if (!isset($_SESSION["oauth_token"])) {
 <meta http-equiv="cache-control" content="no-cache">
 <meta http-equiv="pragma" content="no-cache">
 <?php
-define("VERSION", "Venues Loader 2.3.0");
+define("VERSION", "Venues Loader 2.3.1");
 define("LINKS", '<link rel="shortcut icon" href="favicon.ico" type="image/x-icon">
 <link rel="stylesheet" type="text/css" href="js/dijit/themes/tundra/tundra.css">
 <link rel="stylesheet" type="text/css" href="estilo.css">
@@ -80,7 +80,7 @@ if (isset($_FILES['txt']['tmp_name'])) {
 	$arquivo = $_FILES['txt']['tmp_name'];
 	if (is_uploaded_file($arquivo)) {
 		$_SESSION["file"] = validarVenues(file($arquivo));
-		$_SESSION["campos"] = $_POST["campos"];
+		$_SESSION["campos"] = $_POST["campos1"];
 		setLocalCache("txt", implode('%0A,', $_SESSION["file"]), "venues");
 		echo EDIT;
 	}
