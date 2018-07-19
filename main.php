@@ -625,12 +625,15 @@ var sc_invisible=1;
 var sc_security="a38fdf67";
 </script>
 <script type="text/javascript"
-src="http://www.statcounter.com/counter/counter.js"></script>
-<noscript><div class="statcounter"><a title="tumblr visitor
-stats" href="http://statcounter.com/tumblr/"
-target="_blank"><img class="statcounter"
-src="http://c.statcounter.com/7288306/0/a38fdf67/1/"
-alt="tumblr visitor stats"></a></div></noscript>
+src="https://www.statcounter.com/counter/counter.js"
+async></script>
+<noscript><div class="statcounter"><a title="Web Analytics"
+href="http://statcounter.com/" target="_blank"><img
+class="statcounter"
+src="//c.statcounter.com/7288306/0/a38fdf67/1/" alt="Web
+Analytics"></a></div></noscript>
+<!-- End of Statcounter Code -->
+
 <!-- End of StatCounter Code for Default Guide -->
 </body>
 </html>
