@@ -654,8 +654,8 @@ function atualizarTabela(venue, i) {
 			case "description":
 				document.forms[i]["description"].value = venue.description;
 				linha += '&&"' + venue.description + '"';
-				if (venue.verified == true)
-					dijit.byId(dojo.query("input[name=description]")[i].id).attr("readOnly", true);
+				//if (venue.verified == true)
+					//dijit.byId(dojo.query("input[name=description]")[i].id).attr("readOnly", true);
 				break;
 			case "menu":
 				var menuUrl;
