@@ -1516,7 +1516,7 @@ dojo.addOnLoad(function inicializar() {
 			}
 			if (totalSelecionadas > 0)
 				arq = removerNaoSelecionadas(arq, 0);
-			window.open("data:text/plain;charset=utf-8,http://4sq.neuralab.cc/load.php?venues=" + arq.toString());
+			window.open("data:text/plain;charset=utf-8,http://4sq.eliotools.site/load.php?venues=" + arq.toString());
 		}
 	});
 	subMenu4.addChild(subMenu4Item3);
