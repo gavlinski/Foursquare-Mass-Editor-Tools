@@ -9,13 +9,13 @@
  * @package    Foursquare-Mass-Editor-Tools
  * @author     Elio Gavlinski <gavlinski@gmail.com>
  * @copyright  Copyleft (c) 2012-2018
- * @version    2.3.3
+ * @version    2.3.4
  * @link       https://github.com/gavlinski/Foursquare-Mass-Editor-Tools/blob/master/main.php
  * @since      File available since Release 1.5
  * @license    GPLv3 <http://www.gnu.org/licenses/gpl.txt>
  */
  
-$VERSAO = "2.3.3";
+$VERSAO = "2.3.4";
 
 if (!isset($_SESSION))
 	session_start();
@@ -205,7 +205,7 @@ if ((isset($_COOKIE['name'])) && (strlen($_COOKIE['name']) > 0))
 								<label for="descricao1">Descri&ccedil;&atilde;o</label>
 							</div>
 							<div class="checkbox" style="width: 6.8em;">
-								<input id="menu1" name="campos1[]" dojoType="dijit.form.CheckBox" value="menu" disabled>
+								<input id="menu1" name="campos1[]" dojoType="dijit.form.CheckBox" value="menu">
 								<label for="menu1">Menu</label>
 							</div>
 							<div class="checkbox" style="width: 9.5em;">
@@ -298,7 +298,7 @@ if ((isset($_COOKIE['name'])) && (strlen($_COOKIE['name']) > 0))
 								<label for="descricao2">Descri&ccedil;&atilde;o</label>
 							</div>
 							<div class="checkbox" style="width: 6.8em;">
-								<input id="menu2" name="campos2[]" dojoType="dijit.form.CheckBox" value="menu" disabled>
+								<input id="menu2" name="campos2[]" dojoType="dijit.form.CheckBox" value="menu">
 								<label for="menu2">Menu</label>
 							</div>
 							<div class="checkbox" style="width: 9.5em;">
@@ -391,7 +391,7 @@ if ((isset($_COOKIE['name'])) && (strlen($_COOKIE['name']) > 0))
 								<label for="descricao3">Descri&ccedil;&atilde;o</label>
 							</div>
 							<div class="checkbox" style="width: 6.8em;">
-								<input id="menu3" name="campos3[]" dojoType="dijit.form.CheckBox" value="menu" disabled>
+								<input id="menu3" name="campos3[]" dojoType="dijit.form.CheckBox" value="menu">
 								<label for="menu3">Menu</label>
 							</div>
 							<div class="checkbox" style="width: 9.5em;">
