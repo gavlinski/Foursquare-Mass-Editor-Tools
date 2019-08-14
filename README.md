@@ -47,4 +47,9 @@ Requirements for development
 
 Contributions are always welcome. :)
 
+License
+-------
+
+This project is licensed under the terms of the [GNU General Public License v3.0](LICENSE.txt).
+
 Thanks for reading!
