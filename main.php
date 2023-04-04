@@ -8,14 +8,14 @@
  * @category   Foursquare
  * @package    Foursquare-Mass-Editor-Tools
  * @author     Elio Gavlinski <gavlinski@gmail.com>
- * @copyright  Copyleft (c) 2012-2018
- * @version    2.3.4
+ * @copyright  Copyleft (c) 2012-2023
+ * @version    2.3.5
  * @link       https://github.com/gavlinski/Foursquare-Mass-Editor-Tools/blob/master/main.php
  * @since      File available since Release 1.5
  * @license    GPLv3 <http://www.gnu.org/licenses/gpl.txt>
  */
  
-$VERSAO = "2.3.4";
+$VERSAO = "2.3.5";
 
 if (!isset($_SESSION))
 	session_start();

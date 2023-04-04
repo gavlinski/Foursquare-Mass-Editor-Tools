@@ -5,7 +5,7 @@ dojo.require("dijit.Tooltip");
 dojo.require("dijit.Menu");
 dojo.require("dojo.cookie");
 
-var DATA_VERSIONAMENTO = "20160528";
+var DATA_VERSIONAMENTO = "20230404";
 var MESES = new Array("01", "02", "03", "04", "05", "06", "07", "08", "09", "10", "11", "12");
 
 var oauth_token = dojo.cookie("oauth_token");
@@ -274,7 +274,7 @@ function salvarVenues() {
 			else if (elementName == "facebook") {
 				var facebookUsername = document.forms[i].elements[j].value;
 				if ((facebookUsername != null) && (facebookUsername != ""))
-					dados += "&facebookUrl=" + encodeURIComponent("http://facebook.com/" + facebookUsername);
+					dados += "&facebookUrl=" + encodeURIComponent("facebook.com/" + facebookUsername);
 			} else if (elementName == "venuell") {
 				var ll = document.forms[i]["venuell"].value;
 				if (ll != null && ll != "")
