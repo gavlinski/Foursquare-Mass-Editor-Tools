@@ -11,7 +11,7 @@ dojo.require("dijit.Menu");
 dojo.require("dojo.cookie");
 dojo.require("dijit.form.Select");
 
-var DATA_VERSIONAMENTO = "20160528";
+var DATA_VERSIONAMENTO = "20230404";
 var MESES = new Array("01", "02", "03", "04", "05", "06", "07", "08", "09", "10", "11", "12");
 
 var modo;
@@ -640,8 +640,8 @@ function atualizarTabela(venue, i) {
 				linha += '&&"' + venue.contact.twitter + '"';
 				break;
 			case "facebook":
-				document.forms[i]["facebook"].value = venue.contact.facebookUsername;
-				linha += '&&"' + venue.contact.facebookUsername + '"';
+				document.forms[i]["facebook"].value = venue.contact.facebook;
+				linha += '&&"' + venue.contact.facebook + '"';
 				break;
 			case "instagram":
 				document.forms[i]["instagram"].value = venue.contact.instagram;
@@ -919,7 +919,7 @@ function salvarVenues() {
 				else if (elementName == "facebook") {
 					var facebookUsername = document.forms[i].elements[j].value;
 					if ((facebookUsername != null) && (facebookUsername != ""))
-						dados += "&facebookUrl=" + encodeURIComponent("http://facebook.com/" + facebookUsername);
+						dados += "&facebookUrl=" + encodeURIComponent("facebook.com/" + facebookUsername);
 				} else if ((elementName == "description") && (document.forms[i]["description"].readOnly == false)) {
 					var index = csv[0].indexOf("description");
 					dados += "&description=" + encodeURIComponent(csv[i + 1][index].slice(1, -1));
