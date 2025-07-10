@@ -134,10 +134,14 @@ dojo.addOnLoad(function() {
 	});
 	
 	var form_src = dijit.byId("f_src");
-	var oauth_src = dojo.byId("oauth_token_src");
+	var oauth_src = dojo.byId("oauth_token_scr");
 	var ll_src = dijit.byId("ll");
 	dojo.connect(form_src, "onSubmit", function(e) {
 		if (form_src.validate()) {
+			// Atualiza o token OAuth caso tenha sido alterado
+			if (window.oauth_token) {
+				oauth_src.value = window.oauth_token;
+			}
 			if (ll_src.value == "") {
 				e.preventDefault();
 				alert("Informe as coordenadas ou o endere&ccedil;o");

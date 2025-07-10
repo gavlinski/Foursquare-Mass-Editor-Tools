@@ -1,0 +1,16 @@
+.cache
+.git
+.github
+.dockerignore
+.gitignore
+.DS_Store
+Dockerfile
+LICENSE.txt
+README.md
+.env
+.env.example
+vendor/
+node_modules/
+*.log
+tests/
+docs/

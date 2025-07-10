@@ -1,0 +1,35 @@
+js/dijit/
+js/dojo/
+js/dojox/
+.DS_Store
+
+# Dependências do Composer
+vendor/
+
+# Arquivos de configuração local
+.env
+.env.local
+
+# Arquivos temporários e cache
+*.log
+*.tmp
+/tmp/
+cache/
+
+# Arquivos de desenvolvimento
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Arquivos do sistema
+Thumbs.db
+.DS_Store
+*.swp
+*.swo
+
+# Arquivos de IDE
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace

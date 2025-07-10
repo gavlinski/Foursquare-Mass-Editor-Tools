@@ -17,12 +17,27 @@
  
 $VERSAO = "2.3.5";
 
-if (!isset($_SESSION))
-	session_start();
-if (isset($_SESSION["oauth_token"])) {
-	$oauth_token = $_SESSION["oauth_token"];
+// Carrega o autoloader do Composer
+require_once __DIR__ . '/vendor/autoload.php';
+
+use ElioTools\Security\SessionManager;
+use ElioTools\Api\FoursquareApi;
+use ElioTools\Config\AppConfig;
+
+$sessionManager = new SessionManager();
+$sessionManager->start();
+
+if ($sessionManager->has("oauth_token")) {
+    $oauth_token = $sessionManager->get("oauth_token");
 } else {
-	header('Location: index.php');
+    header('Location: /4sqmet/index.php');
+    exit;
+}
+
+// Também verifica se existe o token no cookie como fallback
+if (!$oauth_token && isset($_COOKIE['oauth_token'])) {
+    $oauth_token = $_COOKIE['oauth_token'];
+    $sessionManager->set("oauth_token", $oauth_token);
 }
 ?>
 <!doctype html>
@@ -32,6 +47,29 @@ if (isset($_SESSION["oauth_token"])) {
 <meta charset="utf-8">
 <script src="js/dojo/dojo.js" djConfig="parseOnLoad: true"></script>
 <script src="js/main.js"></script>
+<script type="text/javascript">
+// Disponibiliza o token OAuth globalmente para o JavaScript
+var oauth_token = "<?php echo htmlspecialchars($oauth_token, ENT_QUOTES, 'UTF-8'); ?>";
+window.oauth_token = oauth_token;
+
+// Função para obter o token OAuth
+function getOAuthToken() {
+    return oauth_token;
+}
+
+// Função para atualizar campos hidden com o token
+function updateOAuthFields() {
+    var tokenFields = document.querySelectorAll('input[name="oauth_token"]');
+    tokenFields.forEach(function(field) {
+        field.value = oauth_token;
+    });
+}
+
+// Atualiza os campos quando a página carrega
+dojo.ready(function() {
+    updateOAuthFields();
+});
+</script>
 <?php
 $cache_file = "/tmp/cache-" . md5($_SERVER['REQUEST_URI']);
 if (file_exists($cache_file) && (filemtime($cache_file) > (time() - 3600 * 12))) {
@@ -64,16 +102,14 @@ if (file_exists($cache_file) && (filemtime($cache_file) > (time() - 3600 * 12)))
 }
 
 function carregarListaCategorias() {
-	require_once("FoursquareAPI.Class.php");
-
-	/*** Set client key and secret ***/
-	include 'includes/app_credentials.php';
-
-	/*** Load the Foursquare API library ***/
-	$foursquare = new FoursquareAPI($client_key, $client_secret);
-	$foursquare -> SetAccessToken($_SESSION["oauth_token"]);
+	global $sessionManager;
 	
-	return $foursquare->GetPrivate("venues/categories");
+	$config = new AppConfig();
+	$foursquare = new FoursquareApi($config->get('client_key'), $config->get('client_secret'));
+	$foursquare->setAccessToken($sessionManager->get("oauth_token"));
+	
+	$response = $foursquare->getPrivate("venues/categories");
+	return json_encode($response);
 }
 
 function setLocalCache($key, $data) {

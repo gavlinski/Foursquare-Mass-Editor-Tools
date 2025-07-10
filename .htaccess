@@ -1,0 +1,22 @@
+RewriteEngine On
+
+# Redireciona callback para index.php
+RewriteCond %{QUERY_STRING} code=
+RewriteRule ^/?$ /index.php [L,QSA]
+
+# Força HTTPS em produção (descomente se necessário)
+# RewriteCond %{HTTPS} off
+# RewriteRule ^(.*)$ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
+
+# Configurações de segurança
+<IfModule mod_headers.c>
+    Header always set X-Frame-Options DENY
+    Header always set X-Content-Type-Options nosniff
+    Header always set X-XSS-Protection "1; mode=block"
+</IfModule>
+
+# Proteção de arquivos sensíveis
+<FilesMatch "\.(env|git|htaccess|htpasswd)$">
+    Order allow,deny
+    Deny from all
+</FilesMatch>

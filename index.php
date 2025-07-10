@@ -9,29 +9,103 @@
  * @package    Foursquare-Mass-Editor-Tools
  * @author     Elio Gavlinski <gavlinski@gmail.com>
  * @copyright  Copyleft (c) 2012-2014
- * @version    2.2.2
+ * @version    3.0.0
  * @link       https://github.com/gavlinski/Foursquare-Mass-Editor-Tools/blob/master/index.php
  * @since      File available since Release 1.5
  * @license    GPLv3 <http://www.gnu.org/licenses/gpl.txt>
  */
 
-	require_once("FoursquareAPI.Class.php");
+declare(strict_types=1);
 
-	// Set client key and secret
-	include 'includes/app_credentials.php';
+// Carrega o autoloader do Composer
+require_once __DIR__ . '/vendor/autoload.php';
 
-	// Load the Foursquare API library
-	$foursquare = new FoursquareAPI($client_key, $client_secret);
+use ElioTools\Config\AppConfig;
+use ElioTools\Security\SessionManager;
+use ElioTools\Api\FoursquareApi;
 
-	// If the link has been clicked, and we have a supplied code, use it to request a token
-	if ((isset($_COOKIE['oauth_token'])) && ($_COOKIE['oauth_token'] != "0")) {
-		$token = $_COOKIE['oauth_token'];
-	} else if (array_key_exists("code", $_GET)) {
-		$token = $foursquare->GetToken($_GET['code'], $redirect_uri);
-	}
-	
-	// If we have not received a token, display the link for Foursquare webauth
-	if (!isset($token)) {
+// Inicializa configurações
+$config = new AppConfig();
+$sessionManager = new SessionManager();
+$sessionManager->start();
+
+// Inicializa API do Foursquare
+$foursquare = new FoursquareApi($config->get('client_key'), $config->get('client_secret'));
+
+// Validação e obtenção do token
+$token = null;
+if (isset($_COOKIE['oauth_token']) && $_COOKIE['oauth_token'] !== "0") {
+    $token = filter_var($_COOKIE['oauth_token'], FILTER_SANITIZE_FULL_SPECIAL_CHARS);
+} elseif (isset($_GET['code'])) {
+    $code = filter_var($_GET['code'], FILTER_SANITIZE_FULL_SPECIAL_CHARS);
+    if ($code) {
+        try {
+            $token = $foursquare->getToken($code, $config->get('redirect_uri'));
+        } catch (Exception $e) {
+            error_log("Erro ao obter token: " . $e->getMessage());
+            header('Location: error.php');
+            exit;
+        }
+    }
+}
+
+// Validação e obtenção do token
+$token = null;
+if (isset($_COOKIE['oauth_token']) && $_COOKIE['oauth_token'] !== "0") {
+    $token = filter_var($_COOKIE['oauth_token'], FILTER_SANITIZE_FULL_SPECIAL_CHARS);
+} elseif (isset($_GET['code'])) {
+    $code = filter_var($_GET['code'], FILTER_SANITIZE_FULL_SPECIAL_CHARS);
+    if ($code) {
+        try {
+            $token = $foursquare->getToken($code, $config->get('redirect_uri'));
+        } catch (Exception $e) {
+            error_log("Erro ao obter token: " . $e->getMessage());
+            header('Location: error.php');
+            exit;
+        }
+    }
+}
+
+// Processa o token se existir
+if ($token) {
+    $sessionManager->set("oauth_token", $token);
+    $sessionManager->setCookie("oauth_token", $token);
+    
+    // Load the Foursquare API library
+    $foursquare->setAccessToken($token);
+
+    try {
+        // Perform a request to a authenticated-only resource
+        $userData = $foursquare->getPrivate("users/self");
+        
+        // Returns profile information for a given user
+        $u = $userData['response']['user'] ?? null;
+        if ($u && isset($u['firstName'], $u['lastName'])) {
+            $name = htmlspecialchars($u['firstName'] . " " . $u['lastName']);
+            $sessionManager->setCookie("name", rawurlencode($name), time() + 60*60*24);
+        }
+        
+        if (isset($u['checkins']['items'][0]['venue']['location'])) {
+            $location = $u['checkins']['items'][0]['venue']['location'];
+            $coordinates = $location['lat'] . "," . $location['lng'];
+            $sessionManager->setCookie("coordinates", $coordinates, time() + 60*60*24);
+        }
+    } catch (Exception $e) {
+        error_log("Erro ao processar resposta da API: " . $e->getMessage());
+        header('Location: error.php');
+        exit;
+    }
+    
+    if ($sessionManager->has("venues")) {
+        header('Location: /4sqmet/load.php');
+        exit;
+    } else {
+        header('Location: /4sqmet/main.php');
+        exit;
+    }
+}
+
+// Se não há token, mostra a página de autenticação
 
 ?>
 <!doctype html>
@@ -48,7 +122,7 @@
 <p>
 	<?php
 
-		echo "<a href='" . $foursquare->AuthenticationLink($redirect_uri) . "'><img src='img/connectTo@2x-f07c1cb7c6ed8894bb14dedd1001bcf3.png' alt='Connect to this app via Foursquare'></a>";
+		echo "<a href='" . $foursquare->getAuthenticationUrl($config->get('redirect_uri')) . "'><img src='img/connectTo@2x-f07c1cb7c6ed8894bb14dedd1001bcf3.png' alt='Connect to this app via Foursquare'></a>";
 
 	?>
 </p>
@@ -56,37 +130,6 @@
 </html>
 <?php
 
-	// Otherwise save the token in a session variable and redirect browser
-	} else {
-		if (!isset($_SESSION))
-			session_start();
-		$_SESSION["oauth_token"] = $token;
 
-		// Save and configure a cookie to expire in 15 days
-		setcookie("oauth_token", $token, time()+60*60*24*15);
-		
-		// Load the Foursquare API library
-		$foursquare -> SetAccessToken($_SESSION["oauth_token"]);
-	
-		// Perform a request to a authenticated-only resource
-		$request = $foursquare->GetPrivate("users/self");
-		$details = json_decode($request);
-		
-		// Returns profile information for a given user
-		$u = $details->response->user;
-		if (property_exists($u, "firstName") && property_exists($u, "lastName")) {
-			$name = $u->firstName . " " . $u->lastName;
-			setrawcookie("name", rawurlencode($name), time()+60*60*24*1);
-		}
-		if (property_exists($u->checkins, "items")) {
-			$coordinates = $u->checkins->items[0]->venue->location->lat . "," . $u->checkins->items[0]->venue->location->lng;
-			setcookie("coordinates", $coordinates, time()+60*60*24*1);
-		}
-		
-		if (isset($_SESSION["venues"]))
-			header('Location: load.php');
-		else
-			header('Location: main.php');
-	}
 ?>
 

@@ -42,8 +42,51 @@ Internet Explorer obviously not supported. Please use Mozilla Firefox, Google Ch
 Requirements for development
 ----------------------------
 
-* Dojo Toolkit v1.8.0
-* PHP v5.4.24
+* PHP 8.1+
+* [Composer](https://getcomposer.org/)
+* Docker (opcional)
+
+## Quick Start
+
+### Usando Docker (Recomendado)
+
+1. Clone o repositório:
+   ```bash
+   git clone https://github.com/gavlinski/Foursquare-Mass-Editor-Tools.git
+   cd Foursquare-Mass-Editor-Tools
+   ```
+
+2. Configure as variáveis de ambiente:
+   ```bash
+   cp .env.example .env
+   # Edite o arquivo .env com suas credenciais do Foursquare
+   ```
+
+3. Execute com Docker:
+   ```bash
+   chmod +x dev.sh
+   ./dev.sh run
+   ```
+
+4. Acesse: http://localhost/4sqmet
+
+### Instalação Manual
+
+1. Instale as dependências:
+   ```bash
+   composer install
+   ```
+
+2. Configure o servidor web para apontar para a pasta do projeto
+
+3. Configure as variáveis de ambiente no arquivo `.env`
+
+Requirements for development
+----------------------------
+
+* PHP 8.1+
+* [Composer](https://getcomposer.org/)
+* Docker (opcional)
 
 Contributions are always welcome. :)
 
