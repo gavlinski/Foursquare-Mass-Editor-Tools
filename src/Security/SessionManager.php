@@ -26,8 +26,11 @@ class SessionManager
 
         $options = array_merge($this->defaultOptions, $options);
         
-        // Define secure cookie apenas se estiver em HTTPS
-        $options['cookie_secure'] = $this->isHttps();
+        // Define configurações baseadas no ambiente
+        $isProduction = ($_ENV['APP_ENV'] ?? 'development') === 'production';
+        $options['cookie_secure'] = $isProduction ? true : $this->isHttps();
+        $options['cookie_httponly'] = filter_var($_ENV['SESSION_HTTPONLY'] ?? true, FILTER_VALIDATE_BOOLEAN);
+        $options['gc_maxlifetime'] = (int)($_ENV['SESSION_LIFETIME'] ?? 1440);
 
         session_start($options);
         
@@ -78,9 +81,9 @@ class SessionManager
             'expires' => $expires ?: time() + 60*60*24*15,
             'path' => '/',
             'domain' => '',
-            'secure' => false, // Desabilitado para desenvolvimento local
-            'httponly' => false, // Precisa ser false para JavaScript acessar
-            'samesite' => 'Lax' // Mudado para Lax para compatibilidade
+            'secure' => filter_var($_ENV['COOKIE_SECURE'] ?? false, FILTER_VALIDATE_BOOLEAN),
+            'httponly' => filter_var($_ENV['COOKIE_HTTPONLY'] ?? false, FILTER_VALIDATE_BOOLEAN),
+            'samesite' => $_ENV['COOKIE_SAMESITE'] ?? 'Lax'
         ];
         
         setcookie($name, $value, $options);

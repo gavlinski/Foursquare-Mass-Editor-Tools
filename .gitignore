@@ -9,6 +9,8 @@ vendor/
 # Arquivos de configuração local
 .env
 .env.local
+.env.production
+.env.staging
 
 # Arquivos temporários e cache
 *.log
@@ -33,3 +35,8 @@ Thumbs.db
 .idea/
 *.sublime-project
 *.sublime-workspace
+
+# Arquivos legados (comentados para migração gradual)
+# FoursquareAPI.Class.php
+# includes/app_credentials.php
+# includes/config.php
