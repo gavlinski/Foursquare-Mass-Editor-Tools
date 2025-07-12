@@ -97,10 +97,10 @@ if ($token) {
     }
     
     if ($sessionManager->has("venues")) {
-        header('Location: /4sqmet/load.php');
+        header('Location: load.php');
         exit;
     } else {
-        header('Location: /4sqmet/main.php');
+        header('Location: main.php');
         exit;
     }
 }
