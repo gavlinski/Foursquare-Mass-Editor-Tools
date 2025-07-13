@@ -1210,12 +1210,40 @@ dojo.addOnLoad(function inicializar() {
 	if (localStorage && localStorage.getItem('venues'))
 		json = JSON.parse(localStorage.getItem('venues'));
 
-	/*** Valida OAuth Token ***/
-	if (oauth_token == undefined) {
-		console.warn("Token expirado");
-		if (window.confirm('Token expirado. Por favor, autentique-se novamente no Foursquare®.'))
-			window.location.href = 'index.php';
+	/*** Valida OAuth Token via SessionManager moderno ***/
+	if (window.sessionManager) {
+		// Usa o SessionManager moderno
+		window.sessionManager.checkSessionStatus(false).then(isValid => {
+			if (!isValid) {
+				console.warn("🔒 Sessão expirada - redirecionando para login");
+				if (window.confirm('Sessão expirada. Por favor, autentique-se novamente no Foursquare®.')) {
+					window.location.href = 'index.php';
+				}
+				return;
+			}
+			// Continua com a inicialização normal
+			initializeApplication();
+		});
+	} else {
+		// Fallback para verificação legacy com cookie
+		console.log("🔄 Usando validação legacy de token");
+		
+		// Verifica se o token existe via cookie
+		const legacyToken = dojo.cookie("oauth_token");
+		if (!legacyToken || legacyToken === "undefined" || legacyToken === "null") {
+			console.warn("🔒 Token legacy não encontrado ou inválido");
+			if (window.confirm('Sessão expirada. Por favor, autentique-se novamente no Foursquare®.')) {
+				window.location.href = 'index.php';
+			}
+			return;
+		}
+		
+		console.log("✅ Token legacy válido - continuando inicialização");
+		// Continua com a inicialização normal
+		initializeApplication();
 	}
+	
+	function initializeApplication() {
 	
 	/*** Autoajusta o tamanho do mapa conforme largura da lista ***/
 	dojo.style("mapa", "width", dojo.byId('listContainer').offsetWidth.toString() + "px");
@@ -1605,6 +1633,7 @@ dojo.addOnLoad(function inicializar() {
 	
 	carregarMapa();
 	carregarDadosVenues();
+	} // Fecha initializeApplication()
 });
 
 function deCode(str) {
@@ -1695,4 +1724,4 @@ function editField(campo, valor) {
 			}
 		}
 	}
-}
+	} // Fecha initializeApplication()

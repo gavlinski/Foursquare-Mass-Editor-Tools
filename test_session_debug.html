@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Teste de Sessão</title>
+</head>
+<body>
+    <h1>Teste de Sessão para Depuração</h1>
+    
+    <button onclick="createTestSession()">Criar Sessão de Teste</button>
+    <button onclick="checkSession()">Verificar Sessão</button>
+    <button onclick="clearSession()">Limpar Sessão</button>
+    
+    <div id="result" style="margin-top: 20px; padding: 10px; border: 1px solid #ccc;"></div>
+    
+    <script>
+        function createTestSession() {
+            fetch('quick_session.php')
+                .then(response => response.text())
+                .then(data => {
+                    document.getElementById('result').innerHTML = '<strong>Sessão criada:</strong> ' + data;
+                })
+                .catch(error => {
+                    document.getElementById('result').innerHTML = '<strong>Erro:</strong> ' + error;
+                });
+        }
+        
+        function checkSession() {
+            fetch('session_status.php', {
+                method: 'GET',
+                credentials: 'same-origin',
+                cache: 'no-cache',
+                headers: {
+                    'Accept': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+                return response.json();
+            })
+            .then(data => {
+                document.getElementById('result').innerHTML = '<strong>Status da sessão:</strong><pre>' + JSON.stringify(data, null, 2) + '</pre>';
+            })
+            .catch(error => {
+                document.getElementById('result').innerHTML = '<strong>Erro ao verificar sessão:</strong> ' + error.message;
+                console.error('Erro completo:', error);
+            });
+        }
+        
+        function clearSession() {
+            window.location.href = 'index.php?logout=1';
+        }
+    </script>
+</body>
+</html>

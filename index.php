@@ -20,9 +20,11 @@ declare(strict_types=1);
 // Carrega o autoloader do Composer
 require_once __DIR__ . '/vendor/autoload.php';
 
+// Inclui a classe FoursquareApi original
+require_once __DIR__ . '/FoursquareAPI.Class.php';
+
 use ElioTools\Config\AppConfig;
 use ElioTools\Security\SessionManager;
-use ElioTools\Api\FoursquareApi;
 
 // Inicializa configurações
 $config = new AppConfig();
@@ -32,21 +34,14 @@ $sessionManager->start();
 // Inicializa API do Foursquare
 $foursquare = new FoursquareApi($config->get('client_key'), $config->get('client_secret'));
 
-// Validação e obtenção do token
-$token = null;
-if (isset($_COOKIE['oauth_token']) && $_COOKIE['oauth_token'] !== "0") {
-    $token = filter_var($_COOKIE['oauth_token'], FILTER_SANITIZE_FULL_SPECIAL_CHARS);
-} elseif (isset($_GET['code'])) {
-    $code = filter_var($_GET['code'], FILTER_SANITIZE_FULL_SPECIAL_CHARS);
-    if ($code) {
-        try {
-            $token = $foursquare->getToken($code, $config->get('redirect_uri'));
-        } catch (Exception $e) {
-            error_log("Erro ao obter token: " . $e->getMessage());
-            header('Location: error.php');
-            exit;
-        }
-    }
+// Verifica se é uma requisição de logout
+if (isset($_GET['logout'])) {
+    $sessionManager->destroy();
+    $sessionManager->setCookie("oauth_token", "", time() - 3600);
+    $sessionManager->setCookie("name", "", time() - 3600);
+    $sessionManager->setCookie("coordinates", "", time() - 3600);
+    header('Location: index.php');
+    exit;
 }
 
 // Validação e obtenção do token
@@ -57,7 +52,7 @@ if (isset($_COOKIE['oauth_token']) && $_COOKIE['oauth_token'] !== "0") {
     $code = filter_var($_GET['code'], FILTER_SANITIZE_FULL_SPECIAL_CHARS);
     if ($code) {
         try {
-            $token = $foursquare->getToken($code, $config->get('redirect_uri'));
+            $token = $foursquare->GetToken($code, $config->get('redirect_uri'));
         } catch (Exception $e) {
             error_log("Erro ao obter token: " . $e->getMessage());
             header('Location: error.php');
@@ -72,11 +67,12 @@ if ($token) {
     $sessionManager->setCookie("oauth_token", $token);
     
     // Load the Foursquare API library
-    $foursquare->setAccessToken($token);
+    $foursquare->SetAccessToken($token);
 
     try {
         // Perform a request to a authenticated-only resource
-        $userData = $foursquare->getPrivate("users/self");
+        $userDataResponse = $foursquare->GetPrivate("users/self");
+        $userData = json_decode($userDataResponse, true);
         
         // Returns profile information for a given user
         $u = $userData['response']['user'] ?? null;
@@ -117,12 +113,23 @@ if ($token) {
 <link rel="shortcut icon" href="favicon.ico" type="image/x-icon">
 <link rel="stylesheet" type="text/css" href="js/dijit/themes/tundra/tundra.css">
 <link rel="stylesheet" type="text/css" href="estilo.css">
+<script>
+// Remove fragmento #_=_ do OAuth e recarrega a página
+if (window.location.hash === '#_=_') {
+    if (history.replaceState) {
+        history.replaceState(null, null, window.location.href.split('#')[0]);
+    } else {
+        window.location.hash = '';
+    }
+    window.location.reload();
+}
+</script>
 </head>
 <body class="tundra">
 <p>
 	<?php
 
-		echo "<a href='" . $foursquare->getAuthenticationUrl($config->get('redirect_uri')) . "'><img src='img/connectTo@2x-f07c1cb7c6ed8894bb14dedd1001bcf3.png' alt='Connect to this app via Foursquare'></a>";
+		echo "<a href='" . $foursquare->AuthenticationLink($config->get('redirect_uri')) . "'><img src='img/connectTo@2x-f07c1cb7c6ed8894bb14dedd1001bcf3.png' alt='Connect to this app via Foursquare'></a>";
 
 	?>
 </p>

@@ -83,6 +83,7 @@ class FoursquareApi {
 		// Build the endpoint URL
 		$url = $this->BaseUrl . trim($endpoint,"/");
 		// Append the client details
+		if ($params === false) $params = [];
 		$params['client_id'] = $this->ClientID;
 		$params['client_secret'] = $this->ClientSecret;
 		$params['v'] = $this->Version;
@@ -100,6 +101,7 @@ class FoursquareApi {
 	 */
 	public function GetPrivate($endpoint,$params=false,$POST=false){
 		$url = $this->BaseUrl . trim($endpoint,"/");
+		if ($params === false) $params = [];
 		$params['oauth_token'] = $this->AuthToken;
 		$params['v'] = $this->Version;
 		$params['locale'] = $this->ClientLanguage;
@@ -163,7 +165,10 @@ class FoursquareApi {
 	private function Request($url,$params=false,$type=HTTP_GET){
 		
 		// Populate data for the GET request
-		if($type == HTTP_GET) $url = $this->MakeUrl($url,$params);
+		if($type == HTTP_GET) {
+			if ($params === false) $params = [];
+			$url = $this->MakeUrl($url,$params);
+		}
 
 		// borrowed from Andy Langton: http://andylangton.co.uk/
 		$ch = curl_init();

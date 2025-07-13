@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 /**
  * List Venues Editor
  *
@@ -8,23 +10,35 @@
  * @category   Foursquare
  * @package    Foursquare-Mass-Editor-Tools
  * @author     Elio Gavlinski <gavlinski@gmail.com>
- * @copyright  Copyleft (c) 2011-2018
- * @version    2.3.0
+ * @copyright  Copyleft (c) 2011-2025
+ * @version    3.0.0
  * @link       https://github.com/gavlinski/Foursquare-Mass-Editor-Tools/blob/master/edit.php
  * @since      File available since Release 0.5
  * @license    GPLv3 <http://www.gnu.org/licenses/gpl.txt>
  */
 
-if (!isset($_SESSION))
-	session_start();
+// Headers anti-cache para desenvolvimento
+header('Cache-Control: no-cache, no-store, must-revalidate');
+header('Pragma: no-cache');
+header('Expires: 0');
+
+// Autoloader
+require_once __DIR__ . '/vendor/autoload.php';
+
+if (!isset($_SESSION)) {
+    session_start();
+}
+
 if ((isset($_SESSION["oauth_token"])) && ($_SESSION["file"] != null)) {
-	$file = $_SESSION["file"];
-	$venuesIds = $_SESSION["venuesIds"];
-	$campos = $_SESSION["campos"];
-	if (isset($_SESSION["venues"]))
-		unset($_SESSION["venues"]);
+    $file = $_SESSION["file"];
+    $venuesIds = $_SESSION["venuesIds"];
+    $campos = $_SESSION["campos"];
+    if (isset($_SESSION["venues"])) {
+        unset($_SESSION["venues"]);
+    }
 } else {
-	header('Location: index.php'); /* Redirect browser */
+    header('Location: index.php');
+    exit();
 }
 
 // Set client key and secret
@@ -33,18 +47,26 @@ include 'includes/app_credentials.php';
 <!doctype html>
 <html lang="pt-BR">
 <head>
-<title>Elio Tools</title>
+<title>Elio Tools - Editor de Venues</title>
 <meta charset="utf-8">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
 <link rel="shortcut icon" href="favicon.ico" type="image/x-icon">
 <link rel="stylesheet" type="text/css" href="js/dijit/themes/tundra/tundra.css">
 <link rel="stylesheet" type="text/css" href="estilo.css">
 <script src="js/dojo/dojo.js" djConfig="parseOnLoad: true"></script>
 <script src="js/4sq.js"></script>
+<script src="js/session-manager.js"></script>
 </head>
 <body class="tundra">
+
+<?php include 'includes/session-status-bar.php'; ?>
+
 <header>
 	<h2>Editar venues</h2>
 </header>
+
 <article>
 	<p>Antes de salvar suas propostas de altera&ccedil;&otilde;es, n&atilde;o deixe de ler nosso <a id="guia" href="javascript:showDialogGuia()">guia de estilo</a> e as <a id="regras" href="https://pt.foursquare.com/info/houserules" target="_blank">regras da casa</a>.</p>
 </article>
@@ -56,199 +78,164 @@ include 'includes/app_credentials.php';
 <?php
 $totalCampos = 0;
 
-if ($campos != null) {
-	if (in_array("nome", $campos)) {
-		$editName = true;
-		$totalCampos++;
-	} else {
-		$editName = false;
-	}
-	if (in_array("endereco", $campos)) {
-		$editAddress = true;
-		$totalCampos++;
-	} else {
-		$editAddress = false;
-	}
-	if (in_array("ruatransversal", $campos)) {
-		$editCross = true;
-		$totalCampos++;
-	} else {
-		$editCross = false;
-	}
-	if (in_array("bairro", $campos)) {
-		$editNeighborhood = true;
-		$totalCampos++;
-	} else {
-		$editNeighborhood = false;
-	}
-	if (in_array("cidade", $campos)) {
-		$editCity = true;
-		$totalCampos++;
-	} else {
-		$editCity = false;
-	}
-	if (in_array("estado", $campos)) {
-		$editState = true;
-		$totalCampos++;
-	} else {
-		$editState = false;
-	}
-	if (in_array("codigopostal", $campos)) {
-		$editZip = true;
-		$totalCampos++;
-	} else {
-		$editZip = false;
-	}
-	if (in_array("dentro", $campos)) {
-		$editParentId = true;
-		$totalCampos++;
-	} else {
-		$editParentId = false;
-	}
-	if (in_array("telefone", $campos)) {
-		$editPhone = true;
-		$totalCampos++;
-	} else {
-		$editPhone = false;
-	}
-	if (in_array("sitedaweb", $campos)) {
-		$editUrl = true;
-		$totalCampos++;
-	} else {
-		$editUrl = false;
-	}
-	if (in_array("twitter", $campos)) {
-		$editTwitter = true;
-		$totalCampos++;
-	} else {
-		$editTwitter = false;
-	}
-	if (in_array("facebook", $campos)) {
-		$editFacebook = true;
-		$totalCampos++;
-	} else {
-		$editFacebook = false;
-	}
-	if (in_array("instagram", $campos)) {
-		$editInstagram = true;
-		$totalCampos++;
-	} else {
-		$editInstagram = false;
-	}
-	if (in_array("latlng", $campos)) {
-		$editVenuell = true;
-		$totalCampos++;
-	} else {
-		$editVenuell = false;
-	}
-	if (in_array("descricao", $campos)) {
-		$editDesc = true;
-		$totalCampos++;
-	} else {
-		$editDesc = false;
-	}
-	if (in_array("menu", $campos)) {
-		$editMenu = true;
-		$totalCampos++;
-	} else {
-		$editMenu = false;
-	}
-	//if (in_array("horas", $campos)) {
-		//$editHours = true;
-		//$totalCampos++;
-	//} else {
-		//$editHours = false;
-	//}
+// Campos disponíveis para edição
+$camposDisponiveis = [
+    'nome' => 'editName',
+    'endereco' => 'editAddress', 
+    'ruatransversal' => 'editCross',
+    'bairro' => 'editNeighborhood',
+    'cidade' => 'editCity',
+    'estado' => 'editState',
+    'codigopostal' => 'editZip',
+    'dentro' => 'editParentId',
+    'telefone' => 'editPhone',
+    'sitedaweb' => 'editUrl',
+    'twitter' => 'editTwitter',
+    'facebook' => 'editFacebook',
+    'instagram' => 'editInstagram',
+    'latlng' => 'editLatLng',
+    'descricao' => 'editDescription',
+    'menu' => 'editMenu',
+    'horas' => 'editHours'
+];
+
+// Inicializa todas as variáveis como false
+foreach ($camposDisponiveis as $variavel) {
+    $$variavel = false;
+}
+
+// Compatibilidade com nomes antigos das variáveis
+$editVenuell = false;  // Alias para editLatLng
+$editDesc = false;     // Alias para editDescription
+
+// Define quais campos serão editados baseado na seleção
+if ($campos !== null) {
+    foreach ($camposDisponiveis as $campo => $variavel) {
+        if (in_array($campo, $campos)) {
+            $$variavel = true;
+            $totalCampos++;
+            
+            // Atualiza aliases para compatibilidade
+            if ($campo === 'latlng') {
+                $editVenuell = true;
+            }
+            if ($campo === 'descricao') {
+                $editDesc = true;
+            }
+        }
+    }
 } else {
-	$editName = false;
-	$editAddress = false;
-	$editCross = false;
-	$editNeighborhood = false;
-	$editCity = false;
-	$editState = false;
-	$editZip = false;
-	$editParentId = false;
-	$editPhone = false;
-	$editUrl = false;
-	$editTwitter = false;
-	$editFacebook = false;
-	$editInstagram = false;
-	$editVenuell = false;
-	$editDesc = false;
-	$editMenu = false;
-	//$editHours = false;
+    // Se não há campos específicos definidos, todos ficam false (já inicializados acima)
 }
 
 $ajusteInput = 11 - $totalCampos;
 
+/**
+ * Renderiza um campo de input baseado no tipo
+ */
+function renderizarCampo(string $tipo, string $name, array $config, int $ajusteInput, int $indice): string 
+{
+    if ($tipo === 'hidden') {
+        return '<input type="hidden" name="' . htmlspecialchars($name) . '">' . "\n";
+    }
+    
+    $width = $config['width'] + $ajusteInput;
+    $maxlength = $config['maxlength'] ?? 256;
+    $placeholder = htmlspecialchars($config['placeholder']);
+    $namePtbr = htmlspecialchars($config['name_ptbr']);
+    
+    return '<input type="text" dojoType="dijit.form.TextBox" name="' . htmlspecialchars($name) . '" ' .
+           'maxlength="' . $maxlength . '" value=" " placeHolder="' . $placeholder . '" ' .
+           'style="width: ' . $width . 'em; margin-left: 5px;" ' .
+           'onchange="verificarAlteracao(this, ' . $indice . ')" ' .
+           'data-name-ptbr="' . $namePtbr . '">' . "\n";
+}
+
+// Configuração dos campos
+$configCampos = [
+    'name' => ['width' => 11, 'maxlength' => 256, 'placeholder' => 'Nome', 'name_ptbr' => 'Nome'],
+    'address' => ['width' => 11, 'maxlength' => 128, 'placeholder' => 'Endereço', 'name_ptbr' => 'Endereço'],
+    'crossStreet' => ['width' => 9, 'maxlength' => 128, 'placeholder' => 'Rua transversal', 'name_ptbr' => 'Rua transversal'],
+    'neighborhood' => ['width' => 9, 'maxlength' => 128, 'placeholder' => 'Bairro', 'name_ptbr' => 'Bairro'],
+    'city' => ['width' => 7, 'maxlength' => 31, 'placeholder' => 'Cidade', 'name_ptbr' => 'Cidade'],
+    'state' => ['width' => 2.5, 'maxlength' => 30, 'placeholder' => 'UF', 'name_ptbr' => 'UF'],
+    'zip' => ['width' => 6, 'maxlength' => 13, 'placeholder' => 'Código postal', 'name_ptbr' => 'Código postal'],
+    'parentId' => ['width' => 14, 'maxlength' => 24, 'placeholder' => 'Dentro', 'name_ptbr' => 'Dentro'],
+    'phone' => ['width' => 7, 'maxlength' => 21, 'placeholder' => 'Telefone', 'name_ptbr' => 'Telefone'],
+    'url' => ['width' => 8, 'maxlength' => 256, 'placeholder' => 'Website', 'name_ptbr' => 'Website'],
+    'twitter' => ['width' => 7, 'maxlength' => 51, 'placeholder' => 'Twitter', 'name_ptbr' => 'Twitter']
+];
+
 $i = 0;
 
 foreach ($file as $f) {
-	$i++;
+    $i++;
 
-	if (isset($venuesIds[$i - 1])) {
-		echo '<section id="linha', $i - 1, '" class="row">', chr(10), '<form name="form', $i, '" accept-charset="utf-8" encType="multipart/form-data" method="post">', chr(10);
+    if (isset($venuesIds[$i - 1])) {
+        echo '<section id="linha' . ($i - 1) . '" class="row">' . "\n";
+        echo '<form name="form' . $i . '" accept-charset="utf-8" encType="multipart/form-data" method="post">' . "\n";
 
-		$venue = $venuesIds[$i - 1];
-		echo '<div class="selectbox"><input name="selecao" data-dojo-type="dijit/form/CheckBox" value="', $i - 1, '" onChange="atualizarItensMenuMais(this.value)"></div>', chr(10);
+        $venue = $venuesIds[$i - 1];
+        echo '<div class="selectbox"><input name="selecao" data-dojo-type="dijit/form/CheckBox" value="' . ($i - 1) . '" onChange="atualizarItensMenuMais(this.value)"></div>' . "\n";
 
-		$venueLink = $f . '?ref=' . $client_key;
-		echo '<input type="hidden" name="venue" value="', $venue, '"><span id="info', $i - 1, '"><a id="venLnk', $i - 1, '" href="', $venueLink , '" target="_blank" style="margin-left: 23px; margin-right: 5px; vertical-align: -1px;">';
-		if (count($file) < 10)
-			echo $i;
-		else if (count($file) < 100)
-			echo str_pad($i, 2, "0", STR_PAD_LEFT);
-		else
-			echo str_pad($i, 3, "0", STR_PAD_LEFT);
-		echo '</a></span>', chr(10);
+        $venueLink = $f . '?ref=' . $client_key;
+        echo '<input type="hidden" name="venue" value="' . htmlspecialchars($venue) . '">';
+        echo '<span id="info' . ($i - 1) . '"><a id="venLnk' . ($i - 1) . '" href="' . htmlspecialchars($venueLink) . '" target="_blank" style="margin-left: 23px; margin-right: 5px; vertical-align: -1px;">';
+        
+        // Formatação do número baseado na quantidade total
+        if (count($file) < 10) {
+            echo $i;
+        } else if (count($file) < 100) {
+            echo str_pad((string)$i, 2, "0", STR_PAD_LEFT);
+        } else {
+            echo str_pad((string)$i, 3, "0", STR_PAD_LEFT);
+        }
+        echo '</a></span>' . "\n";
 
-		echo '<span id="icone', $i - 1, '"><img id=catImg', $i, ' src="https://foursquare.com/img/categories_v2/none_bg_32.png" style="height: 22px; width: 22px; margin-left: 0px"></span>', chr(10);
+        echo '<span id="icone' . ($i - 1) . '"><img id="catImg' . $i . '" src="https://foursquare.com/img/categories_v2/none_bg_32.png" style="height: 22px; width: 22px; margin-left: 0px"></span>' . "\n";
 
-		if ($editName) {
-			echo '<input type="text" dojoType="dijit.form.TextBox" name="name" maxlength="256" value=" " placeHolder="Nome" style="width: ', 11 + $ajusteInput, 'em; margin-left: 5px;" onchange="verificarAlteracao(this, ', $i - 1, ')" data-name-ptbr="Nome">', chr(10);
-		} else {
-			echo '<input type="hidden" name="name">', chr(10);
-		}
-
-		if ($editAddress) {
-			echo '<input type="text" dojoType="dijit.form.TextBox" name="address" maxlength="128" value=" " placeHolder="Endere&ccedil;o" style="width: ', 11 + $ajusteInput, 'em; margin-left: 5px;" onchange="verificarAlteracao(this, ', $i - 1, ')" data-name-ptbr="Endere&ccedil;o">', chr(10);
-		}
-
-		if ($editCross) {
-			echo '<input type="text" dojoType="dijit.form.TextBox" name="crossStreet" maxlength="128" value=" " placeHolder="Rua transversal" style="width: ', 9 + $ajusteInput, 'em; margin-left: 5px;" onchange="verificarAlteracao(this, ', $i - 1, ')" data-name-ptbr="Rua transversal">', chr(10);
-		}
-	
-		if ($editNeighborhood) {
-			echo '<input type="text" dojoType="dijit.form.TextBox" name="neighborhood" maxlength="128" value=" " placeHolder="Bairro" style="width: ', 9 + $ajusteInput, 'em; margin-left: 5px;" onchange="verificarAlteracao(this, ', $i - 1, ')" data-name-ptbr="Bairro">', chr(10);
-		}
-
-		if ($editCity) {
-			echo '<input type="text" dojoType="dijit.form.TextBox" name="city" maxlength="31" value=" " placeHolder="Cidade" style="width: ', 7 + $ajusteInput, 'em; margin-left: 5px;" onchange="verificarAlteracao(this, ', $i - 1, ')" data-name-ptbr="Cidade">', chr(10);
-		}
-
-		if ($editState) {
-			echo '<input type="text" dojoType="dijit.form.TextBox" name="state" maxlength="30" value=" " placeHolder="UF" style="width: 2.5em; margin-left: 5px;" onchange="verificarAlteracao(this, ', $i - 1, ')" data-name-ptbr="UF">', chr(10);	 
-		}
-
-		if ($editZip) {
-			echo '<input type="text" dojoType="dijit.form.TextBox" name="zip" maxlength="13" value=" " placeHolder="C&oacute;digo postal" style="width: 6em; margin-left: 5px;" onchange="verificarAlteracao(this, ', $i - 1, ')" data-name-ptbr="C&oacute;digo postal">', chr(10);
-		}
-	
-		if ($editParentId) {
-			echo '<input type="text" dojoType="dijit.form.TextBox" name="parentId" maxlength="24" value=" " placeHolder="Dentro" style="width: 14em; margin-left: 5px;" onchange="verificarAlteracao(this, ', $i - 1, ')" data-name-ptbr="Dentro">', chr(10);
-		}
-
-		if ($editPhone) {
-			echo '<input type="text" dojoType="dijit.form.TextBox" name="phone" maxlength="21" value=" " placeHolder="Telefone" style="width: 7em; margin-left: 5px;" onchange="verificarAlteracao(this, ', $i - 1, ')" data-name-ptbr="Telefone">', chr(10);
-		}
-
-		if ($editUrl) {
-			echo '<input type="text" dojoType="dijit.form.TextBox" name="url" maxlength="256" value=" " placeHolder="Website" style="width: ', 8 + $ajusteInput, 'em; margin-left: 5px;" onchange="verificarAlteracao(this, ', $i - 1, ')" data-name-ptbr="Website">', chr(10);
-		}
-	
-		if ($editTwitter) {
-			echo '<input type="text" dojoType="dijit.form.TextBox" name="twitter" maxlength="51" value=" " placeHolder="Twitter" style="width: ', 7 + $ajusteInput, 'em; margin-left: 5px;" onchange="verificarAlteracao(this, ', $i - 1, ')" data-name-ptbr="Twitter">', chr(10);
-		}
+        // Renderização dos campos usando a nova abordagem
+        echo $editName ? renderizarCampo('text', 'name', $configCampos['name'], $ajusteInput, $i - 1) : renderizarCampo('hidden', 'name', [], 0, $i - 1);
+        
+        if ($editAddress) {
+            echo renderizarCampo('text', 'address', $configCampos['address'], $ajusteInput, $i - 1);
+        }
+        
+        if ($editCross) {
+            echo renderizarCampo('text', 'crossStreet', $configCampos['crossStreet'], $ajusteInput, $i - 1);
+        }
+        
+        if ($editNeighborhood) {
+            echo renderizarCampo('text', 'neighborhood', $configCampos['neighborhood'], $ajusteInput, $i - 1);
+        }
+        
+        if ($editCity) {
+            echo renderizarCampo('text', 'city', $configCampos['city'], $ajusteInput, $i - 1);
+        }
+        
+        if ($editState) {
+            echo renderizarCampo('text', 'state', $configCampos['state'], 0, $i - 1); // Sem ajuste para estado
+        }
+        
+        if ($editZip) {
+            echo renderizarCampo('text', 'zip', $configCampos['zip'], 0, $i - 1);
+        }
+        
+        if ($editParentId) {
+            echo renderizarCampo('text', 'parentId', $configCampos['parentId'], 0, $i - 1);
+        }
+        
+        if ($editPhone) {
+            echo renderizarCampo('text', 'phone', $configCampos['phone'], 0, $i - 1);
+        }
+        
+        if ($editUrl) {
+            echo renderizarCampo('text', 'url', $configCampos['url'], $ajusteInput, $i - 1);
+        }
+        
+        if ($editTwitter) {
+            echo renderizarCampo('text', 'twitter', $configCampos['twitter'], $ajusteInput, $i - 1);
+        }
 	
 		if ($editFacebook) {
 			echo '<input type="text" dojoType="dijit.form.TextBox" name="facebook" maxlength="51" value=" " placeHolder="Facebook" style="width: ', 7 + $ajusteInput, 'em; margin-left: 5px;" onchange="verificarAlteracao(this, ', $i - 1, ')" data-name-ptbr="Facebook">', chr(10);
@@ -343,5 +330,37 @@ id="saveProgress">
 		<button data-dojo-type="dijit.form.Button" type="button" data-dojo-props="onClick:function(){ dijit.byId('dlg_editField').onCancel(); }">Cancelar</button>
 	</div>
 </div>
+
+<script>
+// Inicialização do SessionManager para a página de edição
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('🔧 Inicializando página de edição...');
+    
+    // Aguarda o SessionManager estar disponível (já integrado com a barra unificada)
+    function waitForSessionManager() {
+        if (window.sessionManager) {
+            console.log('✅ SessionManager encontrado e carregado');
+            // O SessionManager já vai se integrar automaticamente com a barra unificada
+            setTimeout(() => {
+                window.sessionManager.checkSessionStatus();
+            }, 500);
+        } else {
+            console.log('⏳ Aguardando SessionManager...');
+            setTimeout(waitForSessionManager, 200);
+        }
+    }
+    
+    waitForSessionManager();
+    
+    // Debug: Log global para verificar se há erros
+    window.addEventListener('error', function(e) {
+        console.error('❌ Erro na página:', e.error);
+        if (window.sessionStatusBarAPI) {
+            window.sessionStatusBarAPI.updateStatus('Erro detectado: ' + e.message, 'error');
+        }
+    });
+});
+</script>
+
 </body>
 </html>

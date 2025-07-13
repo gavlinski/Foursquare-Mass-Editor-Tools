@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 /**
  * Main Page
  *
@@ -9,35 +11,73 @@
  * @package    Foursquare-Mass-Editor-Tools
  * @author     Elio Gavlinski <gavlinski@gmail.com>
  * @copyright  Copyleft (c) 2012-2023
- * @version    2.3.5
+ * @version    3.0.0
  * @link       https://github.com/gavlinski/Foursquare-Mass-Editor-Tools/blob/master/main.php
  * @since      File available since Release 1.5
  * @license    GPLv3 <http://www.gnu.org/licenses/gpl.txt>
  */
- 
-$VERSAO = "2.3.5";
 
-// Carrega o autoloader do Composer
+// Headers anti-cache
+header('Cache-Control: no-store, no-cache, must-revalidate, max-age=0');
+header('Cache-Control: post-check=0, pre-check=0', false);
+header('Pragma: no-cache');
+
+// Autoloader
 require_once __DIR__ . '/vendor/autoload.php';
 
+// Inclui a classe FoursquareApi original
+require_once __DIR__ . '/FoursquareAPI.Class.php';
+
 use ElioTools\Security\SessionManager;
-use ElioTools\Api\FoursquareApi;
 use ElioTools\Config\AppConfig;
 
-$sessionManager = new SessionManager();
-$sessionManager->start();
+$VERSAO = "3.0.0";
 
-if ($sessionManager->has("oauth_token")) {
-    $oauth_token = $sessionManager->get("oauth_token");
+// Carrega o autoloader do Composer se disponível
+if (file_exists(__DIR__ . '/vendor/autoload.php')) {
+    require_once __DIR__ . '/vendor/autoload.php';
+    
+    $sessionManager = new SessionManager();
+    $sessionManager->start();
+    $oauth_token = $sessionManager->get('oauth_token') ?? $_SESSION['oauth_token'] ?? null;
+    
+    // Obtém dados do usuário da sessão ou busca da API
+    $userData = $sessionManager->get('user_data') ?? $_SESSION['user_data'] ?? null;
+    if (!$userData && $oauth_token) {
+        try {
+            $config = new AppConfig();
+            $foursquare = new FoursquareApi($config->get('client_key'), $config->get('client_secret'));
+            $foursquare->SetAccessToken($oauth_token);
+            $responseData = $foursquare->GetPrivate("users/self");
+            $response = json_decode($responseData, true);
+            
+            if (isset($response['response']['user'])) {
+                $userData = $response['response']['user'];
+                $sessionManager->set('user_data', $userData);
+                // Define o cookie para compatibilidade
+                $firstName = $userData['firstName'] ?? '';
+                $lastName = $userData['lastName'] ?? '';
+                $fullName = trim($firstName . ' ' . $lastName);
+                if ($fullName) {
+                    $sessionManager->setCookie("name", rawurlencode($fullName), time() + 60*60*24);
+                }
+            }
+        } catch (Exception $e) {
+            // Em caso de erro, redireciona para login
+            header('Location: index.php');
+            exit;
+        }
+    }
 } else {
-    header('Location: /4sqmet/index.php');
-    exit;
+    // Fallback para sistema legado
+    if (!isset($_SESSION))
+        session_start();
+    $oauth_token = $_SESSION["oauth_token"] ?? null;
 }
 
-// Também verifica se existe o token no cookie como fallback
-if (!$oauth_token && isset($_COOKIE['oauth_token'])) {
-    $oauth_token = $_COOKIE['oauth_token'];
-    $sessionManager->set("oauth_token", $oauth_token);
+if (!$oauth_token) {
+    header('Location: index.php');
+    exit;
 }
 ?>
 <!doctype html>
@@ -47,29 +87,6 @@ if (!$oauth_token && isset($_COOKIE['oauth_token'])) {
 <meta charset="utf-8">
 <script src="js/dojo/dojo.js" djConfig="parseOnLoad: true"></script>
 <script src="js/main.js"></script>
-<script type="text/javascript">
-// Disponibiliza o token OAuth globalmente para o JavaScript
-var oauth_token = "<?php echo htmlspecialchars($oauth_token, ENT_QUOTES, 'UTF-8'); ?>";
-window.oauth_token = oauth_token;
-
-// Função para obter o token OAuth
-function getOAuthToken() {
-    return oauth_token;
-}
-
-// Função para atualizar campos hidden com o token
-function updateOAuthFields() {
-    var tokenFields = document.querySelectorAll('input[name="oauth_token"]');
-    tokenFields.forEach(function(field) {
-        field.value = oauth_token;
-    });
-}
-
-// Atualiza os campos quando a página carrega
-dojo.ready(function() {
-    updateOAuthFields();
-});
-</script>
 <?php
 $cache_file = "/tmp/cache-" . md5($_SERVER['REQUEST_URI']);
 if (file_exists($cache_file) && (filemtime($cache_file) > (time() - 3600 * 12))) {
@@ -102,14 +119,30 @@ if (file_exists($cache_file) && (filemtime($cache_file) > (time() - 3600 * 12)))
 }
 
 function carregarListaCategorias() {
-	global $sessionManager;
-	
-	$config = new AppConfig();
-	$foursquare = new FoursquareApi($config->get('client_key'), $config->get('client_secret'));
-	$foursquare->setAccessToken($sessionManager->get("oauth_token"));
-	
-	$response = $foursquare->getPrivate("venues/categories");
-	return json_encode($response);
+	try {
+		/*** Set client key and secret ***/
+		$config = new AppConfig();
+
+		/*** Load the Foursquare API library ***/
+		$foursquare = new FoursquareApi($config->get('client_key'), $config->get('client_secret'));
+		
+		// Obtém token da sessão
+		$sessionManager = new SessionManager();
+		$sessionManager->start();
+		$token = $sessionManager->get('oauth_token');
+		
+		if (!$token) {
+			throw new Exception('Token não encontrado');
+		}
+		
+		$foursquare->SetAccessToken($token);
+		
+		$response = $foursquare->GetPrivate("venues/categories");
+		return $response; // Já é JSON string
+	} catch (Exception $e) {
+		error_log("Erro ao carregar categorias: " . $e->getMessage());
+		return false;
+	}
 }
 
 function setLocalCache($key, $data) {
@@ -127,16 +160,37 @@ function removeLocalCache($key) {
 <link rel="shortcut icon" href="favicon.ico" type="image/x-icon">
 <link rel="stylesheet" type="text/css" href="js/dijit/themes/tundra/tundra.css">
 <link rel="stylesheet" type="text/css" href="estilo.css">
+<script src="js/session-manager.js"></script>
 </head>
 <body class="tundra">
+
+<?php include 'includes/session-status-bar.php'; ?>
+
 <header>
 	<h2>Edi&ccedil;&atilde;o de venues em massa via API <span>(v<?php echo $VERSAO; ?>)</span></h2>
 </header>
 <article id="intro">
 <?php
+// Debug: verificar se há dados do usuário
+if (!isset($_COOKIE['name']) || empty($_COOKIE['name'])) {
+    // Tenta obter dados do usuário da sessão e criar o cookie
+    if (isset($userData) && is_array($userData)) {
+        $firstName = $userData['firstName'] ?? '';
+        $lastName = $userData['lastName'] ?? '';
+        $fullName = trim($firstName . ' ' . $lastName);
+        if ($fullName) {
+            if (isset($sessionManager)) {
+                $sessionManager->setCookie("name", rawurlencode($fullName), time() + 60*60*24);
+            } else {
+                setcookie("name", rawurlencode($fullName), time() + 60*60*24, "/");
+            }
+            $_COOKIE['name'] = rawurlencode($fullName); // Define para uso imediato
+        }
+    }
+}
+
 if ((isset($_COOKIE['name'])) && (strlen($_COOKIE['name']) > 0))
-	//echo "<p>Ol&aacute;, <span id=\"name\">" . $_COOKIE['name'] . "</span>!</p>";
-	echo "<p>Ol&aacute;, " . $_COOKIE['name'] . "!</p>";
+	echo "<p>Ol&aacute;, " . rawurldecode($_COOKIE['name']) . "!</p>";
 ?>
 	<p>Este aplicativo usa a API do Foursquare&reg;, mas n&atilde;o &eacute; endossado ou certificado pelo Foursquare Labs, Inc. Todos os logos do Foursquare&reg; e marcas registradas exibidas neste aplicativo s&atilde;o de propriedade do Foursquare Labs, Inc.</p>
 </article>

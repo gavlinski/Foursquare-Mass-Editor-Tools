@@ -349,12 +349,40 @@ function pad(str, len, pad, dir) {
 
 var dlg_guia;
 dojo.addOnLoad(function() {
-	/*** Valida OAuth Token ***/
-	if (oauth_token == undefined) {
-		console.warn("Token expirado");
-		if (window.confirm('Token expirado. Por favor, autentique-se novamente no Foursquare®.'))
-			window.location.href = 'index.php';
+	/*** Valida OAuth Token via SessionManager moderno ***/
+	if (window.sessionManager) {
+		// Usa o SessionManager moderno
+		window.sessionManager.checkSessionStatus(false).then(isValid => {
+			if (!isValid) {
+				console.warn("🔒 Sessão expirada - redirecionando para login");
+				if (window.confirm('Sessão expirada. Por favor, autentique-se novamente no Foursquare®.')) {
+					window.location.href = 'index.php';
+				}
+				return;
+			}
+			// Continua com a inicialização normal
+			initializeCSVApplication();
+		});
+	} else {
+		// Fallback para verificação legacy com cookie
+		console.log("🔄 Usando validação legacy de token CSV");
+		
+		// Verifica se o token existe via cookie
+		const legacyToken = dojo.cookie("oauth_token");
+		if (!legacyToken || legacyToken === "undefined" || legacyToken === "null") {
+			console.warn("🔒 Token legacy não encontrado ou inválido (CSV)");
+			if (window.confirm('Sessão expirada. Por favor, autentique-se novamente no Foursquare®.')) {
+				window.location.href = 'index.php';
+			}
+			return;
+		}
+		
+		console.log("✅ Token legacy válido - continuando inicialização CSV");
+		// Continua com a inicialização normal
+		initializeCSVApplication();
 	}
+	
+	function initializeCSVApplication() {
 	
 	/*** Guia de Estilo ***/
 	dlg_guia = new dijit.Dialog({
@@ -532,6 +560,7 @@ dojo.addOnLoad(function() {
 			console.info("Categorias recuperadas do localStorage!");
 		}
 	}
+	} // Fecha initializeCSVApplication()
 });
 
 function showDialogGuia() {

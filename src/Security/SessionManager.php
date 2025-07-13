@@ -74,15 +74,21 @@ class SessionManager
             return;
         }
 
+        // Configurações mais flexíveis para desenvolvimento
+        $isDevEnvironment = ($_SERVER['HTTP_HOST'] ?? '') === 'localhost' || 
+                           strpos($_SERVER['HTTP_HOST'] ?? '', '127.0.0.1') !== false ||
+                           strpos($_SERVER['HTTP_HOST'] ?? '', 'localhost') !== false;
+
         $options = [
             'expires' => $expires ?: time() + 60*60*24*15,
             'path' => '/',
             'domain' => '',
-            'secure' => $this->isHttps(),
-            'httponly' => true,
-            'samesite' => 'Strict'
+            'secure' => $this->isHttps() && !$isDevEnvironment, // Não forçar HTTPS em dev
+            'httponly' => false, // Permitir acesso JavaScript ao oauth_token
+            'samesite' => $isDevEnvironment ? 'Lax' : 'Strict' // Mais flexível em dev
         ];
         
+        error_log("SessionManager: Setting cookie '$name' with options: " . json_encode($options));
         setcookie($name, $value, $options);
     }
 

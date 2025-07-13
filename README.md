@@ -1,98 +1,206 @@
-Foursquare Mass Editor Tools (Elio Tools)
-=========================================
+# Foursquare Mass Editor Tools (Elio Tools)
 
-This is a collection of Superuser Tools for Foursquare venues mass/bulk editing and searching powered by Foursquare API.
+**Version 3.0.0** - Modernized with PHP 8.1 and Enhanced Architecture
 
-It was built using HTML, CSS and JavaScript with Dojo Toolkit on client-side, and also PHP for some legacy features on server-side. Future implementations may be rebuilt from scratch using only JavaScript in a single-page application (SPA).
+A comprehensive collection of **Superuser Tools** for Foursquare venues mass/bulk editing and searching, powered by the Foursquare API v2. This project has been **completely modernized** with a hybrid architecture combining modern PHP 8.1 features with legacy compatibility.
 
-Key Features
-------------
+## 🚀 Version 3.0.0 Highlights
 
-* Import full data from a UTF-8 CSV file
-* Import venues from:
-  * Plain text files
-  * Public web page addresses
-  * Manually entered IDs or URLs 
-  * IDs passed as parameters to `load.php?venues=`
-* Search venues using Foursquare API
-* Almost all fields editing
-* All types of flagging
-* Export options:
-  * Full CSV file (UTF-8)
-  * Venues URLs only
-  * Editing and flagging Report
-* Hierarchical tree viewing of categories
-* Categories editing
-* Multiple fields editing
-* Google Maps locations markers
+- ✅ **Fully Migrated** from PHP 5.4 to PHP 8.1
+- ✅ **PSR-4 Autoloading** with Composer
+- ✅ **Modern Session Management** with OAuth2
+- ✅ **Real-time Status Monitoring** 
+- ✅ **Enhanced Security** with secure cookies and CSRF protection
+- ✅ **Docker Environment** for development
+- ✅ **Responsive UI** with unified status bar
+- ✅ **TypeScript-ready** architecture
 
-Requirements for (Super)Use
----------------------------
+## 🎯 Key Features
 
-1. To be a Foursquare user or superuser (preferably)
-2. Go to http://4sq.eliotools.site
-3. Allow application access to your account
+### Import & Export
+- 📄 Import full data from UTF-8 CSV files
+- 🌐 Import venues from public web pages
+- ✏️ Manually enter venue IDs or URLs
+- 🔗 URL parameter support: `load.php?venues=id1,id2,id3`
+- 📊 Export to CSV, URLs only, or editing reports
 
-If you are not familiar with Brazilian Portuguese language, please translate it using you favorite browser tool. English users report that it works well and is easily understood.
+### Editing Capabilities
+- ✏️ Mass editing of almost all venue fields
+- 🏷️ Category management with hierarchical tree view
+- 🚩 All types of venue flagging
+- 📍 Google Maps integration with location markers
+- 🔍 Advanced search using Foursquare API
 
-Internet Explorer obviously not supported. Please use Mozilla Firefox, Google Chrome or Apple Safari.
+### Modern Features (v3.0.0)
+- 🔐 **OAuth2 Authentication** with automatic token refresh
+- 📊 **Session Status Bar** with real-time monitoring
+- 🧹 **Cache Management** with automatic cleanup
+- 📱 **Responsive Design** for mobile and desktop
+- 🐳 **Docker Support** for easy development
+- 🔧 **Debug Tools** for development and testing
 
-**User abuses will not be tolerated, so please be warned.**
+## 🏗️ Architecture
 
-Requirements for development
-----------------------------
+### Modern Stack
+- **Backend**: PHP 8.1 with strict typing and PSR-4 autoloading
+- **Frontend**: ES6 JavaScript + Dojo Toolkit v1.8.14 (hybrid approach)
+- **API**: Foursquare API v2 with OAuth2 authentication
+- **Infrastructure**: Docker + Apache 2.4 + Composer
 
-* PHP 8.1+
-* [Composer](https://getcomposer.org/)
-* Docker (opcional)
+### Project Structure
+```
+src/
+├── Config/        # Modern configuration management
+├── Security/      # Session and authentication handling
+└── Api/           # API integration classes
 
-## Quick Start
+js/
+├── session-manager.js    # Modern ES6 session handling  
+├── 4sq.js               # Core venue manipulation (legacy)
+└── main.js              # Main interface logic
 
-### Usando Docker (Recomendado)
+includes/
+└── session-status-bar.php  # Unified status component
+```
 
-1. Clone o repositório:
-   ```bash
-   git clone https://github.com/gavlinski/Foursquare-Mass-Editor-Tools.git
-   cd Foursquare-Mass-Editor-Tools
-   ```
+## 🚀 Quick Start
 
-2. Configure as variáveis de ambiente:
-   ```bash
-   cp .env.example .env
-   # Edite o arquivo .env com suas credenciais do Foursquare
-   ```
+### Using Docker (Recommended)
+```bash
+# Clone the repository
+git clone https://github.com/gavlinski/Foursquare-Mass-Editor-Tools.git
+cd Foursquare-Mass-Editor-Tools
 
-3. Execute com Docker:
-   ```bash
-   chmod +x dev.sh
-   ./dev.sh run
-   ```
+# Start development environment
+./dev.sh
 
-4. Acesse: http://localhost/4sqmet
+# Access the application
+open http://localhost:8080
+```
 
-### Instalação Manual
+### Manual Setup
+```bash
+# Install dependencies
+composer install
 
-1. Instale as dependências:
-   ```bash
-   composer install
-   ```
+# Configure environment
+cp .env.example .env
+# Edit .env with your Foursquare API credentials
 
-2. Configure o servidor web para apontar para a pasta do projeto
+# Start PHP development server
+php -S localhost:8080
+```
 
-3. Configure as variáveis de ambiente no arquivo `.env`
+## ⚙️ Configuration
 
-Requirements for development
-----------------------------
+### Environment Variables
+```bash
+FOURSQUARE_CLIENT_KEY="your_client_id"
+FOURSQUARE_CLIENT_SECRET="your_client_secret"  
+FOURSQUARE_REDIRECT_URI="http://localhost:8080/index.php"
+APP_ENV="development"
+APP_DEBUG="true"
+```
 
-* PHP 8.1+
-* [Composer](https://getcomposer.org/)
-* Docker (opcional)
+### Foursquare API Setup
+1. Create an app at [Foursquare Developers](https://developer.foursquare.com/)
+2. Get your Client ID and Client Secret
+3. Set redirect URI to your application URL
+4. Configure environment variables
 
-Contributions are always welcome. :)
+## 🔒 Requirements
 
-License
--------
+### For Use
+1. Foursquare user account (superuser recommended)
+2. Modern web browser (Chrome 90+, Firefox 88+, Safari 14+, Edge 90+)
+3. Allow application access to your Foursquare account
 
-This project is licensed under the terms of the [GNU General Public License v3.0](LICENSE.txt).
+### For Development
+- PHP 8.1+
+- Composer 2.x
+- Docker (optional but recommended)
+- Git
 
-Thanks for reading!
+## 🌍 Language Support
+
+The interface is primarily in **Brazilian Portuguese**. For English users:
+- Use your browser's translation feature
+- The interface is intuitive and well-understood by English speakers
+- Consider contributing English translations!
+
+## 🛡️ Security & Best Practices
+
+- 🔐 OAuth2 with secure token management
+- 🍪 HTTPOnly and Secure cookies
+- 🛡️ CSRF protection
+- ✅ Input validation and sanitization
+- 🔄 Automatic session regeneration
+- 📝 Comprehensive error logging
+
+## 🧪 Development & Testing
+
+### Debug Tools
+```bash
+# Create test session
+curl http://localhost:8080/create_test_session.php
+
+# Check session status  
+curl http://localhost:8080/session_status.php
+
+# Clear cache
+curl -X POST http://localhost:8080/clear_cache.php
+```
+
+### Testing Interface
+Access `test_session_debug.html` for interactive session testing.
+
+## 📝 Migration Notes
+
+This version represents a **complete modernization** while maintaining **100% backward compatibility**. See [MIGRATION.md](MIGRATION.md) for detailed migration information.
+
+### Breaking Changes
+- Minimum PHP version: 8.1+
+- Updated Composer dependencies
+- New environment variable configuration
+
+### New Features
+- Session status monitoring
+- Enhanced error handling
+- Responsive design
+- Docker development environment
+
+## 🤝 Contributing
+
+Contributions are always welcome! Please:
+
+1. Fork the repository
+2. Create a feature branch
+3. Make your changes with tests
+4. Submit a pull request
+
+### Development Guidelines
+- Follow PSR-4 autoloading standards
+- Use strict typing for new PHP code
+- Write comprehensive tests
+- Update documentation
+
+## 📄 License
+
+This project is licensed under the [GNU General Public License v3.0](LICENSE.txt).
+
+## 🙏 Acknowledgments
+
+- Foursquare Labs, Inc. for their excellent API
+- Dojo Toolkit community
+- PHP community for modern language features
+- All contributors and users
+
+---
+
+**⚠️ Important**: User abuses will not be tolerated. Please use this tool responsibly and follow Foursquare's terms of service.
+
+**🌟 Star this repository** if you find it useful!
+
+---
+
+*Built with ❤️ by [Elio Gavlinski](https://github.com/gavlinski)*
