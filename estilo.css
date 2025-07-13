@@ -380,3 +380,325 @@ a:hover {
 	background: rgba(255, 255, 255, 0.9);
 	padding: 5px;
 }
+
+/* Session Status Bar - Botões de Ação */
+/* Estilo base inspirado no design moderno sugerido */
+.session-btn {
+	border-radius: 8px;
+	border-style: none;
+	box-sizing: border-box;
+	color: #FFFFFF;
+	cursor: pointer;
+	font-size: 14px;
+	font-weight: 500;
+	height: 40px;
+	line-height: 20px;
+	list-style: none;
+	margin: 0;
+	outline: none;
+	padding: 10px 16px;
+	text-align: center;
+	text-decoration: none;
+	transition: color 100ms;
+	vertical-align: baseline;
+	user-select: none;
+	-webkit-user-select: none;
+	touch-action: manipulation;
+	display: flex;
+	align-items: center;
+	gap: 6px;
+	white-space: nowrap;
+}
+
+/* Botão Verificar - Verde */
+#session-refresh-btn {
+	background-color: #28a745;
+}
+
+#session-refresh-btn:hover,
+#session-refresh-btn:focus {
+	background-color: #34ce57;
+}
+
+/* Botão Sistema - Azul */
+#session-info-btn {
+	background-color: #0d6efd;
+}
+
+#session-info-btn:hover,
+#session-info-btn:focus {
+	background-color: #3d81ff;
+}
+
+/* Botão Logout - Vermelho */
+#session-logout-btn {
+	background-color: #dc3545;
+}
+
+#session-logout-btn:hover,
+#session-logout-btn:focus {
+	background-color: #e85663;
+}
+
+/* Botão Fechar - Discreto */
+#session-close-btn {
+	background-color: transparent;
+	color: #6c757d;
+	border: 1px solid transparent;
+	border-radius: 3px;
+	width: 28px;
+	height: 28px;
+	min-width: 28px;
+	min-height: 28px;
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	flex-shrink: 0;
+	flex-grow: 0;
+	position: relative;
+	z-index: 999999;
+	visibility: visible;
+	opacity: 0.7;
+	margin-left: 8px;
+	cursor: pointer;
+	font-size: 16px;
+	font-weight: normal;
+	line-height: 1;
+	box-sizing: border-box;
+	outline: none;
+	transition: all 0.2s ease;
+	padding: 0;
+}
+
+#session-close-btn:hover,
+#session-close-btn:focus {
+	background-color: rgba(108, 117, 125, 0.1);
+	border-color: rgba(108, 117, 125, 0.3);
+	opacity: 1;
+	color: #495057;
+}
+
+/* Botão de Reabrir Status */
+#session-status-reopen-btn {
+	position: fixed;
+	top: 20px;
+	right: 20px;
+	z-index: 999999;
+	display: none;
+	padding: 10px 16px;
+	background: linear-gradient(135deg, #007acc, #0056b3);
+	color: white;
+	border: 2px solid #ffffff;
+	border-radius: 25px;
+	cursor: pointer;
+	font-size: 13px;
+	font-weight: 600;
+	box-shadow: 0 4px 12px rgba(0,122,204,0.4);
+	transition: all 0.3s ease;
+	backdrop-filter: blur(10px);
+	-webkit-backdrop-filter: blur(10px);
+	user-select: none;
+	-webkit-user-select: none;
+	-moz-user-select: none;
+	-ms-user-select: none;
+	box-sizing: border-box;
+	min-width: 80px;
+	max-width: 200px;
+	text-align: center;
+	white-space: nowrap;
+	overflow: visible;
+	line-height: 1.2;
+	visibility: hidden;
+	opacity: 0;
+	transform: translateY(-20px) scale(0.8);
+}
+
+#session-status-reopen-btn:hover {
+	transform: scale(1.1) translateY(-2px);
+	box-shadow: 0 6px 16px rgba(0,122,204,0.5);
+}
+
+/* Container dos controles - alinhamento */
+#session-status-bar > div > div:last-child {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+	flex-wrap: nowrap;
+	flex-shrink: 0;
+	min-width: auto;
+	overflow: visible;
+	height: 40px;
+	box-sizing: border-box;
+}
+
+/* Responsividade para botões da barra de status */
+@media (max-width: 1200px) {
+	#session-status-bar > div {
+		padding: 0 15px;
+		gap: 10px;
+	}
+	
+	.session-btn {
+		padding: 8px 12px;
+		font-size: 13px;
+		height: 36px;
+	}
+	
+	#session-close-btn {
+		width: 26px;
+		height: 26px;
+		min-width: 26px;
+		min-height: 26px;
+		font-size: 15px;
+	}
+}
+
+@media (max-width: 768px) {
+	#session-status-bar > div {
+		padding: 0 10px;
+		gap: 8px;
+	}
+	
+	.session-btn {
+		padding: 6px 10px;
+		font-size: 12px;
+		height: 32px;
+		gap: 4px;
+	}
+	
+	#session-close-btn {
+		width: 24px;
+		height: 24px;
+		min-width: 24px;
+		min-height: 24px;
+		font-size: 14px;
+		margin-left: 6px;
+	}
+
+	#session-status-bar > div {
+		flex-direction: column;
+		align-items: stretch;
+		gap: 10px;
+		padding: 8px 15px;
+	}
+	
+	#session-status-bar > div > div:last-child {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 8px;
+		justify-content: center;
+	}
+	
+	#session-user-info {
+		text-align: center;
+		margin-top: 5px;
+	}
+	
+	#session-status-reopen-btn {
+		top: 5px;
+		right: 5px;
+		font-size: 11px;
+		padding: 6px 10px;
+	}
+}
+
+@media (max-width: 480px) {
+	#session-status-bar > div {
+		padding: 0 8px;
+		gap: 6px;
+	}
+	
+	.session-btn {
+		padding: 4px 8px;
+		font-size: 11px;
+		height: 28px;
+		gap: 3px;
+	}
+	
+	#session-close-btn {
+		width: 22px;
+		height: 22px;
+		min-width: 22px;
+		min-height: 22px;
+		font-size: 13px;
+		margin-left: 4px;
+	}
+}
+
+/* Para telas muito grandes */
+@media (min-width: 1600px) {
+	#session-status-bar > div {
+		max-width: 1400px;
+		margin: 0 auto;
+		padding: 0 20px;
+	}
+}
+
+@media (min-width: 1400px) {
+	#session-status-bar > div {
+		padding: 0 40px;
+	}
+}
+
+@media (min-width: 1920px) {
+	#session-status-bar > div {
+		padding: 0 60px;
+	}
+}
+
+/* Efeitos de interação */
+#session-status-bar button:active {
+	transform: translateY(1px);
+}
+
+#session-status-reopen-btn:active {
+	transform: scale(0.95) translateY(1px);
+}
+
+/* Animação para botão de reabrir */
+@keyframes slideInFromTop {
+	from {
+		opacity: 0;
+		transform: translateY(-20px) scale(0.8);
+	}
+	to {
+		opacity: 1;
+		transform: translateY(0) scale(1);
+	}
+}
+
+#session-status-reopen-btn {
+	animation: slideInFromTop 0.5s ease-out;
+	right: 24px;
+	top: 18px;
+	margin-right: 0;
+	margin-top: 0;
+	box-sizing: border-box;
+	max-width: 160px;
+	min-width: 60px;
+	z-index: 10001;
+}
+
+@media (max-width: 768px) {
+	#session-status-reopen-btn {
+		right: 12px;
+		top: 12px;
+		font-size: 11px;
+		padding: 6px 10px;
+		min-width: 48px;
+		max-width: 120px;
+	}
+}
+
+/* Garantir visibilidade e acessibilidade */
+#session-close-btn {
+	display: flex;
+	visibility: visible;
+	opacity: 1;
+	z-index: 10001;
+}
+
+#session-status-bar {
+	backdrop-filter: blur(10px);
+	-webkit-backdrop-filter: blur(10px);
+}
