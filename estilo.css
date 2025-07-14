@@ -383,99 +383,115 @@ a:hover {
 
 /* Session Status Bar - Botões de Ação */
 /* Estilo base inspirado no design moderno sugerido */
-.session-btn {
-	border-radius: 8px;
-	border-style: none;
-	box-sizing: border-box;
-	color: #FFFFFF;
-	cursor: pointer;
-	font-size: 14px;
-	font-weight: 500;
-	height: 40px;
-	line-height: 20px;
-	list-style: none;
-	margin: 0;
-	outline: none;
-	padding: 10px 16px;
-	text-align: center;
-	text-decoration: none;
-	transition: color 100ms;
-	vertical-align: baseline;
-	user-select: none;
-	-webkit-user-select: none;
-	touch-action: manipulation;
-	display: flex;
-	align-items: center;
-	gap: 6px;
-	white-space: nowrap;
+.session-btn,
+button.session-btn,
+#session-status-bar .session-btn {
+	border-radius: 6px !important;
+	border-style: none !important;
+	border: none !important;
+	box-sizing: border-box !important;
+	color: #FFFFFF !important;
+	cursor: pointer !important;
+	font-size: 12px !important;
+	font-weight: 500 !important;
+	height: 32px !important;
+	line-height: 16px !important;
+	list-style: none !important;
+	margin: 0 !important;
+	outline: none !important;
+	padding: 8px 12px !important;
+	text-align: center !important;
+	text-decoration: none !important;
+	transition: all 0.2s ease !important;
+	vertical-align: baseline !important;
+	user-select: none !important;
+	-webkit-user-select: none !important;
+	touch-action: manipulation !important;
+	display: inline-flex !important;
+	align-items: center !important;
+	gap: 4px !important;
+	white-space: nowrap !important;
+	font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important;
 }
 
 /* Botão Verificar - Verde */
-#session-refresh-btn {
-	background-color: #28a745;
+#session-refresh-btn,
+button#session-refresh-btn {
+	background-color: #28a745 !important;
 }
 
 #session-refresh-btn:hover,
-#session-refresh-btn:focus {
-	background-color: #34ce57;
+#session-refresh-btn:focus,
+button#session-refresh-btn:hover,
+button#session-refresh-btn:focus {
+	background-color: #34ce57 !important;
 }
 
 /* Botão Sistema - Azul */
-#session-info-btn {
-	background-color: #0d6efd;
+#session-info-btn,
+button#session-info-btn {
+	background-color: #0d6efd !important;
 }
 
 #session-info-btn:hover,
-#session-info-btn:focus {
-	background-color: #3d81ff;
+#session-info-btn:focus,
+button#session-info-btn:hover,
+button#session-info-btn:focus {
+	background-color: #3d81ff !important;
 }
 
 /* Botão Logout - Vermelho */
-#session-logout-btn {
-	background-color: #dc3545;
+#session-logout-btn,
+button#session-logout-btn {
+	background-color: #dc3545 !important;
 }
 
 #session-logout-btn:hover,
-#session-logout-btn:focus {
-	background-color: #e85663;
+#session-logout-btn:focus,
+button#session-logout-btn:hover,
+button#session-logout-btn:focus {
+	background-color: #e85663 !important;
 }
 
 /* Botão Fechar - Discreto */
-#session-close-btn {
-	background-color: transparent;
-	color: #6c757d;
-	border: 1px solid transparent;
-	border-radius: 3px;
-	width: 28px;
-	height: 28px;
-	min-width: 28px;
-	min-height: 28px;
-	display: inline-flex;
-	align-items: center;
-	justify-content: center;
-	flex-shrink: 0;
-	flex-grow: 0;
-	position: relative;
-	z-index: 999999;
-	visibility: visible;
-	opacity: 0.7;
-	margin-left: 8px;
-	cursor: pointer;
-	font-size: 16px;
-	font-weight: normal;
-	line-height: 1;
-	box-sizing: border-box;
-	outline: none;
-	transition: all 0.2s ease;
-	padding: 0;
+#session-close-btn,
+button#session-close-btn {
+	background-color: transparent !important;
+	color: #6c757d !important;
+	border: 1px solid transparent !important;
+	border-radius: 3px !important;
+	width: 24px !important;
+	height: 24px !important;
+	min-width: 24px !important;
+	min-height: 24px !important;
+	display: inline-flex !important;
+	align-items: center !important;
+	justify-content: center !important;
+	flex-shrink: 0 !important;
+	flex-grow: 0 !important;
+	position: relative !important;
+	z-index: 999999 !important;
+	visibility: visible !important;
+	opacity: 0.7 !important;
+	margin-left: 6px !important;
+	cursor: pointer !important;
+	font-size: 14px !important;
+	font-weight: normal !important;
+	line-height: 1 !important;
+	box-sizing: border-box !important;
+	outline: none !important;
+	transition: all 0.2s ease !important;
+	padding: 0 !important;
 }
 
 #session-close-btn:hover,
-#session-close-btn:focus {
-	background-color: rgba(108, 117, 125, 0.1);
-	border-color: rgba(108, 117, 125, 0.3);
-	opacity: 1;
-	color: #495057;
+#session-close-btn:focus,
+button#session-close-btn:hover,
+button#session-close-btn:focus {
+	background-color: rgba(108, 117, 125, 0.1) !important;
+	border-color: rgba(108, 117, 125, 0.3) !important;
+	opacity: 1 !important;
+	color: #495057 !important;
 }
 
 /* Botão de Reabrir Status */
@@ -522,12 +538,12 @@ a:hover {
 #session-status-bar > div > div:last-child {
 	display: flex;
 	align-items: center;
-	gap: 10px;
+	gap: 8px;
 	flex-wrap: nowrap;
 	flex-shrink: 0;
 	min-width: auto;
 	overflow: visible;
-	height: 40px;
+	height: 32px;
 	box-sizing: border-box;
 }
 
@@ -535,84 +551,13 @@ a:hover {
 @media (max-width: 1200px) {
 	#session-status-bar > div {
 		padding: 0 15px;
-		gap: 10px;
-	}
-	
-	.session-btn {
-		padding: 8px 12px;
-		font-size: 13px;
-		height: 36px;
-	}
-	
-	#session-close-btn {
-		width: 26px;
-		height: 26px;
-		min-width: 26px;
-		min-height: 26px;
-		font-size: 15px;
-	}
-}
-
-@media (max-width: 768px) {
-	#session-status-bar > div {
-		padding: 0 10px;
 		gap: 8px;
 	}
 	
 	.session-btn {
 		padding: 6px 10px;
-		font-size: 12px;
-		height: 32px;
-		gap: 4px;
-	}
-	
-	#session-close-btn {
-		width: 24px;
-		height: 24px;
-		min-width: 24px;
-		min-height: 24px;
-		font-size: 14px;
-		margin-left: 6px;
-	}
-
-	#session-status-bar > div {
-		flex-direction: column;
-		align-items: stretch;
-		gap: 10px;
-		padding: 8px 15px;
-	}
-	
-	#session-status-bar > div > div:last-child {
-		display: flex;
-		flex-wrap: wrap;
-		gap: 8px;
-		justify-content: center;
-	}
-	
-	#session-user-info {
-		text-align: center;
-		margin-top: 5px;
-	}
-	
-	#session-status-reopen-btn {
-		top: 5px;
-		right: 5px;
-		font-size: 11px;
-		padding: 6px 10px;
-	}
-}
-
-@media (max-width: 480px) {
-	#session-status-bar > div {
-		padding: 0 8px;
-		gap: 6px;
-	}
-	
-	.session-btn {
-		padding: 4px 8px;
 		font-size: 11px;
 		height: 28px;
-		gap: 3px;
 	}
 	
 	#session-close-btn {
@@ -621,7 +566,80 @@ a:hover {
 		min-width: 22px;
 		min-height: 22px;
 		font-size: 13px;
+	}
+}
+
+@media (max-width: 768px) {
+	#session-status-bar > div {
+		padding: 0 10px;
+		gap: 6px;
+	}
+	
+	.session-btn {
+		padding: 5px 8px;
+		font-size: 11px;
+		height: 26px;
+		gap: 3px;
+	}
+	
+	#session-close-btn {
+		width: 20px;
+		height: 20px;
+		min-width: 20px;
+		min-height: 20px;
+		font-size: 12px;
 		margin-left: 4px;
+	}
+
+	#session-status-bar > div {
+		flex-direction: column;
+		align-items: stretch;
+		gap: 8px;
+		padding: 6px 12px;
+	}
+	
+	#session-status-bar > div > div:last-child {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 6px;
+		justify-content: center;
+		height: auto;
+	}
+	
+	#session-user-info {
+		text-align: center;
+		margin-top: 3px;
+		font-size: 11px;
+	}
+	
+	#session-status-reopen-btn {
+		top: 5px;
+		right: 5px;
+		font-size: 10px;
+		padding: 4px 8px;
+	}
+}
+
+@media (max-width: 480px) {
+	#session-status-bar > div {
+		padding: 0 6px;
+		gap: 4px;
+	}
+	
+	.session-btn {
+		padding: 4px 6px;
+		font-size: 10px;
+		height: 24px;
+		gap: 2px;
+	}
+	
+	#session-close-btn {
+		width: 18px;
+		height: 18px;
+		min-width: 18px;
+		min-height: 18px;
+		font-size: 11px;
+		margin-left: 3px;
 	}
 }
 

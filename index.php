@@ -112,7 +112,7 @@ if ($token) {
 <script src="js/dojo/dojo.js" djConfig="parseOnLoad: true"></script>
 <link rel="shortcut icon" href="favicon.ico" type="image/x-icon">
 <link rel="stylesheet" type="text/css" href="js/dijit/themes/tundra/tundra.css">
-<link rel="stylesheet" type="text/css" href="estilo.css">
+<link rel="stylesheet" type="text/css" href="estilo.css?v=<?php echo time(); ?>">
 <script>
 // Remove fragmento #_=_ do OAuth e recarrega a página
 if (window.location.hash === '#_=_') {

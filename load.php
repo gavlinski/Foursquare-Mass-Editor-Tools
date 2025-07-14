@@ -59,7 +59,7 @@ if (!isset($_SESSION["oauth_token"])) {
 define("VERSION", "Venues Loader 3.0.0");
 define("LINKS", '<link rel="shortcut icon" href="favicon.ico" type="image/x-icon">
 <link rel="stylesheet" type="text/css" href="js/dijit/themes/tundra/tundra.css">
-<link rel="stylesheet" type="text/css" href="estilo.css">
+<link rel="stylesheet" type="text/css" href="estilo.css?v=<?php echo time(); ?>">
 ');
 define("HBODY", '</head>
 <body class="tundra">

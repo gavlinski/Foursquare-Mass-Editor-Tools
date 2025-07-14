@@ -54,7 +54,7 @@ include 'includes/app_credentials.php';
 <meta http-equiv="Expires" content="0">
 <link rel="shortcut icon" href="favicon.ico" type="image/x-icon">
 <link rel="stylesheet" type="text/css" href="js/dijit/themes/tundra/tundra.css">
-<link rel="stylesheet" type="text/css" href="estilo.css">
+<link rel="stylesheet" type="text/css" href="estilo.css?v=<?php echo time(); ?>">
 <script src="js/dojo/dojo.js" djConfig="parseOnLoad: true"></script>
 <script src="js/4sq.js"></script>
 <script src="js/session-manager.js"></script>

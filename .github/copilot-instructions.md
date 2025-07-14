@@ -315,6 +315,7 @@ class ExtendedSessionManager extends SessionManager {
 - Garante que as instruções geradas sejam claras, concisas e acionáveis.
 - Adapta-se ao feedback do usuário e refina as instruções iterativamente.
 - SEMPRE pergunte ao usuário se há algo mais que ele gostaria de adicionar ou modificar antes de encerrar a interação.
+- Aguarde que o usuário teste quaisquer modificações realizadas no código antes de fazer novos commits.
 
 ## Diretrizes de Performance
 - É fundamental manter o alto desempenho.
