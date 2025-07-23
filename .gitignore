@@ -43,3 +43,4 @@ Thumbs.db
 
 # Credenciais sensíveis do Google Maps - NUNCA fazer commit
 includes/google_maps_credentials.php
+js/google-maps-config.js
