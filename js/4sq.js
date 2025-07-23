@@ -57,10 +57,9 @@ var totalTimeout = 0;
 
 var actionButton = "";
 
-var locais = [];
-var marcadores = [];
-var map, bounds;
-var mapaCarregado = false;
+// Torna locais global para integração com Google Maps
+window.locais = [];
+// Variáveis legacas removidas - usando apenas window.googleMaps
 
 var columnsStartIndex = 2;
 //var totalInputsHidden = 14;
@@ -160,7 +159,10 @@ function atualizarFalhas(metodo, i, acao, timeout) {
 		/*** Se tiver sido a última venue a ser carregada ***/
 		if (totalCarregadas == (document.forms.length - totalNaoCarregadas)) {
 			limparLinhasEditadas();
-			atualizarMarcadoresMapa();
+			// Atualiza marcadores se o mapa estiver carregado
+			if (window.googleMaps && window.googleMaps.map && window.locais.length > 0) {
+				window.googleMaps.updateMarkers(window.locais);
+			}
 			/*** Se nenhuma venue tiver sido carregada ***/
 			if (totalNaoCarregadas == document.forms.length) {
 				dijit.byId("menuSelecionar").setAttribute('disabled', true);
@@ -744,11 +746,18 @@ function atualizarTabela(venue, i) {
 		if (dojo.query("input[name=selecao]:enabled").length == 0)
 			dijit.byId("menuSelecionar").setAttribute('disabled', true);
 	}
-	locais[i] = [(i + 1) + ". " + venue.name, venue.location.lat, venue.location.lng];
+	window.locais[i] = [(i + 1) + ". " + venue.name, venue.location.lat, venue.location.lng];
 	console.info("Venue " + i + " recuperada!");
+	
+	// Atualiza marcadores no mapa quando venue é carregada
+	if (window.googleMaps && window.googleMaps.map) {
+		window.googleMaps.updateMarkers(window.locais);
+		console.info("Marcadores atualizados!");
+	}
+	
 	if (totalCarregadas == (document.forms.length - totalNaoCarregadas)) {
 		limparLinhasEditadas();
-		atualizarMarcadoresMapa();
+		console.info("Marcadores posicionados!");
 	}
 }
 
@@ -1084,112 +1093,57 @@ function pad(str, len, pad, dir) {
 	return str;
 }
 
-// Função para carregamento assíncrono
-function carregarMapa() {
-	var script = document.createElement("script");
-	script.type = "text/javascript";
-	script.src = "http://maps.googleapis.com/maps/api/js?key=AIzaSyD9ZfpJz_ZlwOo7crLhiYhxcpJdBPpBVi8&callback=inicializarMapa";
-	document.body.appendChild(script);
-}
+// ===== GOOGLE MAPS - INTEGRAÇÃO =====
 
-function inicializarMapa() {
-	var lat;
-	var lng;
-	var myZoom;
-	if ((dojo.cookie("coordinates") != null) && (dojo.cookie("coordinates") != "undefined")) {
-		coordinates = dojo.cookie("coordinates").split(",");
-		lat = parseFloat(coordinates[0]);
-		lng = parseFloat(coordinates[1]);
-		myZoom = 15;
-	} else {
-		//lat = -30.03798082521393;
-		//lng = -51.23306166770155;
-		//lat = -14.2400732;
-		//lng = -53.1805018;
-		lat = -12.726084;
-		lng = -55.425781;
-		myZoom = 4;
-	}
+// Callback para integração com o sistema de mapas
+window.atualizarPosicaoMarcador = function(index, event) {
+	console.log('📍 Marcador movido:', index, event);
 	
-	// Exibir mapa;
-	var myLatlng = new google.maps.LatLng(lat, lng);
-	var mapOptions = {
-		zoom: myZoom,
-		center: myLatlng,
-		mapTypeId: google.maps.MapTypeId.ROADMAP,
-		mapTypeControl: true,
-		mapTypeControlOptions: {
-			style: google.maps.MapTypeControlStyle.HORIZONTAL_BAR,
-			position: google.maps.ControlPosition.RIGHT_TOP
-		}
-	}
-	var controlDiv;
-	require(["dojo/dom-construct"], function(domConstruct) {
-  	controlDiv = domConstruct.create("div", { style: { padding: "0px 5px 2px 0px" } });
-  	var image = '<img src="img/poweredByFoursquare.png" width="230" height="25">'; 
-  	var link = domConstruct.create("a", {
-  		href: "https://foursquare.com",
-  		title: "Foursquare",
-  		innerHTML: image
-  	}, controlDiv);
-  });
-
-	// Exibir o mapa na div #mapa;
-	map = new google.maps.Map(dojo.byId('mapa'), mapOptions);
-	map.controls[google.maps.ControlPosition.RIGHT_BOTTOM].push(controlDiv);
-	bounds = new google.maps.LatLngBounds();
-	mapaCarregado = true;
-	console.info("Mapa carregado!");
+	if (!event || !event.latLng) return;
 	
-	// Marcador personalizado;
-	//var marcadorPersonalizado = new google.maps.Marker({
-		//position: myLatlng,
-		//map: map,
-		//title: 'Serpro - Porto Alegre/RS',
-		//animation: google.maps.Animation.DROP
-	//});
-}
-
-function atualizarMarcadoresMapa() {
-	if (!mapaCarregado) {
-		setTimeout(atualizarMarcadoresMapa, 1000); //wait 1000 milliseconds then recheck
-		return;
-	}
-	for (i = 0; i < locais.length; i++) {
-		if ((locais[i] != undefined) && (locais[i][1] != undefined)) {
-			marcadores[i] = new google.maps.Marker({
-				position: new google.maps.LatLng(locais[i][1], locais[i][2]),
-				map: map,
-				title: locais[i][0],
-				draggable: true,
-				animation: google.maps.Animation.DROP
-			});
-			google.maps.event.addListener(marcadores[i], 'dragend', function(evt) {
-				//console.log(this);
-				var marcador = this.title.split(".", 1)[0];
-				var j = parseInt(marcador) - 1;
-				var novaPosicao = evt.latLng.lat() + ', ' + evt.latLng.lng();
-				//console.info('Marcador ' + marcador + ' movido: ' + novaPosicao);
-				if (dojo.query("input[name=selecao]")[j].disabled != true) {
-					inputId = dojo.query("input[name=venuell]")[j].id;
-					if ((inputId == "") || ((dijit.byId(inputId).textbox.value != novaPosicao) && (dijit.byId(inputId).readOnly == false) && (dijit.byId(inputId).disabled == false))) {
-						(inputId == "") ? dojo.query("input[name=venuell]")[j].value = novaPosicao : dijit.byId(inputId).set("value", novaPosicao);
-						//console.log(inputId, novaPosicao);
-						index = csv[0].indexOf("venuell");
-						csv[parseInt(j) + 1][index] = novaPosicao;
-						dojo.byId("result" + j).innerHTML = "";
-						if (linhasEditadas.indexOf(parseInt(j)) == -1)
-							linhasEditadas.push(parseInt(j));
-						//console.log(csv[parseInt(j) + 1][2], csv[parseInt(j) + 1][index]);
+	const marcador = index + 1;
+	const novaPosicao = event.latLng.lat() + ', ' + event.latLng.lng();
+	
+	console.info('Marcador ' + marcador + ' movido: ' + novaPosicao);
+	
+	// Integração com o sistema existente
+	try {
+		const inputElements = dojo.query("input[name=selecao]");
+		if (inputElements[index] && !inputElements[index].disabled) {
+			const inputId = dojo.query("input[name=venuell]")[index].id;
+			
+			if (inputId === "" || 
+				(dijit.byId(inputId) && 
+				 dijit.byId(inputId).textbox.value !== novaPosicao && 
+				 !dijit.byId(inputId).readOnly && 
+				 !dijit.byId(inputId).disabled)) {
+				
+				// Atualiza o campo
+				if (inputId === "") {
+					dojo.query("input[name=venuell]")[index].value = novaPosicao;
+				} else {
+					dijit.byId(inputId).set("value", novaPosicao);
+				}
+				
+				// Atualiza CSV
+				if (window.csv) {
+					const csvIndex = window.csv[0].indexOf("venuell");
+					if (csvIndex !== -1) {
+						window.csv[parseInt(index) + 1][csvIndex] = novaPosicao;
 					}
-				}				
-			});
-			bounds.extend(marcadores[i].position);
+				}
+				
+				// Limpa resultado
+				const resultElement = dojo.byId("result" + index);
+				if (resultElement) {
+					resultElement.innerHTML = "";
+				}
+			}
 		}
+	} catch (error) {
+		console.error('❌ Erro ao atualizar posição do marcador:', error);
 	}
-	map.fitBounds(bounds);
-	console.info("Marcadores posicionados!");
-}
+};
 
 function removerNaoSelecionadas(arq, startIndex) {
 	var j = startIndex;
@@ -1244,6 +1198,28 @@ dojo.addOnLoad(function inicializar() {
 	}
 	
 	function initializeApplication() {
+	
+	/*** Inicializar Google Maps ***/
+	if (document.getElementById('mapa')) {
+		// Espera o evento que sinaliza que a API do Google Maps está pronta
+		document.addEventListener('google-maps-ready', () => {
+			console.log('🚀 Evento "google-maps-ready" recebido. Inicializando o mapa...');
+			if (window.googleMaps) {
+				window.googleMaps.initialize().then(() => {
+					console.info("Mapa carregado!");
+					// Se já há venues carregadas, posiciona os marcadores imediatamente
+					if (window.locais && window.locais.length > 0) {
+						window.googleMaps.updateMarkers(window.locais);
+						console.info("Marcadores posicionados no mapa!");
+					}
+				}).catch(error => {
+					console.error("Falha ao inicializar o mapa:", error);
+				});
+			} else {
+				console.error("Erro crítico: googleMaps não está definido no momento da inicialização.");
+			}
+		});
+	}
 	
 	/*** Autoajusta o tamanho do mapa conforme largura da lista ***/
 	dojo.style("mapa", "width", dojo.byId('listContainer').offsetWidth.toString() + "px");
@@ -1630,8 +1606,6 @@ dojo.addOnLoad(function inicializar() {
 	
 	if (localStorage && localStorage.getItem('txt'))
 		txt = localStorage.getItem("txt").split(',');
-	
-	carregarMapa();
 	carregarDadosVenues();
 	} // Fecha initializeApplication()
 });
@@ -1691,9 +1665,12 @@ function verificarAlteracao(textbox, i) {
 			linhasEditadas.push(i);
 		if (textbox.name == "venuell") {
 			var latlng = textbox.value.replace(/ /g, "").split(",");
-			//console.log(latlng, marcadores[i].getPosition());
-			var novaPosicao = new google.maps.LatLng(parseFloat(latlng[0]), parseFloat(latlng[1]));
-			marcadores[i].setPosition(novaPosicao);
+			
+			// Atualiza marcador no mapa
+			if (window.googleMaps && window.googleMaps.moveMarker) {
+				const position = { lat: parseFloat(latlng[0]), lng: parseFloat(latlng[1]) };
+				window.googleMaps.moveMarker(i, position);
+			}
 		}
 		//console.debug(textbox.style);
 		//var domNode = dijit.byId(textbox.id).domNode;

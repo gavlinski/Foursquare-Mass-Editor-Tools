@@ -226,7 +226,18 @@ class FoursquareApi {
 	public function GeoLocate($addr){
 		$addr = str_replace(" ", "+", $addr);
 		$geoapi = "https://maps.googleapis.com/maps/api/geocode/json";
-		$params = array("address"=>$addr,"key"=>"AIzaSyD9ZfpJz_ZlwOo7crLhiYhxcpJdBPpBVi8","sensor"=>"false");
+		
+		// Carrega configurações do Google Maps
+		$mapsConfig = include __DIR__ . '/includes/google_maps_config.php';
+		$apiKey = $mapsConfig['google_maps_api_key'] ?? 'SUA_GOOGLE_MAPS_API_KEY_AQUI';
+		
+		$params = array(
+			"address" => $addr,
+			"key" => $apiKey,
+			"language" => $mapsConfig['geocoding']['language'] ?? 'pt-BR',
+			"region" => $mapsConfig['geocoding']['region'] ?? 'BR'
+		);
+		
 		$response = $this->GET($geoapi,$params);
 		if (empty($response)) {
 			$json = new stdClass();

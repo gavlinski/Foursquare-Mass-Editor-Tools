@@ -56,8 +56,10 @@ include 'includes/app_credentials.php';
 <link rel="stylesheet" type="text/css" href="js/dijit/themes/tundra/tundra.css">
 <link rel="stylesheet" type="text/css" href="estilo.css?v=<?php echo time(); ?>">
 <script src="js/dojo/dojo.js" djConfig="parseOnLoad: true"></script>
-<script src="js/4sq.js"></script>
-<script src="js/session-manager.js"></script>
+<script src="js/google-maps-config.php" defer></script>
+<script src="js/google-maps.js" async defer></script>
+<script src="js/4sq.js" defer></script>
+<script src="js/session-manager.js" defer></script>
 </head>
 <body class="tundra">
 

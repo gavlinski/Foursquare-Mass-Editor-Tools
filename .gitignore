@@ -40,3 +40,6 @@ Thumbs.db
 # FoursquareAPI.Class.php
 # includes/app_credentials.php
 # includes/config.php
+
+# Credenciais sensíveis do Google Maps - NUNCA fazer commit
+includes/google_maps_credentials.php
