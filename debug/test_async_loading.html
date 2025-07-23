@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Teste - Google Maps Async Loading</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        #mapa {
+            width: 100%;
+            height: 400px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        .status {
+            margin: 10px 0;
+            padding: 10px;
+            border-radius: 4px;
+        }
+        .status.success { background: #d4edda; color: #155724; }
+        .status.error { background: #f8d7da; color: #721c24; }
+        .status.info { background: #d1ecf1; color: #0c5460; }
+        .logs {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 4px;
+            padding: 10px;
+            margin: 10px 0;
+            max-height: 200px;
+            overflow-y: auto;
+            font-family: monospace;
+            font-size: 12px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🗺️ Teste de Carregamento Assíncrono - Google Maps</h1>
+        
+        <div id="status" class="status info">
+            ⏳ Inicializando teste...
+        </div>
+        
+        <div id="mapa"></div>
+        
+        <h3>📋 Logs de Console</h3>
+        <div id="logs" class="logs"></div>
+        
+        <h3>🔍 Verificações</h3>
+        <div id="checks"></div>
+        
+        <button onclick="runTests()" style="margin: 10px 0; padding: 10px 20px;">🔄 Executar Testes Novamente</button>
+    </div>
+
+    <!-- Carregamento dos scripts -->
+    <script src="../js/google-maps-config.php" defer></script>
+    <script src="../js/google-maps.js" defer></script>
+    
+    <script>
+        // Sistema de logging customizado
+        const originalConsole = {
+            log: console.log.bind(console),
+            warn: console.warn.bind(console),
+            error: console.error.bind(console)
+        };
+        
+        const logs = [];
+        
+        function addLog(type, message, ...args) {
+            const timestamp = new Date().toLocaleTimeString();
+            const logEntry = `[${timestamp}] ${type.toUpperCase()}: ${message}`;
+            logs.push(logEntry);
+            updateLogsDisplay();
+            originalConsole[type](message, ...args);
+        }
+        
+        console.log = (...args) => addLog('log', args.join(' '), ...args);
+        console.warn = (...args) => addLog('warn', args.join(' '), ...args);
+        console.error = (...args) => addLog('error', args.join(' '), ...args);
+        
+        function updateLogsDisplay() {
+            const logsDiv = document.getElementById('logs');
+            logsDiv.innerHTML = logs.map(log => {
+                if (log.includes('WARN')) return `<div style="color: #856404;">${log}</div>`;
+                if (log.includes('ERROR')) return `<div style="color: #721c24;">${log}</div>`;
+                return `<div>${log}</div>`;
+            }).join('');
+            logsDiv.scrollTop = logsDiv.scrollHeight;
+        }
+        
+        function updateStatus(message, type = 'info') {
+            const statusDiv = document.getElementById('status');
+            statusDiv.className = `status ${type}`;
+            statusDiv.innerHTML = message;
+        }
+        
+        function updateChecks(results) {
+            const checksDiv = document.getElementById('checks');
+            checksDiv.innerHTML = results.map(result => 
+                `<div class="status ${result.status}">
+                    ${result.status === 'success' ? '✅' : '❌'} ${result.message}
+                </div>`
+            ).join('');
+        }
+        
+        async function runTests() {
+            updateStatus('🔧 Executando testes de carregamento...', 'info');
+            logs.length = 0; // Limpar logs anteriores
+            
+            const results = [];
+            
+            try {
+                // Teste 1: Verificar se a configuração foi carregada
+                if (window.googleMapsConfig) {
+                    results.push({
+                        status: 'success',
+                        message: 'Configuração do Google Maps carregada'
+                    });
+                } else {
+                    results.push({
+                        status: 'error',
+                        message: 'Configuração do Google Maps NÃO encontrada'
+                    });
+                }
+                
+                // Teste 2: Verificar se a classe GoogleMaps está disponível
+                if (typeof GoogleMaps !== 'undefined') {
+                    results.push({
+                        status: 'success',
+                        message: 'Classe GoogleMaps disponível'
+                    });
+                } else {
+                    results.push({
+                        status: 'error',
+                        message: 'Classe GoogleMaps NÃO encontrada'
+                    });
+                    updateChecks(results);
+                    return;
+                }
+                
+                // Teste 3: Criar instância e carregar API
+                const googleMaps = new GoogleMaps(window.googleMapsConfig);
+                results.push({
+                    status: 'success',
+                    message: 'Instância GoogleMaps criada'
+                });
+                
+                // Teste 4: Carregar API usando Dynamic Library Import
+                console.log('🔧 Iniciando carregamento da API...');
+                await googleMaps.loadMapsAPI();
+                
+                results.push({
+                    status: 'success',
+                    message: 'API Google Maps carregada com Dynamic Library Import'
+                });
+                
+                // Teste 5: Verificar se google.maps está disponível
+                if (window.google && window.google.maps) {
+                    results.push({
+                        status: 'success',
+                        message: 'Objeto google.maps está disponível'
+                    });
+                } else {
+                    results.push({
+                        status: 'error',
+                        message: 'Objeto google.maps NÃO está disponível'
+                    });
+                }
+                
+                // Teste 6: Verificar se importLibrary está disponível
+                if (window.google.maps.importLibrary) {
+                    results.push({
+                        status: 'success',
+                        message: 'Método importLibrary está disponível'
+                    });
+                } else {
+                    results.push({
+                        status: 'error',
+                        message: 'Método importLibrary NÃO está disponível'
+                    });
+                }
+                
+                // Teste 7: Inicializar mapa
+                console.log('🗺️ Inicializando mapa...');
+                await googleMaps.initialize();
+                
+                results.push({
+                    status: 'success',
+                    message: 'Mapa inicializado com sucesso'
+                });
+                
+                // Teste 8: Verificar se AdvancedMarkerElement está disponível
+                if (window.google.maps.marker && window.google.maps.marker.AdvancedMarkerElement) {
+                    results.push({
+                        status: 'success',
+                        message: 'AdvancedMarkerElement está disponível (sem warnings de deprecated)'
+                    });
+                } else {
+                    results.push({
+                        status: 'error',
+                        message: 'AdvancedMarkerElement NÃO está disponível'
+                    });
+                }
+                
+                updateStatus('✅ Todos os testes concluídos com sucesso!', 'success');
+                
+            } catch (error) {
+                console.error('Erro durante os testes:', error);
+                results.push({
+                    status: 'error',
+                    message: `Erro: ${error.message}`
+                });
+                updateStatus('❌ Erro durante os testes', 'error');
+            }
+            
+            updateChecks(results);
+        }
+        
+        // Executar testes automaticamente ao carregar a página
+        document.addEventListener('DOMContentLoaded', () => {
+            setTimeout(runTests, 1000);
+        });
+    </script>
+</body>
+</html>

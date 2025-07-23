@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interface de Debug de Sessão</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; background: #f5f5f5; }
+        .container { max-width: 800px; margin: 0 auto; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        .button-group { margin: 20px 0; }
+        button { margin: 5px; padding: 10px 15px; border: none; border-radius: 5px; cursor: pointer; font-size: 14px; }
+        .btn-primary { background: #007bff; color: white; }
+        .btn-success { background: #28a745; color: white; }
+        .btn-warning { background: #ffc107; color: black; }
+        .btn-danger { background: #dc3545; color: white; }
+        .result { margin-top: 20px; padding: 15px; border: 1px solid #ddd; border-radius: 5px; background: #f8f9fa; min-height: 100px; }
+        .json-display { font-family: monospace; white-space: pre-wrap; font-size: 12px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔧 Interface de Debug de Sessão</h1>
+        <p>Ferramenta consolidada para teste e debug do sistema de sessão.</p>
+        
+        <div class="button-group">
+            <h3>Gerenciamento de Sessão</h3>
+            <button class="btn-success" onclick="createSession()">Criar Sessão de Teste</button>
+            <button class="btn-warning" onclick="simulateSession()">Simular Sessão Completa</button>
+            <button class="btn-danger" onclick="destroySession()">Destruir Sessão</button>
+        </div>
+        
+        <div class="button-group">
+            <h3>Validação e Debug</h3>
+            <button class="btn-primary" onclick="validateSession()">Validar Sessão Atual</button>
+            <button class="btn-primary" onclick="getSessionStatus()">Status da Sessão</button>
+            <button class="btn-primary" onclick="getDebugInfo()">Info Completa de Debug</button>
+        </div>
+        
+        <div class="button-group">
+            <h3>Testes Rápidos</h3>
+            <button class="btn-primary" onclick="testMainSession()">Testar session_status.php</button>
+            <button class="btn-primary" onclick="clearResult()">Limpar Resultado</button>
+        </div>
+        
+        <div id="result" class="result">
+            <em>Resultado aparecerá aqui...</em>
+        </div>
+    </div>
+    
+    <script>
+        function displayResult(title, data) {
+            const result = document.getElementById('result');
+            result.innerHTML = `<h4>${title}</h4><div class="json-display">${typeof data === 'object' ? JSON.stringify(data, null, 2) : data}</div>`;
+        }
+        
+        function handleError(error) {
+            displayResult('❌ Erro', error.toString());
+        }
+        
+        // Gerenciamento de Sessão
+        function createSession() {
+            fetch('session_test_manager.php?action=create')
+                .then(response => response.json())
+                .then(data => displayResult('✅ Sessão Criada', data))
+                .catch(handleError);
+        }
+        
+        function destroySession() {
+            fetch('session_test_manager.php?action=destroy')
+                .then(response => response.json())
+                .then(data => displayResult('🗑️ Sessão Destruída', data))
+                .catch(handleError);
+        }
+        
+        function getSessionStatus() {
+            fetch('session_test_manager.php?action=status')
+                .then(response => response.json())
+                .then(data => displayResult('📊 Status da Sessão', data))
+                .catch(handleError);
+        }
+        
+        // Validação e Debug
+        function validateSession() {
+            fetch('debug_session.php?mode=validate')
+                .then(response => response.json())
+                .then(data => displayResult('🔍 Validação de Sessão', data))
+                .catch(handleError);
+        }
+        
+        function simulateSession() {
+            fetch('debug_session.php?mode=simulate')
+                .then(response => response.json())
+                .then(data => displayResult('🎭 Sessão Simulada', data))
+                .catch(handleError);
+        }
+        
+        function getDebugInfo() {
+            fetch('debug_session.php?mode=debug')
+                .then(response => response.json())
+                .then(data => displayResult('🔧 Info de Debug', data))
+                .catch(handleError);
+        }
+        
+        // Testes do Sistema Principal
+        function testMainSession() {
+            fetch('../session_status.php', {
+                method: 'GET',
+                credentials: 'same-origin',
+                cache: 'no-cache'
+            })
+                .then(response => response.json())
+                .then(data => displayResult('🏠 session_status.php Principal', data))
+                .catch(handleError);
+        }
+        
+        function clearResult() {
+            document.getElementById('result').innerHTML = '<em>Resultado limpo...</em>';
+        }
+    </script>
+</body>
+</html>
+                cache: 'no-cache',
+                headers: {
+                    'Accept': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+                return response.json();
+            })
+            .then(data => {
+                document.getElementById('result').innerHTML = '<strong>Status da sessão:</strong><pre>' + JSON.stringify(data, null, 2) + '</pre>';
+            })
+            .catch(error => {
+                document.getElementById('result').innerHTML = '<strong>Erro ao verificar sessão:</strong> ' + error.message;
+                console.error('Erro completo:', error);
+            });
+        }
+        
+        function clearSession() {
+            window.location.href = 'index.php?logout=1';
+        }
+    </script>
+</body>
+</html>
