@@ -251,10 +251,102 @@ A migração foi **100% bem-sucedida**, resultando em:
 - ✅ **Manutenibilidade**: Arquitetura modular e testável
 - ✅ **Segurança**: OAuth2 + Headers seguros + Validação
 
+## 🔧 Ferramentas de Debug e Teste
+
+### Estrutura de Debug Consolidada
+
+A pasta `debug/` contém ferramentas integradas para desenvolvimento e teste:
+
+#### Arquivos Principais
+- **`test_session_debug.html`** - Interface web interativa para teste de sessão
+- **`session_test_manager.php`** - API consolidada de gerenciamento de sessão
+- **`debug_session.php`** - Validação e informações de debug
+- **`css_test_interface.php`** - Interface de teste CSS
+- **`legacy_session_creator.php`** - Criador de sessão legado
+
+#### Funcionalidades de Teste
+
+**Session Test Manager** (`session_test_manager.php`):
+```php
+# Criar sessão de teste
+GET /debug/session_test_manager.php?action=create
+
+# Destruir sessão
+GET /debug/session_test_manager.php?action=destroy
+
+# Status da sessão
+GET /debug/session_test_manager.php?action=status
+
+# Formato de resposta simples
+GET /debug/session_test_manager.php?action=create&format=simple
+```
+
+**Debug Session** (`debug_session.php`):
+```php
+# Validar sessão atual
+GET /debug/debug_session.php?mode=validate
+
+# Simular sessão completa
+GET /debug/debug_session.php?mode=simulate
+
+# Informações completas de debug
+GET /debug/debug_session.php?mode=debug
+```
+
+#### Interface de Debug Web
+
+Acesse `debug/test_session_debug.html` para:
+- ✅ Criar/destruir sessões de teste
+- ✅ Validar estado atual da sessão
+- ✅ Simular cenários de autenticação
+- ✅ Obter informações completas de debug
+- ✅ Testar integração com `session_status.php` principal
+
+#### Procedimentos de Teste Recomendados
+
+1. **Antes de modificar código**:
+   ```bash
+   # Verificar estado atual
+   curl "http://localhost:8080/debug/debug_session.php?mode=debug"
+   ```
+
+2. **Após mudanças no sistema de sessão**:
+   ```bash
+   # Criar sessão de teste
+   curl "http://localhost:8080/debug/session_test_manager.php?action=create"
+   
+   # Validar funcionamento
+   curl "http://localhost:8080/debug/debug_session.php?mode=validate"
+   ```
+
+3. **Teste de integração Google Maps**:
+   - Usar interface web em `debug/test_session_debug.html`
+   - Verificar carregamento de mapas
+   - Testar funcionalidades de marcador
+
+4. **Teste de CSS e styling**:
+   - Acessar `debug/css_test_interface.php`
+   - Verificar responsividade
+   - Testar componentes da interface
+
+### Status da Migração - Debug
+
+**Consolidação Completa** ✅:
+- Removidos 7 arquivos redundantes de criação de sessão
+- Consolidados em 2 arquivos principais (`session_test_manager.php`, `debug_session.php`)
+- Interface web unificada para todos os testes
+- Documentação completa de uso
+
+**Benefícios da Consolidação**:
+- 🔧 Menos arquivos para manter
+- 🎯 Funcionalidade centralizada
+- 📋 Testes padronizados
+- 🚀 Desenvolvimento mais ágil
+
 O **Foursquare Mass Editor Tools** agora está preparado para os próximos anos de desenvolvimento, com uma base sólida para futuras expansões e melhorias.
 
 ---
 
-**Última atualização**: Janeiro 2025  
-**Versão**: 3.0.0  
+**Última atualização**: Julho 2025  
+**Versão**: 3.1.0  
 **Status**: Produção Ready ✅

@@ -565,7 +565,7 @@ function waitForConfigAndDojo(callback, timeout = 10000) {
             // Fallback com configuração padrão MODERNA
             if (!window.googleMapsConfig) {
                 window.googleMapsConfig = {
-                    apiKey: 'AIzaSyCrOJjBphSJdk5D0lBxL3l17fB0FUgcSI0', // Chave moderna
+                    apiKey: 'SUA_GOOGLE_MAPS_API_KEY_AQUI', // Chave moderna
                     defaultZoom: 15,
                     defaultCenter: { lat: -23.5505, lng: -46.6333 },
                     libraries: ['marker']

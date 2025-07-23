@@ -363,6 +363,15 @@ a:hover {
 	-webkit-border-radius: 5px;
 	-moz-border-radius: 5px;
 }
+
+/* Estilo para o container do mapa */
+#mapa {
+	border-radius: 6px;
+	overflow: hidden;
+	box-shadow: rgba(0, 0, 0, 0.1) 0px 2px 8px;
+	border: 1px solid rgba(0, 0, 0, 0.1);
+}
+
 #editFieldContainer .row span.label {
 	float: left;
 	width: 52px;

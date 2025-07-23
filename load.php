@@ -60,6 +60,7 @@ define("VERSION", "Venues Loader 3.0.0");
 define("LINKS", '<link rel="shortcut icon" href="favicon.ico" type="image/x-icon">
 <link rel="stylesheet" type="text/css" href="js/dijit/themes/tundra/tundra.css">
 <link rel="stylesheet" type="text/css" href="estilo.css?v=<?php echo time(); ?>">
+<script src="js/dojo/dojo.js" djConfig="parseOnLoad: true"></script>
 ');
 define("HBODY", '</head>
 <body class="tundra">

@@ -184,7 +184,88 @@ Contributions are always welcome! Please:
 - Write comprehensive tests
 - Update documentation
 
+## 🔧 Testing and Debugging
+
+### Debug Tools (debug/ folder)
+
+The project includes consolidated testing tools for development:
+
+- **`test_session_debug.html`** - Interactive web interface for session testing
+- **`session_test_manager.php`** - Consolidated session management API
+  - Create/destroy test sessions
+  - Multiple output formats (JSON/simple)
+  - Usage: `?action=create|destroy|status&format=json|simple`
+- **`debug_session.php`** - Session validation and debug information
+  - Validate current sessions
+  - Simulate complete sessions
+  - Full debug mode with server info
+  - Usage: `?mode=validate|simulate|debug`
+- **`css_test_interface.php`** - CSS and styling test interface
+- **`legacy_session_creator.php`** - Legacy session creation script
+
+### Quick Testing Commands
+
+```bash
+# Access debug interface
+open http://localhost:8080/debug/test_session_debug.html
+
+# Test session creation via API
+curl "http://localhost:8080/debug/session_test_manager.php?action=create"
+
+# Validate current session
+curl "http://localhost:8080/debug/debug_session.php?mode=validate"
+
+# Get full debug info
+curl "http://localhost:8080/debug/debug_session.php?mode=debug"
+```
+
+### Migration Status
+
+⚠️ **Migration in Progress**: The codebase is currently being modernized from PHP 5.4 to PHP 8.1 with Google Maps API integration. Some features may be in transition.
+
+**Completed**:
+
+- ✅ Modern Google Maps integration (`js/modern-google-maps.js`)
+- ✅ Consolidated debug tools
+- ✅ Docker containerization
+- ✅ Session management modernization
+
+**In Progress**:
+
+- 🔄 Complete Google Maps legacy code removal
+- 🔄 Full PSR-4 code migration
+- 🔄 Comprehensive testing coverage
+
+**Testing Recommendations**:
+
+1. Use debug tools before making changes
+2. Test session functionality after code modifications
+3. Verify Google Maps integration works correctly
+4. Check both local and containerized environments
+
 ## 📄 License
+
+This project is licensed under the [GNU General Public License v3.0](LICENSE.txt).
+⚠️ **Migration in Progress**: The codebase is currently being modernized from PHP 5.4 to PHP 8.1 with Google Maps API integration. Some features may be in transition.
+
+**Completed**:
+- ✅ Modern Google Maps integration (`js/modern-google-maps.js`)
+- ✅ Consolidated debug tools
+- ✅ Docker containerization
+- ✅ Session management modernization
+
+**In Progress**:
+- 🔄 Complete Google Maps legacy code removal
+- 🔄 Full PSR-4 code migration
+- 🔄 Comprehensive testing coverage
+
+**Testing Recommendations**:
+1. Use debug tools before making changes
+2. Test session functionality after code modifications
+3. Verify Google Maps integration works correctly
+4. Check both local and containerized environments
+
+## �📄 License
 
 This project is licensed under the [GNU General Public License v3.0](LICENSE.txt).
 

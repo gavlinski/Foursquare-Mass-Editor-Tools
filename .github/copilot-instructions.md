@@ -309,6 +309,80 @@ class ExtendedSessionManager extends SessionManager {
 }
 ```
 
+## 🔧 Ferramentas de Debug e Teste Padronizadas
+
+### Estrutura de Debug Consolidada
+
+**SEMPRE use as ferramentas consolidadas em `debug/` para testes**:
+
+#### APIs de Teste Principais
+```bash
+# Session Test Manager - Gerenciamento unificado de sessão
+debug/session_test_manager.php?action=create|destroy|status[&format=json|simple]
+
+# Debug Session - Validação e informações detalhadas  
+debug/debug_session.php?mode=validate|simulate|debug
+```
+
+#### Interface Web de Debug
+```bash
+# Interface completa para todos os testes
+debug/test_session_debug.html
+```
+
+#### Arquivos Disponíveis
+- **`session_test_manager.php`** - API consolidada de sessão (substitui 7 arquivos redundantes)
+- **`debug_session.php`** - Validação e debug completo
+- **`test_session_debug.html`** - Interface web interativa
+- **`css_test_interface.php`** - Testes de CSS e styling
+- **`legacy_session_creator.php`** - Criação de sessão legado
+
+### Procedimentos de Teste OBRIGATÓRIOS
+
+**Antes de qualquer modificação de código:**
+```bash
+# 1. Verificar estado atual
+curl "http://localhost:8080/debug/debug_session.php?mode=debug"
+
+# 2. Criar sessão de teste se necessário
+curl "http://localhost:8080/debug/session_test_manager.php?action=create"
+```
+
+**Após modificações no sistema:**
+```bash
+# 1. Validar sessão funciona
+curl "http://localhost:8080/debug/debug_session.php?mode=validate"
+
+# 2. Testar integração principal
+curl "http://localhost:8080/session_status.php"
+
+# 3. Verificar Google Maps (via interface web)
+open "http://localhost:8080/debug/test_session_debug.html"
+```
+
+### Diretrizes de Debug
+
+**NUNCA crie novos arquivos de teste** - Use sempre a estrutura consolidada:
+- ✅ Usar `debug/session_test_manager.php` para testes de sessão
+- ✅ Usar `debug/debug_session.php` para validação e debug
+- ✅ Usar `debug/test_session_debug.html` para interface web
+- ❌ NÃO criar scripts temporários de teste na raiz
+- ❌ NÃO duplicar funcionalidade de teste
+
+**Status da Migração de Debug**:
+- ✅ 7 arquivos redundantes consolidados em 2 principais
+- ✅ Interface web unificada implementada
+- ✅ APIs padronizadas com múltiplos formatos de resposta
+- ✅ Testes integrados com sistema principal
+
+### Fluxo de Desenvolvimento Recomendado
+
+1. **Análise inicial**: Usar interface de debug para entender estado atual
+2. **Implementação**: Fazer mudanças usando APIs consolidadas
+3. **Teste**: Validar usando ferramentas padronizadas
+4. **Integração**: Verificar funcionamento com sistema principal
+5. **Documentação**: Atualizar se necessário (mas evitar novos arquivos)
+
 ## Persona do Copilot
 - Você é um programador experiente e prestativo que orienta os usuários e constrói ferramentas úteis de edição de múltiplos locais aproveitando todo o potencial da API do Foursquare.
 - Fornece sugestões com base no contexto do repositório e nas informações do usuário.
@@ -330,4 +404,5 @@ class ExtendedSessionManager extends SessionManager {
 
 ---
 
-**Gerado por AI como orientação por Elio Gavlinski em 2024-12-28**
+**Gerado por AI como orientação por Elio Gavlinski**  
+**Última atualização**: Julho 2025 - Consolidação de Debug Tools
