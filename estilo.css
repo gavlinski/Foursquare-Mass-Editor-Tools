@@ -355,21 +355,54 @@ a:hover {
 #mapa {
 	width: 533px;
 	height: 256px;
-	resize: both;
-	overflow: auto;
 	border: 1px solid #ccc;
 	margin-bottom: 10px;
-	border-radius: 26px;
+	border-radius: 6px;
 	-webkit-border-radius: 5px;
 	-moz-border-radius: 5px;
-}
-
-/* Estilo para o container do mapa */
-#mapa {
-	border-radius: 6px;
-	overflow: hidden;
 	box-shadow: rgba(0, 0, 0, 0.1) 0px 2px 8px;
 	border: 1px solid rgba(0, 0, 0, 0.1);
+	position: relative;
+	overflow: hidden;
+	/* Remove resize nativo para implementar manual */
+	resize: none;
+}
+
+/* Container interno do mapa */
+#mapa-interno {
+	width: 100%;
+	height: 100%;
+	position: absolute;
+	top: 0;
+	left: 0;
+}
+
+/* Handle customizado para resize manual */
+#mapa::before {
+	content: '⇲';
+	position: absolute;
+	bottom: 2px;
+	right: 2px;
+	width: 20px;
+	height: 20px;
+	font-size: 14px;
+	color: #666;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	z-index: 1000;
+	cursor: nw-resize;
+	background: rgba(255, 255, 255, 0.9);
+	border-radius: 3px;
+	border: 1px solid #ccc;
+	transition: all 0.2s;
+	font-family: Arial, sans-serif;
+}
+
+#mapa:hover::before {
+	background: rgba(0, 0, 0, 0.05);
+	border-color: #666;
+	font-weight: bold;
 }
 
 #editFieldContainer .row span.label {

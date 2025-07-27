@@ -1221,8 +1221,13 @@ dojo.addOnLoad(function inicializar() {
 		});
 	}
 	
-	/*** Autoajusta o tamanho do mapa conforme largura da lista ***/
-	dojo.style("mapa", "width", dojo.byId('listContainer').offsetWidth.toString() + "px");
+	/*** Autoajusta o tamanho inicial do mapa conforme largura da lista ***/
+	// Só define largura inicial se não foi personalizada pelo usuário
+	const mapaElement = dojo.byId('mapa');
+	if (mapaElement && !mapaElement.style.width) {
+		dojo.style("mapa", "width", dojo.byId('listContainer').offsetWidth.toString() + "px");
+		console.log('📏 Largura inicial do mapa definida automaticamente');
+	}
 	
 	/*** Guia de Estilo ***/
 	dlg_guia = new dijit.Dialog({

@@ -73,7 +73,9 @@ include 'includes/app_credentials.php';
 	<p>Antes de salvar suas propostas de altera&ccedil;&otilde;es, n&atilde;o deixe de ler nosso <a id="guia" href="javascript:showDialogGuia()">guia de estilo</a> e as <a id="regras" href="https://pt.foursquare.com/info/houserules" target="_blank">regras da casa</a>.</p>
 </article>
 <article>
-	<div id="mapa"></div>
+	<div id="mapa">
+		<div id="mapa-interno"></div>
+	</div>
 </article>
 <article>
 <div id="listContainer">
@@ -351,6 +353,76 @@ document.addEventListener('DOMContentLoaded', function() {
             setTimeout(waitForSessionManager, 200);
         }
     }
+    
+    waitForSessionManager();
+    
+    // Implementa resize manual para o mapa
+    function implementarResizeManual() {
+        let isResizing = false;
+        let startX, startY, startWidth, startHeight;
+        const container = document.getElementById('mapa');
+        
+        if (!container) return;
+        
+        // Detecta mousedown na área do handle (canto inferior direito)
+        container.addEventListener('mousedown', function(e) {
+            const rect = container.getBoundingClientRect();
+            const handleArea = 25; // Área do handle em pixels
+            
+            // Verifica se clicou na área do handle
+            if (e.clientX >= rect.right - handleArea && 
+                e.clientY >= rect.bottom - handleArea) {
+                
+                isResizing = true;
+                startX = e.clientX;
+                startY = e.clientY;
+                startWidth = parseInt(window.getComputedStyle(container).width, 10);
+                startHeight = parseInt(window.getComputedStyle(container).height, 10);
+                
+                console.log('🗺️ Iniciando resize do mapa:', {startWidth, startHeight});
+                
+                e.preventDefault();
+                document.body.style.cursor = 'nw-resize';
+                document.body.style.userSelect = 'none';
+            }
+        });
+        
+        // Detecta movimento do mouse
+        document.addEventListener('mousemove', function(e) {
+            if (!isResizing) return;
+            
+            const newWidth = Math.max(300, startWidth + (e.clientX - startX));
+            const newHeight = Math.max(200, startHeight + (e.clientY - startY));
+            
+            container.style.width = newWidth + 'px';
+            container.style.height = newHeight + 'px';
+            
+            // Força o resize do mapa do Google Maps
+            if (window.googleMaps && window.googleMaps.map) {
+                setTimeout(() => {
+                    google.maps.event.trigger(window.googleMaps.map, 'resize');
+                }, 10);
+            }
+            
+            e.preventDefault();
+        });
+        
+        // Detecta fim do resize
+        document.addEventListener('mouseup', function() {
+            if (isResizing) {
+                isResizing = false;
+                document.body.style.cursor = '';
+                document.body.style.userSelect = '';
+                console.log('🗺️ Resize do mapa finalizado');
+            }
+        });
+    }
+    
+    // Inicializa resize manual quando Google Maps estiver pronto
+    document.addEventListener('google-maps-ready', () => {
+        setTimeout(implementarResizeManual, 500);
+        console.log('✅ Resize manual do mapa ativado');
+    });
     
     waitForSessionManager();
     
