@@ -204,7 +204,85 @@ class GoogleMaps {
     }
 
     /**
-     * Adiciona marcadores
+     * Cria marcador customizado Foursquare com número
+     */
+    createFoursquareMarker(number) {
+        const markerDiv = document.createElement('div');
+        markerDiv.className = 'foursquare-marker';
+        markerDiv.textContent = number.toString();
+        
+        // Ajustar tamanho da fonte para números grandes
+        if (number > 99) {
+            markerDiv.style.fontSize = '11px';
+        } else if (number > 9) {
+            markerDiv.style.fontSize = '13px';
+        }
+        
+        return markerDiv;
+    }
+
+    /**
+     * Adiciona marcadores numerados no estilo Foursquare
+     */
+    async addNumberedMarker(position, number, options = {}) {
+        if (!this.isLoaded) {
+            throw new Error('Google Maps API não carregada');
+        }
+
+        try {
+            const { AdvancedMarkerElement } = await google.maps.importLibrary("marker");
+            
+            const customContent = this.createFoursquareMarker(number);
+            
+            const marker = new AdvancedMarkerElement({
+                position: position,
+                map: this.map,
+                title: options.title || `Local ${number}`,
+                content: customContent,
+                gmpDraggable: options.draggable || true
+            });
+
+            if (options.draggable !== false && this.onMarkerDragEnd) {
+                marker.addListener('dragend', (event) => {
+                    this.onMarkerDragEnd(marker, event, number - 1);
+                });
+            }
+
+            this.markers.push(marker);
+            this.bounds.extend(position);
+            return marker;
+
+        } catch (error) {
+            console.error("Falha ao carregar AdvancedMarkerElement, usando fallback para Marker.", error);
+            // Fallback para Marker tradicional em caso de erro
+            const marker = new google.maps.Marker({
+                position: position,
+                map: this.map,
+                title: options.title || `Local ${number}`,
+                draggable: options.draggable !== false,
+                animation: options.animation || google.maps.Animation.DROP,
+                label: {
+                    text: number.toString(),
+                    color: 'white',
+                    fontWeight: 'bold',
+                    fontSize: '14px'
+                }
+            });
+
+            if (options.draggable !== false && this.onMarkerDragEnd) {
+                marker.addListener('dragend', (event) => {
+                    this.onMarkerDragEnd(marker, event, number - 1);
+                });
+            }
+
+            this.markers.push(marker);
+            this.bounds.extend(position);
+            return marker;
+        }
+    }
+
+    /**
+     * Adiciona marcadores (método original mantido para compatibilidade)
      */
     async addMarker(position, options = {}) {
         if (!this.isLoaded) {
@@ -246,7 +324,7 @@ class GoogleMaps {
             if (options.draggable && this.onMarkerDragEnd) {
                 marker.addListener('dragend', (event) => {
                     this.onMarkerDragEnd(marker, event, options.index);
-});
+                });
             }
 
             this.markers.push(marker);
@@ -256,7 +334,7 @@ class GoogleMaps {
     }
 
     /**
-     * Atualiza marcadores no mapa
+     * Atualiza marcadores no mapa com numeração Foursquare
      */
     async updateMarkers(locations = []) {
         if (!this.map) {
@@ -271,13 +349,13 @@ class GoogleMaps {
                 const position = { lat: parseFloat(location[1]), lng: parseFloat(location[2]) };
                 
                 try {
-                    await this.addMarker(position, {
-                        title: `${i + 1}. ${location[0] || 'Local'}`,
+                    await this.addNumberedMarker(position, i + 1, {
+                        title: `${location[0] || 'Local'}`,
                         draggable: true,
                         index: i
                     });
                 } catch (error) {
-                    console.error(`Erro ao adicionar marcador ${i}:`, error);
+                    console.error(`Erro ao adicionar marcador ${i + 1}:`, error);
                 }
             }
         }

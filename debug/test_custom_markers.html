@@ -1,0 +1,548 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Teste - Marcadores Personalizados com Números</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .controls {
+            margin-bottom: 20px;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            border: 1px solid #dee2e6;
+        }
+        .style-selector {
+            margin: 10px 0;
+        }
+        .style-selector label {
+            margin-right: 15px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        .style-preview {
+            display: inline-block;
+            margin-left: 10px;
+            vertical-align: middle;
+        }
+        #mapa {
+            width: 100%;
+            height: 500px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+        .info-panel {
+            background: #e7f3ff;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 15px 0;
+        }
+        .marker-count {
+            font-weight: bold;
+            color: #0066cc;
+        }
+        .test-buttons {
+            margin: 15px 0;
+        }
+        .test-buttons button {
+            margin: 5px 10px 5px 0;
+            padding: 8px 16px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            background: #fff;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .test-buttons button:hover {
+            background: #f0f8ff;
+            border-color: #0066cc;
+        }
+        .test-buttons button.active {
+            background: #0066cc;
+            color: white;
+            border-color: #0066cc;
+        }
+        /* Estilos dos marcadores customizados */
+        .custom-marker {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            font-weight: bold;
+            color: white;
+            text-shadow: 0 1px 2px rgba(0,0,0,0.7);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+            cursor: pointer;
+            transition: all 0.2s ease;
+            border: 2px solid white;
+        }
+        .custom-marker:hover {
+            transform: scale(1.1);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+        }
+        /* Estilo 1: Círculo azul clássico */
+        .marker-style-1 {
+            width: 32px;
+            height: 32px;
+            background: #1a73e8;
+            font-size: 14px;
+        }
+        /* Estilo 2: Círculo maior vermelho */
+        .marker-style-2 {
+            width: 40px;
+            height: 40px;
+            background: #dc3545;
+            font-size: 16px;
+        }
+        /* Estilo 3: Círculo verde com borda mais espessa */
+        .marker-style-3 {
+            width: 36px;
+            height: 36px;
+            background: #28a745;
+            font-size: 15px;
+            border: 3px solid white;
+        }
+        /* Estilo 4: Círculo laranja com gradiente */
+        .marker-style-4 {
+            width: 38px;
+            height: 38px;
+            background: linear-gradient(135deg, #ff8c00, #ff6347);
+            font-size: 15px;
+        }
+        /* Estilo 5: Estilo Foursquare (roxo/rosa) */
+        .marker-style-5 {
+            width: 36px;
+            height: 36px;
+            background: linear-gradient(135deg, #f94877, #8b5cf6);
+            font-size: 15px;
+            border: 2px solid #fff;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🗺️ Teste de Marcadores Personalizados com Números</h1>
+        
+        <div class="info-panel">
+            <h3>💡 Objetivo do Teste</h3>
+            <p>Avaliar diferentes estilos de marcadores numerados para identificação visual direta no mapa, eliminando a necessidade de verificar tooltips individuais.</p>
+            <p class="marker-count">Marcadores ativos: <span id="marker-count">0</span></p>
+        </div>
+        
+        <div class="controls">
+            <h3>🎨 Seleção de Estilo</h3>
+            <div class="style-selector">
+                <label>
+                    <input type="radio" name="markerStyle" value="1" checked>
+                    Estilo 1: Azul Clássico (32px)
+                    <div class="style-preview">
+                        <div class="custom-marker marker-style-1">1</div>
+                    </div>
+                </label>
+            </div>
+            <div class="style-selector">
+                <label>
+                    <input type="radio" name="markerStyle" value="2">
+                    Estilo 2: Vermelho Grande (40px)
+                    <div class="style-preview">
+                        <div class="custom-marker marker-style-2">2</div>
+                    </div>
+                </label>
+            </div>
+            <div class="style-selector">
+                <label>
+                    <input type="radio" name="markerStyle" value="3">
+                    Estilo 3: Verde com Borda (36px)
+                    <div class="style-preview">
+                        <div class="custom-marker marker-style-3">3</div>
+                    </div>
+                </label>
+            </div>
+            <div class="style-selector">
+                <label>
+                    <input type="radio" name="markerStyle" value="4">
+                    Estilo 4: Laranja Gradiente (38px)
+                    <div class="style-preview">
+                        <div class="custom-marker marker-style-4">4</div>
+                    </div>
+                </label>
+            </div>
+            <div class="style-selector">
+                <label>
+                    <input type="radio" name="markerStyle" value="5">
+                    Estilo 5: Foursquare (Roxo/Rosa) (36px)
+                    <div class="style-preview">
+                        <div class="custom-marker marker-style-5">5</div>
+                    </div>
+                </label>
+            </div>
+        </div>
+
+        <div class="test-buttons">
+            <h3>🧪 Cenários de Teste</h3>
+            <button onclick="testScenario('poucos')" class="active" id="btn-poucos">Poucos Locais (3-5)</button>
+            <button onclick="testScenario('medios')" id="btn-medios">Quantidade Média (10-15)</button>
+            <button onclick="testScenario('muitos')" id="btn-muitos">Muitos Locais (25-30)</button>
+            <button onclick="testScenario('extremo')" id="btn-extremo">Teste Extremo (50+)</button>
+            <button onclick="testScenario('limpar')" id="btn-limpar">Limpar Mapa</button>
+        </div>
+        
+        <div id="mapa"></div>
+        
+        <div class="info-panel">
+            <h3>📋 Critérios de Avaliação</h3>
+            <ul>
+                <li><strong>Legibilidade:</strong> Os números são claramente visíveis em diferentes zoom levels?</li>
+                <li><strong>Contraste:</strong> O texto se destaca bem contra o fundo?</li>
+                <li><strong>Usabilidade:</strong> É fácil identificar cada local sem confusão?</li>
+                <li><strong>Performance:</strong> O mapa permanece responsivo com muitos marcadores?</li>
+                <li><strong>Estética:</strong> Os marcadores combinam bem com o design do sistema?</li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- Carregamento dos scripts -->
+    <script src="../js/google-maps-config.php" defer></script>
+    <script>
+        // Variáveis globais
+        let googleMaps = null;
+        let currentMarkers = [];
+        let currentStyle = '1';
+
+        // Dados de teste para diferentes cenários
+        const testData = {
+            poucos: [
+                ['Restaurante Central', -23.5505, -46.6333],
+                ['Café da Esquina', -23.5515, -46.6343],
+                ['Loja de Livros', -23.5495, -46.6323],
+                ['Farmácia 24h', -23.5525, -46.6353]
+            ],
+            medios: [
+                ['Shopping Center', -23.5505, -46.6333],
+                ['Supermercado', -23.5515, -46.6343],
+                ['Banco Principal', -23.5495, -46.6323],
+                ['Hospital São Paulo', -23.5525, -46.6353],
+                ['Escola Municipal', -23.5485, -46.6313],
+                ['Posto de Gasolina', -23.5535, -46.6363],
+                ['Pizzaria Italiana', -23.5475, -46.6303],
+                ['Academia Fitness', -23.5545, -46.6373],
+                ['Padaria do Bairro', -23.5465, -46.6293],
+                ['Laboratório Clínico', -23.5555, -46.6383],
+                ['Livraria Cultura', -23.5455, -46.6283],
+                ['Restaurante Japonês', -23.5565, -46.6393],
+                ['Clínica Veterinária', -23.5445, -46.6273],
+                ['Mercado Orgânico', -23.5575, -46.6403],
+                ['Salão de Beleza', -23.5435, -46.6263]
+            ],
+            muitos: [],
+            extremo: []
+        };
+
+        // Gerar dados para cenários com muitos marcadores
+        function generateTestData() {
+            // Cenário "muitos" - 30 locais
+            for (let i = 0; i < 30; i++) {
+                const lat = -23.5505 + (Math.random() - 0.5) * 0.02;
+                const lng = -46.6333 + (Math.random() - 0.5) * 0.02;
+                testData.muitos.push([`Local ${i + 1}`, lat, lng]);
+            }
+
+            // Cenário "extremo" - 60 locais
+            for (let i = 0; i < 60; i++) {
+                const lat = -23.5505 + (Math.random() - 0.5) * 0.04;
+                const lng = -46.6333 + (Math.random() - 0.5) * 0.04;
+                testData.extremo.push([`Ponto ${i + 1}`, lat, lng]);
+            }
+        }
+
+        // Classe customizada para Google Maps com marcadores numerados
+        class CustomGoogleMaps {
+            constructor(config = {}) {
+                this.config = {
+                    apiKey: config.apiKey || '',
+                    defaultZoom: config.defaultZoom || 14,
+                    defaultCenter: config.defaultCenter || { lat: -23.5505, lng: -46.6333 },
+                    mapElementId: config.mapElementId || 'mapa',
+                    libraries: config.libraries || ['maps', 'marker'],
+                    ...config
+                };
+                
+                this.map = null;
+                this.markers = [];
+                this.bounds = null;
+                this.isLoaded = false;
+                this.loadPromise = null;
+            }
+
+            async loadMapsAPI() {
+                if (this.loadPromise) {
+                    return this.loadPromise;
+                }
+
+                this.loadPromise = new Promise(async (resolve, reject) => {
+                    try {
+                        if (window.google && window.google.maps && window.google.maps.importLibrary) {
+                            this.isLoaded = true;
+                            resolve();
+                            return;
+                        }
+
+                        const script = document.createElement('script');
+                        script.async = true;
+                        script.innerHTML = `
+                            (g=>{var h,a,k,p="The Google Maps JavaScript API",c="google",l="importLibrary",q="__ib__",m=document,b=window;b=b[c]||(b[c]={});var d=b.maps||(b.maps={}),r=new Set,e=new URLSearchParams,u=()=>h||(h=new Promise(async(f,n)=>{await (a=m.createElement("script"));e.set("libraries",[...r]+"");for(k in g)e.set(k.replace(/[A-Z]/g,t=>"_"+t[0].toLowerCase()),g[k]);e.set("callback",c+".maps."+q);a.src=\`https://maps.\${c}apis.com/maps/api/js?\`+e;d[q]=f;a.onerror=()=>h=n(Error(p+" could not load."));a.nonce=m.querySelector("script[nonce]")?.nonce||"";m.head.append(a)}));d[l]?console.warn(p+" only loads once. Ignoring:",g):d[l]=(f,...n)=>r.add(f)&&u().then(()=>d[l](f,...n))})({
+                                key: "${this.config.apiKey}",
+                                v: "weekly",
+                                loading: "async"
+                            });
+                        `;
+                        document.head.appendChild(script);
+                        
+                        await new Promise(resolve => setTimeout(resolve, 200));
+
+                        await window.google.maps.importLibrary("maps");
+                        await window.google.maps.importLibrary("marker");
+
+                        this.isLoaded = true;
+                        resolve();
+                        
+                    } catch (error) {
+                        reject(new Error(`Falha ao carregar Google Maps API: ${error.message}`));
+                    }
+                });
+
+                return this.loadPromise;
+            }
+
+            async initialize() {
+                try {
+                    await this.loadMapsAPI();
+
+                    const mapOptions = {
+                        center: this.config.defaultCenter,
+                        zoom: this.config.defaultZoom,
+                        disableDefaultUI: false,
+                        mapId: this.config.mapId,
+                        mapTypeId: google.maps.MapTypeId.ROADMAP,
+                        zoomControl: true,
+                        mapTypeControl: true,
+                        fullscreenControl: true
+                    };
+
+                    const mapElement = document.getElementById(this.config.mapElementId);
+                    if (!mapElement) {
+                        throw new Error(`Elemento do mapa não encontrado: ${this.config.mapElementId}`);
+                    }
+
+                    this.map = new google.maps.Map(mapElement, mapOptions);
+                    this.bounds = new google.maps.LatLngBounds();
+
+                    console.log('✅ Mapa customizado inicializado');
+                    return this.map;
+
+                } catch (error) {
+                    console.error('❌ Erro ao inicializar mapa:', error);
+                    throw error;
+                }
+            }
+
+            // Cria marcador customizado com número
+            createCustomMarker(number, style = '1') {
+                const markerDiv = document.createElement('div');
+                markerDiv.className = `custom-marker marker-style-${style}`;
+                markerDiv.textContent = number.toString();
+                
+                // Ajustar tamanho da fonte para números grandes
+                if (number > 99) {
+                    markerDiv.style.fontSize = '11px';
+                } else if (number > 9) {
+                    markerDiv.style.fontSize = '13px';
+                }
+                
+                return markerDiv;
+            }
+
+            async addNumberedMarker(position, number, options = {}) {
+                if (!this.isLoaded || !this.map) {
+                    throw new Error('Google Maps não inicializado');
+                }
+
+                try {
+                    const { AdvancedMarkerElement } = await google.maps.importLibrary("marker");
+                    
+                    const customContent = this.createCustomMarker(number, options.style || currentStyle);
+                    
+                    const marker = new AdvancedMarkerElement({
+                        position: position,
+                        map: this.map,
+                        title: options.title || `Local ${number}`,
+                        content: customContent,
+                        gmpDraggable: options.draggable || false
+                    });
+
+                    this.markers.push(marker);
+                    this.bounds.extend(position);
+                    
+                    return marker;
+
+                } catch (error) {
+                    console.error('❌ Erro ao criar marcador numerado:', error);
+                    throw error;
+                }
+            }
+
+            async updateMarkersWithNumbers(locations = [], style = '1') {
+                if (!this.map) return;
+
+                this.clearMarkers();
+
+                for (let i = 0; i < locations.length; i++) {
+                    const location = locations[i];
+                    if (location && location[1] !== undefined && location[2] !== undefined) {
+                        const position = { lat: parseFloat(location[1]), lng: parseFloat(location[2]) };
+                        
+                        try {
+                            await this.addNumberedMarker(position, i + 1, {
+                                title: `${i + 1}. ${location[0] || 'Local'}`,
+                                style: style,
+                                draggable: false
+                            });
+                        } catch (error) {
+                            console.error(`❌ Erro ao adicionar marcador ${i + 1}:`, error);
+                        }
+                    }
+                }
+
+                if (this.markers.length > 0) {
+                    this.map.fitBounds(this.bounds);
+                    
+                    // Ajustar zoom para visualização adequada
+                    google.maps.event.addListenerOnce(this.map, 'bounds_changed', () => {
+                        if (this.map.getZoom() > 16) {
+                            this.map.setZoom(16);
+                        }
+                    });
+                }
+
+                // Atualizar contador
+                document.getElementById('marker-count').textContent = this.markers.length;
+            }
+
+            clearMarkers() {
+                this.markers.forEach(marker => {
+                    if (marker.map) {
+                        marker.map = null;
+                    }
+                });
+                this.markers = [];
+                this.bounds = new google.maps.LatLngBounds();
+                document.getElementById('marker-count').textContent = '0';
+            }
+        }
+
+        // Função para testar diferentes cenários
+        function testScenario(scenario) {
+            // Atualizar botões ativos
+            document.querySelectorAll('.test-buttons button').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            document.getElementById(`btn-${scenario}`).classList.add('active');
+
+            if (scenario === 'limpar') {
+                if (googleMaps) {
+                    googleMaps.clearMarkers();
+                }
+                return;
+            }
+
+            if (!googleMaps) {
+                console.error('❌ Google Maps não inicializado');
+                return;
+            }
+
+            const data = testData[scenario] || [];
+            googleMaps.updateMarkersWithNumbers(data, currentStyle);
+            
+            console.log(`🧪 Teste aplicado: ${scenario} (${data.length} marcadores)`);
+        }
+
+        // Função para mudar estilo dos marcadores
+        function changeMarkerStyle() {
+            const selectedStyle = document.querySelector('input[name="markerStyle"]:checked').value;
+            currentStyle = selectedStyle;
+            
+            // Reaplicar marcadores com novo estilo
+            const activeButton = document.querySelector('.test-buttons button.active');
+            if (activeButton && activeButton.id !== 'btn-limpar') {
+                const scenario = activeButton.id.replace('btn-', '');
+                testScenario(scenario);
+            }
+            
+            console.log(`🎨 Estilo alterado para: ${selectedStyle}`);
+        }
+
+        // Inicialização
+        document.addEventListener('DOMContentLoaded', async function() {
+            console.log('🔧 Inicializando teste de marcadores customizados...');
+            
+            // Gerar dados de teste
+            generateTestData();
+            
+            // Aguardar configuração do Google Maps
+            function waitForConfig() {
+                return new Promise((resolve) => {
+                    function check() {
+                        if (window.googleMapsConfig) {
+                            resolve();
+                        } else {
+                            setTimeout(check, 100);
+                        }
+                    }
+                    check();
+                });
+            }
+            
+            await waitForConfig();
+            
+            // Inicializar Google Maps customizado
+            try {
+                googleMaps = new CustomGoogleMaps({
+                    apiKey: window.googleMapsConfig.apiKey,
+                    mapId: window.googleMapsConfig.mapId,
+                    defaultZoom: 14,
+                    defaultCenter: { lat: -23.5505, lng: -46.6333 }
+                });
+                
+                await googleMaps.initialize();
+                
+                // Aplicar cenário inicial
+                testScenario('poucos');
+                
+                // Adicionar listeners para mudança de estilo
+                document.querySelectorAll('input[name="markerStyle"]').forEach(radio => {
+                    radio.addEventListener('change', changeMarkerStyle);
+                });
+                
+                console.log('✅ Teste de marcadores customizados pronto!');
+                
+            } catch (error) {
+                console.error('❌ Erro ao inicializar teste:', error);
+            }
+        });
+    </script>
+</body>
+</html>
