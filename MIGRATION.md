@@ -228,11 +228,29 @@ console.error('❌ Erro na autenticação:', error);
 ## 🔮 Próximos Passos
 
 ### Melhorias Planejadas
-- [ ] Migration para TypeScript
-- [ ] API REST moderna
-- [ ] PWA com Service Workers
-- [ ] Testes automatizados (PHPUnit + Jest)
-- [ ] CI/CD com GitHub Actions
+
+#### Funcionalidades Core
+
+- [ ] **Sistema de campos responsivos avançado**: Implementar ajuste dinâmico dos tamanhos de campos baseado na responsividade da tela, mantendo proporções otimizadas
+- [ ] **Otimização de campos brasileiros**: Refinamento adicional dos tamanhos para Estado (UF) e CEP com validação automática de formato
+- [ ] **Sistema de resize inteligente**: Melhorar o redimensionamento da lista de venues com snap points e persistência de preferências
+- [ ] **Compatibilidade Dojo aprimorada**: Desenvolver sistema que permita CSS externo influenciar widgets Dojo sem conflitos
+
+#### Arquitetura e Modernização  
+
+- [ ] **Migration para TypeScript**: Conversão gradual do JavaScript ES6 para TypeScript
+- [ ] **API REST moderna**: Substituição gradual da API v2 do Foursquare por endpoints internos RESTful
+- [ ] **PWA com Service Workers**: Implementação de funcionalidades offline e cache inteligente
+- [ ] **Testes automatizados**: Cobertura completa com PHPUnit (backend) e Jest (frontend)
+- [ ] **CI/CD com GitHub Actions**: Pipeline automatizado de deploy e testes
+
+#### UX/UI e Performance
+
+- [ ] **Melhoria no Google Maps**: Integração mais fluida com markers personalizados e controles avançados
+- [ ] **Sistema de notificações**: Toast notifications para feedback de ações do usuário
+- [ ] **Modo escuro**: Implementação de tema dark mode com persistência de preferência
+- [ ] **Lazy loading avançado**: Carregamento progressivo de venues em listas grandes
+- [ ] **Otimização mobile**: Melhorias específicas para dispositivos móveis e touch
 
 ### Refatoração Futura
 - [ ] Single Page Application (SPA)

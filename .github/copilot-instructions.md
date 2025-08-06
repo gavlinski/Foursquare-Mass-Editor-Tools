@@ -126,6 +126,36 @@ var dialog = new dijit.Dialog({
 });
 ```
 
+**CRÍTICO - Limitações CSS com Widgets Dojo:**
+
+O Dojo Toolkit possui um sistema de sanitização CSS que impede que regras CSS externas afetem o tamanho dos widgets. **JAMAIS tente modificar larguras de widgets Dojo via CSS externo** - isso não funciona e causa problemas de layout.
+
+**❌ NUNCA FAÇA:**
+```css
+/* CSS externo NÃO funciona com widgets Dojo */
+.dijitTextBox { width: 200px !important; }
+#listContainer .dijitTextBox[maxlength="2"] { width: 3em !important; }
+```
+
+**✅ SEMPRE FAÇA:**
+```php
+// Use estilos inline - a ÚNICA forma que funciona com Dojo
+echo '<input type="text" dojoType="dijit.form.TextBox" style="width: 8em; margin-left: 5px;">';
+
+// Ou use a função renderizarCampo() que gera inline styles
+function renderizarCampo(string $tipo, string $name, array $config, int $ajusteInput, int $indice): string {
+    $width = $config['width'] + $ajusteInput;
+    return '<input ... style="width: ' . $width . 'em; margin-left: 5px;" ...>';
+}
+```
+
+**Padrões de Compatibilidade:**
+- ✅ Estilos inline sempre funcionam
+- ✅ CSS básico para containers (não widgets)
+- ❌ CSS externo para modificar widgets
+- ❌ JavaScript para alterar estilos de widgets dinamicamente
+- ❌ Sistemas híbridos CSS/JS para widgets
+
 ### 3. Sistema de Categorias
 ```php
 function carregarListaCategorias() {
@@ -171,6 +201,45 @@ $code = filter_var($_GET['code'], FILTER_SANITIZE_FULL_SPECIAL_CHARS);
 if (!isset($_SESSION['regenerated'])) {
     session_regenerate_id(true);
     $_SESSION['regenerated'] = true;
+}
+```
+
+### Renderização de Campos com Dojo
+**Padrão obrigatório para campos editáveis:**
+
+```php
+// Função renderizarCampo() - compatível 100% com código inline original
+function renderizarCampo(string $tipo, string $name, array $config, int $ajusteInput, int $indice): string {
+    if ($tipo === 'hidden') {
+        return '<input type="hidden" name="' . htmlspecialchars($name) . '">' . chr(10);
+    }
+    
+    $width = $config['width'] + $ajusteInput;
+    
+    // CRÍTICO: Usar chr(10) e concatenação exata como código original
+    return '<input type="text" dojoType="dijit.form.TextBox" name="' . htmlspecialchars($name) . '" ' .
+           'maxlength="' . $config['maxlength'] . '" value=" " placeHolder="' . $config['placeholder'] . '" ' .
+           'style="width: ' . $width . 'em; margin-left: 5px;" ' .
+           'onchange="verificarAlteracao(this, ' . $indice . ')" ' .
+           'data-name-ptbr="' . $config['name_ptbr'] . '">' . chr(10);
+}
+```
+
+**Lógica de ajuste proporcional:**
+```php
+$ajusteInput = 11 - $totalCampos;  // Distribuição proporcional de largura
+
+// Campos com larguras fixas (sem ajuste)
+if ($editState) {
+    echo renderizarCampo('text', 'state', $configCampos['state'], 0, $i - 1); // UF = 2 chars
+}
+if ($editZip) {
+    echo renderizarCampo('text', 'zip', $configCampos['zip'], 0, $i - 1); // CEP = 9 chars
+}
+
+// Campos com larguras proporcionais (com ajuste)
+if ($editAddress) {
+    echo renderizarCampo('text', 'address', $configCampos['address'], $ajusteInput, $i - 1);
 }
 ```
 

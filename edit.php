@@ -65,7 +65,7 @@ include 'includes/app_credentials.php';
 
 <?php include 'includes/session-status-bar.php'; ?>
 
-<header>
+<header style="margin-top: 5px">
 	<h2>Editar venues</h2>
 </header>
 
@@ -132,15 +132,16 @@ if ($campos !== null) {
     // Se não há campos específicos definidos, todos ficam false (já inicializados acima)
 }
 
-$ajusteInput = 11 - $totalCampos;
+$ajusteInput = 13 - $totalCampos;
 
 /**
  * Renderiza um campo de input baseado no tipo
+ * Compatível 100% com o código inline original
  */
 function renderizarCampo(string $tipo, string $name, array $config, int $ajusteInput, int $indice): string 
 {
     if ($tipo === 'hidden') {
-        return '<input type="hidden" name="' . htmlspecialchars($name) . '">' . "\n";
+        return '<input type="hidden" name="' . htmlspecialchars($name) . '">' . chr(10);
     }
     
     $width = $config['width'] + $ajusteInput;
@@ -148,11 +149,12 @@ function renderizarCampo(string $tipo, string $name, array $config, int $ajusteI
     $placeholder = htmlspecialchars($config['placeholder']);
     $namePtbr = htmlspecialchars($config['name_ptbr']);
     
+    // Usa exatamente o mesmo formato do código inline original
     return '<input type="text" dojoType="dijit.form.TextBox" name="' . htmlspecialchars($name) . '" ' .
            'maxlength="' . $maxlength . '" value=" " placeHolder="' . $placeholder . '" ' .
            'style="width: ' . $width . 'em; margin-left: 5px;" ' .
            'onchange="verificarAlteracao(this, ' . $indice . ')" ' .
-           'data-name-ptbr="' . $namePtbr . '">' . "\n";
+           'data-name-ptbr="' . $namePtbr . '">' . chr(10);
 }
 
 // Configuração dos campos
@@ -167,7 +169,12 @@ $configCampos = [
     'parentId' => ['width' => 14, 'maxlength' => 24, 'placeholder' => 'Dentro', 'name_ptbr' => 'Dentro'],
     'phone' => ['width' => 7, 'maxlength' => 21, 'placeholder' => 'Telefone', 'name_ptbr' => 'Telefone'],
     'url' => ['width' => 8, 'maxlength' => 256, 'placeholder' => 'Website', 'name_ptbr' => 'Website'],
-    'twitter' => ['width' => 7, 'maxlength' => 51, 'placeholder' => 'Twitter', 'name_ptbr' => 'Twitter']
+    'twitter' => ['width' => 7, 'maxlength' => 51, 'placeholder' => 'Twitter', 'name_ptbr' => 'Twitter'],
+    'facebook' => ['width' => 7, 'maxlength' => 51, 'placeholder' => 'Facebook', 'name_ptbr' => 'Facebook'],
+    'instagram' => ['width' => 7, 'maxlength' => 51, 'placeholder' => 'Instagram', 'name_ptbr' => 'Instagram'],
+    'venuell' => ['width' => 7, 'maxlength' => 402, 'placeholder' => 'Lat/Long', 'name_ptbr' => 'Lat/Long'],
+    'description' => ['width' => 7, 'maxlength' => 300, 'placeholder' => 'Descrição', 'name_ptbr' => 'Descrição'],
+    'menu' => ['width' => 7, 'maxlength' => 256, 'placeholder' => 'Menu', 'name_ptbr' => 'Menu']
 ];
 
 $i = 0;
@@ -184,7 +191,7 @@ foreach ($file as $f) {
 
         $venueLink = $f . '?ref=' . $client_key;
         echo '<input type="hidden" name="venue" value="' . htmlspecialchars($venue) . '">';
-        echo '<span id="info' . ($i - 1) . '"><a id="venLnk' . ($i - 1) . '" href="' . htmlspecialchars($venueLink) . '" target="_blank" style="margin-left: 23px; margin-right: 5px; vertical-align: -1px;">';
+        echo '<span id="info' . ($i - 1) . '"><a id="venLnk' . ($i - 1) . '" href="' . htmlspecialchars($venueLink) . '" target="_blank" style="margin-left: 5px; margin-right: 5px; vertical-align: -1px;">';
         
         // Formatação do número baseado na quantidade total
         if (count($file) < 10) {
@@ -200,68 +207,68 @@ foreach ($file as $f) {
 
         // Renderização dos campos usando a nova abordagem
         echo $editName ? renderizarCampo('text', 'name', $configCampos['name'], $ajusteInput, $i - 1) : renderizarCampo('hidden', 'name', [], 0, $i - 1);
-        
+
         if ($editAddress) {
             echo renderizarCampo('text', 'address', $configCampos['address'], $ajusteInput, $i - 1);
         }
-        
+
         if ($editCross) {
             echo renderizarCampo('text', 'crossStreet', $configCampos['crossStreet'], $ajusteInput, $i - 1);
         }
-        
+
         if ($editNeighborhood) {
             echo renderizarCampo('text', 'neighborhood', $configCampos['neighborhood'], $ajusteInput, $i - 1);
         }
-        
+
         if ($editCity) {
             echo renderizarCampo('text', 'city', $configCampos['city'], $ajusteInput, $i - 1);
         }
-        
+
         if ($editState) {
             echo renderizarCampo('text', 'state', $configCampos['state'], 0, $i - 1); // Sem ajuste para estado
         }
-        
+
         if ($editZip) {
             echo renderizarCampo('text', 'zip', $configCampos['zip'], 0, $i - 1);
         }
-        
+
         if ($editParentId) {
             echo renderizarCampo('text', 'parentId', $configCampos['parentId'], 0, $i - 1);
         }
-        
+
         if ($editPhone) {
             echo renderizarCampo('text', 'phone', $configCampos['phone'], 0, $i - 1);
         }
-        
+
         if ($editUrl) {
             echo renderizarCampo('text', 'url', $configCampos['url'], $ajusteInput, $i - 1);
         }
-        
+
         if ($editTwitter) {
             echo renderizarCampo('text', 'twitter', $configCampos['twitter'], $ajusteInput, $i - 1);
         }
-	
-		if ($editFacebook) {
-			echo '<input type="text" dojoType="dijit.form.TextBox" name="facebook" maxlength="51" value=" " placeHolder="Facebook" style="width: ', 7 + $ajusteInput, 'em; margin-left: 5px;" onchange="verificarAlteracao(this, ', $i - 1, ')" data-name-ptbr="Facebook">', chr(10);
-		}
-		
-		if ($editInstagram) {
-			echo '<input type="text" dojoType="dijit.form.TextBox" name="instagram" maxlength="51" value=" " placeHolder="Instagram" style="width: ', 7 + $ajusteInput, 'em; margin-left: 5px;" onchange="verificarAlteracao(this, ', $i - 1, ')" data-name-ptbr="Instagram">', chr(10);
-		}
 
-		if ($editVenuell) {
-			echo '<input type="text" dojoType="dijit.form.TextBox" name="venuell" maxlength="402" value=" " placeHolder="Lat/Long" style="width: ', 7 + $ajusteInput, 'em; margin-left: 5px;" onchange="verificarAlteracao(this, ', $i - 1, ')" data-name-ptbr="Lat/Long">', chr(10);
-		} else {
-			echo '<input type="hidden" name="venuell">', chr(10);
-		}
-		
-		if ($editDesc) {
-			echo '<input type="text" dojoType="dijit.form.TextBox" name="description" maxlength="300" value=" " placeHolder="Descri&ccedil;&atilde;o" style="width: ', 8 + $ajusteInput, 'em; margin-left: 5px;" onchange="verificarAlteracao(this, ', $i - 1, ')" data-name-ptbr="Descri&ccedil;&atilde;o">', chr(10);
-		}
-		
-		if ($editMenu) {
-			echo '<input type="text" dojoType="dijit.form.TextBox" name="menu" maxlength="256" value=" " placeHolder="Menu" style="width: ', 8 + $ajusteInput, 'em; margin-left: 5px;" onchange="verificarAlteracao(this, ', $i - 1, ')" data-name-ptbr="Menu">', chr(10);
-		}
+        if ($editFacebook) {
+            echo renderizarCampo('text', 'facebook', $configCampos['facebook'], $ajusteInput, $i - 1);
+        }
+
+        if ($editInstagram) {
+            echo renderizarCampo('text', 'instagram', $configCampos['instagram'], $ajusteInput, $i - 1);
+        }
+
+        if ($editVenuell) {
+            echo renderizarCampo('text', 'venuell', $configCampos['venuell'], $ajusteInput, $i - 1);
+        } else {
+            echo renderizarCampo('hidden', 'venuell', [], 0, $i - 1);
+        }
+
+        if ($editDesc) {
+            echo renderizarCampo('text', 'description', $configCampos['description'], $ajusteInput, $i - 1);
+        }
+
+        if ($editMenu) {
+            echo renderizarCampo('text', 'menu', $configCampos['menu'], $ajusteInput, $i - 1);
+        }
 		
 		//if ($editHours) {
 			//echo '<input type="text" dojoType="dijit.form.TextBox" name="hours" maxlength="256" value=" " placeHolder="Horas" style="width: ', 8 + $ajusteInput, 'em; margin-left: 5px;" onchange="verificarAlteracao(this, ', $i - 1, ')" data-name-ptbr="Horas">', chr(10);

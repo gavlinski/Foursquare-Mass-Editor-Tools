@@ -53,6 +53,9 @@ a:hover {
 	height: 16px;
 	position: relative;
 	opacity: 1;
+	transition: opacity .25s ease-in-out;
+	-moz-transition: opacity .25s ease-in-out;
+	-webkit-transition: opacity .25s ease-in-out;
 }
 #links .social {
 	margin-right: 15px;
@@ -257,9 +260,16 @@ a:hover {
 	color: #293a4b;
 }
 #listContainer {
-	width: 1px;
-	display: table;
-	min-height: 0;
+	/* Lista redimensionável com larguras ampliadas */
+	width: calc(100vw - 80px);
+	min-width: 800px;
+	max-width: calc(100vw - 80px);
+	height: auto;
+	min-height: 58px;
+	max-height: 70vh;
+	
+	/* Estilo visual original */
+	display: block;
 	background-color: #F7F6F6;
 	border: 1px solid #cccccc;
 	font-size: 12px;
@@ -267,20 +277,59 @@ a:hover {
 	border-radius: 5px;
 	-webkit-border-radius: 5px;
 	-moz-border-radius: 5px;
+	box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+	
+	/* Layout e overflow para scroll sincronizado */
+	overflow-x: auto; /* Scroll horizontal quando necessário */
+	overflow-y: auto; /* Scroll vertical quando necessário */
+	padding: 10px 10px 1px 10px;
+	
+	/* Resize properties - apenas horizontal */
+	resize: horizontal;
+	position: relative;
 }
+
 #listContainer .row {
-	margin-top: 10px;
-	margin-left: 10px;
-	margin-right: 10px;
-	margin-bottom: 10px;
+	/* Layout flexbox para alinhamento moderno */
+	display: flex;
+	align-items: center;
+	margin: 0 8px 8px 0;
+	padding: 0 4px 0 10px;
+	background: white;
+	border: 1px solid #dee2e6;
+	border-radius: 4px;
+	min-height: 40px;
+	transition: all 0.2s ease;
 	white-space: nowrap;
+	min-width: max-content; /* Permite que a row tenha o tamanho necessário */
+	width: auto; /* Largura automática baseada no conteúdo */
+}
+
+#listContainer .row:hover {
+	border-color: #0066cc;
+	box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+}
+
+/* Wrapper para campos dentro da row */
+#listContainer .row > *:not(.selectbox) {
+	display: flex;
+	flex: 1;
+	align-items: center;
+	gap: 5px;
+	min-width: 0; /* Permite flexibilidade */
 }
 #listContainer .selectbox {
-	float: left;
-	margin-right: 5px;
-	margin-top: 3px;
-	position: absolute;
+	flex: 0 0 auto;
+	margin-right: -2px;
+	margin-top: 0;
+	position: static;
 }
+
+/* Ajustar espaçamento dos spans de informação */
+/* #listContainer span[id^="info"] {
+	margin-left: 5px;
+	margin-right: 5px;
+} */
 #listContainer img {
 	height: 16px;
 	margin-left: 5px;
@@ -728,6 +777,73 @@ button#session-close-btn:focus {
 	#session-status-bar > div {
 		padding: 0 40px;
 	}
+}
+
+/* ===== COMPATIBILIDADE DOJO BÁSICA ===== */
+
+/* Widgets Dojo básicos */
+#listContainer .dijitTextBox {
+	display: inline-block !important;
+	vertical-align: top !important;
+}
+
+/* Responsividade mobile */
+@media (max-width: 768px) {
+	#listContainer {
+		width: calc(100vw - 40px);
+		max-width: calc(100vw - 40px);
+		min-width: 400px;
+		height: 400px;
+	}
+	
+	#listContainer .row {
+		padding: 6px;
+		flex-wrap: nowrap;
+	}
+	
+	#listContainer .dijitTextBox {
+		font-size: 11px;
+	}
+	
+	#listContainer .selectbox {
+		margin-right: 5px;
+	}
+	
+	#listContainer span[id^="info"] {
+		margin-left: 3px;
+		margin-right: 3px;
+	}
+}
+
+/* Controle inteligente da barra de scroll */
+#listContainer {
+	scrollbar-width: thin; /* Firefox - barra mais fina */
+	scrollbar-gutter: auto; /* Não reserva espaço desnecessário */
+}
+
+#listContainer::-webkit-scrollbar {
+	height: 8px; /* Altura da barra horizontal mais discreta */
+	width: 8px; /* Largura da barra vertical */
+}
+
+#listContainer::-webkit-scrollbar-track {
+	background: transparent; /* Track transparente quando não necessário */
+	border-radius: 4px;
+}
+
+#listContainer::-webkit-scrollbar-thumb {
+	background: #c1c1c1;
+	border-radius: 4px;
+	transition: background 0.2s ease;
+}
+
+#listContainer::-webkit-scrollbar-thumb:hover {
+	background: #a1a1a1;
+}
+
+/* Garantir que a barra de scroll horizontal apareça quando necessário */
+#listContainer::-webkit-scrollbar-corner {
+	background: transparent;
 }
 
 @media (min-width: 1920px) {
