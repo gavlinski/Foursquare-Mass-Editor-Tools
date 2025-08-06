@@ -1,0 +1,29 @@
+// Configuração Google Maps - Arquivo de Exemplo
+// IMPORTANTE: Copie este arquivo para 'google-maps-config.js' e configure suas credenciais
+
+window.googleMapsConfig = {
+    "apiKey": "YOUR_GOOGLE_MAPS_API_KEY", // Obtenha em: https://console.cloud.google.com/apis/credentials
+    "mapId": "YOUR_GOOGLE_MAPS_MAP_ID",   // Configure em: https://console.cloud.google.com/google/maps-apis/maps-management/maps
+    "defaultZoom": 15,
+    "defaultCenter": {
+        "lat": -23.5505,  // Latitude padrão (São Paulo)
+        "lng": -46.6333   // Longitude padrão (São Paulo)
+    },
+    "libraries": [
+        "marker",
+        "places"
+    ],
+    "mapStyles": {
+        "default": "roadmap",
+        "satellite": "satellite",
+        "hybrid": "hybrid",
+        "terrain": "terrain"
+    },
+    "geocoding": {
+        "enabled": true,
+        "language": "pt-BR",
+        "region": "BR"
+    }
+};
+
+console.log('🔧 Configuração Google Maps carregada (exemplo):', window.googleMapsConfig);

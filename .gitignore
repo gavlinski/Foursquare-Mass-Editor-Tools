@@ -44,3 +44,23 @@ Thumbs.db
 # Credenciais sensíveis do Google Maps - NUNCA fazer commit
 includes/google_maps_credentials.php
 js/google-maps-config.js
+
+# === ARQUIVOS DE CREDENCIAIS - NUNCA FAZER COMMIT ===
+# Credenciais do Foursquare
+includes/app_credentials.php
+
+# Credenciais do Google Maps
+includes/google_maps_credentials.php
+js/google-maps-config.js
+
+# Arquivos de ambiente com credenciais
+.env
+.env.local
+.env.production
+.env.staging
+
+# Backups que podem conter credenciais
+backup/*credentials*
+backup/*config*
+*.backup
+

@@ -64,15 +64,13 @@
                         return child; // Retorna o elemento mas não anexa
                     }
                     
-                    // BLOQUEIA apenas scripts de carregamento inicial com chave antiga
-                    if (child.src.includes('key=AIzaSyD9ZfpJz_ZlwOo7crLhiYhxcpJdBPpBVi8')) {
-                        
-                        console.warn('🚫 BLOQUEADO: Script de inicialização com chave antiga');
-                        console.log('📍 URL bloqueada:', child.src);
-                        return child; // Retorna o elemento mas não anexa
-                    }
-                    
-                    // PERMITE todos os outros scripts modernos
+                        // BLOQUEIA apenas scripts de carregamento inicial com chave antiga
+                        if (child.src.includes('key=REMOVED_OLD_API_KEY')) {
+                            
+                            console.warn('🚫 BLOQUEADO: Script de inicialização com chave antiga');
+                            console.log('📍 URL bloqueada:', child.src);
+                            return child; // Retorna o elemento mas não anexa
+                        }                    // PERMITE todos os outros scripts modernos
                     console.log('✅ Script moderno do Google Maps autorizado');
                     return originalAppendChild.call(this, child);
                 }
@@ -111,7 +109,7 @@
                         }
                         
                         // BLOQUEIA apenas scripts de carregamento inicial com chave antiga
-                        if (value.includes('key=AIzaSyD9ZfpJz_ZlwOo7crLhiYhxcpJdBPpBVi8')) {
+                        if (value.includes('key=REMOVED_OLD_API_KEY')) {
                             
                             console.warn('🚫 INTERCEPTADO: Script de inicialização com chave antiga');
                             console.log('📍 URL bloqueada:', value);
@@ -172,7 +170,7 @@ if (window.inicializarMapaLegado) {
 
 // Bloqueia tentativas de usar apenas API keys antigas específicas
 const BLOCKED_API_KEYS = [
-    'AIzaSyD9ZfpJz_ZlwOo7crLhiYhxcpJdBPpBVi8', // Chave antiga específica
+    'REMOVED_OLD_API_KEY', // Chave antiga específica removida por segurança
 ];
 
 class ModernGoogleMaps {
