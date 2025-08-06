@@ -250,7 +250,7 @@ if ($editAddress) {
 ```bash
 # Iniciar ambiente de desenvolvimento
 docker build -t foursquare-tools .
-docker run -p 8080:80 -v $(pwd):/var/www/html foursquare-tools
+docker run -p 80:80 -v $(pwd):/var/www/html foursquare-tools
 
 # Logs de debug
 docker logs container_name
@@ -277,7 +277,7 @@ console.error('❌ Erro na autenticação:', error);
 return [
     'client_key' => 'YOUR_CLIENT_ID',
     'client_secret' => 'YOUR_CLIENT_SECRET', 
-    'redirect_uri' => 'http://localhost:8080/index.php'
+    'redirect_uri' => 'http://localhost/4sqmet/index.php'
 ];
 ```
 
@@ -285,7 +285,7 @@ return [
 ```bash
 FOURSQUARE_CLIENT_ID=your_client_id
 FOURSQUARE_CLIENT_SECRET=your_client_secret
-FOURSQUARE_REDIRECT_URI=http://localhost:8080/index.php
+FOURSQUARE_REDIRECT_URI=http://localhost/4sqmet/index.php
 ```
 
 ## Workflows de Edição
@@ -411,22 +411,22 @@ debug/test_session_debug.html
 **Antes de qualquer modificação de código:**
 ```bash
 # 1. Verificar estado atual
-curl "http://localhost:8080/debug/debug_session.php?mode=debug"
+curl "http://localhost/debug/debug_session.php?mode=debug"
 
 # 2. Criar sessão de teste se necessário
-curl "http://localhost:8080/debug/session_test_manager.php?action=create"
+curl "http://localhost/debug/session_test_manager.php?action=create"
 ```
 
 **Após modificações no sistema:**
 ```bash
 # 1. Validar sessão funciona
-curl "http://localhost:8080/debug/debug_session.php?mode=validate"
+curl "http://localhost/debug/debug_session.php?mode=validate"
 
 # 2. Testar integração principal
-curl "http://localhost:8080/session_status.php"
+curl "http://localhost/session_status.php"
 
 # 3. Verificar Google Maps (via interface web)
-open "http://localhost:8080/debug/test_session_debug.html"
+open "http://localhost/debug/test_session_debug.html"
 ```
 
 ### Diretrizes de Debug

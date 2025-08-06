@@ -325,16 +325,16 @@ Acesse `debug/test_session_debug.html` para:
 1. **Antes de modificar código**:
    ```bash
    # Verificar estado atual
-   curl "http://localhost:8080/debug/debug_session.php?mode=debug"
+   curl "http://localhost/debug/debug_session.php?mode=debug"
    ```
 
 2. **Após mudanças no sistema de sessão**:
    ```bash
    # Criar sessão de teste
-   curl "http://localhost:8080/debug/session_test_manager.php?action=create"
+   curl "http://localhost/debug/session_test_manager.php?action=create"
    
    # Validar funcionamento
-   curl "http://localhost:8080/debug/debug_session.php?mode=validate"
+   curl "http://localhost/debug/debug_session.php?mode=validate"
    ```
 
 3. **Teste de integração Google Maps**:

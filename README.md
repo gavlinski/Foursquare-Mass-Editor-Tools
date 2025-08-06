@@ -75,7 +75,7 @@ cd Foursquare-Mass-Editor-Tools
 ./dev.sh
 
 # Access the application
-open http://localhost:8080
+open http://localhost/4sqmet
 ```
 
 ### Manual Setup
@@ -88,7 +88,7 @@ cp .env.example .env
 # Edit .env with your Foursquare API credentials
 
 # Start PHP development server
-php -S localhost:8080
+php -S localhost
 ```
 
 ## ⚙️ Configuration
@@ -97,7 +97,7 @@ php -S localhost:8080
 ```bash
 FOURSQUARE_CLIENT_KEY="your_client_id"
 FOURSQUARE_CLIENT_SECRET="your_client_secret"  
-FOURSQUARE_REDIRECT_URI="http://localhost:8080/index.php"
+FOURSQUARE_REDIRECT_URI="http://localhost/4sqmet/index.php"
 APP_ENV="development"
 APP_DEBUG="true"
 ```
@@ -142,13 +142,13 @@ The interface is primarily in **Brazilian Portuguese**. For English users:
 ### Debug Tools
 ```bash
 # Create test session
-curl http://localhost:8080/create_test_session.php
+curl http://localhost/create_test_session.php
 
 # Check session status  
-curl http://localhost:8080/session_status.php
+curl http://localhost/session_status.php
 
 # Clear cache
-curl -X POST http://localhost:8080/clear_cache.php
+curl -X POST http://localhost/clear_cache.php
 ```
 
 ### Testing Interface
@@ -207,16 +207,16 @@ The project includes consolidated testing tools for development:
 
 ```bash
 # Access debug interface
-open http://localhost:8080/debug/test_session_debug.html
+open http://localhost/debug/test_session_debug.html
 
 # Test session creation via API
-curl "http://localhost:8080/debug/session_test_manager.php?action=create"
+curl "http://localhost/debug/session_test_manager.php?action=create"
 
 # Validate current session
-curl "http://localhost:8080/debug/debug_session.php?mode=validate"
+curl "http://localhost/debug/debug_session.php?mode=validate"
 
 # Get full debug info
-curl "http://localhost:8080/debug/debug_session.php?mode=debug"
+curl "http://localhost/debug/debug_session.php?mode=debug"
 ```
 
 ### Migration Status
