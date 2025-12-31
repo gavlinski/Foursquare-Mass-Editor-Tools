@@ -12,99 +12,12 @@ if (defined('SESSION_STATUS_BAR_INCLUDED')) {
 define('SESSION_STATUS_BAR_INCLUDED', true);
 ?>
 
-<!-- CSS de Fallback para os Botões da Session Status Bar -->
-<style>
-/* Garantir que os estilos dos botões sejam aplicados */
-.session-btn,
-button.session-btn,
-#session-status-bar .session-btn {
-    border-radius: 6px !important;
-    border: none !important;
-    color: #FFFFFF !important;
-    cursor: pointer !important;
-    font-size: 12px !important;
-    font-weight: 500 !important;
-    height: 32px !important;
-    padding: 8px 12px !important;
-    text-align: center !important;
-    transition: all 0.2s ease !important;
-    display: inline-flex !important;
-    align-items: center !important;
-    gap: 6px !important;
-    white-space: nowrap !important;
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important;
-}
-
-#session-refresh-btn { background-color: #28a745 !important; }
-#session-refresh-btn:hover { background-color: #34ce57 !important; }
-
-#session-info-btn { background-color: #0d6efd !important; }
-#session-info-btn:hover { background-color: #3d81ff !important; }
-
-#session-logout-btn { background-color: #dc3545 !important; }
-#session-logout-btn:hover { background-color: #e85663 !important; }
-
-#session-close-btn {
-    background-color: transparent !important;
-    color: #6c757d !important;
-    border: 1px solid transparent !important;
-    border-radius: 3px !important;
-    width: 24px !important;
-    height: 24px !important;
-    display: inline-flex !important;
-    align-items: center !important;
-    justify-content: center !important;
-    margin-left: 6px !important;
-    cursor: pointer !important;
-    font-size: 14px !important;
-    padding: 0 !important;
-    opacity: 0.7 !important;
-}
-#session-close-btn:hover {
-    background-color: rgba(108, 117, 125, 0.1) !important;
-    opacity: 1 !important;
-}
-</style>
-
 <!-- Barra de Status da Sessão Unificada -->
-<div id="session-status-bar" style="
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    z-index: 10000;
-    margin: 0;
-    padding: 6px 0;
-    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
-    border-bottom: 1px solid #dee2e6;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-    backdrop-filter: blur(10px);
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-    display: none;
-    transition: all 0.3s ease;
-">
-    <div style="
-        width: 100%;
-        max-width: 100vw;
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        gap: 12px;
-        padding: 0 20px;
-        box-sizing: border-box;
-        overflow: visible;
-        min-height: 32px;
-    ">
+<div id="session-status-bar">
+    <div id="session-status-container">
         <!-- Status e Informações -->
         <div style="display: flex; align-items: center; gap: 12px; flex: 1;">
-            <div id="session-status-indicator" style="
-                width: 12px;
-                height: 12px;
-                border-radius: 50%;
-                background: #6c757d;
-                transition: background-color 0.3s ease;
-                box-shadow: 0 0 0 2px rgba(108, 117, 125, 0.2);
-            "></div>
+            <div id="session-status-indicator"></div>
             
             <div style="flex: 1;">
                 <div style="display: flex; align-items: center; gap: 8px;">
