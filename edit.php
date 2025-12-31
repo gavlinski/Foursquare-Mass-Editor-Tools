@@ -56,10 +56,10 @@ include 'includes/app_credentials.php';
 <link rel="stylesheet" type="text/css" href="js/dijit/themes/tundra/tundra.css">
 <link rel="stylesheet" type="text/css" href="estilo.css?v=<?php echo time(); ?>">
 <script src="js/dojo/dojo.js" djConfig="parseOnLoad: true"></script>
-<script src="js/google-maps-config.php" defer></script>
-<script src="js/google-maps.js" async defer></script>
-<script src="js/4sq.js" defer></script>
-<script src="js/session-manager.js" defer></script>
+<script src="js/google-maps-config.php?v=5.0.1" defer></script>
+<script src="js/google-maps.js?v=5.0.1" async defer></script>
+<script src="js/4sq.js?v=5.0.1" defer></script>
+<script src="js/session-manager.js?v=5.0.1" defer></script>
 </head>
 <body class="tundra">
 
@@ -73,9 +73,7 @@ include 'includes/app_credentials.php';
 	<p>Antes de salvar suas propostas de altera&ccedil;&otilde;es, n&atilde;o deixe de ler nosso <a id="guia" href="javascript:showDialogGuia()">guia de estilo</a> e as <a id="regras" href="https://pt.foursquare.com/info/houserules" target="_blank">regras da casa</a>.</p>
 </article>
 <article>
-	<div id="mapa">
-		<div id="mapa-interno"></div>
-	</div>
+	<div id="mapa"></div>
 </article>
 <article>
 <div id="listContainer">
@@ -203,7 +201,7 @@ foreach ($file as $f) {
         }
         echo '</a></span>' . "\n";
 
-        echo '<span id="icone' . ($i - 1) . '"><img id="catImg' . $i . '" src="https://foursquare.com/img/categories_v2/none_bg_32.png" style="height: 22px; width: 22px; margin-left: 0px"></span>' . "\n";
+        echo '<span id="icone' . ($i - 1) . '"><img id="catImg' . $i . '" src="https://app.foursquare.com/img/categories_v2/none_bg_32.png" style="height: 22px; width: 22px; margin-left: 0px"></span>' . "\n";
 
         // Renderização dos campos usando a nova abordagem
         echo $editName ? renderizarCampo('text', 'name', $configCampos['name'], $ajusteInput, $i - 1) : renderizarCampo('hidden', 'name', [], 0, $i - 1);
@@ -363,75 +361,9 @@ document.addEventListener('DOMContentLoaded', function() {
     
     waitForSessionManager();
     
-    // Implementa resize manual para o mapa
-    function implementarResizeManual() {
-        let isResizing = false;
-        let startX, startY, startWidth, startHeight;
-        const container = document.getElementById('mapa');
-        
-        if (!container) return;
-        
-        // Detecta mousedown na área do handle (canto inferior direito)
-        container.addEventListener('mousedown', function(e) {
-            const rect = container.getBoundingClientRect();
-            const handleArea = 25; // Área do handle em pixels
-            
-            // Verifica se clicou na área do handle
-            if (e.clientX >= rect.right - handleArea && 
-                e.clientY >= rect.bottom - handleArea) {
-                
-                isResizing = true;
-                startX = e.clientX;
-                startY = e.clientY;
-                startWidth = parseInt(window.getComputedStyle(container).width, 10);
-                startHeight = parseInt(window.getComputedStyle(container).height, 10);
-                
-                console.log('🗺️ Iniciando resize do mapa:', {startWidth, startHeight});
-                
-                e.preventDefault();
-                document.body.style.cursor = 'nw-resize';
-                document.body.style.userSelect = 'none';
-            }
-        });
-        
-        // Detecta movimento do mouse
-        document.addEventListener('mousemove', function(e) {
-            if (!isResizing) return;
-            
-            const newWidth = Math.max(300, startWidth + (e.clientX - startX));
-            const newHeight = Math.max(200, startHeight + (e.clientY - startY));
-            
-            container.style.width = newWidth + 'px';
-            container.style.height = newHeight + 'px';
-            
-            // Força o resize do mapa do Google Maps
-            if (window.googleMaps && window.googleMaps.map) {
-                setTimeout(() => {
-                    google.maps.event.trigger(window.googleMaps.map, 'resize');
-                }, 10);
-            }
-            
-            e.preventDefault();
-        });
-        
-        // Detecta fim do resize
-        document.addEventListener('mouseup', function() {
-            if (isResizing) {
-                isResizing = false;
-                document.body.style.cursor = '';
-                document.body.style.userSelect = '';
-                console.log('🗺️ Resize do mapa finalizado');
-            }
-        });
-    }
-    
-    // Inicializa resize manual quando Google Maps estiver pronto
-    document.addEventListener('google-maps-ready', () => {
-        setTimeout(implementarResizeManual, 500);
-        console.log('✅ Resize manual do mapa ativado');
-    });
-    
-    waitForSessionManager();
+    // Google Maps v3.32+ gerencia redimensionamento automaticamente
+    // CSS resize: both permite redimensionar a div e o mapa se ajusta sozinho
+    console.log('✅ Google Maps com redimensionamento automático ativado');
     
     // Debug: Log global para verificar se há erros
     window.addEventListener('error', function(e) {

@@ -23,6 +23,11 @@
             width: 100%;
             height: 400px;
             margin: 20px 0;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            /* Google Maps gerencia redimensionamento automaticamente desde v3.32 */
+            resize: both;
+            overflow: auto;
         }
         .test-button {
             margin: 10px 5px;
@@ -53,9 +58,8 @@
             <ul>
                 <li><strong>Marcadores numerados</strong> no estilo Foursquare (roxo/rosa)</li>
                 <li><strong>Arrastáveis</strong> com feedback visual</li>
-                <li><strong>Integração</strong> com função atualizarPosicaoMarcador existente</li>
-                <li><strong>Compatibilidade</strong> mantida com sistema legacy</li>
-                <li><strong>Fallback</strong> para marcadores tradicionais se necessário</li>
+                <li><strong>Resize nativo do CSS</strong> - Google Maps v3.32+ gerencia automaticamente</li>
+                <li><strong>Estrutura simplificada</strong> - apenas uma div para o mapa</li>
             </ul>
         </div>
         
@@ -65,9 +69,7 @@
             <button class="test-button" onclick="mostrarLog()">📋 Mostrar Log</button>
         </div>
         
-        <div id="mapa">
-            <div id="mapa-interno"></div>
-        </div>
+        <div id="mapa"></div>
         
         <div class="info">
             <h3>📋 Log de Testes:</h3>
@@ -78,8 +80,8 @@
     </div>
 
     <!-- Scripts do sistema -->
-    <script src="../js/google-maps-config.php" defer></script>
-    <script src="../js/google-maps.js" defer></script>
+    <script src="../js/google-maps-config.php?v=5.0.1"></script>
+    <script src="../js/google-maps.js?v=5.0.1"></script>
     
     <script>
         let testLocations = [
@@ -164,11 +166,27 @@
         document.addEventListener('DOMContentLoaded', function() {
             adicionarLog('🔧 Iniciando teste de integração...');
             
-            // Aguardar Google Maps estar pronto
-            document.addEventListener('google-maps-ready', function() {
-                adicionarLog('✅ Google Maps inicializado e pronto');
-                adicionarLog('🎯 Clique em "Carregar Marcadores de Teste" para começar');
-            });
+            // Inicializa o mapa manualmente se necessário
+            if (typeof GoogleMaps !== 'undefined' && window.googleMapsConfig) {
+                // Configura caminho correto da imagem para ambiente de debug
+                const debugConfig = {
+                    ...window.googleMapsConfig,
+                    poweredByImage: '../img/poweredByFoursquare.png'
+                };
+                
+                console.log('🔧 Configuração Debug:', debugConfig);
+
+                window.googleMaps = new GoogleMaps(debugConfig);
+                window.googleMaps.initialize().then(() => {
+                    adicionarLog('✅ Google Maps inicializado e pronto');
+                    adicionarLog('🎯 Clique em "Carregar Marcadores de Teste" para começar');
+                    adicionarLog('📏 Arraste o canto inferior direito do mapa para redimensionar');
+                }).catch(err => {
+                    adicionarLog('❌ Erro ao inicializar mapa: ' + err.message);
+                });
+            } else {
+                adicionarLog('❌ Configuração ou classe GoogleMaps não encontrada');
+            }
         });
     </script>
 </body>

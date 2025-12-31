@@ -13,7 +13,7 @@ h2 {
 	font-size: 20px;
 	font-weight: bold;
 	margin-bottom: 5px;
-	margin-top: 0px;
+	margin-top: 5px;
 }
 h2 span {
 	font-weight: bold;
@@ -59,7 +59,7 @@ a:hover {
 }
 #links .social {
 	margin-right: 15px;
-	display: inline;
+	display: inline-flex;
 }
 .toolcontainer {
 	min-width: 759px;
@@ -411,47 +411,9 @@ a:hover {
 	-moz-border-radius: 5px;
 	box-shadow: rgba(0, 0, 0, 0.1) 0px 2px 8px;
 	border: 1px solid rgba(0, 0, 0, 0.1);
-	position: relative;
-	overflow: hidden;
-	/* Remove resize nativo para implementar manual */
-	resize: none;
-}
-
-/* Container interno do mapa */
-#mapa-interno {
-	width: 100%;
-	height: 100%;
-	position: absolute;
-	top: 0;
-	left: 0;
-}
-
-/* Handle customizado para resize manual */
-#mapa::before {
-	content: '⇲';
-	position: absolute;
-	bottom: 2px;
-	right: 2px;
-	width: 20px;
-	height: 20px;
-	font-size: 14px;
-	color: #666;
-	display: flex;
-	align-items: center;
-	justify-content: center;
-	z-index: 1000;
-	cursor: nw-resize;
-	background: rgba(255, 255, 255, 0.9);
-	border-radius: 3px;
-	border: 1px solid #ccc;
-	transition: all 0.2s;
-	font-family: Arial, sans-serif;
-}
-
-#mapa:hover::before {
-	background: rgba(0, 0, 0, 0.05);
-	border-color: #666;
-	font-weight: bold;
+	/* Google Maps v3.32+ gerencia redimensionamento automaticamente */
+	resize: both;
+	overflow: auto;
 }
 
 /* Marcadores Foursquare personalizados */
@@ -907,4 +869,67 @@ button#session-close-btn:focus {
 #session-status-bar {
 	backdrop-filter: blur(10px);
 	-webkit-backdrop-filter: blur(10px);
+}
+
+/* ==========================================================================
+   Session Status Bar - Unified Styles (Migrated from inline)
+   ========================================================================== */
+
+#session-status-bar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 10000;
+    margin: 0;
+    padding: 6px 0;
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    border-bottom: 1px solid #dee2e6;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    display: none;
+    transition: all 0.3s ease;
+}
+
+#session-status-container {
+    width: 100%;
+    max-width: 100vw;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 0 20px;
+    box-sizing: border-box;
+    overflow: visible;
+    min-height: 32px;
+}
+
+#session-status-indicator {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: #6c757d;
+    transition: background-color 0.3s ease;
+    box-shadow: 0 0 0 2px rgba(108, 117, 125, 0.2);
+}
+
+/* Reopen Button - Fixed Position Top Right */
+#session-status-reopen-btn {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    bottom: auto !important;
+    margin: 0;
+    background: #0d6efd;
+    color: white;
+    padding: 8px 16px;
+    border-radius: 20px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+    cursor: pointer;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    font-size: 13px;
+    font-weight: 500;
+    z-index: 9999;
+    display: none;
+    transition: all 0.3s ease;
 }

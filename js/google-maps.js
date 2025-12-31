@@ -3,7 +3,7 @@
  * 
  * Sistema integração com Google Maps API v3 usando Dynamic Library Import
  * 
- * @version 5.0.0
+ * @version 5.0.1
  * @author Elio Gavlinski <gavlinski@gmail.com>
  */
 
@@ -13,7 +13,7 @@ class GoogleMaps {
             apiKey: config.apiKey || '',
             defaultZoom: config.defaultZoom || 15,
             defaultCenter: config.defaultCenter || { lat: -23.5505, lng: -46.6333 },
-            mapElementId: config.mapElementId || 'mapa-interno',
+            mapElementId: config.mapElementId || 'mapa',
             libraries: config.libraries || ['maps', 'marker'],
             ...config
         };
@@ -164,7 +164,7 @@ class GoogleMaps {
         link.style.cssText = 'text-decoration: none; display: block;';
         
         const img = document.createElement('img');
-        img.src = 'img/poweredByFoursquare.png';
+        img.src = this.config.poweredByImage || 'img/poweredByFoursquare.png';
         img.width = 140;
         img.height = 16;
         img.style.cssText = 'display: block; opacity: 0.9; transition: opacity 0.2s ease;';
@@ -399,57 +399,11 @@ class GoogleMaps {
     }
 
     /**
-     * Adiciona observer para redimensionamento da div do mapa
+     * Google Maps v3.32+ gerencia redimensionamento automaticamente
+     * Não é mais necessário usar ResizeObserver ou triggers manuais
      */
     addResizeObserver() {
-        if (!this.map) return;
-
-        const mapElement = document.getElementById(this.config.mapElementId);
-        if (!mapElement) return;
-
-        // Usa ResizeObserver se disponível (moderno)
-        if (window.ResizeObserver) {
-            const resizeObserver = new ResizeObserver(entries => {
-                for (let entry of entries) {
-                    // Trigga resize do Google Maps quando a div muda de tamanho
-                    google.maps.event.trigger(this.map, 'resize');
-                    
-                    // Log para debug
-                    console.log('🔄 Mapa redimensionado:', {
-                        width: entry.contentRect.width,
-                        height: entry.contentRect.height
-                    });
-                }
-            });
-            
-            resizeObserver.observe(mapElement);
-            console.log('✅ ResizeObserver ativo para o mapa');
-            
-        } else {
-            // Fallback usando MutationObserver + polling (navegadores antigos)
-            let lastWidth = mapElement.offsetWidth;
-            let lastHeight = mapElement.offsetHeight;
-            
-            const checkResize = () => {
-                const currentWidth = mapElement.offsetWidth;
-                const currentHeight = mapElement.offsetHeight;
-                
-                if (currentWidth !== lastWidth || currentHeight !== lastHeight) {
-                    google.maps.event.trigger(this.map, 'resize');
-                    console.log('🔄 Mapa redimensionado (fallback):', {
-                        width: currentWidth,
-                        height: currentHeight
-                    });
-                    
-                    lastWidth = currentWidth;
-                    lastHeight = currentHeight;
-                }
-            };
-            
-            // Verifica a cada 250ms
-            setInterval(checkResize, 250);
-            console.log('✅ Resize fallback ativo para o mapa');
-        }
+        console.log('✅ Redimensionamento automático do Google Maps ativado (v3.32+)');
     }
 }
 
