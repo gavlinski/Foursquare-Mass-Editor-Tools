@@ -771,6 +771,9 @@ function atualizarTabela(venue, i) {
 	if (totalCarregadas == (document.forms.length - totalNaoCarregadas)) {
 		limparLinhasEditadas();
 		console.info("Marcadores posicionados!");
+		
+		// Ativa navegação vertical após todos os campos estarem prontos
+		setupVerticalNavigation();
 	}
 }
 
@@ -1979,13 +1982,60 @@ function showDialogReport() {
 	}, 100);
 }
 
-//var node = dojo.byId("forms");
-//dojo.connect(node, "onkeypress", function(e) {
-	//if (e.keyCode == dojo.keys.DOWN_ARROW) {
-		//document.forms[1].elements[1].focus();
-		//dojo.stopEvent(e);
-	//}
-//});
+/**
+ * Implementa navegação vertical com teclas UP/DOWN nos campos de input
+ * Simula comportamento de planilha: DOWN vai para o mesmo campo na linha abaixo
+ */
+function setupVerticalNavigation() {
+	const listContainer = dojo.byId("listContainer");
+	if (!listContainer) return;
+	
+	// Busca todos os inputs dentro das linhas (exceto hidden)
+	dojo.query("section.row input[type='text']", listContainer).forEach(function(input) {
+		// Conecta evento keydown no elemento DOM nativo
+		dojo.connect(input, "keydown", function(e) {
+			// Apenas processa se for UP_ARROW ou DOWN_ARROW
+			if (e.keyCode !== dojo.keys.UP_ARROW && e.keyCode !== dojo.keys.DOWN_ARROW) {
+				return;
+			}
+			
+			// Previne o comportamento padrão (mover cursor dentro do input)
+			dojo.stopEvent(e);
+			
+			// Identifica o campo atual
+			const fieldName = input.name;
+			
+			// Encontra a linha (section) pai navegando pelo DOM
+			let currentRow = input.parentNode;
+			while (currentRow && currentRow.tagName !== 'SECTION') {
+				currentRow = currentRow.parentNode;
+			}
+			if (!currentRow || !currentRow.id) return;
+			
+			// Extrai o índice da linha atual do ID (formato: "linha0", "linha1", etc)
+			const currentIndex = parseInt(currentRow.id.replace("linha", ""), 10);
+			
+			// Calcula o índice da linha de destino
+			const targetIndex = (e.keyCode === dojo.keys.DOWN_ARROW) ? currentIndex + 1 : currentIndex - 1;
+			
+			// Verifica se a linha de destino existe
+			const targetRow = dojo.byId("linha" + targetIndex);
+			if (!targetRow) return;
+			
+			// Encontra o input com o mesmo name na linha de destino
+			const targetInput = dojo.query("input[name='" + fieldName + "'][type='text']", targetRow)[0];
+			if (targetInput) {
+				// Move o foco para o campo de destino
+				setTimeout(function() {
+					targetInput.focus();
+					targetInput.select();
+				}, 10);
+			}
+		});
+	});
+	
+	console.log('⌨️ Navegação vertical (UP/DOWN arrows) ativada nos campos');
+}
 
 function verificarAlteracao(textbox, i) {
 	var index = csv[0].indexOf(textbox.name);
