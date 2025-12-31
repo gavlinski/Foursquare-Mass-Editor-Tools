@@ -348,6 +348,34 @@ class SessionManager {
             return false;
         }
     }
+
+    logout() {
+        console.log('👋 SessionManager: Iniciando logout...');
+        
+        // Limpa localStorage
+        try {
+            localStorage.clear();
+            console.log('✅ localStorage limpo');
+        } catch (e) {
+            console.warn('⚠️ Erro ao limpar localStorage:', e);
+        }
+        
+        // Limpa sessionStorage
+        try {
+            sessionStorage.clear();
+            console.log('✅ sessionStorage limpo');
+        } catch (e) {
+            console.warn('⚠️ Erro ao limpar sessionStorage:', e);
+        }
+        
+        // Limpa cookies acessíveis via JS (opcional, pois o servidor deve limpar os HttpOnly)
+        document.cookie.split(";").forEach((c) => {
+            document.cookie = c.replace(/^ +/, "").replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/");
+        });
+
+        // Redireciona para o endpoint de logout
+        window.location.href = 'index.php?logout=true';
+    }
 }
 
 // Inicialização automática quando o DOM estiver pronto
