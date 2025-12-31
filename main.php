@@ -63,8 +63,8 @@ if (file_exists(__DIR__ . '/vendor/autoload.php')) {
                 }
             }
         } catch (Exception $e) {
-            // Em caso de erro, redireciona para login
-            header('Location: index.php');
+            // Em caso de erro, redireciona para login com flag de erro para evitar loop
+            header('Location: index.php?error=auth_failed');
             exit;
         }
     }
@@ -87,6 +87,17 @@ if (!$oauth_token) {
 <meta charset="utf-8">
 <script src="js/dojo/dojo.js" djConfig="parseOnLoad: true"></script>
 <script src="js/main.js"></script>
+<script>
+    // Remove o fragmento #_=_ adicionado por alguns provedores OAuth
+    if (window.location.hash && window.location.hash === '#_=_') {
+        if (window.history && window.history.replaceState) {
+            window.history.replaceState(null, null, window.location.href.split('#')[0]);
+        } else {
+            // Fallback para navegadores antigos
+            window.location.hash = '';
+        }
+    }
+</script>
 <?php
 $cache_file = "/tmp/cache-" . md5($_SERVER['REQUEST_URI']);
 if (file_exists($cache_file) && (filemtime($cache_file) > (time() - 3600 * 12))) {
@@ -698,13 +709,13 @@ if ((isset($_COOKIE['name'])) && (strlen($_COOKIE['name']) > 0))
 <footer id="links">
 	<div id="fixedlinks">
 		<div class="social">
-			<a href="https://github.com"><img src="img/GitHub-Mark-16px.png"></a><a href="https://github.com/gavlinski">gavlinski</a> / <a href="https://github.com/gavlinski/Foursquare-Mass-Editor-Tools">Foursquare-Mass-Editor-Tools</a> / <a href="https://github.com/gavlinski/Foursquare-Mass-Editor-Tools/releases">releases</a>
+			<a href="https://github.com" style="margin-right: 3px"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27s1.36.09 2 .27c1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0 0 16 8c0-4.42-3.58-8-8-8"/></svg></a> <a href="https://github.com/gavlinski">gavlinski</a> / <a href="https://github.com/gavlinski/Foursquare-Mass-Editor-Tools">Foursquare-Mass-Editor-Tools</a> / <a href="https://github.com/gavlinski/Foursquare-Mass-Editor-Tools/releases">releases</a>
 		</div>
 		<div class="social">
-			<a href="https://groups.google.com/d/overview"><img src="img/groups-16.png"></a><a href="https://groups.google.com/group/brazilian-4sq-superusers-forum">Brazilian 4SQ Superusers Forum</a>
+			<a href="https://discord.com/invite/fsqplacemakers" style="margin-right: 3px"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="#5865F2" viewBox="0 0 16 16"><path d="M13.545 2.907a13.2 13.2 0 0 0-3.257-1.011.05.05 0 0 0-.052.025c-.141.25-.297.577-.406.833a12.2 12.2 0 0 0-3.658 0 8 8 0 0 0-.412-.833.05.05 0 0 0-.052-.025c-1.125.194-2.22.534-3.257 1.011a.04.04 0 0 0-.021.018C.356 6.024-.213 9.047.066 12.032q.003.022.021.037a13.3 13.3 0 0 0 3.995 2.02.05.05 0 0 0 .056-.019q.463-.63.818-1.329a.05.05 0 0 0-.01-.059l-.018-.011a9 9 0 0 1-1.248-.595.05.05 0 0 1-.02-.066l.015-.019q.127-.095.248-.195a.05.05 0 0 1 .051-.007c2.619 1.196 5.454 1.196 8.041 0a.05.05 0 0 1 .053.007q.121.1.248.195a.05.05 0 0 1-.004.085 8 8 0 0 1-1.249.594.05.05 0 0 0-.03.03.05.05 0 0 0 .003.041c.24.465.515.909.817 1.329a.05.05 0 0 0 .056.019 13.2 13.2 0 0 0 4.001-2.02.05.05 0 0 0 .021-.037c.334-3.451-.559-6.449-2.366-9.106a.03.03 0 0 0-.02-.019m-8.198 7.307c-.789 0-1.438-.724-1.438-1.612s.637-1.613 1.438-1.613c.807 0 1.45.73 1.438 1.613 0 .888-.637 1.612-1.438 1.612m5.316 0c-.788 0-1.438-.724-1.438-1.612s.637-1.613 1.438-1.613c.807 0 1.451.73 1.438 1.613 0 .888-.631 1.612-1.438 1.612"/></svg><a href="https://discord.com/invite/fsqplacemakers">Foursquare Placemarkers</a>
 		</div>
 		<div class="social">
-			<a href="https://twitter.com"><img src="img/twitter-bird-16x16.png"></a><a href="https://twitter.com/gavlinski">@gavlinski</a>
+			<a href="https://x.com/gavlinski" style="margin-right: 3px"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 1227" fill="#000000" aria-hidden="true" width="12" height="16"><path d="M714.163 519.284 1160.89 0h-105.86L667.137 450.887 357.328 0H0l468.492 681.821L0 1226.37h105.866l409.625-476.152 327.181 476.152H1200L714.137 519.284h.026ZM569.165 687.828l-47.468-67.894-377.686-540.24h162.604l304.797 435.991 47.468 67.894 396.2 566.721H892.476L569.165 687.854v-.026Z"></path></svg><a href="https://x.com/gavlinski">@gavlinski</a>
 		</div>
 	</div>
 </footer>
