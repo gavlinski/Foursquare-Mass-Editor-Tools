@@ -48,6 +48,8 @@ var totalEditadas = 0;
 
 var linhasSelecionadas = [];
 var totalSelecionadas = 0;
+
+var failedRequests = {};
 var totalParaSinalizar = 0;
 var totalSinalizadas = 0;
 var linhaVenueComMaisCheckins = 0;
@@ -208,6 +210,14 @@ function compare(el1, el2, index) {
   return el1[index] == el2[index] ? 0 : (el1[index] < el2[index] ? -1 : 1);
 }
 
+function retryRequest(i) {
+	if (failedRequests[i]) {
+		var req = failedRequests[i];
+		dojo.byId("result" + i).innerHTML = "<img src='img/loading.gif' alt='Retrying...'>";
+		xmlhttpRequest(req.metodo, req.endpoint, req.acao, req.dados, i);
+	}
+}
+
 function xmlhttpRequest(metodo, endpoint, acao, dados, i) {
 	var xmlhttp = new XMLHttpRequest();
 	var item = "result" + i;
@@ -262,45 +272,47 @@ function xmlhttpRequest(metodo, endpoint, acao, dados, i) {
 			} else {
 				clearTimeout(xmlhttpTimeout);
 				atualizarFalhas(metodo, i, acao, false);
+				failedRequests[i] = {metodo: metodo, endpoint: endpoint, acao: acao, dados: dados};
+				var errorImg = "<img src='img/erro.png' onclick='retryRequest(" + i + ")' style='cursor: pointer;'";
 				switch (xmlhttp.status) {
 				case 400:
-					imagem = "<img src='img/erro.png' alt='Erro 400: Bad Request, Tipo: " + resposta.meta.errorType + ", Detalhe: " + resposta.meta.errorDetail + "'>";
+					imagem = errorImg + " alt='Erro 400: Bad Request, Tipo: " + resposta.meta.errorType + ", Detalhe: " + resposta.meta.errorDetail + "'>";
 					dica = "<span style=\"font-size: 12px\">Erro 400: Bad Request, Tipo: " + resposta.meta.errorType + ",<br>Detalhe: " + resposta.meta.errorDetail + "</span>";
 					break;
 				case 401:
-					imagem = "<img src='img/erro.png' alt='Erro 401: Unauthorized, Tipo: " + resposta.meta.errorType + ", Detalhe: " + resposta.meta.errorDetail + "'>";
+					imagem = errorImg + " alt='Erro 401: Unauthorized, Tipo: " + resposta.meta.errorType + ", Detalhe: " + resposta.meta.errorDetail + "'>";
 					dica = "<span style=\"font-size: 12px\">Erro 401: Unauthorized, Tipo: " + resposta.meta.errorType + ",<br>Detalhe: " + resposta.meta.errorDetail + "</span>";
 					break;
 				case 403:
-					imagem = "<img src='img/erro.png' alt='Erro 403: Forbidden, Tipo: " + resposta.meta.errorType + ", Detalhe: " + resposta.meta.errorDetail + "'>";
+					imagem = errorImg + " alt='Erro 403: Forbidden, Tipo: " + resposta.meta.errorType + ", Detalhe: " + resposta.meta.errorDetail + "'>";
 					dica = "<span style=\"font-size: 12px\">Erro 403: Forbidden, Tipo: " + resposta.meta.errorType + ",<br>Detalhe: " + resposta.meta.errorDetail + "</span>";
 					break;
 				case 404:
-					imagem = "<img src='img/erro.png' alt='Erro 404: Not Found'>";
+					imagem = errorImg + " alt='Erro 404: Not Found'>";
 					dica = "<span style=\"font-size: 12px\">Erro 404: Not Found</span>";
 					break;
 				case 405:
-					imagem = "<img src='img/erro.png' alt='Erro 405: Method Not Allowed'>";
+					imagem = errorImg + " alt='Erro 405: Method Not Allowed'>";
 					dica = "<span style=\"font-size: 12px\">Erro 405: Method Not Allowed</span>";
 					break;
 				case 409:
-					imagem  = "<img src='img/erro.png' alt='Erro 409: Conflict'>";
+					imagem  = errorImg + " alt='Erro 409: Conflict'>";
 					dica = "<span style=\"font-size: 12px\">Erro 409: Conflict</span>";
 					break;
 				case 500:
-					imagem = "<img src='img/erro.png' alt='Erro 500: Internal Server Error'>";
+					imagem = errorImg + " alt='Erro 500: Internal Server Error'>";
 					dica = "<span style=\"font-size: 12px\">Erro 500: Internal Server Error</span>";
 					break;
 				case 503:
-					imagem = "<img src='img/erro.png' alt='Erro 503: backend read error'>";
+					imagem = errorImg + " alt='Erro 503: backend read error'>";
 					dica = "<span style=\"font-size: 12px\">Erro 503: backend read error</span>";
 					break;
 				case 504:
-					imagem = "<img src='img/erro.png' alt='Erro 504: Gateway Time-out'>";
+					imagem = errorImg + " alt='Erro 504: Gateway Time-out'>";
 					dica = "<span style=\"font-size: 12px\">Erro 504: Gateway Time-out</span>";
 					break;					
 				default:
-					imagem = "<img src='img/erro.png' alt='Erro desconhecido: " + xmlhttp.status + "'>";
+					imagem = errorImg + " alt='Erro desconhecido: " + xmlhttp.status + "'>";
 					dica = "<span style=\"font-size: 12px\">Erro desconhecido: " + xmlhttp.status + "</span>";
 				} // switch
 				atualizarDicaResultado(item, imagem, dica);
@@ -316,7 +328,8 @@ function xmlhttpRequest(metodo, endpoint, acao, dados, i) {
 		if (i != null) {
 			totalTimeout++;
 			atualizarFalhas(metodo, i, acao, true);
-			imagem = "<img src='img/erro.png' alt='Erro: Request Timed Out'>";
+			failedRequests[i] = {metodo: metodo, endpoint: endpoint, acao: acao, dados: dados};
+			imagem = "<img src='img/erro.png' onclick='retryRequest(" + i + ")' style='cursor: pointer;' alt='Erro: Request Timed Out'>";
 			dica = "<span style=\"font-size: 12px\">Erro: Request Timed Out</span>";
 			atualizarDicaResultado(item, imagem, dica);
 		}
@@ -1201,9 +1214,8 @@ dojo.addOnLoad(function inicializar() {
 	
 	/*** Inicializar Google Maps ***/
 	if (document.getElementById('mapa')) {
-		// Espera o evento que sinaliza que a API do Google Maps está pronta
-		document.addEventListener('google-maps-ready', () => {
-			console.log('🚀 Evento "google-maps-ready" recebido. Inicializando o mapa...');
+		const initMap = () => {
+			console.log('🚀 Inicializando o mapa...');
 			if (window.googleMaps) {
 				window.googleMaps.initialize().then(() => {
 					console.info("Mapa carregado!");
@@ -1218,7 +1230,18 @@ dojo.addOnLoad(function inicializar() {
 			} else {
 				console.error("Erro crítico: googleMaps não está definido no momento da inicialização.");
 			}
-		});
+		};
+
+		if (window.googleMaps) {
+			console.log('🚀 Google Maps já estava pronto. Inicializando imediatamente.');
+			initMap();
+		} else {
+			// Espera o evento que sinaliza que a API do Google Maps está pronta
+			document.addEventListener('google-maps-ready', () => {
+				console.log('🚀 Evento "google-maps-ready" recebido.');
+				initMap();
+			});
+		}
 	}
 	
 	/*** Autoajusta o tamanho inicial do mapa conforme largura da lista ***/
@@ -1233,6 +1256,30 @@ dojo.addOnLoad(function inicializar() {
 	dlg_guia = new dijit.Dialog({
 		title: "Guia de estilo",
 		style: "width: 435px"
+	});
+	
+	/*** Modal de Exportação de URLs ***/
+	dlg_export_urls = new dijit.Dialog({
+		title: "Exportar URLs",
+		style: "width: 600px"
+	});
+	
+	/*** Modal de Exportação de URL Direta ***/
+	dlg_export_direct_url = new dijit.Dialog({
+		title: "Exportar URL Direta",
+		style: "width: 500px"
+	});
+	
+	/*** Modal de Relatório ***/
+	dlg_report = new dijit.Dialog({
+		title: "Relatório de Edições",
+		style: "width: 900px; max-width: 95%;"
+	});
+	
+	/*** Modal de Exportação CSV ***/
+	dlg_export_csv = new dijit.Dialog({
+		title: "Exportar CSV",
+		style: "width: 700px; max-width: 90%;"
 	});
 	
 	/*** DropDown do menu Mais ***/
@@ -1490,15 +1537,7 @@ dojo.addOnLoad(function inicializar() {
 		label: "Arquivo CSV",
 		id: "menuItemExportarCSV",
 		onClick: function() {
-			var arq = [];
-			var j = 0;
-			for (i = 0; i < csv.length; i++) {
-				if (csv[i] != undefined)
-					arq[j++] = csv[i].join(";");
-			}
-			if (totalSelecionadas > 0)
-				arq = removerNaoSelecionadas(arq, 1);
-			window.location.href = "data:text/csv;charset=utf-8," + encodeURIComponent(arq.join("\r\n"));
+			showDialogExportCsv();
 		}
 	});
 	subMenu4.addChild(subMenu4Item1);
@@ -1507,25 +1546,35 @@ dojo.addOnLoad(function inicializar() {
 		label: "Arquivo TXT",
 		id: "menuItemExportarTXT",
 		onClick: function() {
-			var arq = txt.slice(0);
-			if (totalSelecionadas > 0)
-				arq = removerNaoSelecionadas(arq, 0);
-			window.open("data:text/plain;charset=utf-8," + arq.join("\r\n"));
+			showDialogExportUrls();
 		}
 	});
 	subMenu4.addChild(subMenu4Item2);
 	
+	/**
+	 * Menu item for exporting venue data as a direct URL.
+	 * 
+	 * Creates a Dijit MenuItem that, when clicked, generates a URL containing venue IDs
+	 * extracted from a text array. The venue IDs are obtained by:
+	 * 1. Creating a copy of the 'txt' array
+	 * 2. Extracting the last segment after the last "/" from each item
+	 * 3. Trimming each ID to 24 characters maximum
+	 * 4. If there are selected items (totalSelecionadas > 0), filtering out non-selected venues
+	 * 5. Opening a new window with a data URL containing the venue IDs as a comma-separated list
+	 * 
+	 * The generated URL format is:
+	 * http://4sq.eliotools.site/load.php?venues=[venue_id1,venue_id2,...]
+	 * 
+	 * @type {dijit.MenuItem}
+	 * @property {string} label - Display text "URL direta" (Direct URL)
+	 * @property {string} id - MenuItem identifier "menuItemExportarURL"
+	 * @property {Function} onClick - Handler that processes and exports venue data as URL
+	 */
 	var subMenu4Item3 = new dijit.MenuItem({
 		label: "URL direta",
 		id: "menuItemExportarURL",
 		onClick: function() {
-			var arq = txt.slice(0);
-			for (i = 0; i < arq.length; i++) {
-				arq[i] = arq[i].split("/").pop().slice(0, 24); 
-			}
-			if (totalSelecionadas > 0)
-				arq = removerNaoSelecionadas(arq, 0);
-			window.open("data:text/plain;charset=utf-8,http://4sq.eliotools.site/load.php?venues=" + arq.toString());
+			showDialogExportDirectUrl();
 		}
 	});
 	subMenu4.addChild(subMenu4Item3);
@@ -1537,57 +1586,7 @@ dojo.addOnLoad(function inicializar() {
 		id: "menuItemExportarRelatorio",
 		disabled: true,
 		onClick: function() {
-			var NAME_MAX_SIZE = 4;
-			var ACTION_MAX_SIZE = 7;
-			var CATEGORIES_MAX_SIZE = 10;
-			var COL_NAME = 0;
-			var COL_ACTION = 1;
-			var COL_DATETIME = 2;
-			var COL_ID = 3;
-			var COL_CATEGORIES = 4;
-			var COL_COMMENTS = 5;
-			var comments = false;
-			var j = 0;
-			for (i = 0; i < relatorio.length; i++) {
-				if (relatorio[i][COL_NAME] == undefined)
-				  relatorio[i][COL_NAME] = "";
-				if (relatorio[i][COL_NAME].length > NAME_MAX_SIZE)
-					NAME_MAX_SIZE = relatorio[i][COL_NAME].length;
-				if (relatorio[i][COL_ACTION].length > ACTION_MAX_SIZE)
-					ACTION_MAX_SIZE = relatorio[i][COL_ACTION].length;
-				if (relatorio[i][COL_CATEGORIES] == undefined)
-				  relatorio[i][COL_CATEGORIES] = "";
-				if (relatorio[i][COL_CATEGORIES].length > CATEGORIES_MAX_SIZE)
-					CATEGORIES_MAX_SIZE = relatorio[i][COL_CATEGORIES].length;
-				if (relatorio[i][COL_COMMENTS].length > 0)
-					comments = true;
-			}
-			var html = [];
-			html[0] = "<!DOCTYPE html><html><head><meta http-equiv=\"text/html; charset=utf-8\"><title>Relat&oacute;rio</title></head><body><pre>";
-			html[1] = pad("name", NAME_MAX_SIZE + 1) + pad("action", ACTION_MAX_SIZE + 1) + pad("date", 11) + pad("time", 9) + pad("id", 24);
-			if ((json == "") && (comments))
-				html[1] += pad(" categories", CATEGORIES_MAX_SIZE + 2) + "comments";
-			else if ((json == "") && (!comments))
-				html[1] += pad(" categories", CATEGORIES_MAX_SIZE + 1);
-			else if (comments)
-				html[1] += " comments";
-			var j = 2;
-			for (i = 0; i < relatorio.length; i++) {
-				html[j] = pad(relatorio[i][COL_NAME], NAME_MAX_SIZE + 1) + pad(relatorio[i][COL_ACTION], ACTION_MAX_SIZE + 1) + relatorio[i][COL_DATETIME] + " " + relatorio[i][COL_ID];
-				if ((json == "") && (comments))
-					html[j] += " " + pad(relatorio[i][COL_CATEGORIES], CATEGORIES_MAX_SIZE + 1) + relatorio[i][COL_COMMENTS].replace(/(\r\n|\n|\r)/gm, " ").replace(/\s+/g, " ");
-				else if ((json == "") && (!comments))
-					html[j] += " " + pad(relatorio[i][COL_CATEGORIES], CATEGORIES_MAX_SIZE);
-				else if (comments)
-					html[j] += " " + relatorio[i][COL_COMMENTS].replace(/(\r\n|\n|\r)/gm, " ").replace(/\s+/g, " ");
-				j++;
-			}
-			html.push("</pre></body></html>");
-			//var rel = encodeURIComponent(html.join("\r\n"));
-			//while (rel.indexOf("%u") !== -1)
-				//rel = rel.substring(0, rel.indexOf("%u")) + " " + rel.substring(rel.indexOf("%u") + 6);
-			var reportWindow = window.open("", "ReportWindow");
-			reportWindow.document.write(html.join("\r\n"));
+			showDialogReport();
 		}
 	});
 	subMenu4.addChild(subMenu4Item4);
@@ -1652,6 +1651,334 @@ function showDialogEditField(field) {
 	dijit.byId("selectEditField").attr("value", field);
 	dijit.byId('dlg_editField').show();
 }
+
+function showDialogExportUrls() {
+	var arq = txt.slice(0);
+	if (totalSelecionadas > 0)
+		arq = removerNaoSelecionadas(arq, 0);
+	
+	// Limpa %0A e formata como lista de URLs
+	var urlList = arq.map(function(url) {
+		return url.replace(/%0A/g, '');
+	}).join('\n');
+	
+	// Destroi widgets anteriores para evitar erros do Dojo
+	if (dijit.byId('btnSaveUrls')) dijit.byId('btnSaveUrls').destroy();
+	if (dijit.byId('btnCopyUrls')) dijit.byId('btnCopyUrls').destroy();
+	if (dijit.byId('btnCancelUrls')) dijit.byId('btnCancelUrls').destroy();
+	
+	// Cria o conteúdo da modal
+	var dialogContent = '<div style="padding: 10px;">' +
+		'<p style="margin-top: 0;">Lista de URLs dos locais' + (totalSelecionadas > 0 ? ' selecionados' : '') + ':</p>' +
+		'<textarea id="exportUrlsTextarea" readonly style="width: 100%; height: 300px; font-family: monospace; font-size: 12px; padding: 8px; box-sizing: border-box; resize: vertical;">' + urlList + '</textarea>' +
+		'<div style="text-align: right; margin-top: 10px;">' +
+		'<button id="btnSaveUrls" dojoType="dijit.form.Button">Salvar</button>' +
+		'<button id="btnCopyUrls" dojoType="dijit.form.Button">Copiar</button>' +
+		'<button id="btnCancelUrls" dojoType="dijit.form.Button">Cancelar</button>' +
+		'</div>' +
+		'</div>';
+	
+	dlg_export_urls.attr("content", dialogContent);
+	dlg_export_urls.show();
+	
+	// Aguarda renderização do Dojo e conecta eventos
+	setTimeout(function() {
+		dojo.connect(dijit.byId("btnSaveUrls"), "onClick", function() {
+			var blob = new Blob([urlList], {type: 'text/plain;charset=utf-8'});
+			var link = document.createElement('a');
+			link.href = window.URL.createObjectURL(blob);
+			link.download = 'venues_urls.txt';
+			link.click();
+			window.URL.revokeObjectURL(link.href);
+		});
+		
+		dojo.connect(dijit.byId("btnCopyUrls"), "onClick", function() {
+			var textarea = document.getElementById('exportUrlsTextarea');
+			textarea.select();
+			document.execCommand('copy');
+			alert('URLs copiadas para a área de transferência!');
+		});
+		
+		dojo.connect(dijit.byId("btnCancelUrls"), "onClick", function() {
+			dlg_export_urls.hide();
+		});
+	}, 100);
+}
+
+function showDialogExportDirectUrl() {
+	// Detecta o ambiente (localhost vs produção)
+	var host = window.location.hostname === 'localhost' ? 'localhost' : '4sq.eliotools.site';
+	var protocol = window.location.hostname === 'localhost' ? window.location.protocol : 'http:';
+	var port = window.location.hostname === 'localhost' && window.location.port ? ':' + window.location.port : '';
+	var baseUrl = protocol + '//' + host + port;
+	
+	// Extrai IDs dos venues
+	var arq = txt.slice(0);
+	for (var i = 0; i < arq.length; i++) {
+		arq[i] = arq[i].split("/").pop().slice(0, 24); 
+	}
+	if (totalSelecionadas > 0)
+		arq = removerNaoSelecionadas(arq, 0);
+	
+	// Gera a URL direta
+	var directUrl = baseUrl + '/load.php?venues=' + arq.toString();
+	
+	// Destroi widgets anteriores para evitar erros do Dojo
+	if (dijit.byId('btnCopyDirectUrl')) dijit.byId('btnCopyDirectUrl').destroy();
+	if (dijit.byId('btnCancelDirectUrl')) dijit.byId('btnCancelDirectUrl').destroy();
+	
+	// Cria o conteúdo da modal
+	var dialogContent = '<div style="padding: 10px;">' +
+		'<p style="margin-top: 0;">URL direta para carregar ' + (totalSelecionadas > 0 ? 'os locais selecionados' : 'todos os locais') + ':</p>' +
+		'<textarea id="exportDirectUrlTextarea" readonly style="width: 100%; height: 120px; font-family: monospace; font-size: 12px; padding: 8px; box-sizing: border-box; resize: vertical; word-wrap: break-word;">' + directUrl + '</textarea>' +
+		'<div style="text-align: right; margin-top: 10px;">' +
+		'<button id="btnCopyDirectUrl" dojoType="dijit.form.Button">Copiar</button>' +
+		'<button id="btnCancelDirectUrl" dojoType="dijit.form.Button">Cancelar</button>' +
+		'</div>' +
+		'</div>';
+	
+	dlg_export_direct_url.attr("content", dialogContent);
+	dlg_export_direct_url.show();
+	
+	// Aguarda renderização do Dojo e conecta eventos
+	setTimeout(function() {
+		dojo.connect(dijit.byId("btnCopyDirectUrl"), "onClick", function() {
+			var textarea = document.getElementById('exportDirectUrlTextarea');
+			textarea.select();
+			document.execCommand('copy');
+			alert('URL copiada para a área de transferência!');
+		});
+		
+		dojo.connect(dijit.byId("btnCancelDirectUrl"), "onClick", function() {
+			dlg_export_direct_url.hide();
+		});
+	}, 100);
+}
+
+/**
+ * Função utilitária para criar tabela HTML estilizada
+ * @param {Array} headers - Array de strings com os cabeçalhos das colunas
+ * @param {Array} rows - Array de arrays com os dados das linhas
+ * @param {string} tableId - ID único para a tabela
+ * @returns {string} HTML da tabela formatada
+ */
+function createHtmlTable(headers, rows, tableId) {
+	var tableHtml = '<table id="' + tableId + '" style="width: 100%; border-collapse: collapse; font-size: 12px; font-family: monospace;">' +
+		'<thead>' +
+		'<tr style="background-color: #f0f0f0; border-bottom: 2px solid #333;">';
+	
+	// Adiciona cabeçalhos
+	for (var i = 0; i < headers.length; i++) {
+		tableHtml += '<th style="padding: 8px; text-align: left; border: 1px solid #ddd;">' + headers[i] + '</th>';
+	}
+	
+	tableHtml += '</tr></thead><tbody>';
+	
+	// Adiciona linhas de dados
+	for (var i = 0; i < rows.length; i++) {
+		tableHtml += '<tr style="border-bottom: 1px solid #ddd;">';
+		for (var j = 0; j < rows[i].length; j++) {
+			var cellValue = rows[i][j] || '';
+			tableHtml += '<td style="padding: 8px; border: 1px solid #ddd;">' + cellValue + '</td>';
+		}
+		tableHtml += '</tr>';
+	}
+	
+	tableHtml += '</tbody></table>';
+	return tableHtml;
+}
+
+function showDialogExportCsv() {
+	// Prepara dados CSV
+	var arq = [];
+	var j = 0;
+	for (var i = 0; i < csv.length; i++) {
+		if (csv[i] != undefined)
+			arq[j++] = csv[i].slice(0); // Copia o array
+	}
+	if (totalSelecionadas > 0)
+		arq = removerNaoSelecionadas(arq, 1);
+	
+	if (arq.length === 0) {
+		alert('Nenhum dado para exportar.');
+		return;
+	}
+	
+	// Destroi widgets anteriores para evitar erros do Dojo
+	if (dijit.byId('btnSaveCsv')) dijit.byId('btnSaveCsv').destroy();
+	if (dijit.byId('btnCancelCsv')) dijit.byId('btnCancelCsv').destroy();
+	
+	// Primeira linha são os cabeçalhos
+	var headers = arq[0].map(function(header) {
+		return header.replace(/"/g, ''); // Remove aspas dos cabeçalhos
+	});
+	
+	// Restante são os dados
+	var rows = [];
+	for (var i = 1; i < arq.length; i++) {
+		var row = arq[i].map(function(cell) {
+			return cell.replace(/"/g, ''); // Remove aspas dos dados
+		});
+		rows.push(row);
+	}
+	
+	// Cria a tabela HTML
+	var tableHtml = createHtmlTable(headers, rows, 'csvPreviewTable');
+	
+	var dialogContent = '<div style="padding: 10px;">' +
+		'<p style="margin-top: 0;">Pré-visualização do CSV' + (totalSelecionadas > 0 ? ' (apenas selecionados)' : '') + ':</p>' +
+		'<div style="overflow-x: auto; max-height: 400px; overflow-y: auto; border: 1px solid #ddd;">' +
+		tableHtml +
+		'</div>' +
+		'<div style="text-align: right; margin-top: 15px;">' +
+		'<button id="btnSaveCsv" dojoType="dijit.form.Button">Salvar</button>' +
+		'<button id="btnCancelCsv" dojoType="dijit.form.Button">Cancelar</button>' +
+		'</div>' +
+		'</div>';
+	
+	dlg_export_csv.attr("content", dialogContent);
+	dlg_export_csv.show();
+	
+	// Aguarda renderização do Dojo e conecta eventos
+	setTimeout(function() {
+		dojo.connect(dijit.byId("btnSaveCsv"), "onClick", function() {
+			// Gera o conteúdo CSV com separador de ponto-e-vírgula
+			var csvContent = [];
+			for (var i = 0; i < arq.length; i++) {
+				csvContent.push(arq[i].join(";"));
+			}
+			
+			var blob = new Blob([csvContent.join("\r\n")], {type: 'text/csv;charset=utf-8'});
+			var link = document.createElement('a');
+			link.href = window.URL.createObjectURL(blob);
+			link.download = 'venues_export.csv';
+			link.click();
+			window.URL.revokeObjectURL(link.href);
+			
+			dlg_export_csv.hide();
+		});
+		
+		dojo.connect(dijit.byId("btnCancelCsv"), "onClick", function() {
+			dlg_export_csv.hide();
+		});
+	}, 100);
+}
+
+function showDialogReport() {
+	var COL_NAME = 0;
+	var COL_ACTION = 1;
+	var COL_DATETIME = 2;
+	var COL_ID = 3;
+	var COL_CATEGORIES = 4;
+	var COL_COMMENTS = 5;
+	
+	// Destroi widgets anteriores para evitar erros do Dojo
+	if (dijit.byId('btnSaveReport')) dijit.byId('btnSaveReport').destroy();
+	if (dijit.byId('btnCancelReport')) dijit.byId('btnCancelReport').destroy();
+	
+	// Verifica quais colunas devem ser exibidas
+	var hasCategories = (json == "");
+	var hasComments = false;
+	
+	for (var i = 0; i < relatorio.length; i++) {
+		if (relatorio[i][COL_NAME] == undefined)
+			relatorio[i][COL_NAME] = "";
+		if (relatorio[i][COL_CATEGORIES] == undefined)
+			relatorio[i][COL_CATEGORIES] = "";
+		if (relatorio[i][COL_COMMENTS] && relatorio[i][COL_COMMENTS].length > 0)
+			hasComments = true;
+	}
+	
+	// Prepara cabeçalhos
+	var headers = ['Nome', 'Ação', 'Data', 'Hora', 'ID'];
+	if (hasCategories)
+		headers.push('Categorias');
+	if (hasComments)
+		headers.push('Comentários');
+	
+	// Prepara dados
+	var rows = [];
+	for (var i = 0; i < relatorio.length; i++) {
+		var dateTime = relatorio[i][COL_DATETIME].split(' ');
+		var date = dateTime[0] || '';
+		var time = dateTime[1] || '';
+		
+		var row = [
+			relatorio[i][COL_NAME] || '',
+			relatorio[i][COL_ACTION],
+			date,
+			time,
+			relatorio[i][COL_ID]
+		];
+		
+		if (hasCategories)
+			row.push(relatorio[i][COL_CATEGORIES] || '');
+		if (hasComments) {
+			var comment = relatorio[i][COL_COMMENTS] ? relatorio[i][COL_COMMENTS].replace(/(\r\n|\n|\r)/gm, " ").replace(/\s+/g, " ") : '';
+			row.push(comment);
+		}
+		
+		rows.push(row);
+	}
+	
+	// Cria a tabela usando a função utilitária
+	var tableHtml = createHtmlTable(headers, rows, 'reportTable');
+	
+	var dialogContent = '<div style="padding: 10px; overflow-x: auto;">' +
+		tableHtml +
+		'<div style="text-align: right; margin-top: 15px;">' +
+		'<button id="btnSaveReport" dojoType="dijit.form.Button">Salvar</button>' +
+		'<button id="btnCancelReport" dojoType="dijit.form.Button">Cancelar</button>' +
+		'</div>' +
+		'</div>';
+	
+	dlg_report.attr("content", dialogContent);
+	dlg_report.show();
+	
+	// Aguarda renderização do Dojo e conecta eventos
+	setTimeout(function() {
+		dojo.connect(dijit.byId("btnSaveReport"), "onClick", function() {
+			// Gera conteúdo em texto simples para download
+			var textContent = 'Nome\tAção\tData\tHora\tID';
+			if (hasCategories) textContent += '\tCategorias';
+			if (hasComments) textContent += '\tComentários';
+			textContent += '\n';
+			
+			for (var i = 0; i < relatorio.length; i++) {
+				var dateTime = relatorio[i][COL_DATETIME].split(' ');
+				var date = dateTime[0] || '';
+				var time = dateTime[1] || '';
+				
+				textContent += (relatorio[i][COL_NAME] || '') + '\t' +
+					relatorio[i][COL_ACTION] + '\t' +
+					date + '\t' +
+					time + '\t' +
+					relatorio[i][COL_ID];
+				
+				if (hasCategories)
+					textContent += '\t' + (relatorio[i][COL_CATEGORIES] || '');
+				if (hasComments) {
+					var comment = relatorio[i][COL_COMMENTS] ? relatorio[i][COL_COMMENTS].replace(/(\r\n|\n|\r)/gm, " ").replace(/\s+/g, " ") : '';
+					textContent += '\t' + comment;
+				}
+				
+				textContent += '\n';
+			}
+			
+			var blob = new Blob([textContent], {type: 'text/plain;charset=utf-8'});
+			var link = document.createElement('a');
+			link.href = window.URL.createObjectURL(blob);
+			link.download = 'relatorio_edicoes.txt';
+			link.click();
+			window.URL.revokeObjectURL(link.href);
+		});
+		
+		dojo.connect(dijit.byId("btnCancelReport"), "onClick", function() {
+			dlg_report.hide();
+		});
+	}, 100);
+}
+
 //var node = dojo.byId("forms");
 //dojo.connect(node, "onkeypress", function(e) {
 	//if (e.keyCode == dojo.keys.DOWN_ARROW) {
