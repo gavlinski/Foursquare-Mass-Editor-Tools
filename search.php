@@ -177,7 +177,7 @@ function pesquisarVenues($params) {
 				if (property_exists($venue, "canonicalUrl"))
 					$array["file"][] = $venue->canonicalUrl;
 				else
-					$array["file"][] = "https://foursquare.com/v/" . $venue->id;
+					$array["file"][] = "https://app.foursquare.com/v/" . $venue->id;
 			}
 			$i += $delta;
 			//echo("\$i = $i,");

@@ -203,7 +203,7 @@ function validarVenues(array $lines): array|false
     foreach ($lines as $line_num => $line) {
         /*** Tidysquare e 4sqmap - Foursquare Maps and Statistics ***/
         if (stripos((string)$line, 'foursquare.com/venue/') !== false) {
-            $ret = array_merge($ret, array_slice(explode('://foursquare.com/venue/', (string)$line), 1));
+            $ret = array_merge($ret, array_slice(explode('://app.foursquare.com/venue/', (string)$line), 1));
         }
     }
 
@@ -213,7 +213,7 @@ function validarVenues(array $lines): array|false
             $vid = substr((string)$r, 0, 24);
             if ((stripos($vid, ' ') === false) && (!in_array($vid, $venuesIds))) {
                 $venuesIds[] = $vid;
-                $r = "https://foursquare.com/v/" . $vid;
+                $r = "https://app.foursquare.com/v/" . $vid;
             } else {
                 $r = "";
             }
@@ -247,7 +247,7 @@ function validarVenues(array $lines): array|false
                 $venuesIds[$i] = basename($line);
             } else if ($length == 24) {
                 $venuesIds[$i] = $line;
-                $line = "https://foursquare.com/v/" . $line;
+                $line = "https://app.foursquare.com/v/" . $line;
             }
             $i++;
             $p->setProgressBarProgress($i*100/$size);
@@ -302,7 +302,7 @@ function parseVenues(string $html): array|false
             }
         }
 
-        /*** Paginas normais com a tag <a href="https://foursquare.com/venue/..."></a> ou <a href="https://foursquare.com/v/..."></a> ***/
+        /*** Paginas normais com a tag <a href="https://app.foursquare.com/venue/..."></a> ou <a href="https://app.foursquare.com/v/..."></a> ***/
         if (empty($ret)) {
             /*** a new dom object ***/
             $dom = new DOMDocument();
@@ -345,7 +345,7 @@ function parseVenues(string $html): array|false
             $size = count($ret);
             foreach ($ret as &$r) {
                 $venuesIds[$i] = substr((string)$r, 0, 24);
-                $r = "https://foursquare.com/v/" . $venuesIds[$i];
+                $r = "https://app.foursquare.com/v/" . $venuesIds[$i];
                 $i++;
                 $p->setProgressBarProgress($i*100/$size);
                 usleep((int)(50000*0.1));

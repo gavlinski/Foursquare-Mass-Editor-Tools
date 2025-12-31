@@ -48,7 +48,7 @@ dojo.addOnLoad(function() {
 	
 	dlg_txt = new dijit.Dialog({
 		title: "Arquivo de texto",
-		style: "width: 570px"
+		style: "width: 590px"
 	});
 	var arquivo_txt = dojo.byId("arquivo_txt");
 	var uploader_txt = dijit.byId("uploader_txt");
@@ -106,7 +106,7 @@ dojo.addOnLoad(function() {
 	
 	dlg_ids = new dijit.Dialog({
 		title: "IDs ou URLs das venues",
-		style: "width: 570px"
+		style: "width: 590px"
 	});
 	var form_ids = dijit.byId("f_ids");
 	var textarea_ids = dijit.byId("textarea_ids");
@@ -244,18 +244,18 @@ function showDialogCsv() {
 
 function showDialogTxt() {
 	// set the content of the dialog:
-	dlg_txt.attr("content", "Um arquivo de texto &eacute; uma esp&eacute;cie de arquivo simples estruturado como uma sequ&ecirc;ncia de linhas. O arquivo deve conter os identificadores de cada venue a ser editada.</p><p>Os principais tipos reconhecidos s&atilde;o os seguintes:<ul><li><b>IDs ou URLs das venues:</b> arquivo TXT com os IDs ou URLs das venues</li><li><b>Resultado da pesquisa do 4sqmap:</b> arquivo HTML salvo a partir do <a href='http://www.4sqmap.com'>4sqmap</a></li><li><b>Resultado da pesquisa do 4sweep:</b> arquivo HTML salvo a partir do <a href='https://www.4sweep.com'>4sweep</a></li><li><b>Resultado da pesquisa do Tidysquare:</b> arquivo HTML salvo a partir do <a href='http://www.tidysquare.com'>Tidysquare</a></li></ul><p><b>Exemplo de arquivo TXT:</b></p><p style='font-family: courier, monospace;'>https://foursquare.com/venue/banco-do-brasil/4c701c87f23c76b0c5abe685<br>https://pt.foursquare.com/v/banco-do-brasil/4d7a895be8b7a1cdb4e3991f/<br>https://foursquare.com/v/4eadbb7902d5cf33fa8cf19e/edit<br>4e764d9888775d593e595c62</p>");
+	dlg_txt.attr("content", "Um arquivo de texto &eacute; uma esp&eacute;cie de arquivo simples estruturado como uma sequ&ecirc;ncia de linhas. O arquivo deve conter os identificadores de cada venue a ser editada.</p><p>Os principais tipos reconhecidos s&atilde;o os seguintes:<ul><li><b>IDs ou URLs das venues:</b> arquivo TXT com os IDs ou URLs das venues</li><li><b>Resultado da pesquisa do 4sqmap:</b> arquivo HTML salvo a partir do <a href='http://www.4sqmap.com'>4sqmap</a></li><li><b>Resultado da pesquisa do 4sweep:</b> arquivo HTML salvo a partir do <a href='https://www.4sweep.com'>4sweep</a></li><li><b>Resultado da pesquisa do Tidysquare:</b> arquivo HTML salvo a partir do <a href='http://www.tidysquare.com'>Tidysquare</a></li></ul><p><b>Exemplo de arquivo TXT:</b></p><p style='font-family: courier, monospace;'>https://app.foursquare.com/venue/banco-do-brasil/4c701c87f23c76b0c5abe685<br>https://app.foursquare.com/v/banco-do-brasil/4d7a895be8b7a1cdb4e3991f/<br>https://app.foursquare.com/v/4eadbb7902d5cf33fa8cf19e/edit<br>4e764d9888775d593e595c62</p>");
 	dlg_txt.show();
 }
 
 function showDialogLks() {
 	// set the content of the dialog:
-	dlg_lks.attr("content", "Uma p&aacute;gina web &eacute; qualquer documento ou recurso de informa&ccedil;&atilde;o que pode ser acessado atrav&eacute;s de um navegador na Internet. Ela deve ser p&uacute;blica e conter os identificadores de cada venue a ser editada.</p><p>Os principais endere&ccedil;os reconhecidos s&atilde;o os seguintes:<ul><li><b>P&aacute;ginas com links para as venues:</b> com a tag &lt;a href=&quot;/venue/...&quot;&gt; ou &lt;a href=&quot;/v/...&quot;&gt;</li><li><b>P&aacute;ginas de usu&aacute;rios com dicas:</b> do tipo <span style='color: #2d5be3;'>https://foursquare.com/user</span></li><li><b>Listas p&uacute;blicas de usu&aacute;rios:</b> do tipo <span style='color: #2d5be3;'>https://foursquare.com/user/list/list-name</span></li><li><b>Resultados da pesquisa:</b> do tipo <span style='color: #2d5be3;'>https://foursquare.com/search?tab=venueResults&q=query&near=ll</span></li></ul><p><b>Exemplos de endere&ccedil;os:</b></p><p style='font-family: courier, monospace;'>https://foursquare.com/4sqcities/list/sampa-badge<br>https://pt.foursquare.com/search?tab=venueResults&q=via&near=Bras%C3%ADlia</p>");
+	dlg_lks.attr("content", "Uma p&aacute;gina web &eacute; qualquer documento ou recurso de informa&ccedil;&atilde;o que pode ser acessado atrav&eacute;s de um navegador na Internet. Ela deve ser p&uacute;blica e conter os identificadores de cada venue a ser editada.</p><p>Os principais endere&ccedil;os reconhecidos s&atilde;o os seguintes:<ul><li><b>P&aacute;ginas com links para as venues:</b> com a tag &lt;a href=&quot;/venue/...&quot;&gt; ou &lt;a href=&quot;/v/...&quot;&gt;</li><li><b>P&aacute;ginas de usu&aacute;rios com dicas:</b> do tipo <span style='color: #2d5be3;'>https://app.foursquare.com/user</span></li><li><b>Listas p&uacute;blicas de usu&aacute;rios:</b> do tipo <span style='color: #2d5be3;'>https://app.foursquare.com/user/list/list-name</span></li><li><b>Resultados da pesquisa:</b> do tipo <span style='color: #2d5be3;'>https://app.foursquare.com/search?tab=venueResults&q=query&near=ll</span></li></ul><p><b>Exemplos de endere&ccedil;os:</b></p><p style='font-family: courier, monospace;'>https://app.foursquare.com/4sqcities/list/sampa-badge<br>https://app.foursquare.com/search?tab=venueResults&q=via&near=Bras%C3%ADlia</p>");
 	dlg_lks.show();
 }
 
 function showDialogIds() {
 	// set the content of the dialog:
-	dlg_ids.attr("content", "O conte&uacute;do copiado e colado deve conter os identificadores de cada venue a ser editada. Acima de 4000 caracteres, utilize a ferramenta de importar lista de um arquivo de texto.</p><p><b>Exemplo de ID:</b></p><p style='font-family: courier, monospace;'>4c701c87f23c76b0c5abe685</p><p><b>Exemplos de URLs:</b></p><p style='font-family: courier, monospace;'>https://foursquare.com/venue/banco-do-brasil/4c701c87f23c76b0c5abe685<br>https://pt.foursquare.com/v/banco-do-brasil/4d7a895be8b7a1cdb4e3991f/<br>https://foursquare.com/v/4eadbb7902d5cf33fa8cf19e/edit</p>");
+	dlg_ids.attr("content", "O conte&uacute;do copiado e colado deve conter os identificadores de cada venue a ser editada. Acima de 4000 caracteres, utilize a ferramenta de importar lista de um arquivo de texto.</p><p><b>Exemplo de ID:</b></p><p style='font-family: courier, monospace;'>4c701c87f23c76b0c5abe685</p><p><b>Exemplos de URLs:</b></p><p style='font-family: courier, monospace;'>https://app.foursquare.com/venue/banco-do-brasil/4c701c87f23c76b0c5abe685<br>https://app.foursquare.com/v/banco-do-brasil/4d7a895be8b7a1cdb4e3991f/<br>https://app.foursquare.com/v/4eadbb7902d5cf33fa8cf19e/edit</p>");
 	dlg_ids.show();
 }

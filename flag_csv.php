@@ -154,7 +154,7 @@ foreach ($file as $f) {
 	echo '<section class="row">', chr(10), '<form name="form', $i, '" accept-charset="utf-8" encType="multipart/form-data" method="post">', chr(10);
 
 	$venue = $f['venue'];
-	echo '<input type="hidden" name="venue" value="', $venue, '"><a href="https://foursquare.com/v/', $venue, '" target="_blank"';
+	echo '<input type="hidden" name="venue" value="', $venue, '"><a href="https://app.foursquare.com/v/', $venue, '" target="_blank"';
 	if ($hasCategoryId) {
 		echo ' style="margin-right: 5px;"';
 	}
@@ -168,7 +168,7 @@ foreach ($file as $f) {
 	echo '</a>', chr(10);
 	
 	if ($hasCategoryId) {
-		echo '<span id="icone', $i - 1, '"><img id=catImg', $i, ' src="https://foursquare.com/img/categories_v2/none_bg_32.png" style="height: 22px; width: 22px; margin-left: 0px"></span>', chr(10);
+		echo '<span id="icone', $i - 1, '"><img id=catImg', $i, ' src="https://app.foursquare.com/img/categories_v2/none_bg_32.png" style="height: 22px; width: 22px; margin-left: 0px"></span>', chr(10);
 	}
 
 	if ($hasName) {
