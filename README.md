@@ -66,13 +66,15 @@ includes/
 ## 🚀 Quick Start
 
 ### Using Docker (Recommended)
+The easiest way to run the project. The `./dev.sh` script handles everything: dependencies (Composer & Dojo Toolkit), Docker build, and execution.
+
 ```bash
 # Clone the repository
 git clone https://github.com/gavlinski/Foursquare-Mass-Editor-Tools.git
 cd Foursquare-Mass-Editor-Tools
 
-# Start development environment
-./dev.sh
+# Start development environment (Builds, Installs & Runs)
+./dev.sh run
 
 # Access the application
 open http://localhost/4sqmet
@@ -94,10 +96,24 @@ php -S localhost
 ## ⚙️ Configuration
 
 ### Environment Variables
+Copy `.env.example` to `.env` and fill in your credentials. This is the **single source of truth** for configuration.
+
 ```bash
+cp .env.example .env
+```
+
+Required variables in `.env`:
+```bash
+# Foursquare API
 FOURSQUARE_CLIENT_KEY="your_client_id"
 FOURSQUARE_CLIENT_SECRET="your_client_secret"  
 FOURSQUARE_REDIRECT_URI="http://localhost/4sqmet/index.php"
+
+# Google Maps API
+GOOGLE_MAPS_API_KEY="your_google_maps_key"
+GOOGLE_MAPS_MAP_ID="your_map_id"
+
+# App Settings
 APP_ENV="development"
 APP_DEBUG="true"
 ```
@@ -244,28 +260,6 @@ curl "http://localhost/debug/debug_session.php?mode=debug"
 4. Check both local and containerized environments
 
 ## 📄 License
-
-This project is licensed under the [GNU General Public License v3.0](LICENSE.txt).
-⚠️ **Migration in Progress**: The codebase is currently being modernized from PHP 5.4 to PHP 8.1 with Google Maps API integration. Some features may be in transition.
-
-**Completed**:
-- ✅ Modern Google Maps integration (`js/modern-google-maps.js`)
-- ✅ Consolidated debug tools
-- ✅ Docker containerization
-- ✅ Session management modernization
-
-**In Progress**:
-- 🔄 Complete Google Maps legacy code removal
-- 🔄 Full PSR-4 code migration
-- 🔄 Comprehensive testing coverage
-
-**Testing Recommendations**:
-1. Use debug tools before making changes
-2. Test session functionality after code modifications
-3. Verify Google Maps integration works correctly
-4. Check both local and containerized environments
-
-## �📄 License
 
 This project is licensed under the [GNU General Public License v3.0](LICENSE.txt).
 
