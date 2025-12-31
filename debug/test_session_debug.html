@@ -119,30 +119,3 @@
     </script>
 </body>
 </html>
-                cache: 'no-cache',
-                headers: {
-                    'Accept': 'application/json',
-                    'X-Requested-With': 'XMLHttpRequest'
-                }
-            })
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-                }
-                return response.json();
-            })
-            .then(data => {
-                document.getElementById('result').innerHTML = '<strong>Status da sessão:</strong><pre>' + JSON.stringify(data, null, 2) + '</pre>';
-            })
-            .catch(error => {
-                document.getElementById('result').innerHTML = '<strong>Erro ao verificar sessão:</strong> ' + error.message;
-                console.error('Erro completo:', error);
-            });
-        }
-        
-        function clearSession() {
-            window.location.href = 'index.php?logout=1';
-        }
-    </script>
-</body>
-</html>

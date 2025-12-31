@@ -9,7 +9,7 @@ header('Expires: 0');
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Teste CSS - Botões Session Status Bar (Versão Corrigida)</title>
-    <link rel="stylesheet" type="text/css" href="estilo.css?v=<?php echo time(); ?>">
+    <link rel="stylesheet" type="text/css" href="../estilo.css?v=<?php echo time(); ?>">
     <style>
         body {
             padding: 80px 20px 20px 20px;
@@ -79,15 +79,26 @@ header('Expires: 0');
             </div>
         </div>
         
-        <div class="test-section">
-            <h3>📊 Botão de Reabrir:</h3>
+        <div class="test-section">            <h3>📊 Botão de Reabrir (Demo):</h3>
             <div class="button-test-row">
-                <div id="session-status-reopen-btn" style="position: relative; display: block; visibility: visible; opacity: 1;">📊 Status</div>
+                <!-- Estilos inline usados excepcionalmente para demonstração estática -->
+                <div id="session-status-reopen-btn-demo" style="
+                    position: relative; 
+                    display: inline-block; 
+                    background: #0d6efd;
+                    color: white;
+                    padding: 8px 16px;
+                    border-radius: 20px;
+                    box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+                    cursor: pointer;
+                    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+                    font-size: 13px;
+                    font-weight: 500;
+                ">📊 Status</div>
             </div>
         </div>
-        
-        <div class="test-section">
-            <h3>🔍 Diagnóstico Automático:</h3>
+
+        <div class="test-section">            <h3> Diagnóstico Automático:</h3>
             <div id="debug-info">
                 <p><strong>Arquivo CSS:</strong> estilo.css?v=<?php echo time(); ?></p>
                 <p><strong>Classes testadas:</strong> .session-btn, #session-refresh-btn, #session-info-btn, #session-logout-btn, #session-close-btn</p>
@@ -107,7 +118,7 @@ header('Expires: 0');
     </div>
 
     <!-- Inclui a barra de status real para teste -->
-    <?php include 'includes/session-status-bar.php'; ?>
+    <?php include '../includes/session-status-bar.php'; ?>
 
     <script>
         // Verifica se o CSS foi carregado
