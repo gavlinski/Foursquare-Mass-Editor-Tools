@@ -15,9 +15,31 @@ check_docker() {
     fi
 }
 
+# Função para baixar e instalar o Dojo Toolkit
+download_dojo() {
+    if [ ! -d "js/dojo" ] || [ ! -d "js/dijit" ] || [ ! -d "js/dojox" ]; then
+        echo "📦 Dojo Toolkit não encontrado. Baixando v1.8.14..."
+        curl -L -o dojo.tar.gz http://download.dojotoolkit.org/release-1.8.14/dojo-release-1.8.14.tar.gz
+        echo "📂 Extraindo Dojo Toolkit..."
+        tar -xzf dojo.tar.gz
+        echo "🚚 Movendo arquivos..."
+        cp -r dojo-release-1.8.14/dojo js/
+        cp -r dojo-release-1.8.14/dijit js/
+        cp -r dojo-release-1.8.14/dojox js/
+        echo "🧹 Limpando arquivos temporários..."
+        rm -rf dojo-release-1.8.14 dojo.tar.gz
+        echo "✅ Dojo Toolkit instalado com sucesso!"
+    else
+        echo "✅ Dojo Toolkit já instalado."
+    fi
+}
+
 # Função para verificar dependências do projeto
 check_dependencies() {
     echo "🔍 Verificando dependências do projeto..."
+    
+    # Verifica e instala Dojo Toolkit
+    download_dojo
     
     # Verifica se existe arquivo .env
     if [ ! -f .env ]; then
@@ -26,8 +48,8 @@ check_dependencies() {
         echo "📝 Edite o arquivo .env com suas configurações antes de continuar."
     fi
     
-    # Verifica se existe composer.lock
-    if [ ! -f composer.lock ]; then
+    # Verifica se existe composer.lock ou vendor
+    if [ ! -f composer.lock ] || [ ! -d vendor ]; then
         echo "⚠️  Dependências do Composer não instaladas. Instalando..."
         install_deps
     fi
@@ -150,7 +172,9 @@ case "${1:-}" in
     "run")
         check_docker
         check_dependencies
-        build_image
+        if ! docker image inspect foursquare-mass-editor:latest > /dev/null 2>&1; then
+             build_image
+        fi
         run_container
         ;;
     "start")
