@@ -140,7 +140,7 @@ dojo.addOnLoad(function() {
 		if (form_src.validate()) {
 			if (ll_src.value == "") {
 				e.preventDefault();
-				alert("Informe as coordenadas ou o endere&ccedil;o");
+				alert("Informe as coordenadas ou o endereço");
 				ll_src.focus();
 			//} else if (dojo.query('input:checked', 'f_src').length == 0) {
 				//e.preventDefault();
