@@ -402,15 +402,20 @@ a:hover {
 	margin-left: 2px;
 }
 #mapa {
-	width: 533px;
-	height: 256px;
-	border: 1px solid #ccc;
+	/* Dimensões responsivas - em harmonia com #listContainer */
+	width: calc(100vw - 80px);
+	min-width: 200px;
+	max-width: calc(100vw - 60px);
+	height: 280px;
+	min-height: 200px;
+	max-height: 70vh;
+	
+	/* Estilo visual */
+	border: 1px solid rgba(0, 0, 0, 0.1);
 	margin-bottom: 10px;
 	border-radius: 6px;
-	-webkit-border-radius: 5px;
-	-moz-border-radius: 5px;
 	box-shadow: rgba(0, 0, 0, 0.1) 0px 2px 8px;
-	border: 1px solid rgba(0, 0, 0, 0.1);
+	
 	/* Google Maps v3.32+ gerencia redimensionamento automaticamente */
 	resize: both;
 	overflow: auto;
