@@ -517,13 +517,13 @@ if ((isset($_COOKIE['name'])) && (strlen($_COOKIE['name']) > 0))
 				<input type="hidden" id="oauth_token_scr" name="oauth_token" value="<?= $oauth_token ?>"/>
 				<section class="toolcontainer">
 					<div class="row">
-						<div class="queryinputlabel"><label for="query"><a href="https://developer.foursquare.com/docs/venues/search" target="_blank">Consulta</a>:</label></div>
+						<div class="queryinputlabel"><label for="query"><a href="https://docs.foursquare.com/developer/reference/place-search" target="_blank">Consulta</a>:</label></div>
 						<div class="queryinput"><input type="text" id="query" name="query" required="false" dojoType="dijit.form.ValidationTextBox" trim="true" style="width: 299px"></div>
-						<div class="llinputlabel"><label for="ll"><a href="https://developer.foursquare.com/docs/venues/search" target="_blank">Local</a>:</label></div>
+						<div class="llinputlabel"><label for="ll"><a href="https://docs.foursquare.com/developer/reference/place-search" target="_blank">Local</a>:</label></div>
 						<div class="llinput"><input type="text" id="ll" name="ll" required="false" dojoType="dijit.form.ValidationTextBox" trim="true" style="width: 296px"/></div>
 					</div>
 					<div class="row">
-						<div class="categoryidcomboboxlabel"><label for="categoryId"><a href="https://developer.foursquare.com/docs/venues/search" target="_blank">Categoria</a>:</label></div>
+						<div class="categoryidcomboboxlabel"><label for="categoryId"><a href="https://docs.foursquare.com/developer/reference/place-search" target="_blank">Categoria</a>:</label></div>
 						<div class="categoryidcombobox">
 							<div class="combobox">
 								<select data-dojo-id="categoryId" name="categoryId" id="categoryId" data-dojo-type="dijit/form/FilteringSelect">
@@ -568,7 +568,7 @@ if ((isset($_COOKIE['name'])) && (strlen($_COOKIE['name']) > 0))
 							</div>
 						</div>
 
-						<div class="radiuscomboboxlabel"><label for="radius"><a href="https://developer.foursquare.com/docs/venues/search" target="_blank">Raio</a>:</label></div>
+						<div class="radiuscomboboxlabel"><label for="radius"><a href="https://docs.foursquare.com/developer/reference/place-search" target="_blank">Raio</a>:</label></div>
 						<div class="radiuscombobox">
 							<div class="comboboxes">
 								<select data-dojo-id="radius" name="radius" id="radius" data-dojo-type="dijit/form/Select">
@@ -585,7 +585,7 @@ if ((isset($_COOKIE['name'])) && (strlen($_COOKIE['name']) > 0))
 								</select>
 							</div>
 						</div>
-						<div class="intentcomboboxlabel"><label for="intent"><a href="https://developer.foursquare.com/docs/venues/search" target="_blank">Inten&ccedil;&atilde;o</a>:</label></div>
+						<div class="intentcomboboxlabel"><label for="intent"><a href="https://docs.foursquare.com/developer/reference/place-search" target="_blank">Inten&ccedil;&atilde;o</a>:</label></div>
 						<div class="intentcombobox">
 							<div class="comboboxes">
 								<select data-dojo-id="intent" name="intent" id="intent" data-dojo-type="dijit/form/Select">
@@ -598,7 +598,7 @@ if ((isset($_COOKIE['name'])) && (strlen($_COOKIE['name']) > 0))
 						</div>
 					</div>
 					<div class="row">
-						<div class="limitcomboboxlabel"><label for="limit"><a href="https://developer.foursquare.com/docs/venues/search" target="_blank">Limite</a>:</label></div>
+						<div class="limitcomboboxlabel"><label for="limit"><a href="https://docs.foursquare.com/developer/reference/place-search" target="_blank">Limite</a>:</label></div>
 						<div class="limitcombobox">
 							<div class="comboboxes">
 								<select data-dojo-id="limit" name="limit" id="limit" id="intent" style="margin-bottom: 3px" data-dojo-type="dijit/form/Select">

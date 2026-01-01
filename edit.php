@@ -70,7 +70,7 @@ include 'includes/app_credentials.php';
 </header>
 
 <article>
-	<p>Antes de salvar suas propostas de altera&ccedil;&otilde;es, n&atilde;o deixe de ler nosso <a id="guia" href="javascript:showDialogGuia()">guia de estilo</a> e as <a id="regras" href="https://pt.foursquare.com/info/houserules" target="_blank">regras da casa</a>.</p>
+	<p>Antes de salvar suas propostas de altera&ccedil;&otilde;es, certifique-se de ler nosso <a id="guia" href="javascript:showDialogGuia()">guia de estilo</a> e as <a id="regras" href="https://pt.foursquare.com/info/houserules" target="_blank">regras da casa</a>.</p>
 </article>
 <article>
 	<div id="mapa"></div>
@@ -283,6 +283,7 @@ foreach ($file as $f) {
 <article>
 	<div id="fixedtray">
 		<button id="saveButton" dojoType="dijit.form.Button" type="submit" name="saveButton" onclick="javascript:showDialogComment(this.name)" style="float: left; padding-right: 3px;" disabled>Salvar</button>
+		<button id="reloadButton" dojoType="dijit.form.Button" type="button" onclick="recarregarDadosVenues()" name="reloadButton" style="float: left; padding-right: 3px;" disabled>Recarregar</button>
 		<button id="backButton" dojoType="dijit.form.Button" type="button" onclick="location.href='main.php'" name="backButton" style="float: left; padding-right: 3px;">Voltar</button>
 		<div id="dropdownButtonContainer" style="float: left"></div>
 	</div>
@@ -309,6 +310,16 @@ foreach ($file as $f) {
 <div data-dojo-type="dijit.Dialog" id="dlg_save" data-dojo-props='title:"Salvando venues..."'>
 	<div dojoType="dijit.ProgressBar" style="width:300px" jsId="jsProgress"
 id="saveProgress">
+	</div>
+</div>
+<!-- Modal de Confirmacao ao Recarregar -->
+<div data-dojo-type="dijit.Dialog" id="dlg_reload" data-dojo-props="title:'Confirmar Recarregamento'" style="display:none; width: 400px;">
+	<div class="dijitDialogPaneContentArea">
+		<p id="reloadMessage" style="margin: 10px 0;">Você tem edições não salvas. Recarregar os dados descartará todas as alterações. Deseja realmente continuar?</p>
+	</div>
+	<div class="dijitDialogPaneActionBar">
+		<button data-dojo-type="dijit.form.Button" type="button" id="confirmReloadButton">Recarregar Mesmo Assim</button>
+		<button data-dojo-type="dijit.form.Button" type="button" data-dojo-props="onClick:function(){ dijit.byId('dlg_reload').hide(); }">Cancelar</button>
 	</div>
 </div>
 <!-- Janela de Digitacao de Comentario -->

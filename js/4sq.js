@@ -106,6 +106,7 @@ function atualizarEditadas(i, timeout) {
 		dijit.byId("dlg_save").set("title", "Salvando 1 venue...");
 	else if (editadas == 0) {
 		dijit.byId("saveButton").setAttribute('disabled', false);
+		dijit.byId("reloadButton").setAttribute('disabled', false);
 		var title = totalProgresso + " de " + totalEditadas + " venue";
 		if (totalEditadas > 1)
 			title += "s";
@@ -183,6 +184,7 @@ function atualizarFalhas(metodo, i, acao, timeout) {
 function limparLinhasEditadas() {
 	linhasEditadas = [];
 	dijit.byId("saveButton").setAttribute('disabled', false);
+	dijit.byId("reloadButton").setAttribute('disabled', false);
 }
 
 function desabilitarLinha(i) {
@@ -259,7 +261,15 @@ function xmlhttpRequest(metodo, endpoint, acao, dados, i) {
 						dijit.byId("menuItemExportarRelatorio").setAttribute("disabled", false);
 					}
 					atualizarDicaResultado(item, imagem, dica);
-				} else if ((metodo == "GET") && (resposta.response.categories == undefined)) {
+				} else if ((metodo == "GET") && (acao == "reload") && (resposta.response.venue != undefined)) {
+					// Ação de reload - atualiza venue individual
+					atualizarTabela(resposta.response.venue, i);
+					console.info("✅ Venue " + (i + 1) + " recarregada com sucesso!");
+				} else if ((metodo == "GET") && (acao == "load") && (resposta.response.venue != undefined)) {
+					// Ação de load normal
+					atualizarTabela(resposta.response.venue, i);
+				} else if ((metodo == "GET") && (resposta.response.categories == undefined) && (resposta.response.venue != undefined)) {
+					// Fallback para carregamento sem especificar ação
 					atualizarTabela(resposta.response.venue, i);
 				} else if (resposta.response.categories != undefined) {
 					montarArvore(resposta);
@@ -725,16 +735,26 @@ function atualizarTabela(venue, i) {
 	}
 	csv[i + 1] = linha.replace(/undefined/gi, "").split("&&");
 	venuellOriginais[i] = document.forms[i]["venuell"].value;
+	
+	// Verifica se esta linha foi marcada para recarregamento
+	const isReloading = document.forms[i].getAttribute('data-reloading') === 'true';
+	const permitirEdicao = (modo == DADOS_COMPLETOS) || isReloading;
+	
 	if (venue.categories[0] == undefined) {
-		(modo == DADOS_COMPLETOS) ? dojo.byId("icone" + i).innerHTML = "<a id='catLnk" + i + "' href='javascript:editarCategorias(" + i + ")'><img id=catImg" + i + " src='https://foursquare.com/img/categories_v2/none_bg_32.png' style='height: 22px; width: 22px; margin-left: 0px'></a>" : dojo.byId("icone" + i).innerHTML = "<img id=catImg" + i + " src='https://foursquare.com/img/categories_v2/none_bg_32.png' style='height: 22px; width: 22px; margin-left: 0px'>";
+		(permitirEdicao) ? dojo.byId("icone" + i).innerHTML = "<a id='catLnk" + i + "' href='javascript:editarCategorias(" + i + ")'><img id=catImg" + i + " src='https://foursquare.com/img/categories_v2/none_bg_32.png' style='height: 22px; width: 22px; margin-left: 0px'></a>" : dojo.byId("icone" + i).innerHTML = "<img id=catImg" + i + " src='https://foursquare.com/img/categories_v2/none_bg_32.png' style='height: 22px; width: 22px; margin-left: 0px'>";
 	} else if ((venue.categories[0].id == CATEGORIA_HOME) || (modo == DADOS_PARCIAIS)) {
 		dojo.byId("icone" + i).innerHTML = "<img id=catLnk" + i + " src='" + categorias[i].icones.split(",", 1)[0] + "' style='height: 22px; width: 22px; margin-left: 0px'>";
 		createTooltip("catLnk" + i, "<span style=\"font-size: 12px\">" + categorias[i].nomes.replace(/,/gi, ", ") + "</span>");
 	} else if (venue.id != document.forms[i]["venue"].value) {
 		desabilitarLinha(i);
 	} else {
-		dojo.byId("icone" + i).innerHTML = "<a id='catLnk" + i + "' href='javascript:editarCategorias(" + i + ")'><img id=catImg" + i + " src='" + categorias[i].icones.split(",", 1)[0] + "' style='height: 22px; width: 22px; margin-left: 0px'></a>";
-		createTooltip("catLnk" + i, "<span style=\"font-size: 12px\">" + categorias[i].nomes.replace(/,/gi, ", ") + "</span>");
+		if (permitirEdicao) {
+			dojo.byId("icone" + i).innerHTML = "<a id='catLnk" + i + "' href='javascript:editarCategorias(" + i + ")'><img id=catImg" + i + " src='" + categorias[i].icones.split(",", 1)[0] + "' style='height: 22px; width: 22px; margin-left: 0px'></a>";
+			createTooltip("catLnk" + i, "<span style=\"font-size: 12px\">" + categorias[i].nomes.replace(/,/gi, ", ") + "</span>");
+		} else {
+			dojo.byId("icone" + i).innerHTML = "<img id=catLnk" + i + " src='" + categorias[i].icones.split(",", 1)[0] + "' style='height: 22px; width: 22px; margin-left: 0px'>";
+			createTooltip("catLnk" + i, "<span style=\"font-size: 12px\">" + categorias[i].nomes.replace(/,/gi, ", ") + "</span>");
+		}
 	}
 	document.forms[i]["verified"].value = venue.verified;
 	document.forms[i]["checkinsCount"].value = venue.stats.checkinsCount;
@@ -832,6 +852,30 @@ function montarArvore(resposta) {
 	}));
 	JSONText = JSON.stringify(restructuredData);
 	//console.log(JSONText);
+	
+	// Verifica se widget já existe - se sim, apenas atualiza o modelo ao invés de destruir
+	var existingTree = dijit.byId("treeContainer");
+	if (existingTree) {
+		// Árvore já existe, atualiza apenas o store
+		store = new dojo.data.ItemFileReadStore({
+			data: {
+				"identifier": "id",
+				"label": "name",
+				"items": restructuredData
+			}
+		});
+		var treeModel = new dijit.tree.ForestStoreModel({
+			store: store,
+			rootId: "root",
+			rootLabel: "Categorias",
+			childrenAttrs: ["children"]
+		});
+		existingTree.set("model", treeModel);
+		console.info("Árvore de categorias atualizada!");
+		return;
+	}
+	
+	// Cria árvore pela primeira vez
 	store = new dojo.data.ItemFileReadStore({
 		data: {
 			"identifier": "id",
@@ -920,6 +964,174 @@ function carregarDadosVenues() {
 	}
 }
 
+/**
+ * Recarrega dados das venues da API Foursquare
+ * - Se houver venues selecionadas, recarrega apenas as selecionadas
+ * - Se não houver seleções, recarrega todas
+ * - Verifica se há edições não salvas antes de proceder
+ * - Sempre força carregamento completo (DADOS_COMPLETOS)
+ * - Atualiza localStorage e marcadores do Google Maps
+ */
+function recarregarDadosVenues() {
+	// Verifica se há edições não salvas
+	if (linhasEditadas.length > 0) {
+		var numEdicoes = linhasEditadas.length;
+		var mensagem = "Você tem " + numEdicoes + (numEdicoes > 1 ? " edições" : " edição") + " não " + (numEdicoes > 1 ? "salvas" : "salva") + ". Recarregar descartará todas as alterações. Deseja continuar?";
+		dojo.byId("reloadMessage").innerHTML = mensagem;
+		
+		// Configura ação do botão de confirmação
+		var confirmButton = dijit.byId("confirmReloadButton");
+		if (confirmButton._connections) {
+			dojo.forEach(confirmButton._connections, dojo.disconnect);
+		}
+		confirmButton.onClick = function() {
+			dijit.byId("dlg_reload").hide();
+			executarRecarregamento();
+		};
+		
+		dijit.byId("dlg_reload").show();
+	} else {
+		executarRecarregamento();
+	}
+}
+
+/**
+ * Executa o recarregamento efetivo dos dados
+ */
+function executarRecarregamento() {
+	// Determina quais venues recarregar
+	var venuesParaRecarregar = [];
+	var checkboxesSelecionados = dojo.query("input[name=selecao]:checked");
+	var totalSelecionadas = checkboxesSelecionados.length;
+	
+	if (totalSelecionadas > 0) {
+		// Recarrega apenas as selecionadas
+		checkboxesSelecionados.forEach(function(checkbox) {
+			var venueIndex = parseInt(dijit.byId(checkbox.id).value);
+			venuesParaRecarregar.push(venueIndex);
+		});
+		console.info("Recarregando " + totalSelecionadas + " venue" + (totalSelecionadas > 1 ? "s" : "") + " selecionada" + (totalSelecionadas > 1 ? "s" : "") + "...");
+	} else {
+		// Recarrega todas
+		for (var i = 0; i < document.forms.length; i++) {
+			venuesParaRecarregar.push(i);
+		}
+		console.info("Recarregando todas as " + venuesParaRecarregar.length + " venues...");
+	}
+	
+	// Salva estado dos checkboxes antes do reload
+	var estadoCheckboxes = {};
+	dojo.query("input[name=selecao]").forEach(function(checkbox) {
+		estadoCheckboxes[checkbox.id] = dijit.byId(checkbox.id).checked;
+	});
+	
+	// Salva posição do scroll
+	var scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+	
+	// Configura progress bar
+	totalCarregadas = 0;
+	totalNaoCarregadas = 0;
+	var totalParaRecarregar = venuesParaRecarregar.length;
+	dijit.byId("saveProgress").update({maximum: totalParaRecarregar, progress: 0});
+	
+	var tituloModal = "Recarregando " + totalParaRecarregar + " venue" + (totalParaRecarregar > 1 ? "s" : "") + "...";
+	dijit.byId("dlg_save").set("title", tituloModal);
+	dijit.byId("dlg_save").show();
+	
+	// Desabilita botões durante recarregamento
+	dijit.byId("saveButton").setAttribute("disabled", true);
+	dijit.byId("reloadButton").setAttribute("disabled", true);
+	
+	// Limpa apenas o array de edições pendentes (mantém estado do botão Salvar)
+	linhasEditadas = [];
+	
+	// Limpa cache JSON para forçar dados completos
+	json = "";
+	if (localStorage) {
+		localStorage.removeItem('venues');
+	}
+	
+	// Força modo DADOS_COMPLETOS
+	modo = DADOS_COMPLETOS;
+	
+	// Carrega categorias se necessário (habilita edição)
+	var d = new Date();
+	d.setHours(0, 0, 0, 0);
+	if ((!localStorage.getItem('categorias')) || (d > dojo.cookie("data_categorias"))) {
+		carregarListaCategorias();
+	} else {
+		var resposta = JSON.parse(localStorage.getItem('categorias'));
+		montarArvore(resposta);
+		console.info("Categorias recuperadas do localStorage!");
+	}
+	
+	// Contador para progresso
+	var carregadasNoReload = 0;
+	
+	// Recarrega cada venue
+	venuesParaRecarregar.forEach(function(venueIndex) {
+		var venue = document.forms[venueIndex]["venue"].value;
+		dojo.byId("result" + venueIndex).innerHTML = "<img src='img/loading.gif' alt='Recarregando dados...'>";
+		
+		// Marca que esta linha está sendo recarregada (para habilitar categorias depois)
+		document.forms[venueIndex].setAttribute('data-reloading', 'true');
+		
+		// Faz requisição à API
+		xmlhttpRequest("GET", "https://api.foursquare.com/v2/venues/" + venue + "?oauth_token=" + oauth_token + "&v=" + DATA_VERSIONAMENTO, "reload", null, venueIndex);
+	});
+	
+	// Monitora conclusão do reload (a atualização de progresso é feita via xmlhttpRequest callback)
+	var checkReloadComplete = setInterval(function() {
+		var totalProcessadas = totalCarregadas + totalNaoCarregadas;
+		dijit.byId("saveProgress").update({progress: totalProcessadas});
+		
+		if (totalProcessadas >= totalParaRecarregar) {
+			clearInterval(checkReloadComplete);
+			
+			// Restaura estado dos checkboxes
+			setTimeout(function() {
+				for (var checkboxId in estadoCheckboxes) {
+					if (dijit.byId(checkboxId)) {
+						dijit.byId(checkboxId).setChecked(estadoCheckboxes[checkboxId]);
+					}
+				}
+				
+				// Remove marcação de recarregamento das linhas
+				venuesParaRecarregar.forEach(function(venueIndex) {
+					document.forms[venueIndex].removeAttribute('data-reloading');
+				});
+				
+				// Restaura posição do scroll
+				window.scrollTo(0, scrollTop);
+			}, 100);
+			
+			// Atualiza marcadores do Google Maps
+			if (window.googleMaps && window.googleMaps.map && window.locais.length > 0) {
+				console.info("Atualizando marcadores do mapa...");
+				window.googleMaps.updateMarkers(window.locais);
+			}
+			
+			// Exibe mensagem final
+			var mensagemFinal = "Recarregamento concluído!";
+			if (totalNaoCarregadas > 0) {
+				mensagemFinal += " (" + totalNaoCarregadas + " falha" + (totalNaoCarregadas > 1 ? "s" : "") + ")";
+			}
+			dijit.byId("dlg_save").set("title", mensagemFinal);
+			
+			// Habilita botões após conclusão
+			dijit.byId("saveButton").setAttribute("disabled", false);
+			dijit.byId("reloadButton").setAttribute("disabled", false);
+			
+			console.info("✅ " + mensagemFinal);
+			
+			// Fecha modal após 2 segundos
+			setTimeout(function() {
+				dijit.byId("dlg_save").hide();
+			}, 2000);
+		}
+	}, 100);
+}
+
 function salvarVenues() {
 	totalEditadas = 0;
 	totalParaSalvar = linhasEditadas.length;
@@ -929,6 +1141,7 @@ function salvarVenues() {
 	(totalParaSalvar > 1) ? dijit.byId("dlg_save").set("title", "Salvando " + totalParaSalvar + " venues...") : dijit.byId("dlg_save").set("title", "Salvando 1 venue...");
 	dijit.byId("dlg_save").show();
 	dijit.byId("saveButton").setAttribute("disabled", true);
+	dijit.byId("reloadButton").setAttribute("disabled", true);
 	var i, venueId, dados, elementName;
 	console.info("Enviando dados...");
 	for (l = 0; l < totalParaSalvar; l++) {
