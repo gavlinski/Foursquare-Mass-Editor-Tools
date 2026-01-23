@@ -59,6 +59,9 @@ var totalTimeout = 0;
 
 var actionButton = "";
 
+// Array para rastrear quais venues têm dados completos (modo DADOS_COMPLETOS ou recarregadas)
+var venuesComDadosCompletos = [];
+
 // Torna locais global para integração com Google Maps
 window.locais = [];
 // Variáveis legacas removidas - usando apenas window.googleMaps
@@ -95,8 +98,16 @@ function atualizarDicaResultado(item, imagem, dica) {
 }
 
 function atualizarEditadas(i, timeout) {
-	if (timeout == false)
+	if (timeout == false) {
 		linhasEditadas.splice(linhasEditadas.indexOf(i), 1);
+		
+		// Remove indicador visual de edição e erro após salvar com sucesso
+		var linhaElement = dojo.byId("linha" + i);
+		if (linhaElement) {
+			dojo.removeClass(linhaElement, "edited");
+			dojo.removeClass(linhaElement, "error"); // Remove erro se existir
+		}
+	}
 	totalEditadas++;
 	var editadas = linhasEditadas.length - totalTimeout;
 	dijit.byId("saveProgress").update({maximum: totalParaSalvar, progress: totalEditadas});
@@ -159,6 +170,14 @@ function atualizarFalhas(metodo, i, acao, timeout) {
 	if (metodo == "GET") {
 		desabilitarLinha(i);
 		totalNaoCarregadas++;
+		
+		// Adiciona indicador visual de erro
+		var linhaElement = dojo.byId("linha" + i);
+		if (linhaElement) {
+			dojo.removeClass(linhaElement, "edited"); // Remove estado editado se existir
+			dojo.addClass(linhaElement, "error");
+		}
+		
 		/*** Se tiver sido a última venue a ser carregada ***/
 		if (totalCarregadas == (document.forms.length - totalNaoCarregadas)) {
 			limparLinhasEditadas();
@@ -179,9 +198,30 @@ function atualizarFalhas(metodo, i, acao, timeout) {
 		else if (acao == "flag")
 			atualizarSinalizadas(i, timeout);
 	}
+	
+	// Adiciona indicador visual de erro para POST (save/flag)
+	if (metodo == "POST") {
+		var linhaElement = dojo.byId("linha" + i);
+		if (linhaElement) {
+			dojo.removeClass(linhaElement, "edited"); // Remove estado editado
+			dojo.addClass(linhaElement, "error");
+		}
+	}
 }
 
+/**
+ * Limpa o array de linhas editadas e remove indicadores visuais
+ * Chamada após salvar com sucesso ou ao recarregar dados
+ */
 function limparLinhasEditadas() {
+	// Remove classe visual de todas as linhas editadas
+	for (var i = 0; i < linhasEditadas.length; i++) {
+		var linhaElement = dojo.byId("linha" + linhasEditadas[i]);
+		if (linhaElement) {
+			dojo.removeClass(linhaElement, "edited");
+			dojo.removeClass(linhaElement, "error"); // Remove erro também
+		}
+	}
 	linhasEditadas = [];
 	dijit.byId("saveButton").setAttribute('disabled', false);
 	dijit.byId("reloadButton").setAttribute('disabled', false);
@@ -204,8 +244,15 @@ function desabilitarLinha(i) {
 		}
 	);
 	var linhaEditada = linhasEditadas.indexOf(parseInt(i));
-	if (linhaEditada != -1)
+	if (linhaEditada != -1) {
 		linhasEditadas.splice(linhaEditada, 1);
+		// Remove classe visual
+		var linhaElement = dojo.byId("linha" + i);
+		if (linhaElement) {
+			dojo.removeClass(linhaElement, "edited");
+			dojo.removeClass(linhaElement, "error"); // Remove erro também
+		}
+	}
 }
 
 function compare(el1, el2, index) {
@@ -363,6 +410,33 @@ function atualizarCategorias(nomes, ids, icones) {
 	//console.log(dojo.byId("catsIcones").innerHTML);
 }
 
+/**
+ * Conta quantas venues têm dados completos (podem ter categorias editadas)
+ * @returns {number} Quantidade de venues com dados completos e não desabilitadas
+ */
+function contarVenuesComDadosCompletos() {
+	var count = 0;
+	for (var i = 0; i < document.forms.length; i++) {
+		if (venuesComDadosCompletos.indexOf(i) !== -1 && dojo.query("input[name=selecao]")[i].disabled != true) {
+			count++;
+		}
+	}
+	return count;
+}
+
+/**
+ * Verifica se há venues com dados parciais (sem todas as categorias)
+ * @returns {boolean} True se houver pelo menos uma venue com dados parciais
+ */
+function temVenuesComDadosParciais() {
+	for (var i = 0; i < document.forms.length; i++) {
+		if (venuesComDadosCompletos.indexOf(i) === -1 && dojo.query("input[name=selecao]")[i].disabled != true) {
+			return true;
+		}
+	}
+	return false;
+}
+
 function editarCategorias(i) {
 	var nomes = [];
 	var ids =	 "";
@@ -375,8 +449,16 @@ function editarCategorias(i) {
 	atualizarCategorias(nomes, ids, icones);
 	dojo.byId("venueIndex").innerHTML = i;
 	dijit.byId("dlg_cats").show();
-	dijit.byId("editAllCheckbox").attr("checked", false);
-	dijit.byId("editAllCheckbox").attr("disabled", false);
+	
+	// Habilita checkbox apenas se houver 2+ venues com dados completos
+	var totalComDadosCompletos = contarVenuesComDadosCompletos();
+	if (totalComDadosCompletos >= 2) {
+		dijit.byId("editAllCheckbox").attr("checked", false);
+		dijit.byId("editAllCheckbox").attr("disabled", false);
+	} else {
+		dijit.byId("editAllCheckbox").attr("checked", false);
+		dijit.byId("editAllCheckbox").attr("disabled", true);
+	}
 }
 
 function removerCategoria(i) {
@@ -444,6 +526,54 @@ function tornarCategoriaPrimaria(i) {
 function salvarCategorias() {
 	var venueIndex, venueLoop;
 	var nomes = "";
+	
+	// Verifica se checkbox está marcada e há venues com dados parciais
+	if (dijit.byId("editAllCheckbox").checked && temVenuesComDadosParciais()) {
+		// Mostra modal de confirmação
+		mostrarConfirmacaoEdicaoMultiplaCategorias();
+		return;
+	}
+	
+	// Processa a edição normalmente
+	processarEdicaoCategorias();
+}
+
+/**
+ * Mostra modal de confirmação quando há venues com dados parciais
+ */
+function mostrarConfirmacaoEdicaoMultiplaCategorias() {
+	var totalComDadosCompletos = contarVenuesComDadosCompletos();
+	var totalParciais = 0;
+	for (var i = 0; i < document.forms.length; i++) {
+		if (venuesComDadosCompletos.indexOf(i) === -1 && dojo.query("input[name=selecao]")[i].disabled != true) {
+			totalParciais++;
+		}
+	}
+	
+	// Textos com singular e plural corretos
+	var textoParciais = totalParciais === 1 
+		? "Há <strong>1 local</strong> carregado com dados parciais que não pode ter as categorias alteradas sem risco de perda de informações." 
+		: "Há <strong>" + totalParciais + " locais</strong> carregados com dados parciais que não podem ter as categorias alteradas sem risco de perda de informações.";
+	
+	var textoCompletos = totalComDadosCompletos === 1
+		? "Apenas <strong>1 local</strong> carregado com dados completos será alterado."
+		: "Apenas <strong>" + totalComDadosCompletos + " locais</strong> carregados com dados completos serão alterados.";
+	
+	// Atualiza apenas o conteúdo da mensagem, não o dialog inteiro
+	dojo.byId("confirmEditAllCategoriesMessage").innerHTML = 
+		"<p style='margin: 10px 0;'><strong>Atenção:</strong> " + textoParciais + "</p>" +
+		"<p style='margin: 10px 0;'>" + textoCompletos + "</p>" +
+		"<p style='margin: 10px 0;'><strong>O que deseja fazer?</strong></p>";
+	
+	dijit.byId("dlg_confirmEditAllCategories").show();
+}
+
+/**
+ * Processa a edição de categorias (aplicável apenas a venues com dados completos se editAllCheckbox estiver marcada)
+ */
+function processarEdicaoCategorias() {
+	var venueIndex, venueLoop;
+	var nomes = "";
 	if (dojo.byId("catsIds").innerHTML != "") {
 		nomes = dojo.byId("categoria1").innerHTML;
 		if (dojo.byId("categoria2") !== null) {
@@ -459,7 +589,10 @@ function salvarCategorias() {
 			venueLoop = venueIndex;
 		}
 		for (i = venueIndex; i <= venueLoop; i++) {
-			if (dojo.query("input[name=selecao]")[i].disabled != true) {
+			// Se editAllCheckbox estiver marcada, aplica apenas em venues com dados completos
+			var podeEditar = !dijit.byId("editAllCheckbox").checked || venuesComDadosCompletos.indexOf(i) !== -1;
+			
+			if (dojo.query("input[name=selecao]")[i].disabled != true && podeEditar) {
 				dojo.byId("cna" + i).value = nomes;
 				dojo.byId("cid" + i).value = dojo.byId("catsIds").innerHTML;
 				dojo.byId("cic" + i).value = dojo.byId("catsIcones").innerHTML;
@@ -496,6 +629,12 @@ function salvarCategorias() {
 				dojo.byId("result" + i).innerHTML = "";
 				if (linhasEditadas.indexOf(parseInt(i)) == -1)
 					linhasEditadas.push(parseInt(i));
+				
+				// Adiciona classe visual para indicar linha editada
+				var linhaElement = dojo.byId("linha" + i);
+				if (linhaElement && !dojo.hasClass(linhaElement, "edited")) {
+					dojo.addClass(linhaElement, "edited");
+				}
 				//console.log(dojo.byId("cna" + i).value);
 				//console.log(dojo.byId("cid" + i).value);
 				//console.log(dojo.byId("cic" + i).value);
@@ -740,6 +879,11 @@ function atualizarTabela(venue, i) {
 	const isReloading = document.forms[i].getAttribute('data-reloading') === 'true';
 	const permitirEdicao = (modo == DADOS_COMPLETOS) || isReloading;
 	
+	// Marca esta venue como tendo dados completos se aplicável
+	if (permitirEdicao && venuesComDadosCompletos.indexOf(i) === -1) {
+		venuesComDadosCompletos.push(i);
+	}
+	
 	if (venue.categories[0] == undefined) {
 		(permitirEdicao) ? dojo.byId("icone" + i).innerHTML = "<a id='catLnk" + i + "' href='javascript:editarCategorias(" + i + ")'><img id=catImg" + i + " src='https://foursquare.com/img/categories_v2/none_bg_32.png' style='height: 22px; width: 22px; margin-left: 0px'></a>" : dojo.byId("icone" + i).innerHTML = "<img id=catImg" + i + " src='https://foursquare.com/img/categories_v2/none_bg_32.png' style='height: 22px; width: 22px; margin-left: 0px'>";
 	} else if ((venue.categories[0].id == CATEGORIA_HOME) || (modo == DADOS_PARCIAIS)) {
@@ -773,6 +917,19 @@ function atualizarTabela(venue, i) {
 		document.forms[i]["createdAt"].value = formattedTime(venue.createdAt);
 	var dicaVenue = atualizarDicaVenue(i);
 	createTooltip("venLnk" + i, dicaVenue);
+	
+	// Atualiza URL do link com canonicalUrl se disponível
+	if (venue.canonicalUrl) {
+		const linkElement = dojo.byId("venLnk" + i);
+		if (linkElement) {
+			// Preserva o parâmetro ?ref= se existir
+			const currentHref = linkElement.getAttribute('href');
+			const refMatch = currentHref.match(/\?ref=([^&]+)/);
+			const refParam = refMatch ? '?ref=' + refMatch[1] : '';
+			linkElement.setAttribute('href', venue.canonicalUrl + refParam);
+		}
+	}
+	
 	(modo == DADOS_COMPLETOS) ? csv[i + 1] = csv[i + 1].concat("", "", "", document.forms[i]["createdAt"].value + ";" + document.forms[i]["checkinsCount"].value + ";" + document.forms[i]["usersCount"].value + ";" + document.forms[i]["tipCount"].value + ";" + document.forms[i]["likesCount"].value + ";" + document.forms[i]["listedCount"].value + ";" + document.forms[i]["photosCount"].value + ";" + document.forms[i]["isClosed"].value + ";" + document.forms[i]["isPrivate"].value + ";" + document.forms[i]["isDeleted"].value) : csv[i + 1] = csv[i + 1].concat(document.forms[i]["checkinsCount"].value + ";" + document.forms[i]["usersCount"].value + ";" + document.forms[i]["tipCount"].value);
 	if (totalCarregadas == document.forms.length - totalNaoCarregadas) {
 		(modo == DADOS_COMPLETOS) ? csv[0] = csv[0].concat("createdAt;checkins;users;tips;likes;listed;photos;closed;private;deleted") : csv[0] = csv[0].concat("checkins;users;tips");
@@ -788,7 +945,9 @@ function atualizarTabela(venue, i) {
 		console.info("Marcadores atualizados!");
 	}
 	
-	if (totalCarregadas == (document.forms.length - totalNaoCarregadas)) {
+	// Só limpa linhas editadas se for carregamento inicial (não reload)
+	// Durante reload, a limpeza é feita seletivamente em executarRecarregamento
+	if (!isReloading && totalCarregadas == (document.forms.length - totalNaoCarregadas)) {
 		limparLinhasEditadas();
 		console.info("Marcadores posicionados!");
 		
@@ -971,34 +1130,59 @@ function carregarDadosVenues() {
  * - Verifica se há edições não salvas antes de proceder
  * - Sempre força carregamento completo (DADOS_COMPLETOS)
  * - Atualiza localStorage e marcadores do Google Maps
+ * @param {number} [excluirIndice] - Índice da venue a ser excluída do recarregamento (opcional)
  */
-function recarregarDadosVenues() {
+function recarregarDadosVenues(excluirIndice) {
 	// Verifica se há edições não salvas
 	if (linhasEditadas.length > 0) {
+		// Verifica se há seleções
+		var checkboxesSelecionados = dojo.query("input[name=selecao]:checked");
+		var totalSelecionadas = checkboxesSelecionados.length;
+		
 		var numEdicoes = linhasEditadas.length;
-		var mensagem = "Você tem " + numEdicoes + (numEdicoes > 1 ? " edições" : " edição") + " não " + (numEdicoes > 1 ? "salvas" : "salva") + ". Recarregar descartará todas as alterações. Deseja continuar?";
-		dojo.byId("reloadMessage").innerHTML = mensagem;
 		
-		// Configura ação do botão de confirmação
-		var confirmButton = dijit.byId("confirmReloadButton");
-		if (confirmButton._connections) {
-			dojo.forEach(confirmButton._connections, dojo.disconnect);
+		// Se houver seleções, conta apenas as editadas que estão selecionadas
+		if (totalSelecionadas > 0) {
+			var edicoesNaSelecionadas = 0;
+			checkboxesSelecionados.forEach(function(checkbox) {
+				var venueIndex = parseInt(dijit.byId(checkbox.id).value);
+				if (linhasEditadas.indexOf(venueIndex) !== -1) {
+					edicoesNaSelecionadas++;
+				}
+			});
+			numEdicoes = edicoesNaSelecionadas;
 		}
-		confirmButton.onClick = function() {
-			dijit.byId("dlg_reload").hide();
-			executarRecarregamento();
-		};
 		
-		dijit.byId("dlg_reload").show();
+		// Só exibe mensagem se houver edições pendentes nos locais selecionados
+		if (numEdicoes > 0) {
+			var mensagem = "Você tem " + numEdicoes + (numEdicoes > 1 ? " edições" : " edição") + " não " + (numEdicoes > 1 ? "salvas" : "salva") + " nos " + (totalSelecionadas > 0 ? "locais selecionados" : "locais") + ". Recarregar descartará todas as alterações. Deseja continuar?";
+			dojo.byId("reloadMessage").innerHTML = mensagem;
+			
+			// Configura ação do botão de confirmação
+			var confirmButton = dijit.byId("confirmReloadButton");
+			if (confirmButton._connections) {
+				dojo.forEach(confirmButton._connections, dojo.disconnect);
+			}
+			confirmButton.onClick = function() {
+				dijit.byId("dlg_reload").hide();
+				executarRecarregamento(excluirIndice);
+			};
+			
+			dijit.byId("dlg_reload").show();
+		} else {
+			// Não há edições nos locais selecionados, recarrega diretamente
+			executarRecarregamento(excluirIndice);
+		}
 	} else {
-		executarRecarregamento();
+		executarRecarregamento(excluirIndice);
 	}
 }
 
 /**
  * Executa o recarregamento efetivo dos dados
+ * @param {number} [excluirIndice] - Índice da venue a ser excluída do recarregamento (opcional)
  */
-function executarRecarregamento() {
+function executarRecarregamento(excluirIndice) {
 	// Determina quais venues recarregar
 	var venuesParaRecarregar = [];
 	var checkboxesSelecionados = dojo.query("input[name=selecao]:checked");
@@ -1008,15 +1192,24 @@ function executarRecarregamento() {
 		// Recarrega apenas as selecionadas
 		checkboxesSelecionados.forEach(function(checkbox) {
 			var venueIndex = parseInt(dijit.byId(checkbox.id).value);
-			venuesParaRecarregar.push(venueIndex);
+			// Exclui o índice especificado se fornecido
+			if (excluirIndice === undefined || venueIndex !== excluirIndice) {
+				venuesParaRecarregar.push(venueIndex);
+			}
 		});
-		console.info("Recarregando " + totalSelecionadas + " venue" + (totalSelecionadas > 1 ? "s" : "") + " selecionada" + (totalSelecionadas > 1 ? "s" : "") + "...");
+		console.info("Recarregando " + venuesParaRecarregar.length + " venue" + (venuesParaRecarregar.length > 1 ? "s" : "") + " selecionada" + (venuesParaRecarregar.length > 1 ? "s" : "") + "...");
 	} else {
 		// Recarrega todas
 		for (var i = 0; i < document.forms.length; i++) {
-			venuesParaRecarregar.push(i);
+			// Exclui o índice especificado se fornecido
+			if (excluirIndice === undefined || i !== excluirIndice) {
+				venuesParaRecarregar.push(i);
+			}
 		}
-		console.info("Recarregando todas as " + venuesParaRecarregar.length + " venues...");
+		var mensagemLog = excluirIndice !== undefined 
+			? "Recarregando " + venuesParaRecarregar.length + " venue" + (venuesParaRecarregar.length > 1 ? "s" : "") + " (exceto a venue de origem)..."
+			: "Recarregando todas as " + venuesParaRecarregar.length + " venues...";
+		console.info(mensagemLog);
 	}
 	
 	// Salva estado dos checkboxes antes do reload
@@ -1042,8 +1235,20 @@ function executarRecarregamento() {
 	dijit.byId("saveButton").setAttribute("disabled", true);
 	dijit.byId("reloadButton").setAttribute("disabled", true);
 	
-	// Limpa apenas o array de edições pendentes (mantém estado do botão Salvar)
-	linhasEditadas = [];
+	// Remove indicadores visuais apenas das linhas que serão recarregadas
+	for (var idx = 0; idx < venuesParaRecarregar.length; idx++) {
+		var venueIdx = venuesParaRecarregar[idx];
+		var linhaElement = dojo.byId("linha" + venueIdx);
+		if (linhaElement) {
+			dojo.removeClass(linhaElement, "edited");
+			dojo.removeClass(linhaElement, "error"); // Remove erro também
+		}
+		// Remove do array de linhas editadas
+		var posicaoEditada = linhasEditadas.indexOf(venueIdx);
+		if (posicaoEditada !== -1) {
+			linhasEditadas.splice(posicaoEditada, 1);
+		}
+	}
 	
 	// Limpa cache JSON para forçar dados completos
 	json = "";
@@ -1555,8 +1760,16 @@ dojo.addOnLoad(function inicializar() {
 			onClick: function() {
 				atualizarCategorias([], "", "");
 				dijit.byId("dlg_cats").show();
-				dijit.byId("editAllCheckbox").attr("checked", true);
-				dijit.byId("editAllCheckbox").attr("disabled", true);
+				
+				// Habilita checkbox apenas se houver 2+ venues com dados completos
+				var totalComDadosCompletos = contarVenuesComDadosCompletos();
+				if (totalComDadosCompletos >= 2) {
+					dijit.byId("editAllCheckbox").attr("checked", true);
+					dijit.byId("editAllCheckbox").attr("disabled", false);
+				} else {
+					dijit.byId("editAllCheckbox").attr("checked", false);
+					dijit.byId("editAllCheckbox").attr("disabled", true);
+				}
 				//console.log(this.id + " clicado.");
 			}
 		});
@@ -1868,24 +2081,129 @@ function showDialogEditField(field) {
 	dijit.byId('dlg_editField').show();
 }
 
+/**
+ * Exibe modal de exportação de URLs dos locais carregados
+ * Permite escolher entre 3 formatos:
+ * - URL Canônica (com nome do local, só disponível se todos tiverem dados completos)
+ * - URL Padrão (curta, sempre disponível)
+ * - Somente IDs (apenas os IDs de 24 caracteres)
+ */
 function showDialogExportUrls() {
 	var arq = txt.slice(0);
 	if (totalSelecionadas > 0)
 		arq = removerNaoSelecionadas(arq, 0);
 	
-	// Limpa %0A e formata como lista de URLs
-	var urlList = arq.map(function(url) {
-		return url.replace(/%0A/g, '');
-	}).join('\n');
+	// Verifica se todos os locais têm dados completos
+	var indicesSelecionados = [];
+	if (totalSelecionadas > 0) {
+		// Se há seleção, considera apenas os selecionados
+		for (var i = 0; i < document.forms.length; i++) {
+			if (document.forms[i]["selecao"].checked) {
+				indicesSelecionados.push(i);
+			}
+		}
+	} else {
+		// Se não há seleção, considera todos
+		for (var i = 0; i < document.forms.length; i++) {
+			indicesSelecionados.push(i);
+		}
+	}
+	
+	// Verifica se todos os locais considerados têm dados completos
+	var todosComDadosCompletos = indicesSelecionados.every(function(i) {
+		return venuesComDadosCompletos.indexOf(i) !== -1;
+	});
+	
+	// Formatos disponíveis
+	var FORMATO_CANONICA = 'canonica';
+	var FORMATO_PADRAO = 'padrao';
+	var FORMATO_IDS = 'ids';
+	
+	// Formato padrão: canônica se todos tiverem dados completos, senão padrão
+	var formatoAtual = todosComDadosCompletos ? FORMATO_CANONICA : FORMATO_PADRAO;
+	
+	/**
+	 * Gera lista de URLs no formato escolhido
+	 * @param {string} formato - 'canonica', 'padrao' ou 'ids'
+	 * @returns {string} Lista formatada
+	 */
+	function gerarListaUrls(formato) {
+		var lista = [];
+		
+		switch(formato) {
+			case FORMATO_CANONICA:
+				// Pega URLs canônicas dos links
+				for (var j = 0; j < indicesSelecionados.length; j++) {
+					var i = indicesSelecionados[j];
+					var linkElement = dojo.byId("venLnk" + i);
+					if (linkElement) {
+						var url = linkElement.getAttribute('href');
+						// Remove parâmetro ?ref= se existir
+						url = url.replace(/\?ref=[^&]+/, '');
+						lista.push(url);
+					}
+				}
+				break;
+				
+			case FORMATO_PADRAO:
+				// Usa array arq (já filtrado por seleção)
+				lista = arq.map(function(url) {
+					return url.replace(/%0A/g, '');
+				});
+				break;
+				
+			case FORMATO_IDS:
+				// Extrai IDs de 24 caracteres das URLs
+				for (var k = 0; k < arq.length; k++) {
+					var url = arq[k];
+					var match = url.match(/\/v\/([a-f0-9]{24})/i);
+					if (match) {
+						lista.push(match[1]);
+					}
+				}
+				break;
+		}
+		
+		return lista.join('\n');
+	}
+	
+	// Gera lista inicial
+	var urlList = gerarListaUrls(formatoAtual);
 	
 	// Destroi widgets anteriores para evitar erros do Dojo
 	if (dijit.byId('btnSaveUrls')) dijit.byId('btnSaveUrls').destroy();
 	if (dijit.byId('btnCopyUrls')) dijit.byId('btnCopyUrls').destroy();
 	if (dijit.byId('btnCancelUrls')) dijit.byId('btnCancelUrls').destroy();
+	if (dijit.byId('tooltipCanonicaDisabled')) dijit.byId('tooltipCanonicaDisabled').destroy();
+	
+	// Contador de locais
+	var numLocais = indicesSelecionados.length;
+	var textoLocais = numLocais === 1 ? '1 local' : numLocais + ' locais';
 	
 	// Cria o conteúdo da modal
 	var dialogContent = '<div style="padding: 10px;">' +
-		'<p style="margin-top: 0;">Lista de URLs dos locais' + (totalSelecionadas > 0 ? ' selecionados' : '') + ':</p>' +
+		'<p style="margin-top: 0;"><strong>Escolha o formato de exportação:</strong></p>' +
+		'<div style="margin: 10px 0 20px 0;">' +
+			'<div style="margin: 5px 0;">' +
+				'<input type="radio" name="formatoExport" id="radioCanonica" value="' + FORMATO_CANONICA + '" ' +
+					(formatoAtual === FORMATO_CANONICA ? 'checked' : '') + ' ' +
+					(!todosComDadosCompletos ? 'disabled' : '') + '> ' +
+				'<label for="radioCanonica" style="' + (!todosComDadosCompletos ? 'color: #999;' : '') + '">' +
+					'URL Canônica (com nome do local)' +
+				'</label>' +
+				(!todosComDadosCompletos ? ' <span id="iconCanonicaDisabled" class="hoverInfoTip">(?)</span>' : '') +
+			'</div>' +
+			'<div style="margin: 5px 0;">' +
+				'<input type="radio" name="formatoExport" id="radioPadrao" value="' + FORMATO_PADRAO + '" ' +
+					(formatoAtual === FORMATO_PADRAO ? 'checked' : '') + '> ' +
+				'<label for="radioPadrao">URL Padrão (curta)</label>' +
+			'</div>' +
+			'<div style="margin: 5px 0;">' +
+				'<input type="radio" name="formatoExport" id="radioIds" value="' + FORMATO_IDS + '"> ' +
+				'<label for="radioIds">Somente IDs (24 caracteres)</label>' +
+			'</div>' +
+		'</div>' +
+		'<p style="margin-bottom: 5px;">Lista de URLs dos ' + textoLocais + (totalSelecionadas > 0 ? ' selecionados' : '') + ':</p>' +
 		'<textarea id="exportUrlsTextarea" readonly style="width: 100%; height: 300px; font-family: monospace; font-size: 12px; padding: 8px; box-sizing: border-box; resize: vertical;">' + urlList + '</textarea>' +
 		'<div style="text-align: right; margin-top: 10px;">' +
 		'<button id="btnSaveUrls" dojoType="dijit.form.Button">Salvar</button>' +
@@ -1899,13 +2217,72 @@ function showDialogExportUrls() {
 	
 	// Aguarda renderização do Dojo e conecta eventos
 	setTimeout(function() {
+		// Cria tooltip explicativa se URL Canônica estiver desabilitada
+		if (!todosComDadosCompletos && dojo.byId("iconCanonicaDisabled")) {
+			new dijit.Tooltip({
+				id: "tooltipCanonicaDisabled",
+				connectId: ["iconCanonicaDisabled"],
+				label: "Alguns locais não possuem os dados completos. Utilize a<br>opção <strong>Recarregar</strong> para obter URLs canônicas completas.",
+				position: ['after', 'below']
+			});
+		}
+		
+		// Event listener para mudança de formato
+		function atualizarFormatoExport() {
+			var radioCanonica = dojo.byId("radioCanonica");
+			var radioPadrao = dojo.byId("radioPadrao");
+			var radioIds = dojo.byId("radioIds");
+			
+			if (radioCanonica && radioCanonica.checked) {
+				formatoAtual = FORMATO_CANONICA;
+			} else if (radioPadrao && radioPadrao.checked) {
+				formatoAtual = FORMATO_PADRAO;
+			} else if (radioIds && radioIds.checked) {
+				formatoAtual = FORMATO_IDS;
+			}
+			
+			// Atualiza textarea com novo formato
+			var textarea = dojo.byId("exportUrlsTextarea");
+			if (textarea) {
+				urlList = gerarListaUrls(formatoAtual);
+				textarea.value = urlList;
+			}
+		}
+		
+		// Conecta eventos de mudança nos radioboxes
+		if (dojo.byId("radioCanonica")) {
+			dojo.connect(dojo.byId("radioCanonica"), "onchange", atualizarFormatoExport);
+		}
+		if (dojo.byId("radioPadrao")) {
+			dojo.connect(dojo.byId("radioPadrao"), "onchange", atualizarFormatoExport);
+		}
+		if (dojo.byId("radioIds")) {
+			dojo.connect(dojo.byId("radioIds"), "onchange", atualizarFormatoExport);
+		}
+		
+		// Event listeners para botões
 		dojo.connect(dijit.byId("btnSaveUrls"), "onClick", function() {
-			var blob = new Blob([urlList], {type: 'text/plain;charset=utf-8'});
+			// Pega conteúdo atualizado do textarea
+			var textoAtual = dojo.byId("exportUrlsTextarea").value;
+			var blob = new Blob([textoAtual], {type: 'text/plain;charset=utf-8'});
 			var link = document.createElement('a');
 			link.href = window.URL.createObjectURL(blob);
-			link.download = 'venues_urls.txt';
+			
+			// Nome do arquivo baseado no formato
+			var sufixo = '';
+			if (formatoAtual === FORMATO_CANONICA) {
+				sufixo = '_canonical';
+			} else if (formatoAtual === FORMATO_IDS) {
+				sufixo = '_ids';
+			}
+			
+			link.download = 'venues_urls' + sufixo + '_' + new Date().getTime() + '.txt';
 			link.click();
 			window.URL.revokeObjectURL(link.href);
+			console.info('📁 Arquivo exportado com sucesso!');
+			
+			// Fecha a modal após salvar
+			dlg_export_urls.hide();
 		});
 		
 		dojo.connect(dijit.byId("btnCopyUrls"), "onClick", function() {
@@ -1913,6 +2290,10 @@ function showDialogExportUrls() {
 			textarea.select();
 			document.execCommand('copy');
 			alert('URLs copiadas para a área de transferência!');
+			console.info('📋 URLs copiadas para o clipboard!');
+			
+			// Fecha a modal após copiar
+			dlg_export_urls.hide();
 		});
 		
 		dojo.connect(dijit.byId("btnCancelUrls"), "onClick", function() {
@@ -1921,6 +2302,11 @@ function showDialogExportUrls() {
 	}, 100);
 }
 
+/**
+ * Exibe modal com URL direta para carregar locais via load.php
+ * URL pode incluir todos os locais ou apenas os selecionados
+ * Detecta automaticamente ambiente (localhost vs produção)
+ */
 function showDialogExportDirectUrl() {
 	// Detecta o ambiente (localhost vs produção)
 	var host = window.location.hostname === 'localhost' ? 'localhost' : '4sq.eliotools.site';
@@ -1963,6 +2349,10 @@ function showDialogExportDirectUrl() {
 			textarea.select();
 			document.execCommand('copy');
 			alert('URL copiada para a área de transferência!');
+			console.info('📋 URL direta copiada para o clipboard!');
+			
+			// Fecha a modal após copiar
+			dlg_export_direct_url.hide();
 		});
 		
 		dojo.connect(dijit.byId("btnCancelDirectUrl"), "onClick", function() {
@@ -2004,6 +2394,11 @@ function createHtmlTable(headers, rows, tableId) {
 	return tableHtml;
 }
 
+/**
+ * Exibe modal com pré-visualização e opção de exportar dados em formato CSV
+ * Permite exportar todos os locais ou apenas os selecionados
+ * CSV usa separador ponto-e-vírgula (;) e inclui cabeçalhos
+ */
 function showDialogExportCsv() {
 	// Prepara dados CSV
 	var arq = [];
@@ -2070,7 +2465,9 @@ function showDialogExportCsv() {
 			link.download = 'venues_export.csv';
 			link.click();
 			window.URL.revokeObjectURL(link.href);
+			console.info('📁 Arquivo CSV exportado com sucesso!');
 			
+			// Fecha a modal após salvar
 			dlg_export_csv.hide();
 		});
 		
@@ -2080,6 +2477,11 @@ function showDialogExportCsv() {
 	}, 100);
 }
 
+/**
+ * Exibe modal com relatório detalhado de edições realizadas
+ * Inclui nome do local, ação, data/hora, ID e opcionalmente categorias e comentários
+ * Permite salvar relatório em formato texto tabulado (.txt)
+ */
 function showDialogReport() {
 	var COL_NAME = 0;
 	var COL_ACTION = 1;
@@ -2187,6 +2589,10 @@ function showDialogReport() {
 			link.download = 'relatorio_edicoes.txt';
 			link.click();
 			window.URL.revokeObjectURL(link.href);
+			console.info('📁 Relatório exportado com sucesso!');
+			
+			// Fecha a modal após salvar
+			dlg_report.hide();
 		});
 		
 		dojo.connect(dijit.byId("btnCancelReport"), "onClick", function() {
@@ -2252,12 +2658,32 @@ function setupVerticalNavigation() {
 
 function verificarAlteracao(textbox, i) {
 	var index = csv[0].indexOf(textbox.name);
-	if (csv[i + 1][index].slice(1, -1) != textbox.value) {
-		//console.info("changed (" + i + "): " + textbox.name + ", old value: " + csv[i + 1][index].slice(1, -1) + ", new value: " + textbox.value);
+	// Obtém o valor original, removendo aspas se existirem
+	var valorOriginal = csv[i + 1][index];
+	if (typeof valorOriginal === 'string') {
+		// Remove aspas do início e fim se existirem
+		if (valorOriginal.startsWith('"') && valorOriginal.endsWith('"')) {
+			valorOriginal = valorOriginal.slice(1, -1);
+		}
+	} else {
+		valorOriginal = valorOriginal || '';
+	}
+	
+	if (valorOriginal != textbox.value) {
+		//console.info("changed (" + i + "): " + textbox.name + ", old value: " + valorOriginal + ", new value: " + textbox.value);
 		csv[i + 1][index] = '"' + textbox.value + '"';
 		dojo.byId("result" + i).innerHTML = "";
 		if (linhasEditadas.indexOf(i) == -1)
 			linhasEditadas.push(i);
+		
+		// Adiciona classe visual para indicar linha editada
+		var linhaElement = dojo.byId("linha" + i);
+		if (linhaElement) {
+			dojo.removeClass(linhaElement, "error"); // Remove erro se existir
+			if (!dojo.hasClass(linhaElement, "edited")) {
+				dojo.addClass(linhaElement, "edited");
+			}
+		}
 		if (textbox.name == "venuell") {
 			var latlng = textbox.value.replace(/ /g, "").split(",");
 			

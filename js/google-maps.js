@@ -164,8 +164,8 @@ class GoogleMaps {
         link.style.cssText = 'text-decoration: none; display: block;';
         
         const img = document.createElement('img');
-        img.src = this.config.poweredByImage || 'img/poweredByFoursquare.png';
-        img.width = 140;
+        img.src = this.config.poweredByImage || 'img/PbFSQ_White.png';
+        img.width = 162;
         img.height = 16;
         img.style.cssText = 'display: block; opacity: 0.9; transition: opacity 0.2s ease;';
         img.alt = 'Powered by Foursquare';
