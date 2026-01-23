@@ -351,7 +351,7 @@ class ModernGoogleMaps {
         
         const img = document.createElement('img');
         img.src = 'img/poweredByFoursquare.png';
-        img.width = 140;
+        img.width = 162;
         img.height = 16;
         img.style.cssText = 'display: block; opacity: 0.9; transition: opacity 0.2s ease;';
         img.alt = 'Powered by Foursquare';

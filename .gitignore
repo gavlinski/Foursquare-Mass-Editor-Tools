@@ -18,6 +18,9 @@ vendor/
 /tmp/
 cache/
 
+# Arquivos de testes
+test/
+
 # Arquivos de desenvolvimento
 node_modules/
 npm-debug.log*

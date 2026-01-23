@@ -231,10 +231,12 @@ console.error('❌ Erro na autenticação:', error);
 
 #### Funcionalidades Core
 
-- [ ] **Sistema de campos responsivos avançado**: Implementar ajuste dinâmico dos tamanhos de campos baseado na responsividade da tela, mantendo proporções otimizadas
+- [x] **Sistema de campos responsivos avançado**: ✅ Implementado com calc(100vw), min-width, max-width e media queries (Dez 2025)
+- [x] **Navegação tipo planilha**: ✅ Sistema de navegação vertical UP/DOWN entre campos implementado (Dez 2025)
 - [ ] **Otimização de campos brasileiros**: Refinamento adicional dos tamanhos para Estado (UF) e CEP com validação automática de formato
-- [ ] **Sistema de resize inteligente**: Melhorar o redimensionamento da lista de venues com snap points e persistência de preferências
-- [ ] **Compatibilidade Dojo aprimorada**: Desenvolver sistema que permita CSS externo influenciar widgets Dojo sem conflitos
+- [x] **Sistema de resize inteligente**: ✅ Redimensionamento com `resize: both` e dimensões dinâmicas (Dez 2025)
+- [ ] **Compatibilidade Dojo aprimorada**: ⚠️ Limitação arquitetural confirmada - CSS inline obrigatório documentado
+- [x] **Sistema de retry**: ✅ Retry automático para requisições falhadas implementado com `failedRequests{}` (2024)
 
 #### Arquitetura e Modernização  
 
@@ -242,21 +244,76 @@ console.error('❌ Erro na autenticação:', error);
 - [ ] **API REST moderna**: Substituição gradual da API v2 do Foursquare por endpoints internos RESTful
 - [ ] **PWA com Service Workers**: Implementação de funcionalidades offline e cache inteligente
 - [ ] **Testes automatizados**: Cobertura completa com PHPUnit (backend) e Jest (frontend)
-- [ ] **CI/CD com GitHub Actions**: Pipeline automatizado de deploy e testes
+- [ ] **CI/CD com GitHub Actions**: 🎯 **PRIORITÁRIO** - Pipeline automatizado de deploy e testes (Próximo milestone)
 
 #### UX/UI e Performance
 
-- [ ] **Melhoria no Google Maps**: Integração mais fluida com markers personalizados e controles avançados
+- [x] **Melhoria no Google Maps**: ✅ Marcadores customizados Foursquare, controles avançados, drag-and-drop implementados (v5.0.1+)
+- [x] **Sistema de modais modernos**: ✅ Modais Dojo para export de URLs, CSV e relatórios (2024)
 - [ ] **Sistema de notificações**: Toast notifications para feedback de ações do usuário
-- [ ] **Modo escuro**: Implementação de tema dark mode com persistência de preferência
-- [ ] **Lazy loading avançado**: Carregamento progressivo de venues em listas grandes
-- [ ] **Otimização mobile**: Melhorias específicas para dispositivos móveis e touch
+- [ ] **Modo escuro**: 🎯 **PRIORITÁRIO** - Implementação de tema dark mode com persistência de preferência (Próximo milestone)
+- [ ] **Lazy loading avançado**: ⚠️ **NÃO IMPLEMENTADO** - Carregamento progressivo de venues em listas grandes (mantém carregamento síncrono total)
+- [x] **Otimização mobile**: ✅ Media queries responsivas para session status bar e componentes principais (Dez 2025)
 
-### Refatoração Futura
+### Melhorias de Qualidade e Validação
+
+- [ ] **Auditoria de funcionalidades**: Validação completa de todas as features existentes
+- [ ] **Correção de bugs conhecidos**: Identificação e correção de edge cases
+- [ ] **Documentação de API**: Documentar todos os endpoints e parâmetros
+- [ ] **Testes de regressão**: Garantir que novas features não quebram funcionalidades existentes
+
+### Refatoração Futura (Long-term)
 - [ ] Single Page Application (SPA)
 - [ ] Framework moderno (Vue.js/React)
 - [ ] GraphQL em vez de REST
 - [ ] Microserviços com Docker Compose
+
+---
+
+### 📋 Roadmap Imediato (Q1 2026)
+
+**Fase 1 - Validação e Correção** ✅ *Em andamento*
+- [x] Sistema de navegação vertical implementado
+- [x] Responsividade do mapa e listContainer otimizada
+- [x] Ferramenta de comparação de APIs (debug/api_comparison_tool.html)
+- [x] Documentação de análise de APIs (docs/API_COMPARISON.md)
+- [ ] Auditoria completa de funcionalidades existentes
+- [ ] Correção de bugs identificados
+- [ ] Testes de integração Google Maps + Foursquare API
+
+**Fase 2 - Modo Escuro** 🌙 *Próximo*
+- [ ] Design system com variáveis CSS para temas
+- [ ] Implementação de dark mode com `prefers-color-scheme`
+- [ ] Persistência de preferência do usuário
+- [ ] Ajustes de contraste e acessibilidade
+
+**Fase 3 - Funcionalidades API v2 Avançadas** ⏰ *Q1 2026*
+- [ ] Implementação de edição de horários (hours)
+  - Interface de edição de horários de funcionamento
+  - Validação de formato e consistência
+  - Integração com modal de edição
+- [ ] Implementação de edição de redes/cadeias (chains)
+  - Sistema similar ao de categorias
+  - Suporte a `add_chains`, `remove_chains`, `primary_chain`
+  - Modal de seleção de redes
+  - Gerenciamento de cadeia primária
+- [ ] Testes extensivos com API v2
+- [ ] Documentação de uso das novas funcionalidades
+
+**Fase 4 - Deploy Automatizado** 🚀 *Q2 2026*
+- [ ] Configuração de GitHub Actions
+- [ ] Testes automatizados no CI/CD
+- [ ] Deploy automático para produção
+- [ ] Monitoring e rollback automático
+
+### ⚠️ Observações Técnicas
+
+**Lazy Loading**: O sistema atual carrega todas as venues simultaneamente via `carregarDadosVenues()`. Para implementar lazy loading será necessário:
+- Modificar `carregarDadosVenues()` para suportar batches/chunks
+- Implementar virtual scrolling ou pagination
+- Adicionar loading states progressivos
+- Otimizar renderização de DOM para grandes listas
+- Considerar impacto no Google Maps (renderização de marcadores)
 
 ## 🎉 Conclusão
 
@@ -365,6 +422,6 @@ O **Foursquare Mass Editor Tools** agora está preparado para os próximos anos 
 
 ---
 
-**Última atualização**: Julho 2025  
-**Versão**: 3.1.0  
-**Status**: Produção Ready ✅
+**Última atualização**: 31 de Dezembro de 2025  
+**Versão**: 3.2.0  
+**Status**: Produção Ready ✅ (Aguardando deploy CI/CD)

@@ -28,6 +28,13 @@
         <h1>🛠️ Ferramentas de Debug</h1>
         <p>Coleção de utilitários para desenvolvimento, teste e diagnóstico.</p>
 
+        <a href="api_comparison_tool.html">
+            <div class="card">
+                <h2><span class="tag tag-api">API</span> Comparação de APIs Foursquare</h2>
+                <p>Ferramenta interativa para comparar v2, v3 e Places API. Auxilia na auditoria de funcionalidades e análise de migração.</p>
+            </div>
+        </a>
+
         <a href="test_session_debug.html">
             <div class="card">
                 <h2><span class="tag tag-ui">UI</span> Painel de Debug de Sessão</h2>
