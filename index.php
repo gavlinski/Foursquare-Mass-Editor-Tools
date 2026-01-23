@@ -69,11 +69,12 @@ if (isset($_GET['error']) && $_GET['error'] === 'auth_failed') {
     $sessionManager->setCookie("coordinates", "", time() - 3600);
     // Remove o cookie da superglobal para não ser pego na lógica abaixo
     unset($_COOKIE['oauth_token']);
+    $token = null; // Força token como null para mostrar tela de login
 }
 
 // Validação e obtenção do token
 $token = null;
-if (isset($_COOKIE['oauth_token']) && $_COOKIE['oauth_token'] !== "0") {
+if (!isset($_GET['error']) && isset($_COOKIE['oauth_token']) && $_COOKIE['oauth_token'] !== "0") {
     $token = filter_var($_COOKIE['oauth_token'], FILTER_SANITIZE_FULL_SPECIAL_CHARS);
 } elseif (isset($_GET['code'])) {
     $code = filter_var($_GET['code'], FILTER_SANITIZE_FULL_SPECIAL_CHARS);
