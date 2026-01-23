@@ -12,6 +12,8 @@ class SessionManager {
         this.isChecking = false;
         this.lastCheck = 0;
         this.userData = null;
+        this.serverInstanceId = null;
+        this.restartDetected = false;
         
         // Aguarda um pequeno delay para garantir que o DOM está pronto
         setTimeout(() => {
@@ -82,8 +84,24 @@ class SessionManager {
             const data = await this.makeXhrRequest('session_status.php');
             
             if (data.status === 'valid' && data.authenticated) {
+                // Verifica se o servidor foi reiniciado
+                if (data.server_instance_id) {
+                    const storedInstanceId = localStorage.getItem('server_instance_id');
+                    
+                    if (storedInstanceId && storedInstanceId !== data.server_instance_id) {
+                        // Servidor foi reiniciado!
+                        console.warn('⚠️ Restart do servidor detectado!');
+                        this.restartDetected = true;
+                        this.showServerRestartWarning();
+                    }
+                    
+                    // Atualiza o ID armazenado
+                    localStorage.setItem('server_instance_id', data.server_instance_id);
+                    this.serverInstanceId = data.server_instance_id;
+                }
+                
                 this.userData = data.user || null;
-                this.updateStatus(`Conectado como ${data.user?.name || 'usuário'}`, 'success');
+                this.updateStatus('Conectado', 'success');
                 
                 // Atualiza informações do usuário na barra
                 if (window.sessionStatusBarAPI && data.user) {
@@ -241,6 +259,72 @@ class SessionManager {
         if (confirmLogout) {
             window.location.href = 'index.php?logout=1';
         }
+    }
+
+    showServerRestartWarning() {
+        // Mostra aviso visual persistente
+        this.updateStatus('⚠️ Servidor reiniciado - recarregue a página!', 'warning');
+        
+        // Mostra dialog modal amigável
+        const message = [
+            '⚠️ Servidor Reiniciado',
+            '',
+            'O servidor foi reiniciado.',
+            'Por favor, recarregue a página para evitar perda de dados.',
+            '',
+            'Recarregar agora?'
+        ].join('\n');
+        
+        const shouldReload = confirm(message);
+        
+        if (shouldReload) {
+            window.location.reload();
+        } else {
+            // Se o usuário não quiser recarregar, marca como detectado
+            // para não mostrar o aviso novamente nesta sessão
+            console.warn('⚠️ Usuário optou por não recarregar após restart do servidor');
+            
+            // Adiciona listener para interceptar ações perigosas
+            this.addRestartInterceptionListeners();
+        }
+    }
+
+    addRestartInterceptionListeners() {
+        // Intercepta submits de formulários
+        document.addEventListener('submit', (e) => {
+            if (this.restartDetected) {
+                e.preventDefault();
+                const confirmAction = confirm(
+                    '⚠️ ATENÇÃO: Servidor foi reiniciado!\n\n' +
+                    'Continuar sem recarregar a página pode causar perda de dados.\n\n' +
+                    'Deseja recarregar agora?'
+                );
+                if (confirmAction) {
+                    window.location.reload();
+                }
+            }
+        }, true);
+
+        // Intercepta cliques em botões de ação
+        document.addEventListener('click', (e) => {
+            const target = e.target;
+            if (this.restartDetected && 
+                (target.tagName === 'BUTTON' || target.classList.contains('action-button'))) {
+                
+                // Verifica se não é um botão de reload
+                if (!target.classList.contains('reload-safe')) {
+                    const confirmAction = confirm(
+                        '⚠️ Servidor reiniciado!\n\n' +
+                        'Recarregue a página antes de executar ações.\n\n' +
+                        'Recarregar agora?'
+                    );
+                    if (confirmAction) {
+                        e.preventDefault();
+                        window.location.reload();
+                    }
+                }
+            }
+        }, true);
     }
 
     startPeriodicCheck() {
