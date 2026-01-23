@@ -297,6 +297,7 @@ a:hover {
 	padding: 0 4px 0 10px;
 	background: white;
 	border: 1px solid #dee2e6;
+	border-left: 4px solid #dee2e6; /* Mesma cor da borda para harmonia visual */
 	border-radius: 4px;
 	min-height: 40px;
 	transition: all 0.2s ease;
@@ -308,6 +309,28 @@ a:hover {
 #listContainer .row:hover {
 	border-color: #0066cc;
 	box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+}
+
+/* Linha com alterações pendentes (editada) */
+#listContainer .row.edited {
+	border-left-color: #2d5be3; /* Apenas troca cor da borda existente */
+	background: #f8f9ff;
+}
+
+#listContainer .row.edited:hover {
+	border-left-color: #1e3fb8;
+	background: #f0f2ff;
+}
+
+/* Linha com erro ao carregar/salvar/recarregar */
+#listContainer .row.error {
+	border-left-color: #dc3545; /* Vermelho para indicar erro */
+	background: #fff5f5;
+}
+
+#listContainer .row.error:hover {
+	border-left-color: #c82333;
+	background: #ffe6e6;
 }
 
 /* Wrapper para campos dentro da row */
@@ -420,6 +443,17 @@ a:hover {
 	resize: both;
 	overflow: auto;
 }
+.hoverInfoTip {
+    background: #eee;
+    color: #888;
+    cursor: default;
+    font-size: 10px;
+    font-weight: normal;
+    padding: 2px 5px;
+    position: relative;
+    top: -1px;
+    border-radius: 30px;
+}
 
 /* Marcadores Foursquare personalizados */
 .foursquare-marker {
@@ -526,6 +560,19 @@ button#session-info-btn {
 button#session-info-btn:hover,
 button#session-info-btn:focus {
 	background-color: #3d81ff !important;
+}
+
+/* Botão Debug - Roxo (visível apenas para superuser >= 8) */
+#session-debug-btn,
+button#session-debug-btn {
+	background-color: #6f42c1 !important;
+}
+
+#session-debug-btn:hover,
+#session-debug-btn:focus,
+button#session-debug-btn:hover,
+button#session-debug-btn:focus {
+	background-color: #8558d3 !important;
 }
 
 /* Botão Logout - Vermelho */
