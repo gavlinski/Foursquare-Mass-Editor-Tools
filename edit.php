@@ -66,7 +66,7 @@ include 'includes/app_credentials.php';
 <?php include 'includes/session-status-bar.php'; ?>
 
 <header style="margin-top: 5px">
-	<h2>Editar venues</h2>
+	<h2>Editar locais</h2>
 </header>
 
 <article>
@@ -296,7 +296,7 @@ foreach ($file as $f) {
 		<div class="editAllCheckbox" style="width: 20em;">
 			<input id="editAllCheckbox" name="editAllCheckbox" dojoType="dijit.form.CheckBox" value="editAllCategories">
 				<label for="editAllCheckbox">
-					Aplicar categoria(s) a todas as venues
+					Aplicar categoria(s) a todos os locais
 				</label>
 		</div>
 	</span>
@@ -307,7 +307,7 @@ foreach ($file as $f) {
 	<div id="venueIndex" style="display: none"></div><div id="catsIds" style="display: none"></div><div id="catsIcones" style="display: none"></div>
 </div>
 <!-- Barra de Progresso ao Salvar -->
-<div data-dojo-type="dijit.Dialog" id="dlg_save" data-dojo-props='title:"Salvando venues..."'>
+<div data-dojo-type="dijit.Dialog" id="dlg_save" data-dojo-props='title:"Salvando locais..."'>
 	<div dojoType="dijit.ProgressBar" style="width:300px" jsId="jsProgress"
 id="saveProgress">
 	</div>
@@ -320,6 +320,17 @@ id="saveProgress">
 	<div class="dijitDialogPaneActionBar">
 		<button data-dojo-type="dijit.form.Button" type="button" id="confirmReloadButton">Recarregar Mesmo Assim</button>
 		<button data-dojo-type="dijit.form.Button" type="button" data-dojo-props="onClick:function(){ dijit.byId('dlg_reload').hide(); }">Cancelar</button>
+	</div>
+</div>
+<!-- Modal de Confirmacao ao Editar Categorias com Dados Parciais -->
+<div data-dojo-type="dijit.Dialog" id="dlg_confirmEditAllCategories" data-dojo-props="title:'Edição Múltipla de Categorias'" style="display:none; width: 450px;">
+	<div class="dijitDialogPaneContentArea">
+		<div id="confirmEditAllCategoriesMessage"></div>
+	</div>
+	<div class="dijitDialogPaneActionBar">
+		<button data-dojo-type="dijit.form.Button" type="button" data-dojo-props="onClick:function(){ dijit.byId('dlg_confirmEditAllCategories').hide(); processarEdicaoCategorias(); dijit.byId('dlg_cats').hide(); }">Continuar Mesmo Assim</button>
+		<button data-dojo-type="dijit.form.Button" type="button" data-dojo-props="onClick:function(){ dijit.byId('dlg_confirmEditAllCategories').hide(); dijit.byId('dlg_cats').hide(); var venueOrigemIndex = parseInt(dojo.byId('venueIndex').innerHTML); recarregarDadosVenues(venueOrigemIndex); }">Recarregar Todas</button>
+		<button data-dojo-type="dijit.form.Button" type="button" data-dojo-props="onClick:function(){ dijit.byId('dlg_confirmEditAllCategories').hide(); }">Cancelar</button>
 	</div>
 </div>
 <!-- Janela de Digitacao de Comentario -->

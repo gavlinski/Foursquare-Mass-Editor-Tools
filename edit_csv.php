@@ -37,7 +37,7 @@ if (isset($_SESSION["oauth_token"])) {
 </head>
 <body class="tundra">
 <header>
-	<h2>Editar venues</h2>
+	<h2>Editar locais</h2>
 </header>
 <article>
 	<p>Antes de salvar suas propostas de altera&ccedil;&otilde;es, n&atilde;o deixe de ler nosso <a id="guia" href="javascript:showDialogGuia();">guia de estilo</a> e as <a id="regras" href="https://pt.foursquare.com/info/houserules" target="_blank">regras da casa</a>.</p>

@@ -91,14 +91,44 @@ setLocalCache("txt", implode('%0A,', $_SESSION["file"]));
 setLocalCache("venues", addslashes($data));
 echo EDIT;
 
+/**
+ * Remove acentos de uma string
+ * 
+ * Converte caracteres acentuados para seus equivalentes ASCII.
+ * Útil para normalização de endereços e queries de busca.
+ * 
+ * @param string $str String com acentos
+ * @return string String sem acentos
+ */
 function stripAccents($str) {
     return strtr($str, utf8_decode('àáâãäçèéêëìíîïñòóôõöùúûüýÿÀÁÂÃÄÇÈÉÊËÌÍÎÏÑÒÓÔÕÖÙÚÛÜÝ'), 'aaaaaceeeeiiiinooooouuuuyyAAAAACEEEEIIIINOOOOOUUUUY');
 }
 
+/**
+ * Filtra array removendo duplicatas
+ * 
+ * @param array $array Array a ser filtrado
+ * @return array Array sem duplicatas e com índices reordenados
+ */
 function filtrarArray($array) {
 	return array_values(array_unique($array));
 }
 
+/**
+ * Pesquisa venues usando a API do Foursquare
+ * 
+ * Suporta pesquisas simples (até 50 resultados) e múltiplas (até 250 resultados)
+ * usando diferentes coordenadas geográficas.
+ * 
+ * @param array $params Parâmetros da busca:
+ *                      - ll: latitude,longitude ou endereço
+ *                      - categoryId: ID da categoria (opcional)
+ *                      - query: termo de busca (opcional)
+ *                      - limit: número de resultados (1-250)
+ *                      - intent: tipo de busca (checkin, browse, etc)
+ *                      - radius: raio em metros (opcional)
+ * @return string JSON com os resultados da busca
+ */
 function pesquisarVenues($params) {
 	global $venuesIds;
 	$venuesIds = array();
@@ -163,6 +193,15 @@ function pesquisarVenues($params) {
 		$json = json_decode($responses);
 	}
 		
+	/**
+	 * Extrai IDs e URLs das venues do response JSON da API
+	 * 
+	 * @param array $json_response_venues Array de venues do response da API
+	 * @param ProgressBar $pbar Instância da barra de progresso
+	 * @param int $size Tamanho total para cálculo de progresso
+	 * @param int $i Índice inicial
+	 * @return array Array com chaves 'venues' (IDs) e 'file' (URLs)
+	 */
 	function extrairVenuesIdsUrls($json_response_venues, $pbar, $size, $i) {
 		$array = array();
 		$s = count($json_response_venues);
@@ -174,6 +213,7 @@ function pesquisarVenues($params) {
 		foreach ($json_response_venues as $venue) {
 			if (property_exists($venue, "id")) {
 				$array["venues"][] = $venue->id;
+				// Usa canonicalUrl se disponível (formato: https://app.foursquare.com/v/name/id)
 				if (property_exists($venue, "canonicalUrl"))
 					$array["file"][] = $venue->canonicalUrl;
 				else
@@ -257,6 +297,13 @@ function pesquisarVenues($params) {
 	return $response;
 }
 
+/**
+ * Define cache local no localStorage do navegador
+ * 
+ * @param string $key Nome da chave no localStorage
+ * @param string $data Dados a serem armazenados
+ * @return void
+ */
 function setLocalCache($key, $data) {
 	print('<script>'."\n\r".'	localStorage.setItem(\''.$key.'\', \''.$data.'\');'."\n\r".'</script>');
 	print str_pad('', intval(ini_get('output_buffering'))) . "\n\r";

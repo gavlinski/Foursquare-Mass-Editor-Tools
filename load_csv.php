@@ -37,7 +37,7 @@ define("LINKS", '<link rel="shortcut icon" href="favicon.ico" type="image/x-icon
 define("HBODY", '</head>
 <body class="tundra">
 ');
-define("CARREGANDO", LINKS . HBODY . '<div id="carregando">Carregando venues&hellip;</div>
+define("CARREGANDO", LINKS . HBODY . '<div id="carregando">Carregando locais&hellip;</div>
 ');
 define("TEMPLATE1", '<script src="js/dojo/dojo.js" djConfig="parseOnLoad: true"></script>
 <script>
