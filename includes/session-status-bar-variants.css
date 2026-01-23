@@ -1,0 +1,527 @@
+/**
+ * Estilos das Variantes da Barra de Status - REFATORADO
+ * Separação entre estilos de conteúdo (variantes) e estilos de botões
+ */
+
+/* ========================================
+   BASE COMUM
+   ======================================== */
+.status-content {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex: 1;
+}
+
+.status-controls {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.status-indicator {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: #28a745;
+    box-shadow: 0 0 0 2px rgba(40, 167, 69, 0.2);
+    flex-shrink: 0;
+}
+
+/* ========================================
+   ESTILOS DE BOTÕES (Reutilizáveis)
+   ======================================== */
+
+/* BTN-1: Botões Sólidos Padrão (v2, v6, v8, v9) */
+.btn-style-solid .btn {
+    padding: 7px 14px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 12px;
+    font-weight: 500;
+    transition: all 0.2s;
+    height: 32px;
+    line-height: 1;
+    color: white;
+}
+
+.btn-style-solid .btn.refresh { background: #28a745; }
+.btn-style-solid .btn.refresh:hover { background: #218838; }
+.btn-style-solid .btn.info,
+.btn-style-solid .btn.system { background: #0d6efd; }
+.btn-style-solid .btn.info:hover,
+.btn-style-solid .btn.system:hover { background: #0b5ed7; }
+.btn-style-solid .btn.debug { background: #6f42c1; }
+.btn-style-solid .btn.debug:hover { background: #5a32a3; }
+.btn-style-solid .btn.logout { background: #dc3545; }
+.btn-style-solid .btn.logout:hover { background: #c82333; }
+
+/* BTN-2: Botões Outline (v1) */
+.btn-style-outline .btn {
+    padding: 6px 12px;
+    border: 1px solid;
+    border-radius: 6px;
+    background: white;
+    cursor: pointer;
+    font-size: 12px;
+    transition: all 0.2s;
+    height: 32px;
+    line-height: 1;
+}
+
+.btn-style-outline .btn:hover { transform: translateY(-1px); }
+.btn-style-outline .btn.refresh { color: #28a745; border-color: #28a745; }
+.btn-style-outline .btn.refresh:hover { background: #28a745; color: white; }
+.btn-style-outline .btn.info,
+.btn-style-outline .btn.system { color: #0d6efd; border-color: #0d6efd; }
+.btn-style-outline .btn.info:hover,
+.btn-style-outline .btn.system:hover { background: #0d6efd; color: white; }
+.btn-style-outline .btn.debug { color: #6f42c1; border-color: #6f42c1; }
+.btn-style-outline .btn.debug:hover { background: #6f42c1; color: white; }
+.btn-style-outline .btn.logout { color: #dc3545; border-color: #dc3545; }
+.btn-style-outline .btn.logout:hover { background: #dc3545; color: white; }
+
+/* BTN-3: Botões com Bordas Grossas e Elevação (v7) */
+.btn-style-thick .btn {
+    padding: 8px 16px;
+    border: 2px solid;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 600;
+    transition: all 0.2s;
+    height: 38px;
+    line-height: 1;
+    background: white;
+}
+
+.btn-style-thick .btn.refresh { color: #28a745; border-color: #28a745; }
+.btn-style-thick .btn.refresh:hover {
+    background: #28a745;
+    color: white;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(40, 167, 69, 0.3);
+}
+
+.btn-style-thick .btn.info,
+.btn-style-thick .btn.system { color: #0d6efd; border-color: #0d6efd; }
+.btn-style-thick .btn.info:hover,
+.btn-style-thick .btn.system:hover {
+    background: #0d6efd;
+    color: white;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(13, 110, 253, 0.3);
+}
+
+.btn-style-thick .btn.debug { color: #6f42c1; border-color: #6f42c1; }
+.btn-style-thick .btn.debug:hover {
+    background: #6f42c1;
+    color: white;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(111, 66, 193, 0.3);
+}
+
+.btn-style-thick .btn.logout { color: #dc3545; border-color: #dc3545; }
+.btn-style-thick .btn.logout:hover {
+    background: #dc3545;
+    color: white;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(220, 53, 69, 0.3);
+}
+
+/* BTN-4: Botões com Hover Invertido (v4, v5) */
+.btn-style-inverted .btn {
+    padding: 7px 14px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 12px;
+    font-weight: 500;
+    transition: all 0.2s;
+    height: 32px;
+    line-height: 1;
+    color: white;
+}
+
+.btn-style-inverted .btn.refresh { background: #198754; }
+.btn-style-inverted .btn.refresh:hover { background: #157347; }
+.btn-style-inverted .btn.info,
+.btn-style-inverted .btn.system { background: #0b5ed7; }
+.btn-style-inverted .btn.info:hover,
+.btn-style-inverted .btn.system:hover { background: #0a53be; }
+.btn-style-inverted .btn.debug { background: #5a32a3; }
+.btn-style-inverted .btn.debug:hover { background: #4a2885; }
+.btn-style-inverted .btn.logout { background: #bb2d3b; }
+.btn-style-inverted .btn.logout:hover { background: #a02834; }
+
+/* BTN-5: Botões com Gradiente Animado (v3) */
+.btn-style-gradient .btn {
+    padding: 7px 14px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 500;
+    transition: all 0.2s;
+    position: relative;
+    overflow: hidden;
+    height: 33px;
+    line-height: 1;
+    color: white;
+}
+
+.btn-style-gradient .btn::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+    transition: left 0.5s;
+}
+
+.btn-style-gradient .btn:hover::before {
+    left: 100%;
+}
+
+.btn-style-gradient .btn.refresh { background: linear-gradient(135deg, #28a745 0%, #20c997 100%); }
+.btn-style-gradient .btn.info,
+.btn-style-gradient .btn.system { background: linear-gradient(135deg, #0d6efd 0%, #0dcaf0 100%); }
+.btn-style-gradient .btn.debug { background: linear-gradient(135deg, #6f42c1 0%, #e83e8c 100%); }
+.btn-style-gradient .btn.logout { background: linear-gradient(135deg, #dc3545 0%, #fd7e14 100%); }
+
+/* ========================================
+   ESTILOS DE CONTEÚDO (Variantes)
+   ======================================== */
+
+/* === VARIANTE 1 - Linha Única Simplificada === */
+.variant-v1 .v1-status {
+    font-size: 12px;
+    color: #333;
+    flex: 1;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.variant-v1 .v1-status strong { color: #495057; }
+.variant-v1 .v1-status span { color: #6c757d; }
+.variant-v1 .v1-status > span:nth-child(4),
+.variant-v1 .v1-status > span:nth-child(6) { color: #868e96; }
+
+.variant-v1 .v1-status a {
+    color: #6c757d !important;
+    text-decoration: none;
+}
+
+.variant-v1 .v1-status a:hover,
+.variant-v1 .v1-status a:focus {
+    text-decoration: underline;
+    color: #6c757d !important;
+}
+
+.variant-v1 .v1-status a:visited,
+.variant-v1 .v1-status a:active {
+    color: #6c757d !important;
+}
+
+/* === VARIANTE 2 - Tooltip === */
+.variant-v2 .v2-icon {
+    position: relative;
+    cursor: help;
+    font-size: 18px;
+    flex-shrink: 0;
+}
+
+.variant-v2 .v2-tooltip {
+    display: none;
+    position: absolute;
+    left: calc(100% + 10px);
+    top: 50%;
+    transform: translateY(-50%);
+    background: #333;
+    color: white;
+    padding: 8px 12px;
+    border-radius: 6px;
+    font-size: 12px;
+    white-space: nowrap;
+    z-index: 1000;
+}
+
+.variant-v2 .v2-tooltip::before {
+    content: '';
+    position: absolute;
+    right: 100%;
+    top: 50%;
+    transform: translateY(-50%);
+    border: 6px solid transparent;
+    border-right-color: #333;
+}
+
+.variant-v2 .v2-icon:hover .v2-tooltip {
+    display: block;
+}
+
+.variant-v2 .v2-user-info {
+    font-size: 12px;
+    color: #333;
+    flex: 1;
+    margin-left: -8px;
+}
+
+.variant-v2 .v2-user-link {
+    color: #6c757d !important;
+    text-decoration: none;
+}
+
+.variant-v2 .v2-user-link:hover,
+.variant-v2 .v2-user-link:focus {
+    text-decoration: underline;
+    color: #6c757d !important;
+}
+
+.variant-v2 .v2-user-link:visited,
+.variant-v2 .v2-user-link:active {
+    color: #6c757d !important;
+}
+
+/* === VARIANTE 3 - Gradiente Animado === */
+.variant-v3 .v3-status {
+    font-size: 13px;
+    color: #333;
+    flex: 1;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.variant-v3 .v3-status strong { color: #495057; }
+.variant-v3 .v3-status > span:first-of-type { color: #6c757d; }
+.variant-v3 .v3-status > span:nth-of-type(2) { color: #868e96; }
+
+.variant-v3 .v3-status a {
+    color: #6c757d !important;
+    text-decoration: none;
+}
+
+.variant-v3 .v3-status a:hover,
+.variant-v3 .v3-status a:focus {
+    text-decoration: underline;
+    color: #6c757d !important;
+}
+
+.variant-v3 .v3-status a:visited,
+.variant-v3 .v3-status a:active {
+    color: #6c757d !important;
+}
+
+/* === VARIANTE 4 - Com Foto === */
+.variant-v4 .v4-status,
+.variant-v4 .v4-user-info {
+    font-size: 12px;
+    color: #333;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.variant-v4 .v4-status strong { color: #495057; }
+.variant-v4 .v4-status span { color: #6c757d; }
+
+.variant-v4 .user-photo {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+.variant-v4 .v4-superuser-icon {
+    width: 21px;
+    height: 13px;
+    vertical-align: middle;
+}
+
+.variant-v4 .v4-user-link {
+    color: #6c757d !important;
+    text-decoration: none;
+}
+
+.variant-v4 .v4-user-link:hover,
+.variant-v4 .v4-user-link:focus {
+    text-decoration: underline;
+    color: #6c757d !important;
+}
+
+.variant-v4 .v4-user-link:visited,
+.variant-v4 .v4-user-link:active {
+    color: #6c757d !important;
+}
+
+/* === VARIANTE 5 - Dark Mode === */
+.variant-v5 {
+    background: linear-gradient(135deg, #2b3035 0%, #1a1d20 100%) !important;
+    border-color: #495057 !important;
+}
+
+.variant-v5 .v5-status {
+    font-size: 12px;
+    color: #e9ecef;
+    flex: 1;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.variant-v5 .v5-status strong { color: #f8f9fa; }
+.variant-v5 .v5-status > span:first-of-type { color: #adb5bd; }
+.variant-v5 .v5-status > span:nth-of-type(2) { color: #6c757d; }
+
+.variant-v5 .v5-user-link {
+    color: #adb5bd !important;
+    text-decoration: none;
+}
+
+.variant-v5 .v5-user-link:hover,
+.variant-v5 .v5-user-link:focus {
+    text-decoration: underline;
+    color: #f8f9fa !important;
+}
+
+.variant-v5 .v5-user-link:visited,
+.variant-v5 .v5-user-link:active {
+    color: #adb5bd !important;
+}
+
+/* === VARIANTE 6 - Duas Linhas Separadas === */
+.variant-v6 .v6-container {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    flex: 1;
+}
+
+.variant-v6 .v6-content {
+    flex: 1;
+}
+
+.variant-v6 .v6-status-row {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 12px;
+}
+
+.variant-v6 .v6-status-row strong {
+    color: #495057;
+}
+
+.variant-v6 .v6-status-row span {
+    color: #6c757d;
+}
+
+.variant-v6 .v6-user-row {
+    font-size: 12px;
+    color: #868e96;
+    margin-top: 2px;
+}
+
+.variant-v6 .v6-user-link {
+    color: #6c757d !important;
+    text-decoration: none;
+}
+
+.variant-v6 .v6-user-link:hover,
+.variant-v6 .v6-user-link:focus {
+    text-decoration: underline;
+    color: #6c757d !important;
+}
+
+.variant-v6 .v6-user-link:visited,
+.variant-v6 .v6-user-link:active {
+    color: #6c757d !important;
+}
+
+/* === VARIANTE 7 - Fonte Grande === */
+.variant-v7 .v7-status {
+    font-size: 14px;
+    color: #333;
+    flex: 1;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.variant-v7 .v7-status strong { color: #495057; }
+.variant-v7 .v7-status span { color: #6c757d; }
+.variant-v7 .v7-status > span:nth-child(4),
+.variant-v7 .v7-status > span:nth-child(6) { color: #868e96; }
+
+.variant-v7 .v7-user-link {
+    color: #6c757d !important;
+    text-decoration: none;
+    font-weight: 500;
+}
+
+.variant-v7 .v7-user-link:hover,
+.variant-v7 .v7-user-link:focus {
+    text-decoration: underline;
+    color: #6c757d !important;
+}
+
+.variant-v7 .v7-user-link:visited,
+.variant-v7 .v7-user-link:active {
+    color: #6c757d !important;
+}
+
+/* === VARIANTE 8 - Duas Linhas com "Usuário:" === */
+.variant-v8 .v8-container {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex: 1;
+}
+
+.variant-v8 .v8-content {
+    flex: 1;
+    margin-left: -2px;
+}
+
+.variant-v8 .v8-status-row {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 12px;
+}
+
+.variant-v8 .v8-status-row strong { color: #495057; }
+.variant-v8 .v8-status-row span { color: #6c757d; }
+
+.variant-v8 .v8-user-row {
+    font-size: 12px;
+    color: #868e96;
+    margin-top: 2px;
+}
+
+.variant-v8 .v8-user-row strong { color: #495057; }
+
+.variant-v8 .v8-user-row a {
+    font-weight: normal;
+}
+
+.variant-v8 .v8-user-link {
+    color: #6c757d !important;
+    text-decoration: none;
+}
+
+.variant-v8 .v8-user-link:hover,
+.variant-v8 .v8-user-link:focus {
+    text-decoration: underline;
+    color: #6c757d !important;
+}
+
+.variant-v8 .v8-user-link:visited,
+.variant-v8 .v8-user-link:active {
+    color: #6c757d !important;
+}
