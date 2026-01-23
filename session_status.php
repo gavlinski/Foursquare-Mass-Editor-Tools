@@ -15,6 +15,29 @@ header('Pragma: no-cache');
 // Carrega o autoloader do Composer
 require_once __DIR__ . '/vendor/autoload.php';
 
+/**
+ * Obtém ou gera um ID único para esta instância do servidor
+ * Usado para detectar restarts do Docker/servidor
+ */
+function getServerInstanceId(): string {
+    // Usa /tmp para garantir que seja limpo em cada restart do container
+    $instanceFile = '/tmp/.server_instance_id';
+    
+    // Se o arquivo existe e tem conteúdo válido, usa
+    if (file_exists($instanceFile)) {
+        $id = trim(file_get_contents($instanceFile));
+        if (!empty($id)) {
+            return $id;
+        }
+    }
+    
+    // Gera novo ID: timestamp + random
+    $newId = time() . '_' . bin2hex(random_bytes(8));
+    file_put_contents($instanceFile, $newId);
+    
+    return $newId;
+}
+
 // Inclui a classe FoursquareApi original
 require_once __DIR__ . '/FoursquareAPI.Class.php';
 
@@ -72,11 +95,13 @@ try {
             'message' => 'Sessão válida (cache)',
             'authenticated' => true,
             'timestamp' => time(),
+            'server_instance_id' => getServerInstanceId(),
             'user' => [
                 'name' => $fullName,
                 'id' => $userData['id'] ?? '',
                 'photo' => $userData['photo']['prefix'] ?? null,
-                'checkins_count' => $userData['checkins']['count'] ?? 0
+                'canonicalUrl' => $userData['canonicalUrl'] ?? null,
+                'superuser_level' => $userData['superuser'] ?? 0
             ],
             'session_expires' => time() + (60 * 60 * 24 * 15) // 15 dias
         ]);
@@ -110,11 +135,13 @@ try {
                     'message' => 'Sessão válida (teste)',
                     'authenticated' => true,
                     'timestamp' => time(),
+                    'server_instance_id' => getServerInstanceId(),
                     'user' => [
                         'name' => $fullName,
                         'id' => $user['id'],
                         'photo' => $user['photo']['prefix'] ?? null,
-                        'checkins_count' => $user['checkins']['count'] ?? 0
+                        'canonicalUrl' => $user['canonicalUrl'] ?? null,
+                        'superuser_level' => $user['superuser'] ?? 0
                     ],
                     'session_expires' => time() + (60 * 60 * 24 * 15) // 15 dias
                 ]);
@@ -142,11 +169,13 @@ try {
                 'message' => 'Sessão válida',
                 'authenticated' => true,
                 'timestamp' => time(),
+                'server_instance_id' => getServerInstanceId(),
                 'user' => [
                     'name' => $fullName,
                     'id' => $user['id'],
+                    'canonicalUrl' => $user['canonicalUrl'] ?? null,
                     'photo' => $user['photo']['prefix'] ?? null,
-                    'checkins_count' => $user['checkins']['count'] ?? 0
+                    'superuser_level' => $user['superuser'] ?? 0
                 ],
                 'session_expires' => time() + (60 * 60 * 24 * 15) // 15 dias
             ]);
