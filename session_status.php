@@ -99,7 +99,10 @@ try {
             'user' => [
                 'name' => $fullName,
                 'id' => $userData['id'] ?? '',
-                'photo' => $userData['photo']['prefix'] ?? null,
+                'photo' => [
+                    'prefix' => $userData['photo']['prefix'] ?? '',
+                    'suffix' => $userData['photo']['suffix'] ?? ''
+                ],
                 'canonicalUrl' => $userData['canonicalUrl'] ?? null,
                 'superuser_level' => $userData['superuser'] ?? 0
             ],
@@ -139,7 +142,10 @@ try {
                     'user' => [
                         'name' => $fullName,
                         'id' => $user['id'],
-                        'photo' => $user['photo']['prefix'] ?? null,
+                        'photo' => [
+                            'prefix' => $user['photo']['prefix'] ?? '',
+                            'suffix' => $user['photo']['suffix'] ?? ''
+                        ],
                         'canonicalUrl' => $user['canonicalUrl'] ?? null,
                         'superuser_level' => $user['superuser'] ?? 0
                     ],
@@ -174,7 +180,10 @@ try {
                     'name' => $fullName,
                     'id' => $user['id'],
                     'canonicalUrl' => $user['canonicalUrl'] ?? null,
-                    'photo' => $user['photo']['prefix'] ?? null,
+                    'photo' => [
+                        'prefix' => $user['photo']['prefix'] ?? '',
+                        'suffix' => $user['photo']['suffix'] ?? ''
+                    ],
                     'superuser_level' => $user['superuser'] ?? 0
                 ],
                 'session_expires' => time() + (60 * 60 * 24 * 15) // 15 dias

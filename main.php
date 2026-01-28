@@ -171,6 +171,7 @@ function removeLocalCache($key) {
 <link rel="shortcut icon" href="favicon.ico" type="image/x-icon">
 <link rel="stylesheet" type="text/css" href="js/dijit/themes/tundra/tundra.css">
 <link rel="stylesheet" type="text/css" href="estilo.css?v=<?php echo time(); ?>">
+<link rel="stylesheet" type="text/css" href="includes/session-status-bar-variants.css?v=<?php echo time(); ?>">
 <script src="js/session-manager.js"></script>
 </head>
 <body class="tundra">

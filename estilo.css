@@ -1,3 +1,7 @@
+:root {
+	--system-font: system-ui, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+}
+
 body, html {
 	font-family: Arial, Helvetica, Verdana, sans-serif;
 	font-size: 13px;
@@ -472,7 +476,7 @@ a:hover {
 	height: 36px;
 	background: linear-gradient(135deg, #f94877, #8b5cf6);
 	font-size: 15px;
-	font-family: Arial, sans-serif;
+	font-family: Arial, Helvetica, Verdana, sans-serif;
 }
 
 .foursquare-marker:hover {
@@ -504,129 +508,57 @@ a:hover {
 }
 
 /* Session Status Bar - Botões de Ação */
-/* Estilo base inspirado no design moderno sugerido */
+/* ⚠️ NOTA: Estilos base mínimos - variantes definidas em session-status-bar-variants.css */
 .session-btn,
 button.session-btn,
 #session-status-bar .session-btn {
-	border-radius: 6px !important;
-	border-style: none !important;
-	border: none !important;
-	box-sizing: border-box !important;
-	color: #FFFFFF !important;
-	cursor: pointer !important;
-	font-size: 12px !important;
-	font-weight: 500 !important;
-	height: 32px !important;
-	line-height: 16px !important;
-	list-style: none !important;
-	margin: 0 !important;
-	outline: none !important;
-	padding: 8px 12px !important;
-	text-align: center !important;
-	text-decoration: none !important;
-	transition: all 0.2s ease !important;
-	vertical-align: baseline !important;
-	user-select: none !important;
-	-webkit-user-select: none !important;
-	touch-action: manipulation !important;
-	display: inline-flex !important;
-	align-items: center !important;
-	gap: 4px !important;
-	white-space: nowrap !important;
-	font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important;
+	border: none;
+	box-sizing: border-box;
+	color: #FFFFFF;
+	cursor: pointer;
+	font-family: var(--system-font);
+	outline: none;
+	user-select: none;
+	-webkit-user-select: none;
+	touch-action: manipulation;
 }
 
-/* Botão Verificar - Verde */
-#session-refresh-btn,
-button#session-refresh-btn {
-	background-color: #28a745 !important;
-}
+/* ===================================================================
+   NOTA: Cores de botões agora controladas pelas classes de variantes
+   em session-status-bar-variants.css (btn-style-solid, btn-style-inverted, etc.)
+   IDs removidos para evitar conflitos de especificidade.
+   =================================================================== */
 
-#session-refresh-btn:hover,
-#session-refresh-btn:focus,
-button#session-refresh-btn:hover,
-button#session-refresh-btn:focus {
-	background-color: #34ce57 !important;
-}
-
-/* Botão Sistema - Azul */
-#session-info-btn,
-button#session-info-btn {
-	background-color: #0d6efd !important;
-}
-
-#session-info-btn:hover,
-#session-info-btn:focus,
-button#session-info-btn:hover,
-button#session-info-btn:focus {
-	background-color: #3d81ff !important;
-}
-
-/* Botão Debug - Roxo (visível apenas para superuser >= 8) */
-#session-debug-btn,
-button#session-debug-btn {
-	background-color: #6f42c1 !important;
-}
-
-#session-debug-btn:hover,
-#session-debug-btn:focus,
-button#session-debug-btn:hover,
-button#session-debug-btn:focus {
-	background-color: #8558d3 !important;
-}
-
-/* Botão Logout - Vermelho */
-#session-logout-btn,
-button#session-logout-btn {
-	background-color: #dc3545 !important;
-}
-
-#session-logout-btn:hover,
-#session-logout-btn:focus,
-button#session-logout-btn:hover,
-button#session-logout-btn:focus {
-	background-color: #e85663 !important;
-}
-
-/* Botão Fechar - Discreto */
+/* Botão Fechar - Base sem !important */
 #session-close-btn,
 button#session-close-btn {
-	background-color: transparent !important;
-	color: #6c757d !important;
-	border: 1px solid transparent !important;
-	border-radius: 3px !important;
-	width: 24px !important;
-	height: 24px !important;
-	min-width: 24px !important;
-	min-height: 24px !important;
-	display: inline-flex !important;
-	align-items: center !important;
-	justify-content: center !important;
-	flex-shrink: 0 !important;
-	flex-grow: 0 !important;
-	position: relative !important;
-	z-index: 999999 !important;
-	visibility: visible !important;
-	opacity: 0.7 !important;
-	margin-left: 6px !important;
-	cursor: pointer !important;
-	font-size: 14px !important;
-	font-weight: normal !important;
-	line-height: 1 !important;
-	box-sizing: border-box !important;
-	outline: none !important;
-	transition: all 0.2s ease !important;
-	padding: 0 !important;
+	background-color: transparent;
+	color: #6c757d;
+	border: 1px solid transparent;
+	border-radius: 3px;
+	cursor: pointer;
+	outline: none;
+	box-sizing: border-box;
+	transition: all 0.2s ease;
+	width: 24px;
+	height: 24px;
+	min-width: 24px;
+	min-height: 24px;
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	flex-shrink: 0;
+	font-size: 18px;
+	line-height: 1;
+	padding: 0;
+	margin-left: 4px;
 }
 
 #session-close-btn:hover,
-#session-close-btn:focus,
-button#session-close-btn:hover,
-button#session-close-btn:focus {
-	background-color: rgba(108, 117, 125, 0.1) !important;
-	border-color: rgba(108, 117, 125, 0.3) !important;
-	opacity: 1 !important;
-	color: #495057 !important;
+#session-close-btn:focus {
+	background-color: rgba(108, 117, 125, 0.1);
+	border-color: rgba(108, 117, 125, 0.3);
+	color: #495057;
 }
 
 /* Botão de Reabrir Status */
@@ -934,13 +866,28 @@ button#session-close-btn:focus {
     right: 0;
     z-index: 10000;
     margin: 0;
-    padding: 6px 0;
-    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    padding: 6px 0; /* Padrão para font-size 12px */
     border-bottom: 1px solid #dee2e6;
     box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    font-family: var(--system-font);
     display: none;
     transition: all 0.3s ease;
+}
+
+/* Padding proporcional para variantes com fonte maior */
+#session-status-bar.variant-v2,
+#session-status-bar.variant-v3 {
+    padding: 9px 0; /* Ajustado para font-size 13px */
+}
+
+#session-status-bar.variant-v7 {
+    padding: 12px 0; /* Ajustado para font-size 14px */
+}
+
+/* Background padrão (pode ser sobrescrito pelas variantes) */
+#session-status-bar:not([class*="variant-"]),
+#session-status-bar.variant-v8 {
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
 }
 
 #session-status-container {
@@ -963,6 +910,7 @@ button#session-close-btn:focus {
     background: #6c757d;
     transition: background-color 0.3s ease;
     box-shadow: 0 0 0 2px rgba(108, 117, 125, 0.2);
+	margin-right: 2px;
 }
 
 /* Reopen Button - Fixed Position Top Right */
@@ -978,10 +926,20 @@ button#session-close-btn:focus {
     border-radius: 20px;
     box-shadow: 0 2px 8px rgba(0,0,0,0.2);
     cursor: pointer;
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    font-family: var(--system-font);
     font-size: 13px;
     font-weight: 500;
     z-index: 9999;
     display: none;
     transition: all 0.3s ease;
 }
+
+/* ===================================================================
+   NOTA: Estilos de variantes e botões movidos para:
+   /includes/session-status-bar-variants.css
+   
+   Isso evita duplicação e conflitos de especificidade.
+   As variantes de botão (solid, outline, thick, inverted, gradient)
+   e variantes de conteúdo (v1-v8) estão definidas lá.
+   =================================================================== */
+
