@@ -55,6 +55,7 @@ include 'includes/app_credentials.php';
 <link rel="shortcut icon" href="favicon.ico" type="image/x-icon">
 <link rel="stylesheet" type="text/css" href="js/dijit/themes/tundra/tundra.css">
 <link rel="stylesheet" type="text/css" href="estilo.css?v=<?php echo time(); ?>">
+<link rel="stylesheet" type="text/css" href="includes/session-status-bar-variants.css?v=<?php echo time(); ?>">
 <script src="js/dojo/dojo.js" djConfig="parseOnLoad: true"></script>
 <script src="js/google-maps-config.php?v=5.0.1" defer></script>
 <script src="js/google-maps.js?v=5.0.1" async defer></script>
