@@ -7,7 +7,7 @@
 
 class SessionManager {
     constructor() {
-        this.checkInterval = 5 * 60 * 1000; // 5 minutos
+        this.checkInterval = 2 * 60 * 1000; // 2 minutos (reduzido para melhor detecção)
         this.intervalId = null;
         this.isChecking = false;
         this.lastCheck = 0;
@@ -55,10 +55,10 @@ class SessionManager {
     showStatus(message, type = 'info', duration = 3000) {
         this.updateStatus(message, type);
         
-        // Auto-hide após duração especificada apenas para mensagens temporárias
-        if (duration > 0 && type !== 'error') {
+        // Auto-hide apenas para mensagens não-permanentes (info/loading)
+        if (duration > 0 && (type === 'info' || type === 'loading')) {
             setTimeout(() => {
-                this.updateStatus('Sessão monitorada', 'success');
+                this.updateStatus('Conectado', 'success');
             }, duration);
         }
     }
@@ -80,8 +80,11 @@ class SessionManager {
         }
 
         try {
-            // Usa sempre XMLHttpRequest para maior compatibilidade
-            const data = await this.makeXhrRequest('session_status.php');
+            // Usa sempre XMLHttpRequest com timestamp para evitar cache
+            const cacheBuster = Date.now();
+            const data = await this.makeXhrRequest(`session_status.php?_=${cacheBuster}`);
+            
+            console.log('🔍 SessionManager: Resposta recebida:', data);
             
             if (data.status === 'valid' && data.authenticated) {
                 // Verifica se o servidor foi reiniciado
@@ -101,7 +104,6 @@ class SessionManager {
                 }
                 
                 this.userData = data.user || null;
-                this.updateStatus('Conectado', 'success');
                 
                 // Atualiza informações do usuário na barra
                 if (window.sessionStatusBarAPI && data.user) {
@@ -109,32 +111,95 @@ class SessionManager {
                 }
                 
                 if (manual) {
+                    // Verificação manual - mostra mensagem temporária
                     this.showStatus('✅ Sessão válida!', 'success', 3000);
+                } else {
+                    // Verificação automática - mantém status conectado
+                    this.updateStatus('Conectado', 'success');
                 }
                 
                 return true;
                 
-            } else if (data.status === 'expired' || data.status === 'error') {
-                this.updateStatus('Token expirado - necessário fazer login', 'error');
+            } else if (data.status === 'expired' || !data.authenticated) {
+                // Token expirado ou sessão inválida
+                console.warn('⚠️ SessionManager: Sessão expirada ou inválida');
+                console.warn('⚠️ Status:', data.status, '| Authenticated:', data.authenticated);
+                
+                // Limpa dados locais
+                this.userData = null;
+                localStorage.removeItem('server_instance_id');
+                
+                // Para a verificação periódica
+                this.stopPeriodicCheck();
+                
+                // Atualiza barra de status
+                this.updateStatus('Sessão expirada', 'error');
                 
                 if (manual) {
                     this.showTokenExpiredDialog();
                 } else {
-                    // Redireciona automaticamente se for verificação em background
+                    // Verificação automática - mostra aviso e redireciona
+                    console.warn('⚠️ Sessão expirada - redirecionando para login em 5s');
+                    
+                    // Mostra alerta se houver barra de status
+                    if (window.sessionStatusBarAPI) {
+                        window.sessionStatusBarAPI.updateStatus('⚠️ Sessão expirada - redirecionando...', 'error');
+                    }
+                    
                     setTimeout(() => {
-                        window.location.href = 'index.php';
+                        window.location.href = data.redirect_url || 'index.php';
                     }, 5000);
                 }
                 
+                return false;
+                
+            } else if (data.status === 'error') {
+                // Erro genérico
+                console.error('❌ SessionManager: Erro no servidor:', data.message);
+                this.updateStatus('Erro de sessão', 'error');
+                
+                if (manual) {
+                    alert('❌ Erro ao verificar sessão.\n\nTente fazer login novamente.');
+                    setTimeout(() => {
+                        window.location.href = 'index.php';
+                    }, 1000);
+                }
+                
+                return false;
+            } else {
+                // Status desconhecido
+                console.error('❌ SessionManager: Status desconhecido:', data);
+                this.updateStatus('Status desconhecido', 'warning');
                 return false;
             }
             
         } catch (error) {
             console.error('Erro ao verificar sessão:', error);
-            this.updateStatus('Erro na verificação de sessão', 'error');
             
-            if (manual) {
-                this.showStatus('❌ Erro na verificação', 'error', 5000);
+            // Diferencia erro de conexão de outros erros
+            const isNetworkError = error.message && 
+                (error.message.includes('conexão') || 
+                 error.message.includes('Network') ||
+                 error.message.includes('Failed to fetch'));
+            
+            if (isNetworkError) {
+                // Erro de rede - não mostra timer
+                if (window.sessionStatusBarAPI) {
+                    window.sessionStatusBarAPI.updateStatus('Sem conexão', 'warning', false);
+                } else {
+                    console.warn('⚠️ Sem conexão - verificação pausada');
+                }
+                
+                if (manual) {
+                    alert('⚠️ Sem conexão com o servidor.\n\nVerifique sua conexão de rede.');
+                }
+            } else {
+                // Erro desconhecido
+                this.updateStatus('Erro na verificação', 'error');
+                
+                if (manual) {
+                    this.showStatus('❌ Erro na verificação', 'error', 5000);
+                }
             }
             
             return false;
@@ -151,22 +216,34 @@ class SessionManager {
             xhr.open(method, url);
             xhr.setRequestHeader('Content-Type', 'application/json');
             xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
+            xhr.setRequestHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+            xhr.setRequestHeader('Pragma', 'no-cache');
+            xhr.setRequestHeader('Expires', '0');
             xhr.withCredentials = true;
             
             xhr.onload = function() {
                 if (xhr.status >= 200 && xhr.status < 300) {
                     try {
                         const data = JSON.parse(xhr.responseText);
+                        console.log('📥 XHR Response:', {
+                            url: url,
+                            status: xhr.status,
+                            data: data
+                        });
                         resolve(data);
                     } catch (e) {
+                        console.error('❌ Erro ao parsear resposta:', e);
+                        console.error('❌ Response text:', xhr.responseText);
                         reject(new Error('Resposta inválida do servidor'));
                     }
                 } else {
+                    console.error('❌ HTTP Error:', xhr.status, xhr.statusText);
                     reject(new Error(`HTTP ${xhr.status}: ${xhr.statusText}`));
                 }
             };
             
             xhr.onerror = function() {
+                console.error('❌ XHR Network Error');
                 reject(new Error('Erro de conexão'));
             };
             
@@ -335,10 +412,12 @@ class SessionManager {
         
         // Inicia verificação periódica
         this.intervalId = setInterval(() => {
+            console.log('⏰ Verificação periódica automática iniciada');
             this.checkSessionStatus(false);
         }, this.checkInterval);
         
-        console.log('🔧 SessionManager: Verificação periódica iniciada');
+        console.log(`🔧 SessionManager: Verificação periódica iniciada a cada ${this.checkInterval / 60000} minutos`);
+        console.log(`🔧 Próxima verificação em: ${new Date(Date.now() + this.checkInterval).toLocaleTimeString()}`);
     }
 
     stopPeriodicCheck() {
@@ -352,10 +431,9 @@ class SessionManager {
     bindEvents() {
         // Verifica sessão quando a página ganha foco
         window.addEventListener('focus', () => {
-            // Só verifica se passou mais de 1 minuto desde a última verificação
-            if (Date.now() - this.lastCheck > 60000) {
-                this.checkSessionStatus(false);
-            }
+            // Verifica imediatamente quando volta ao foco
+            console.log('🔍 Página ganhou foco - verificando sessão');
+            this.checkSessionStatus(false);
         });
 
         // Para a verificação quando a página perde foco (otimização)
@@ -366,6 +444,22 @@ class SessionManager {
         // Limpa recursos quando a página é descarregada
         window.addEventListener('beforeunload', () => {
             this.stopPeriodicCheck();
+        });
+        
+        // Detecta mudanças de visibilidade da página
+        document.addEventListener('visibilitychange', () => {
+            if (!document.hidden) {
+                console.log('🔍 Página ficou visível - verificando sessão');
+                this.checkSessionStatus(false);
+            }
+        });
+        
+        // Monitora mudanças em localStorage para detectar logout em outras abas
+        window.addEventListener('storage', (e) => {
+            if (e.key === 'session_logout' || e.key === 'server_instance_id') {
+                console.log('🔍 Mudança em storage detectada - verificando sessão');
+                this.checkSessionStatus(false);
+            }
         });
     }
 
@@ -436,9 +530,16 @@ class SessionManager {
     logout() {
         console.log('👋 SessionManager: Iniciando logout...');
         
+        // Sinaliza logout para outras abas
+        try {
+            localStorage.setItem('session_logout', Date.now().toString());
+        } catch (e) {
+            console.warn('⚠️ Erro ao sinalizar logout:', e);
+        }
+        
         // Limpa localStorage
         try {
-            localStorage.clear();
+            localStorage.removeItem('server_instance_id');
             console.log('✅ localStorage limpo');
         } catch (e) {
             console.warn('⚠️ Erro ao limpar localStorage:', e);
