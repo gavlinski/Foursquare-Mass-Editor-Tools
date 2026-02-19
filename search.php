@@ -61,8 +61,13 @@ define("EDIT", '<script>
 	window.location = "edit.php"
 </script>;');
 
-if (isset($_POST["ll"]))
+if (isset($_POST["ll"]) && trim($_POST["ll"]) !== "")
 	$params["ll"] = stripAccents($_POST["ll"]);
+else {
+	// Se ll não foi fornecido, exibe erro
+	echo ERRO99;
+	exit;
+}
 if (isset($_POST["categoryId"]))
 	$params["categoryId"] = $_POST["categoryId"];
 if ((isset($_POST["query"])) && ($_POST["query"] != ""))
@@ -153,14 +158,16 @@ function pesquisarVenues($params) {
 	$foursquare -> SetAccessToken($_SESSION["oauth_token"]);
 	
 	/*** Leverages the Google Maps API to generate a lat/lng pair for a given address ***/
-	if ((!preg_match('/^(\-?\d+(\.\d+)?),\s*(\-?\d+(\.\d+)?)$/', $params["ll"])) ||  ($params["limit"] > 50)) {
+	// Se ll estiver vazio ou não for coordenadas válidas, tenta geocodificar
+	if (!empty($params["ll"]) && (!preg_match('/^(\-?\d+(\.\d+)?),\s*(\-?\d+(\.\d+)?)$/', $params["ll"]))) {
 		$coordinates = $foursquare -> GeoLocate($params["ll"]);
-		$params["ll"] = $coordinates["latitude"] . "," . $coordinates["longitude"];
-		if ($coordinates == null) {
+		// Verifica se geocodificação foi bem-sucedida antes de acessar array
+		if ($coordinates == null || !isset($coordinates["latitude"]) || !isset($coordinates["longitude"])) {
 			$pbar->hide();
 			echo ERRO01;
 			exit;
 		}
+		$params["ll"] = $coordinates["latitude"] . "," . $coordinates["longitude"];
 	}
 	
 	/*** Perform a request to a authenticated-only resource ***/
