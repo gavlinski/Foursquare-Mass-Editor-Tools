@@ -200,6 +200,50 @@ Contributions are always welcome! Please:
 - Write comprehensive tests
 - Update documentation
 
+## 📝 Changelog
+
+### Version 3.0.1 (2026-02-18)
+
+**Session Management Improvements:**
+- Reduced session check interval from 5 minutes to 2 minutes for faster expiration detection
+- Implemented cache busting in session status requests to prevent stale data
+- Enhanced session expiration detection logic (checks both `status='expired'` and `!authenticated`)
+- Added visibility change and focus event listeners for immediate session verification
+- Implemented cross-tab logout detection via localStorage events
+- Session timer now properly pauses on error/expired states
+
+**OAuth & Authentication:**
+- Added protection against OAuth redirect loops (max 10 attempts)
+- Implemented token validation before accepting cookie-stored tokens
+- Improved token restoration priority: session → cookie → superglobal
+- Added comprehensive debug logging for OAuth flow tracking
+
+**User Experience Enhancements:**
+- File upload state now persists via cookies when navigating back
+- Intelligent navigation detection (F5 vs Back button) using Performance API
+- Automatic file state restoration on browser back navigation
+- Enhanced venue editing with proper Dijit widget updates
+- Fixed placeholder visibility after loading venue data
+- Added `habilitarCamposLinha()` function to properly re-enable fields
+
+**UI & Styling:**
+- Fixed category tree positioning with proper CSS float clearing
+- Reduced session bar padding on large screens (40px → 15px)
+- Improved visual feedback with automatic error class removal on success
+- Session bar timer now respects `showTimer` parameter for better state control
+
+**Validation & Error Handling:**
+- Enhanced search coordinate validation with empty field checking
+- Better geocoding success verification before accessing results
+- Filtered error listeners to show only session-related errors
+- Improved error messages and user feedback
+
+### Version 3.0.0 (2025)
+- Initial modernization release with PHP 8.1 migration
+- PSR-4 autoloading implementation
+- Docker containerization
+- Modern session management system
+
 ## 🔧 Testing and Debugging
 
 ### Debug Tools (debug/ folder)
