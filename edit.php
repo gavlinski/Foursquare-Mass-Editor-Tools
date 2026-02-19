@@ -388,11 +388,18 @@ document.addEventListener('DOMContentLoaded', function() {
     // CSS resize: both permite redimensionar a div e o mapa se ajusta sozinho
     console.log('✅ Google Maps com redimensionamento automático ativado');
     
-    // Debug: Log global para verificar se há erros
+    // Debug: Log global para verificar se há erros relacionados à sessão
     window.addEventListener('error', function(e) {
         console.error('❌ Erro na página:', e.error);
-        if (window.sessionStatusBarAPI) {
-            window.sessionStatusBarAPI.updateStatus('Erro detectado: ' + e.message, 'error');
+        
+        // Apenas envia para barra de status se for erro relacionado à sessão
+        const sessionRelatedErrors = ['session', 'token', 'auth', 'login', 'logout', 'unauthorized', '401'];
+        const isSessionError = sessionRelatedErrors.some(function(keyword) {
+            return e.message && e.message.toLowerCase().includes(keyword);
+        });
+        
+        if (isSessionError && window.sessionStatusBarAPI) {
+            window.sessionStatusBarAPI.updateStatus('Erro de sessão: ' + e.message, 'error');
         }
     });
 });

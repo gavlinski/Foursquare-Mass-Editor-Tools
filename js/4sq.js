@@ -255,6 +255,25 @@ function desabilitarLinha(i) {
 	}
 }
 
+/**
+ * Habilita todos os campos de texto de uma linha
+ * Chamada antes de verificar se deve desabilitar baseado em categorias
+ */
+function habilitarCamposLinha(i) {
+	dojo.query('#linha' + i + ' input').forEach(
+		function(inputElem) {
+			if (inputElem.type == 'text') {
+				var widget = dijit.byId(inputElem.id);
+				if (widget) {
+					widget.setDisabled(false);
+					// Remove readOnly também (usado em phone para categorias de estado/município)
+					widget.attr("readOnly", false);
+				}
+			}
+		}
+	);
+}
+
 function compare(el1, el2, index) {
   return el1[index] == el2[index] ? 0 : (el1[index] < el2[index] ? -1 : 1);
 }
@@ -282,6 +301,13 @@ function xmlhttpRequest(metodo, endpoint, acao, dados, i) {
 			/*** O erro {"meta":{"code":400,"errorType":"param_error","errorDetail":"Must start with http:\/\/"}} é um bug da API que ocorre quando o campo url é enviado em branco. Mas mesmo dando erro, a venue é corretamente editada. ***/
 			if ((xmlhttp.status == 200) || ((xmlhttp.status == 400) && (resposta.meta.errorType == "param_error") && (resposta.meta.errorDetail == "Must start with http:\/\/"))) {
 				clearTimeout(xmlhttpTimeout);
+				
+				// Remove indicador visual de erro em caso de sucesso
+				var linhaElement = dojo.byId("linha" + i);
+				if (linhaElement) {
+					dojo.removeClass(linhaElement, "error");
+				}
+				
 				if (metodo == "POST") {
 					imagem = "<img src='img/ok.png' alt='" + xmlhttp.responseText + "' style='vertical-align: middle;'>";
 					totalProgresso++;
@@ -742,7 +768,16 @@ function atualizarTabela(venue, i) {
 		//console.log(categorias[i].nomes + " (" + categorias[i].ids + ") [" + categorias[i].icones + "]");
 	}
 	document.forms[i]["name"].value = venue.name;
+	// Update Dijit widget to hide placeholder
+	if (venue.name !== undefined) {
+		var nameWidget = dijit.byId(dojo.query("input[name=name]")[i].id);
+		if (nameWidget) nameWidget.set("value", venue.name || "");
+	}
 	document.forms[i]["venuell"].value = (venue.location.lat + ', ' + venue.location.lng).replace(/undefined/gi, "0.0");
+	// Update venuell widget
+	var venuellValue = (venue.location.lat + ', ' + venue.location.lng).replace(/undefined/gi, "0.0");
+	var venuellWidget = dijit.byId(dojo.query("input[name=venuell]")[i].id);
+	if (venuellWidget) venuellWidget.set("value", venuellValue);
 	linha = '"' + venue.id + '"';
 	if (modo == DADOS_COMPLETOS) 
 		linha += '&&' + '"' + categorias[i].ids + '"';
@@ -758,26 +793,50 @@ function atualizarTabela(venue, i) {
 				break;
 			case "address":
 				document.forms[i]["address"].value = venue.location.address;
+				if (venue.location.address !== undefined) {
+					var addressWidget = dijit.byId(dojo.query("input[name=address]")[i].id);
+					if (addressWidget) addressWidget.set("value", venue.location.address || "");
+				}
 				linha += '&&"' + venue.location.address + '"';
 				break;
 			case "crossStreet":
 				document.forms[i]["crossStreet"].value = venue.location.crossStreet;
+				if (venue.location.crossStreet !== undefined) {
+					var crossStreetWidget = dijit.byId(dojo.query("input[name=crossStreet]")[i].id);
+					if (crossStreetWidget) crossStreetWidget.set("value", venue.location.crossStreet || "");
+				}
 				linha += '&&"' + venue.location.crossStreet + '"';
 				break;
 			case "neighborhood":
 				document.forms[i]["neighborhood"].value = venue.location.neighborhood;
+				if (venue.location.neighborhood !== undefined) {
+					var neighborhoodWidget = dijit.byId(dojo.query("input[name=neighborhood]")[i].id);
+					if (neighborhoodWidget) neighborhoodWidget.set("value", venue.location.neighborhood || "");
+				}
 				linha += '&&"' + venue.location.neighborhood + '"';
 				break;
 			case "city":
 				document.forms[i]["city"].value = venue.location.city;
+				if (venue.location.city !== undefined) {
+					var cityWidget = dijit.byId(dojo.query("input[name=city]")[i].id);
+					if (cityWidget) cityWidget.set("value", venue.location.city || "");
+				}
 				linha += '&&"' + venue.location.city + '"';
 				break;
 			case "state":
 				document.forms[i]["state"].value = venue.location.state;
+				if (venue.location.state !== undefined) {
+					var stateWidget = dijit.byId(dojo.query("input[name=state]")[i].id);
+					if (stateWidget) stateWidget.set("value", venue.location.state || "");
+				}
 				linha += '&&"' + venue.location.state + '"';
 				break;
 			case "zip":
 				document.forms[i]["zip"].value = venue.location.postalCode;
+				if (venue.location.postalCode !== undefined) {
+					var zipWidget = dijit.byId(dojo.query("input[name=zip]")[i].id);
+					if (zipWidget) zipWidget.set("value", venue.location.postalCode || "");
+				}
 				linha += '&&"' + venue.location.postalCode + '"';
 				break;
 			case "parentId":
@@ -789,26 +848,50 @@ function atualizarTabela(venue, i) {
 					console.log(e);
 				}
 				document.forms[i]["parentId"].value = parentId;
+				if (parentId !== undefined) {
+					var parentIdWidget = dijit.byId(dojo.query("input[name=parentId]")[i].id);
+					if (parentIdWidget) parentIdWidget.set("value", parentId || "");
+				}
 				linha += '&&"' + parentId + '"';
 				break;
 			case "phone":
 				document.forms[i]["phone"].value = venue.contact.phone;
+				if (venue.contact.phone !== undefined) {
+					var phoneWidget = dijit.byId(dojo.query("input[name=phone]")[i].id);
+					if (phoneWidget) phoneWidget.set("value", venue.contact.phone || "");
+				}
 				linha += '&&"' + venue.contact.phone + '"';
 				break;
 			case "url":
 				document.forms[i]["url"].value = venue.url;
+				if (venue.url !== undefined) {
+					var urlWidget = dijit.byId(dojo.query("input[name=url]")[i].id);
+					if (urlWidget) urlWidget.set("value", venue.url || "");
+				}
 				linha += '&&"' + venue.url + '"';
 				break;
 			case "twitter":
 				document.forms[i]["twitter"].value = venue.contact.twitter;
+				if (venue.contact.twitter !== undefined) {
+					var twitterWidget = dijit.byId(dojo.query("input[name=twitter]")[i].id);
+					if (twitterWidget) twitterWidget.set("value", venue.contact.twitter || "");
+				}
 				linha += '&&"' + venue.contact.twitter + '"';
 				break;
 			case "facebook":
 				document.forms[i]["facebook"].value = venue.contact.facebook;
+				if (venue.contact.facebook !== undefined) {
+					var facebookWidget = dijit.byId(dojo.query("input[name=facebook]")[i].id);
+					if (facebookWidget) facebookWidget.set("value", venue.contact.facebook || "");
+				}
 				linha += '&&"' + venue.contact.facebook + '"';
 				break;
 			case "instagram":
 				document.forms[i]["instagram"].value = venue.contact.instagram;
+				if (venue.contact.instagram !== undefined) {
+					var instagramWidget = dijit.byId(dojo.query("input[name=instagram]")[i].id);
+					if (instagramWidget) instagramWidget.set("value", venue.contact.instagram || "");
+				}
 				linha += '&&"' + venue.contact.instagram + '"';
 				break;
 			case "venuell":
@@ -817,6 +900,10 @@ function atualizarTabela(venue, i) {
 				break;
 			case "description":
 				document.forms[i]["description"].value = venue.description;
+				if (venue.description !== undefined) {
+					var descriptionWidget = dijit.byId(dojo.query("input[name=description]")[i].id);
+					if (descriptionWidget) descriptionWidget.set("value", venue.description || "");
+				}
 				linha += '&&"' + venue.description + '"';
 				//if (venue.verified == true)
 					//dijit.byId(dojo.query("input[name=description]")[i].id).attr("readOnly", true);
@@ -830,6 +917,10 @@ function atualizarTabela(venue, i) {
 					console.log(e);
 				}
 				document.forms[i]["menu"].value = menuUrl;
+				if (menuUrl !== undefined) {
+					var menuWidget = dijit.byId(dojo.query("input[name=menu]")[i].id);
+					if (menuWidget) menuWidget.set("value", menuUrl || "");
+				}
 				linha += '&&"' + menuUrl + '"';
 				break;
 			//case "hours":
@@ -853,6 +944,11 @@ function atualizarTabela(venue, i) {
 			//console.log(j, document.forms[i].elements[j].name, "ignorado");
 	}
 	dojo.byId("result" + i).innerHTML = "";
+	
+	// Primeiro habilita todos os campos (remove restrições anteriores)
+	habilitarCamposLinha(i);
+	
+	// Depois verifica se deve desabilitar baseado nas categorias atuais
 	if (venue.categories[0] != undefined) {
 		if (venue.categories[0].id == CATEGORIA_HOME)
 			desabilitarLinha(i);
@@ -1012,29 +1108,14 @@ function montarArvore(resposta) {
 	JSONText = JSON.stringify(restructuredData);
 	//console.log(JSONText);
 	
-	// Verifica se widget já existe - se sim, apenas atualiza o modelo ao invés de destruir
+	// Verifica se widget já existe - se sim, destrói antes de recriar
 	var existingTree = dijit.byId("treeContainer");
 	if (existingTree) {
-		// Árvore já existe, atualiza apenas o store
-		store = new dojo.data.ItemFileReadStore({
-			data: {
-				"identifier": "id",
-				"label": "name",
-				"items": restructuredData
-			}
-		});
-		var treeModel = new dijit.tree.ForestStoreModel({
-			store: store,
-			rootId: "root",
-			rootLabel: "Categorias",
-			childrenAttrs: ["children"]
-		});
-		existingTree.set("model", treeModel);
-		console.info("Árvore de categorias atualizada!");
-		return;
+		existingTree.destroyRecursive();
+		console.info("Árvore de categorias antiga destruída.");
 	}
 	
-	// Cria árvore pela primeira vez
+	// Cria árvore (primeira vez ou recriação)
 	store = new dojo.data.ItemFileReadStore({
 		data: {
 			"identifier": "id",
@@ -1048,7 +1129,9 @@ function montarArvore(resposta) {
 		rootLabel: "Categorias",
 		childrenAttrs: ["children"]
 	});
-	var treeContainer = new dijit.Tree({
+	
+	// Cria a árvore usando o container existente (que já tem o ID e CSS corretos)
+	var treeWidget = new dijit.Tree({
 		model: treeModel,
 		showRoot: false,
 		onClick: treeOnClick,
@@ -1060,7 +1143,7 @@ function montarArvore(resposta) {
 			return 'icon' + item.id;
 		}
 	}, "treeContainer");
-	treeContainer.startup();
+	treeWidget.startup();
 }
 
 function treeOnClick(item) {
@@ -1093,6 +1176,7 @@ function treeOnClick(item) {
 function carregarDadosVenues() {
 	var venue;
 	var linhas = document.forms.length;
+	
 	//if (localStorage && localStorage.getItem('venues'))
 		//json = JSON.parse(localStorage.getItem('venues'));
 	if (json == "") {
@@ -1254,6 +1338,7 @@ function executarRecarregamento(excluirIndice) {
 	json = "";
 	if (localStorage) {
 		localStorage.removeItem('venues');
+		localStorage.removeItem('venuesComDadosCompletos');
 	}
 	
 	// Força modo DADOS_COMPLETOS
@@ -1558,6 +1643,10 @@ window.atualizarPosicaoMarcador = function(index, event) {
 				} else {
 					dijit.byId(inputId).set("value", novaPosicao);
 				}
+				
+				// Marca a linha como editada
+				console.log('🔵 Marcando linha ' + (index + 1) + ' como editada após arrastar marcador');
+				verificarAlteracao(dojo.query("input[name=venuell]")[index], index);
 				
 				// Atualiza CSV
 				if (window.csv) {
@@ -2669,6 +2758,12 @@ function verificarAlteracao(textbox, i) {
 		valorOriginal = valorOriginal || '';
 	}
 	
+	// Verifica se esta linha está sendo recarregada - se sim, ignora alterações
+	var formElement = document.forms[i];
+	if (formElement && formElement.getAttribute('data-reloading') === 'true') {
+		return; // Ignora alterações durante reload
+	}
+	
 	if (valorOriginal != textbox.value) {
 		//console.info("changed (" + i + "): " + textbox.name + ", old value: " + valorOriginal + ", new value: " + textbox.value);
 		csv[i + 1][index] = '"' + textbox.value + '"';
@@ -2718,6 +2813,12 @@ function editField(campo, valor) {
 				dojo.byId("result" + i).innerHTML = "";
 				if (linhasEditadas.indexOf(parseInt(i)) == -1)
 					linhasEditadas.push(parseInt(i));
+				
+				// Adiciona classe visual para indicar linha editada
+				var linhaElement = dojo.byId("linha" + i);
+				if (linhaElement && !dojo.hasClass(linhaElement, "edited")) {
+					dojo.addClass(linhaElement, "edited");
+				}
 				//console.log(csv[parseInt(i) + 1][2], csv[parseInt(i) + 1][index]);
 			}
 		}
