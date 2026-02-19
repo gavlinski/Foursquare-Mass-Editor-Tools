@@ -58,6 +58,18 @@ function xmlhttpRequest(metodo, endpoint, acao, dados, i) {
 			/*** O erro {"meta":{"code":400,"errorType":"param_error","errorDetail":"Must start with http:\/\/"}} é um bug da API que ocorre quando o campo url é enviado em branco. Mas mesmo dando erro, a venue é corretamente editada. ***/
 			if ((xmlhttp.status == 200) || ((xmlhttp.status == 400) && (resposta.meta.errorType == "param_error") && (resposta.meta.errorDetail == "Must start with http:\/\/"))) {
 				clearTimeout(xmlhttpTimeout);
+
+				// Remove indicador visual de erro em caso de sucesso
+				if (i !== undefined && i !== null) {
+					var formElement = document.forms[i];
+					if (formElement && formElement.parentElement) {
+						var rowElement = formElement.parentElement;
+						if (rowElement.classList) {
+							rowElement.classList.remove("error");
+						}
+					}
+				}
+
 				if (metodo == "POST") {
 					atualizarResultado(i, "<img src='img/ok.png' alt='" + xmlhttp.responseText + "' style='vertical-align: middle;'>", "<span style=\"font-size: 12px\">Editada com sucesso</span>");
 					var name = "";
@@ -76,8 +88,7 @@ function xmlhttpRequest(metodo, endpoint, acao, dados, i) {
 					dijit.byId("exportButton").setAttribute("disabled", false);
 				} else if (metodo == "GET") {
 					montarTabela(resposta);
-					atualizarCategorias();
-					console.info("Categorias recuperadas!");
+					atualizarCategorias();				atualizarWidgetsDijit(); // Atualiza widgets para ocultar placeholders					console.info("Categorias recuperadas!");
 					localStorage.setItem("categorias", JSON.stringify(resposta));
 					var d = new Date();
 					d.setHours(0, 0, 0, 0);
@@ -254,6 +265,40 @@ function atualizarCategorias() {
 	for (i = 0; i < totalLinhas; i++) {
 		salvarCategoria(i, "categoryId");
 	}
+}
+
+/**
+ * Atualiza widgets Dijit para ocultar placeholders
+ * Chamada após carregar dados das categorias
+ */
+function atualizarWidgetsDijit() {
+	console.log('🔧 Atualizando widgets Dijit para ocultar placeholders...');
+	var totalLinhas = document.forms.length;
+	
+	for (var i = 0; i < totalLinhas; i++) {
+		var form = document.forms[i];
+		var totalColunas = form.elements.length;
+		
+		for (var j = 0; j < totalColunas; j++) {
+			var element = form.elements[j];
+			var elementName = element.name;
+			
+			// Atualiza widget se tiver valor e não for hidden
+			if (element.value && element.value.trim() !== '' && element.type !== 'hidden') {
+				try {
+					// Busca widget Dijit associado ao input
+					var widget = dijit.byId(element.id);
+					if (widget && typeof widget.set === 'function') {
+						// Atualiza valor do widget para ocultar placeholder
+						widget.set('value', element.value);
+					}
+				} catch(e) {
+					// Ignora erros - nem todo input tem widget associado
+				}
+			}
+		}
+	}
+	console.log('✅ Widgets Dijit atualizados');
 }
 
 function salvarVenues() {
@@ -557,6 +602,7 @@ dojo.addOnLoad(function() {
 			var resposta = JSON.parse(localStorage.getItem('categorias'));
 			montarTabela(resposta);
 			atualizarCategorias();
+			atualizarWidgetsDijit(); // Atualiza widgets para ocultar placeholders
 			console.info("Categorias recuperadas do localStorage!");
 		}
 	}

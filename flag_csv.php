@@ -15,6 +15,11 @@
  * @license    GPLv3 <http://www.gnu.org/licenses/gpl.txt>
  */
 
+// Headers anti-cache para desenvolvimento
+header('Cache-Control: no-cache, no-store, must-revalidate');
+header('Pragma: no-cache');
+header('Expires: 0');
+
 if (!isset($_SESSION))
 	session_start();
 if (isset($_SESSION["oauth_token"])) {
@@ -29,13 +34,20 @@ if (isset($_SESSION["oauth_token"])) {
 <head>
 <title>Elio Tools</title>
 <meta charset="utf-8">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
 <link rel="shortcut icon" href="favicon.ico" type="image/x-icon">
 <link rel="stylesheet" type="text/css" href="js/dijit/themes/tundra/tundra.css">
-<link rel="stylesheet" type="text/css" href="estilo.css">
+<link rel="stylesheet" type="text/css" href="estilo.css?v=<?php echo time(); ?>">
+<link rel="stylesheet" type="text/css" href="includes/session-status-bar-variants.css?v=<?php echo time(); ?>">
 <script src="js/dojo/dojo.js" djConfig="parseOnLoad: true"></script>
-<script src="js/4sq_csv.js"></script>
+<script src="js/4sq_csv.js?v=5.0.1"></script>
+<script src="js/session-manager.js?v=5.0.1" defer></script>
 </head>
 <body class="tundra">
+
+<?php include 'includes/session-status-bar.php'; ?>
 <header>
 	<h2>Sinalizar locais</h2>
 </header>
