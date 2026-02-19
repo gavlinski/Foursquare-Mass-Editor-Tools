@@ -69,7 +69,7 @@ window.sessionStatusBarAPI = {
         }
     },
     
-    updateStatus: function(message, type = 'info') {
+    updateStatus: function(message, type = 'info', showTimer = true) {
         const textElement = document.getElementById('session-status-text');
         const indicator = document.getElementById('session-status-indicator');
         
@@ -77,34 +77,50 @@ window.sessionStatusBarAPI = {
         const statusBar = document.getElementById('session-status-bar');
         const currentVariant = statusBar?.className.match(/variant-(v\d+)/)?.[1] || 'v8';
         
-        if (textElement) {
-            // Armazena mensagem base para uso com timer
-            textElement.dataset.baseMessage = message;
-            
-            // V2 usa tooltip, então atualiza lá
-            if (currentVariant === 'v2') {
-                const tooltip = document.querySelector('.v2-tooltip');
-                if (tooltip && this.sessionStartTime) {
+        // PRIMEIRO: Para o timer se showTimer for false (antes de atualizar conteúdo)
+        if (!showTimer && this.sessionTimerInterval) {
+            clearInterval(this.sessionTimerInterval);
+            this.sessionTimerInterval = null;
+            console.log('🔧 Timer pausado - showTimer = false');
+        }
+        
+        // SEGUNDO: Atualiza conteúdo específico da variante V2 (tooltip independente)
+        if (currentVariant === 'v2') {
+            const tooltip = document.querySelector('.v2-tooltip');
+            if (tooltip) {
+                if (this.sessionStartTime && showTimer) {
+                    // Com timer ativo
                     const elapsed = Date.now() - this.sessionStartTime;
                     const minutes = Math.floor(elapsed / 60000);
                     const seconds = Math.floor((elapsed % 60000) / 1000);
                     const formatted = `${minutes}:${seconds.toString().padStart(2, '0')}`;
                     tooltip.innerHTML = `${message} - Sessão: <span class="session-timer">${formatted}</span>`;
-                } else if (tooltip) {
+                } else {
+                    // Sem timer (erro, loading, etc)
                     tooltip.textContent = message;
+                    console.log('📝 Tooltip V2 atualizada para:', message);
                 }
             }
-            // Outras variantes usam status text
-            else if (this.sessionStartTime) {
-                const elapsed = Date.now() - this.sessionStartTime;
-                const minutes = Math.floor(elapsed / 60000);
-                const seconds = Math.floor((elapsed % 60000) / 1000);
-                const formatted = `${minutes}:${seconds.toString().padStart(2, '0')}`;
-                
-                // Usa innerHTML para preservar estrutura de timer
-                textElement.innerHTML = `${message} <span class="session-timer-container">(<span class="session-timer">${formatted}</span>)</span>`;
-            } else {
-                textElement.textContent = message;
+        }
+        
+        if (textElement) {
+            // Armazena mensagem base para uso com timer
+            textElement.dataset.baseMessage = message;
+            textElement.dataset.showTimer = showTimer ? 'true' : 'false';
+            
+            // Outras variantes (V2 já foi tratado acima)
+            if (currentVariant !== 'v2') {
+                if (this.sessionStartTime && showTimer) {
+                    const elapsed = Date.now() - this.sessionStartTime;
+                    const minutes = Math.floor(elapsed / 60000);
+                    const seconds = Math.floor((elapsed % 60000) / 1000);
+                    const formatted = `${minutes}:${seconds.toString().padStart(2, '0')}`;
+                    
+                    // Usa innerHTML para preservar estrutura de timer
+                    textElement.innerHTML = `${message} <span class="session-timer-container">(<span class="session-timer">${formatted}</span>)</span>`;
+                } else {
+                    textElement.textContent = message;
+                }
             }
         }
         
@@ -121,8 +137,11 @@ window.sessionStatusBarAPI = {
             indicator.style.boxShadow = `0 0 0 2px ${colors[type] || colors.info}20`;
         }
         
-        // Inicia o timer se o tipo for success (sessão conectada)
-        if (type === 'success' && !this.sessionStartTime) {
+        // Inicia o timer se o tipo for success (sessão conectada) e showTimer for true
+        if (type === 'success' && !this.sessionStartTime && showTimer) {
+            this.startSessionTimer();
+        } else if (type === 'success' && showTimer && this.sessionStartTime && !this.sessionTimerInterval) {
+            // Reinicia o timer se ele foi parado mas deveria estar ativo
             this.startSessionTimer();
         }
     },
@@ -236,6 +255,14 @@ window.sessionStatusBarAPI = {
     updateSessionTimer: function() {
         if (!this.sessionStartTime) return;
         
+        // Verifica se deve mostrar timer
+        const statusText = document.getElementById('session-status-text');
+        const showTimer = statusText?.dataset.showTimer !== 'false';
+        
+        if (!showTimer) {
+            return; // Não atualiza timer se showTimer for false
+        }
+        
         const elapsed = Date.now() - this.sessionStartTime;
         const minutes = Math.floor(elapsed / 60000);
         const seconds = Math.floor((elapsed % 60000) / 1000);
@@ -252,7 +279,6 @@ window.sessionStatusBarAPI = {
                 timerElement.textContent = formatted;
             } else {
                 const tooltip = document.querySelector('.v2-tooltip');
-                const statusText = document.getElementById('session-status-text');
                 if (tooltip && statusText?.dataset.baseMessage) {
                     tooltip.innerHTML = `${statusText.dataset.baseMessage} - Sessão: <span class="session-timer">${formatted}</span>`;
                 }
@@ -265,7 +291,6 @@ window.sessionStatusBarAPI = {
                 timerElement.textContent = formatted;
             } else {
                 // Se timer não existe, atualiza texto completo
-                const statusText = document.getElementById('session-status-text');
                 if (statusText && statusText.dataset.baseMessage) {
                     statusText.innerHTML = `${statusText.dataset.baseMessage} <span class="session-timer-container">(<span class="session-timer">${formatted}</span>)</span>`;
                 }
