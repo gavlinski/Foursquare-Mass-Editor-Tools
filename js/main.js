@@ -18,20 +18,29 @@ dojo.addOnLoad(function() {
 		style: "width: 570px"
 	});
 	var arquivo_csv = dojo.byId("arquivo_csv");
-	var arquivo_nome = "";
+	var arquivo_nome = dojo.cookie("arquivo_csv_nome") || ""; // Restaura do cookie se existir
+	var arquivo_csv_data = null; // Guarda dados do arquivo selecionado
 	var uploader_csv = dijit.byId("uploader_csv");
 	var form_csv = dijit.byId("f_csv");
 	dojo.connect(uploader_csv, "onChange", function (data) {
 		arquivo_csv.innerHTML = data[0].name + " (" + Math.ceil(data[0].size * .001) + " kB)";
 		arquivo_nome = data[0].name;
+		arquivo_csv_data = data[0]; // Salva dados para restaurar depois
+		// Salva em cookie para persistir após navegação
+		dojo.cookie("arquivo_csv_nome", data[0].name, { expires: 1 });
+		dojo.cookie("arquivo_csv_size", data[0].size, { expires: 1 });
+		console.log("💾 Arquivo CSV salvo em cookie: " + data[0].name);
 	});
 	dojo.connect(form_csv, "onSubmit", function(e) {
 		if (form_csv.validate()) {
+			// Verifica se arquivo foi selecionado ou restaurado
+			var nomeArquivo = arquivo_nome || window.arquivo_csv_nome_global || "";
+			
 			if (arquivo_csv.innerHTML === "Nenhum arquivo selecionado") {
 				e.preventDefault();
 				alert("O arquivo precisa ser escolhido");
 				uploader_csv.inputNode.focus();
-			} else if (arquivo_nome.split('.').pop() != "csv") {
+			} else if (nomeArquivo && nomeArquivo.split('.').pop() != "csv") {
 				e.preventDefault();
 				alert("O arquivo deve ser do tipo CSV");
 				uploader_csv.inputNode.focus();
@@ -51,10 +60,16 @@ dojo.addOnLoad(function() {
 		style: "width: 590px"
 	});
 	var arquivo_txt = dojo.byId("arquivo_txt");
+	var arquivo_txt_data = null; // Guarda dados do arquivo selecionado
 	var uploader_txt = dijit.byId("uploader_txt");
 	var form_txt = dijit.byId("f_txt");
 	dojo.connect(uploader_txt, "onChange", function (data) {
 		arquivo_txt.innerHTML = data[0].name + " (" + Math.ceil(data[0].size * .001) + " kB)";
+		arquivo_txt_data = data[0]; // Salva dados para restaurar depois
+		// Salva em cookie para persistir após navegação
+		dojo.cookie("arquivo_txt_nome", data[0].name, { expires: 1 });
+		dojo.cookie("arquivo_txt_size", data[0].size, { expires: 1 });
+		console.log("💾 Arquivo TXT salvo em cookie: " + data[0].name);
 	});
 	dojo.connect(form_txt, "onSubmit", function(e) {
 		if (form_txt.validate()) {
@@ -137,18 +152,36 @@ dojo.addOnLoad(function() {
 	var oauth_src = dojo.byId("oauth_token_src");
 	var ll_src = dijit.byId("ll");
 	dojo.connect(form_src, "onSubmit", function(e) {
-		if (form_src.validate()) {
-			if (ll_src.value == "") {
+		// Se campo ll estiver vazio, preenche com coordenadas do último check-in
+		if (ll_src.value == "" || ll_src.value.trim() == "") {
+			var lastCheckCoords = dojo.cookie("coordinates");
+			
+			if (lastCheckCoords && lastCheckCoords !== "undefined" && lastCheckCoords.trim() !== "") {
+				console.log("✅ Preenchendo campo Local com coordenadas: " + lastCheckCoords);
+				ll_src.value = lastCheckCoords;
+				dijit.byId("ll").attr("value", lastCheckCoords);
+			} else {
+				console.log("⚠️ Campo Local é obrigatório");
 				e.preventDefault();
-				alert("Informe as coordenadas ou o endereço");
+				alert("O campo Local é obrigatório. Informe as coordenadas (ex: -29.93,-51.16) ou um endereço.");
 				ll_src.focus();
+				return;
+			}
+		}
+		
+		// Preenche radius com valor padrão se estiver vazio
+		if (!dijit.byId("radius").value || dijit.byId("radius").value == "") {
+			dijit.byId("radius").attr("value", "5000");
+		}
+		
+		if (form_src.validate()) {
 			//} else if (dojo.query('input:checked', 'f_src').length == 0) {
 				//e.preventDefault();
 				//alert("Selecione pelo menos um dos campos");
 				//dijit.byId("nome4").focus();
 			//} else {
 				//alert("Ready to submit data: " + dojo.toJson(form_src.attr("value")));
-			}
+			//}
 		} else {
 			e.preventDefault();
 		}
@@ -163,20 +196,68 @@ dojo.addOnLoad(function() {
 		(dijit.byId("descricao4").disabled) ? campos4 += "false." : campos4 += dijit.byId("descricao4").checked + ".";
 		(dijit.byId("menu4").disabled) ? campos4 += "false." : campos4 += dijit.byId("menu4").checked + ".";
 		(dijit.byId("horas4").disabled) ? campos4 += "false." : campos4 += dijit.byId("horas4").checked;
+		
 		var search = [dijit.byId("query").value, dijit.byId("ll").value, dijit.byId("categoryId").value, dijit.byId("radius").value, dijit.byId("intent").value, dijit.byId("limit").value];
 		dojo.cookie("search", JSON.stringify(search), { expires: 15 });
 		dojo.cookie("campos", campos4, { expires: 15 });
 		dojo.cookie("accordion", dijit.byId("accordion").selectedChildWidget.id, { expires: 15 });
-		if (radius.value == "") {
-			dijit.byId("radius").attr("value", "5000");
-		}
 
 	});
 });
 
 dojo.ready(function() {
 	setTimeout(function() {
-		//if ((dojo.cookie("name") != null) && (dojo.cookie("name") != "undefined"))
+		// Detecta tipo de navegação usando API moderna (com fallback para deprecated)
+		var isBackNavigation = false;
+		var navEntries = performance.getEntriesByType('navigation');
+		
+		if (navEntries && navEntries.length > 0) {
+			// API moderna: type pode ser "navigate", "reload", "back_forward", "prerender"
+			isBackNavigation = (navEntries[0].type === 'back_forward');
+			console.log("🔍 Tipo de navegação (moderna):", navEntries[0].type);
+		} else if (performance.navigation) {
+			// Fallback para API deprecated: 0=normal, 1=reload, 2=back/forward
+			isBackNavigation = (performance.navigation.type === 2);
+			console.log("🔍 Tipo de navegação (deprecated):", performance.navigation.type);
+		}
+		
+		// Se for reload (F5) ou navegação normal, limpa os cookies de arquivo
+		if (!isBackNavigation) {
+			console.log("🔄 Refresh detectado - limpando cookies de arquivo");
+			dojo.cookie("arquivo_csv_nome", null, { expires: -1 });
+			dojo.cookie("arquivo_csv_size", null, { expires: -1 });
+			dojo.cookie("arquivo_txt_nome", null, { expires: -1 });
+			dojo.cookie("arquivo_txt_size", null, { expires: -1 });
+		} else {
+			console.log("⬅️ Navegação Voltar detectada - restaurando arquivos");
+			
+			// Restaura informação do arquivo CSV se existir cookie
+			var csvNome = dojo.cookie("arquivo_csv_nome");
+			var csvSize = dojo.cookie("arquivo_csv_size");
+			if (csvNome && csvSize) {
+				var arquivo_csv = dojo.byId("arquivo_csv");
+				if (arquivo_csv) {
+					arquivo_csv.innerHTML = csvNome + " (" + Math.ceil(csvSize * .001) + " kB)";
+					// Atualiza também a variável arquivo_nome para permitir validação
+					window.arquivo_csv_nome_global = csvNome;
+					console.log("📋 Arquivo CSV restaurado do cookie: " + csvNome);
+				}
+			}
+			
+			// Restaura informação do arquivo TXT se existir cookie
+			var txtNome = dojo.cookie("arquivo_txt_nome");
+			var txtSize = dojo.cookie("arquivo_txt_size");
+			if (txtNome && txtSize) {
+				var arquivo_txt = dojo.byId("arquivo_txt");
+				if (arquivo_txt) {
+					arquivo_txt.innerHTML = txtNome + " (" + Math.ceil(txtSize * .001) + " kB)";
+					// Atualiza também a variável arquivo_txt para permitir validação
+					window.arquivo_txt_nome_global = txtNome;
+					console.log("📋 Arquivo TXT restaurado do cookie: " + txtNome);
+				}
+			}
+		}
+				//if ((dojo.cookie("name") != null) && (dojo.cookie("name") != "undefined"))
 			//dojo.byId("name").innerText = dojo.cookie("name");
 		if (dojo.cookie("pagina") != "undefined")
 			dijit.byId("pagina").attr("value", dojo.cookie("pagina"));
