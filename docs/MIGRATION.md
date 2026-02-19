@@ -99,8 +99,10 @@ dojo.addOnLoad(function inicializar() {
 
 ### 2. Monitoramento de Sessão em Tempo Real
 - Barra de status unificada em todas as páginas
-- Verificação periódica automática (5 minutos)
-- Detecção de token expirado
+- Verificação periódica automática (2 minutos, otimizado em v3.0.1)
+- Detecção inteligente de token expirado com cache busting
+- Listeners de visibilidade e foco para verificação imediata
+- Cross-tab logout detection via localStorage
 - Interface responsiva para mobile
 
 ### 3. Gerenciamento de Cache
@@ -126,9 +128,17 @@ header('Expires: 0');
 
 ### Verificação Inteligente de Sessão
 ```javascript
-// Só verifica se passou mais de 1 minuto
-if (Date.now() - this.lastCheck > 60000) {
-    this.checkSessionStatus(false);
+// Intervalo otimizado de 2 minutos (v3.0.1)
+this.checkInterval = 2 * 60 * 1000;
+
+// Cache busting para evitar respostas antigas
+const cacheBuster = Date.now();
+const data = await this.makeXhrRequest(`session_status.php?_=${cacheBuster}`);
+
+// Detecção aprimorada de expiração
+if (data.status === 'expired' || !data.authenticated) {
+    this.stopPeriodicCheck();
+    // ...redireciona após 5s
 }
 ```
 
