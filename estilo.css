@@ -375,6 +375,7 @@ a:hover {
 	width: 357px;
 	margin-left: 3px;
 	font-size: 12px;
+	overflow: hidden; /* Força clear dos floats internos */
 	-moz-user-select: -moz-none;
 	-khtml-user-select: none;
 	-webkit-user-select: none;
@@ -391,6 +392,7 @@ a:hover {
 	color: #000000;
 }
 #treeContainer {
+	clear: both; /* Força aparecer abaixo de #catsContainer */
 	width: 375px;
 	height: 207px;
 	font-size: 12px;
@@ -721,7 +723,7 @@ button#session-close-btn {
 
 @media (min-width: 1400px) {
 	#session-status-bar > div {
-		padding: 0 40px;
+		padding: 0 15px;
 	}
 }
 
