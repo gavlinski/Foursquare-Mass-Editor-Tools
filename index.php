@@ -31,6 +31,18 @@ $config = new AppConfig();
 $sessionManager = new SessionManager();
 $sessionManager->start();
 
+// Proteção contra loop de redirecionamento
+$redirectCount = $sessionManager->get('redirect_count') ?? 0;
+if ($redirectCount > 10) {
+    error_log("LOOP DETECTADO! Limpando sessão e cookies...");
+    $sessionManager->destroy();
+    $sessionManager->setCookie("oauth_token", "", time() - 3600);
+    unset($_COOKIE['oauth_token']);
+    $sessionManager->remove('redirect_count');
+    $redirectCount = 0;
+}
+$sessionManager->set('redirect_count', $redirectCount + 1);
+
 // Inicializa API do Foursquare
 $foursquare = new FoursquareApi($config->get('client_key'), $config->get('client_secret'));
 
@@ -74,8 +86,31 @@ if (isset($_GET['error']) && $_GET['error'] === 'auth_failed') {
 
 // Validação e obtenção do token
 $token = null;
-if (!isset($_GET['error']) && isset($_COOKIE['oauth_token']) && $_COOKIE['oauth_token'] !== "0") {
-    $token = filter_var($_COOKIE['oauth_token'], FILTER_SANITIZE_FULL_SPECIAL_CHARS);
+if (!isset($_GET['error']) && isset($_COOKIE['oauth_token']) && $_COOKIE['oauth_token'] !== "0" && !isset($_GET['code'])) {
+    // Tem cookie mas não tem code - pode ser um loop
+    // Tenta validar token existente
+    $existingToken = filter_var($_COOKIE['oauth_token'], FILTER_SANITIZE_FULL_SPECIAL_CHARS);
+    $foursquare->SetAccessToken($existingToken);
+    try {
+        $testResponse = $foursquare->GetPrivate("users/self");
+        $testData = json_decode($testResponse, true);
+        if (isset($testData['response']['user'])) {
+            // Token válido - usar
+            $token = $existingToken;
+            error_log("index.php: Token do cookie validado com sucesso");
+        } else {
+            // Token inválido - limpar e pedir novo login
+            error_log("index.php: Token do cookie inválido - limpando");
+            $sessionManager->setCookie("oauth_token", "", time() - 3600);
+            unset($_COOKIE['oauth_token']);
+            $token = null;
+        }
+    } catch (Exception $e) {
+        error_log("index.php: Erro ao validar token: " . $e->getMessage());
+        $sessionManager->setCookie("oauth_token", "", time() - 3600);
+        unset($_COOKIE['oauth_token']);
+        $token = null;
+    }
 } elseif (isset($_GET['code'])) {
     $code = filter_var($_GET['code'], FILTER_SANITIZE_FULL_SPECIAL_CHARS);
     if ($code) {
@@ -91,8 +126,14 @@ if (!isset($_GET['error']) && isset($_COOKIE['oauth_token']) && $_COOKIE['oauth_
 
 // Processa o token se existir
 if ($token) {
+    error_log("index.php: Token obtido = " . substr($token, 0, 20) . "...");
+    error_log("index.php: Session ID antes de salvar = " . session_id());
+    
     $sessionManager->set("oauth_token", $token);
     $sessionManager->setCookie("oauth_token", $token);
+    
+    error_log("index.php: Token salvo na sessão e cookie");
+    error_log("index.php: Verificação - Session oauth_token = " . ($sessionManager->get('oauth_token') ? 'EXISTS' : 'NULL'));
     
     // Load the Foursquare API library
     $foursquare->SetAccessToken($token);
@@ -120,6 +161,12 @@ if ($token) {
         exit;
     }
     
+    // Força sincronização da sessão antes do redirect
+    session_write_close();
+    
+    // Reset contador de redirects ao finalizar com sucesso
+    $sessionManager->set('redirect_count', 0);
+    
     if ($sessionManager->has("venues")) {
         header('Location: load.php');
         exit;
@@ -142,14 +189,13 @@ if ($token) {
 <link rel="stylesheet" type="text/css" href="js/dijit/themes/tundra/tundra.css">
 <link rel="stylesheet" type="text/css" href="estilo.css?v=<?php echo time(); ?>">
 <script>
-// Remove fragmento #_=_ do OAuth e recarrega a página
+// Remove fragmento #_=_ do OAuth (sem recarregar a página)
 if (window.location.hash === '#_=_') {
     if (history.replaceState) {
         history.replaceState(null, null, window.location.href.split('#')[0]);
     } else {
         window.location.hash = '';
     }
-    window.location.reload();
 }
 </script>
 </head>

@@ -39,7 +39,24 @@ if (file_exists(__DIR__ . '/vendor/autoload.php')) {
     
     $sessionManager = new SessionManager();
     $sessionManager->start();
-    $oauth_token = $sessionManager->get('oauth_token') ?? $_SESSION['oauth_token'] ?? null;
+    
+    // Debug: Log estado da sessão e cookies
+    error_log("main.php: Session ID = " . session_id());
+    error_log("main.php: Session oauth_token = " . ($sessionManager->get('oauth_token') ?? 'NULL'));
+    error_log("main.php: Cookie oauth_token = " . ($_COOKIE['oauth_token'] ?? 'NULL'));
+    
+    // Busca token da sessão, cookie ou superglobal (ordem de prioridade)
+    $oauth_token = $sessionManager->get('oauth_token') 
+                ?? $_SESSION['oauth_token'] 
+                ?? ($_COOKIE['oauth_token'] ?? null);
+    
+    error_log("main.php: Final oauth_token = " . ($oauth_token ?? 'NULL'));
+    
+    // Se encontrou o token no cookie mas não na sessão, salva na sessão
+    if ($oauth_token && !$sessionManager->get('oauth_token')) {
+        $sessionManager->set('oauth_token', $oauth_token);
+        error_log("main.php: Token restaurado do cookie para sessão");
+    }
     
     // Obtém dados do usuário da sessão ou busca da API
     $userData = $sessionManager->get('user_data') ?? $_SESSION['user_data'] ?? null;
