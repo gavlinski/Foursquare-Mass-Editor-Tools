@@ -8,8 +8,8 @@
  * @category   Foursquare
  * @package    Foursquare-Mass-Editor-Tools
  * @author     Elio Gavlinski <gavlinski@gmail.com>
- * @copyright  Copyleft (c) 2011-2012
- * @version    2.2.2
+ * @copyright  Copyleft (c) 2011-2026
+ * @version    3.0.0
  * @link       https://github.com/gavlinski/Foursquare-Mass-Editor-Tools/blob/master/load_csv.php
  * @since      File available since Release 1.1
  * @license    GPLv3 <http://www.gnu.org/licenses/gpl.txt>
@@ -29,7 +29,7 @@ if (!isset($_SESSION["oauth_token"])) {
 <meta http-equiv="pragma" content="no-cache">
 <title>Carregando...</title>
 <?php
-define("VERSION", "CSV Venues Editor 2.1.1");
+define("VERSION", "CSV Venues Editor 3.0.0");
 define("LINKS", '<link rel="shortcut icon" href="favicon.ico" type="image/x-icon">
 <link rel="stylesheet" type="text/css" href="js/dijit/themes/tundra/tundra.css">
 <link rel="stylesheet" type="text/css" href="estilo.css">

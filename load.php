@@ -10,7 +10,7 @@ declare(strict_types=1);
  * @category   Foursquare
  * @package    Foursquare-Mass-Editor-Tools
  * @author     Elio Gavlinski <gavlinski@gmail.com>
- * @copyright  Copyleft (c) 2011-2025
+ * @copyright  Copyleft (c) 2011-2026
  * @version    3.0.0
  * @link       https://github.com/gavlinski/Foursquare-Mass-Editor-Tools/blob/master/load.php
  * @since      File available since Release 1.1
