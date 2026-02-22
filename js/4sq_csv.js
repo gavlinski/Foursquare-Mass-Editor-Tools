@@ -88,7 +88,8 @@ function xmlhttpRequest(metodo, endpoint, acao, dados, i) {
 					dijit.byId("exportButton").setAttribute("disabled", false);
 				} else if (metodo == "GET") {
 					montarTabela(resposta);
-					atualizarCategorias();				atualizarWidgetsDijit(); // Atualiza widgets para ocultar placeholders					console.info("Categorias recuperadas!");
+					atualizarCategorias();
+					atualizarWidgetsDijit(); // Atualiza widgets para ocultar placeholders					console.info("Categorias recuperadas!");
 					localStorage.setItem("categorias", JSON.stringify(resposta));
 					var d = new Date();
 					d.setHours(0, 0, 0, 0);
@@ -226,6 +227,61 @@ function removerCategorias(textboxValue, categoryId) {
 	return categoryId;
 }
 
+function buscarCategoriaIndividual(catId, linhaIndex) {
+	// Exibe placeholder enquanto busca
+	dojo.byId("icone" + linhaIndex).innerHTML = "<img id=\"catImg" + linhaIndex + "\" src='https://foursquare.com/img/categories_v2/none_bg_32.png' style='height: 22px; width: 22px; margin-left: 0px; opacity: 0.5'>";
+	createTooltip("catImg" + linhaIndex, "<span style=\"font-size: 12px\">Buscando informações do local...</span>");
+	
+	// Busca os dados do local para pegar as categorias atualizadas
+	var venueId = document.forms[linhaIndex]["venue"].value;
+	var xhr = new XMLHttpRequest();
+	xhr.open("GET", "https://api.foursquare.com/v2/venues/" + venueId + "?oauth_token=" + oauth_token + "&v=" + DATA_VERSIONAMENTO, true);
+	xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
+	
+	xhr.onreadystatechange = function() {
+		if (xhr.readyState === 4) {
+			if (xhr.status === 200) {
+				try {
+					var resposta = JSON.parse(xhr.responseText);
+					if (resposta.response && resposta.response.venue && resposta.response.venue.categories) {
+						var venueCategories = resposta.response.venue.categories;
+						if (venueCategories.length > 0) {
+							// Adiciona categorias do local ao objeto global
+							for (var j = 0; j < venueCategories.length; j++) {
+								var cat = venueCategories[j];
+								categorias[cat.id] = {"nome": cat.name, "icone": cat.icon.prefix + "bg_32" + cat.icon.suffix};
+							}
+							console.info("Categorias do local " + venueId + " atualizadas via API");
+							
+							// Atualiza visualmente a linha
+							salvarCategoria(linhaIndex);
+						} else {
+							// Local sem categorias
+							exibirCategoriaDescontinuada(catId, linhaIndex);
+						}
+					} else {
+						throw new Error("Dados do local não encontrados");
+					}
+				} catch(e) {
+					console.error("Erro ao processar local " + venueId + ": " + e.message);
+					exibirCategoriaDescontinuada(catId, linhaIndex);
+				}
+			} else {
+				// Erro ao buscar local
+				console.warn("Não foi possível buscar local " + venueId + " (HTTP " + xhr.status + ")");
+				exibirCategoriaDescontinuada(catId, linhaIndex);
+			}
+		}
+	};
+	
+	xhr.send();
+}
+
+function exibirCategoriaDescontinuada(catId, linhaIndex) {
+	dojo.byId("icone" + linhaIndex).innerHTML = "<img id=\"catImg" + linhaIndex + "\" src='https://foursquare.com/img/categories_v2/none_bg_32.png' style='height: 22px; width: 22px; margin-left: 0px; filter: grayscale(100%);'>";
+	createTooltip("catImg" + linhaIndex, "<span style=\"font-size: 12px; color: #999;\">⚠️ Categoria descontinuada<br>ID: " + catId + "</span>");
+}
+
 function salvarCategoria(i) {
 	var categoryId = document.forms[i]["categoryId"].value.split(",", 3);
 	var textboxValue;
@@ -252,10 +308,16 @@ function salvarCategoria(i) {
 		}
 	}
 	if ((categoryId[0] != "") && (categoryId[0] != " ") && (categoryId[0] in categorias)) {
-		dojo.byId("icone" + i).innerHTML = "<img id=catImg" + i + " src='" + categorias[categoryId[0]].icone + "' style='height: 22px; width: 22px; margin-left: 0px'>";
+		dojo.byId("icone" + i).innerHTML = "<img id=\"catImg" + i + "\" src='" + categorias[categoryId[0]].icone + "' style='height: 22px; width: 22px; margin-left: 0px'>";
 		createTooltip("catImg" + i, "<span style=\"font-size: 12px\">" + recuperarNomesCategorias(categoryId, ", ") + "</span>");
 	} else if ((categoryId[0] == "") || (categoryId[0] == undefined)) {
-		dojo.byId("icone" + i).innerHTML = "<img id=catImg" + i + " src='https://foursquare.com/img/categories_v2/none_bg_32.png' style='height: 22px; width: 22px; margin-left: 0px'>";
+		dojo.byId("icone" + i).innerHTML = "<img id=\"catImg" + i + "\" src='https://foursquare.com/img/categories_v2/none_bg_32.png' style='height: 22px; width: 22px; margin-left: 0px'>";
+		createTooltip("catImg" + i, "<span style=\"font-size: 12px\">Sem categoria</span>");
+	} else {
+		// Categoria existe mas não está na lista (provavelmente descontinuada)
+		console.warn("Categoria não encontrada na lista: " + categoryId[0] + " (linha " + (i + 1) + ")");
+		// Tentar buscar informações da categoria pela API
+		buscarCategoriaIndividual(categoryId[0], i);
 	}
 	//console.groupEnd();
 }

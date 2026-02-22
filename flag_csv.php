@@ -8,8 +8,8 @@
  * @category   Foursquare
  * @package    Foursquare-Mass-Editor-Tools
  * @author     Elio Gavlinski <gavlinski@gmail.com>
- * @copyright  Copyleft (c) 2011-2018
- * @version    2.3.0
+ * @copyright  Copyleft (c) 2011-2026
+ * @version    3.0.0
  * @link       https://github.com/gavlinski/Foursquare-Mass-Editor-Tools/blob/master/flag_csv.php
  * @since      File available since Release 1.1
  * @license    GPLv3 <http://www.gnu.org/licenses/gpl.txt>
@@ -180,7 +180,7 @@ foreach ($file as $f) {
 	echo '</a>', chr(10);
 	
 	if ($hasCategoryId) {
-		echo '<span id="icone', $i - 1, '"><img id=catImg', $i, ' src="https://app.foursquare.com/img/categories_v2/none_bg_32.png" style="height: 22px; width: 22px; margin-left: 0px"></span>', chr(10);
+		echo '<span id="icone', $i - 1, '"><img id=catImg', $i - 1, ' src="https://app.foursquare.com/img/categories_v2/none_bg_32.png" style="height: 22px; width: 22px; margin-left: 0px"></span>', chr(10);
 	}
 
 	if ($hasName) {
