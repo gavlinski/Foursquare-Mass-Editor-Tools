@@ -42,8 +42,8 @@ if (isset($_SESSION["oauth_token"])) {
 <link rel="stylesheet" type="text/css" href="estilo.css?v=<?php echo time(); ?>">
 <link rel="stylesheet" type="text/css" href="includes/session-status-bar-variants.css?v=<?php echo time(); ?>">
 <script src="js/dojo/dojo.js" djConfig="parseOnLoad: true"></script>
-<script src="js/4sq_csv.js?v=5.0.1"></script>
-<script src="js/session-manager.js?v=5.0.1" defer></script>
+<?php script_versioned('js/4sq_csv.js'); ?>
+<?php script_versioned('js/session-manager.js', ['defer' => 'defer']); ?>
 </head>
 <body class="tundra">
 

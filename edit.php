@@ -43,6 +43,7 @@ if ((isset($_SESSION["oauth_token"])) && ($_SESSION["file"] != null)) {
 
 // Set client key and secret
 include 'includes/app_credentials.php';
+include_once 'includes/asset_helper.php';
 ?>
 <!doctype html>
 <html lang="pt-BR">
@@ -58,9 +59,9 @@ include 'includes/app_credentials.php';
 <link rel="stylesheet" type="text/css" href="includes/session-status-bar-variants.css?v=<?php echo time(); ?>">
 <script src="js/dojo/dojo.js" djConfig="parseOnLoad: true"></script>
 <script src="js/google-maps-config.php?v=5.0.1" defer></script>
-<script src="js/google-maps.js?v=5.0.1" async defer></script>
-<script src="js/4sq.js?v=5.0.1" defer></script>
-<script src="js/session-manager.js?v=5.0.1" defer></script>
+<?php script_versioned('js/google-maps.js', ['async' => 'async', 'defer' => 'defer']); ?>
+<?php script_versioned('js/4sq.js', ['defer' => 'defer']); ?>
+<?php script_versioned('js/session-manager.js', ['defer' => 'defer']); ?>
 </head>
 <body class="tundra">
 

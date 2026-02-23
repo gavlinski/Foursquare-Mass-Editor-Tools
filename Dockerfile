@@ -16,8 +16,8 @@ RUN apt-get update \
 # Instala Composer
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
-# Ativa o mod_rewrite do Apache
-RUN a2enmod rewrite headers
+# Ativa módulos do Apache necessários
+RUN a2enmod rewrite headers deflate expires
 
 # Copia arquivos do projeto para o container
 COPY . /var/www/html/

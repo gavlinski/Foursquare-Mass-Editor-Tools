@@ -97,13 +97,14 @@ if (!$oauth_token) {
     exit;
 }
 ?>
+<?php include_once 'includes/asset_helper.php'; ?>
 <!doctype html>
 <html lang="pt-BR">
 <head>
 <title>Elio Tools</title>
 <meta charset="utf-8">
 <script src="js/dojo/dojo.js" djConfig="parseOnLoad: true"></script>
-<script src="js/main.js"></script>
+<?php script_versioned('js/main.js'); ?>
 <script>
     // Remove o fragmento #_=_ adicionado por alguns provedores OAuth
     if (window.location.hash && window.location.hash === '#_=_') {
@@ -189,7 +190,7 @@ function removeLocalCache($key) {
 <link rel="stylesheet" type="text/css" href="js/dijit/themes/tundra/tundra.css">
 <link rel="stylesheet" type="text/css" href="estilo.css?v=<?php echo time(); ?>">
 <link rel="stylesheet" type="text/css" href="includes/session-status-bar-variants.css?v=<?php echo time(); ?>">
-<script src="js/session-manager.js"></script>
+<?php script_versioned('js/session-manager.js'); ?>
 </head>
 <body class="tundra">
 
