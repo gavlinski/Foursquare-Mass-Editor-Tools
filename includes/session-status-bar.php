@@ -24,20 +24,8 @@ define('SESSION_STATUS_BAR_INCLUDED', true);
 </div>
 
 <script>
-// Utilitários de logging condicional (apenas em localhost)
-const isLocalhost = () => {
-    return window.location.hostname === 'localhost' || 
-           window.location.hostname === '127.0.0.1' ||
-           window.location.hostname === '[::1]';
-};
-
-const debugLog = (...args) => {
-    if (isLocalhost()) console.log(...args);
-};
-
-const debugInfo = (...args) => {
-    if (isLocalhost()) console.info(...args);
-};
+// Utilitários de logging (isLocalhost, debugLog, debugInfo) são providos por session-manager.js
+// que já foi carregado antes deste componente ser incluído
 
 // Funções globais para controlar a barra de status
 window.sessionStatusBarAPI = {
