@@ -7,6 +7,21 @@
  * @author Elio Gavlinski <gavlinski@gmail.com>
  */
 
+// Utilitários de logging condicional (apenas em localhost)
+const isLocalhost = () => {
+    return window.location.hostname === 'localhost' || 
+           window.location.hostname === '127.0.0.1' ||
+           window.location.hostname === '[::1]';
+};
+
+const debugLog = (...args) => {
+    if (isLocalhost()) console.log(...args);
+};
+
+const debugInfo = (...args) => {
+    if (isLocalhost()) console.info(...args);
+};
+
 class GoogleMaps {
     constructor(config = {}) {
         this.config = {
@@ -200,7 +215,7 @@ class GoogleMaps {
         // Adiciona ao mapa no canto superior esquerdo
         this.map.controls[google.maps.ControlPosition.TOP_RIGHT].push(controlDiv);
 
-        console.log('✅ Controle Foursquare adicionado ao mapa');
+        debugLog('✅ Controle Foursquare adicionado ao mapa');
     }
 
     /**
@@ -403,7 +418,7 @@ class GoogleMaps {
      * Não é mais necessário usar ResizeObserver ou triggers manuais
      */
     addResizeObserver() {
-        console.log('✅ Redimensionamento automático do Google Maps ativado (v3.32+)');
+        debugLog('✅ Redimensionamento automático do Google Maps ativado (v3.32+)');
     }
 }
 
@@ -445,7 +460,7 @@ function initializeGoogleMaps() {
         window.googleMaps = new GoogleMaps(config);
 
         // Dispara um evento global para notificar que o Google Maps está pronto
-        console.log('✅ Google Maps está pronto. Disparando evento "google-maps-ready".');
+        debugLog('✅ Google Maps está pronto. Disparando evento "google-maps-ready".');
         document.dispatchEvent(new Event('google-maps-ready'));
         
     } catch (error) {

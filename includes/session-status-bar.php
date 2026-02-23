@@ -24,6 +24,21 @@ define('SESSION_STATUS_BAR_INCLUDED', true);
 </div>
 
 <script>
+// Utilitários de logging condicional (apenas em localhost)
+const isLocalhost = () => {
+    return window.location.hostname === 'localhost' || 
+           window.location.hostname === '127.0.0.1' ||
+           window.location.hostname === '[::1]';
+};
+
+const debugLog = (...args) => {
+    if (isLocalhost()) console.log(...args);
+};
+
+const debugInfo = (...args) => {
+    if (isLocalhost()) console.info(...args);
+};
+
 // Funções globais para controlar a barra de status
 window.sessionStatusBarAPI = {
     sessionStartTime: null,
@@ -81,7 +96,7 @@ window.sessionStatusBarAPI = {
         if (!showTimer && this.sessionTimerInterval) {
             clearInterval(this.sessionTimerInterval);
             this.sessionTimerInterval = null;
-            console.log('🔧 Timer pausado - showTimer = false');
+            debugLog('🔧 Timer pausado - showTimer = false');
         }
         
         // SEGUNDO: Atualiza conteúdo específico da variante V2 (tooltip independente)
@@ -98,7 +113,7 @@ window.sessionStatusBarAPI = {
                 } else {
                     // Sem timer (erro, loading, etc)
                     tooltip.textContent = message;
-                    console.log('📝 Tooltip V2 atualizada para:', message);
+                    debugLog('📝 Tooltip V2 atualizada para:', message);
                 }
             }
         }
@@ -154,7 +169,7 @@ window.sessionStatusBarAPI = {
         const statusBar = document.getElementById('session-status-bar');
         const currentVariant = statusBar?.className.match(/variant-(v\d+)/)?.[1] || 'v8';
         
-        console.log(`👤 Atualizando info do usuário para variante ${currentVariant}`);
+        debugLog(`👤 Atualizando info do usuário para variante ${currentVariant}`);
         
         let infoHTML = '';
         
@@ -496,7 +511,7 @@ function renderVariantContent(variant, buttonStyle) {
         controlsDiv.appendChild(closeBtn);
     }
     
-    console.log(`✅ Variante ${variant} renderizada (botões serão adicionados após dados carregarem)`);
+    debugLog(`✅ Variante ${variant} renderizada (botões serão adicionados após dados carregarem)`);
 }
 
 /**
@@ -550,7 +565,7 @@ function renderButtons(container, variant, buttonStyle) {
 
 // Inicialização automática
 document.addEventListener('DOMContentLoaded', function() {
-    console.log('🔧 SessionStatusBar: Inicializando renderização dinâmica...');
+    debugLog('🔧 SessionStatusBar: Inicializando renderização dinâmica...');
     
     // ETAPA 1: Determinar variante e estilo dos botões
     const temporaryVariant = localStorage.getItem('content_variant');
@@ -562,7 +577,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const variant = temporaryVariant || defaultVariant || 'v8';
     const buttonStyle = temporaryStyle || defaultStyle || 'solid';
     
-    console.log(`📊 Variante selecionada: ${variant} | Estilo: ${buttonStyle}`);
+    debugLog(`📊 Variante selecionada: ${variant} | Estilo: ${buttonStyle}`);
     
     // ETAPA 2: Aplicar classes ao container principal
     const statusBar = document.getElementById('session-status-bar');
@@ -574,13 +589,13 @@ document.addEventListener('DOMContentLoaded', function() {
         statusBar.classList.add(`variant-${variant}`);
         statusBar.dataset.buttonStyle = buttonStyle;
         
-        console.log(`✅ Classes aplicadas: ${statusBar.className}`);
+        debugLog(`✅ Classes aplicadas: ${statusBar.className}`);
     }
     
     // ETAPA 3: Renderizar conteúdo específico da variante
     if (typeof renderVariantContent === 'function') {
         renderVariantContent(variant, buttonStyle);
-        console.log('✅ Conteúdo da variante renderizado');
+        debugLog('✅ Conteúdo da variante renderizado');
     } else {
         console.warn('⚠️ Função renderVariantContent não encontrada');
     }
@@ -619,7 +634,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     const buttonStyle = statusBar?.dataset.buttonStyle || 'solid';
                     renderButtons(controlsDiv, currentVariant, buttonStyle);
                     
-                    console.log('✅ Botões renderizados após conexão bem-sucedida');
+                    debugLog('✅ Botões renderizados após conexão bem-sucedida');
                 }
             }
             
@@ -642,6 +657,6 @@ document.addEventListener('DOMContentLoaded', function() {
         }, 500);
     }
     
-    console.log('🎉 SessionStatusBar: Inicialização completa');
+    debugLog('🎉 SessionStatusBar: Inicialização completa');
 });
 </script>

@@ -5,6 +5,21 @@
  * Integrado com a barra de status unificada
  */
 
+// Utilitários de logging condicional (apenas em localhost)
+const isLocalhost = () => {
+    return window.location.hostname === 'localhost' || 
+           window.location.hostname === '127.0.0.1' ||
+           window.location.hostname === '[::1]';
+};
+
+const debugLog = (...args) => {
+    if (isLocalhost()) console.log(...args);
+};
+
+const debugInfo = (...args) => {
+    if (isLocalhost()) console.info(...args);
+};
+
 class SessionManager {
     constructor() {
         this.checkInterval = 2 * 60 * 1000; // 2 minutos (reduzido para melhor detecção)
@@ -32,7 +47,7 @@ class SessionManager {
     }
 
     updateStatus(message, type = 'info') {
-        console.log(`🔧 SessionManager: ${message}`);
+        debugLog(`🔧 SessionManager: ${message}`);
         
         // Usa a barra de status unificada se disponível
         if (window.sessionStatusBarAPI) {
@@ -49,7 +64,7 @@ class SessionManager {
             'loading': '🔄'
         };
         
-        console.log(`${emoji[type] || emoji.info} ${message}`);
+        debugLog(`${emoji[type] || emoji.info} ${message}`);
     }
 
     showStatus(message, type = 'info', duration = 3000) {
@@ -84,7 +99,7 @@ class SessionManager {
             const cacheBuster = Date.now();
             const data = await this.makeXhrRequest(`session_status.php?_=${cacheBuster}`);
             
-            console.log('🔍 SessionManager: Resposta recebida:', data);
+            debugLog('🔍 SessionManager: Resposta recebida:', data);
             
             if (data.status === 'valid' && data.authenticated) {
                 // Verifica se o servidor foi reiniciado
@@ -225,7 +240,7 @@ class SessionManager {
                 if (xhr.status >= 200 && xhr.status < 300) {
                     try {
                         const data = JSON.parse(xhr.responseText);
-                        console.log('📥 XHR Response:', {
+                        debugLog('📥 XHR Response:', {
                             url: url,
                             status: xhr.status,
                             data: data
@@ -412,19 +427,19 @@ class SessionManager {
         
         // Inicia verificação periódica
         this.intervalId = setInterval(() => {
-            console.log('⏰ Verificação periódica automática iniciada');
+            debugLog('⏰ Verificação periódica automática iniciada');
             this.checkSessionStatus(false);
         }, this.checkInterval);
         
-        console.log(`🔧 SessionManager: Verificação periódica iniciada a cada ${this.checkInterval / 60000} minutos`);
-        console.log(`🔧 Próxima verificação em: ${new Date(Date.now() + this.checkInterval).toLocaleTimeString()}`);
+        debugLog(`🔧 SessionManager: Verificação periódica iniciada a cada ${this.checkInterval / 60000} minutos`);
+        debugLog(`🔧 Próxima verificação em: ${new Date(Date.now() + this.checkInterval).toLocaleTimeString()}`);
     }
 
     stopPeriodicCheck() {
         if (this.intervalId) {
             clearInterval(this.intervalId);
             this.intervalId = null;
-            console.log('🔧 SessionManager: Verificação periódica parada');
+            debugLog('🔧 SessionManager: Verificação periódica parada');
         }
     }
 
@@ -432,7 +447,7 @@ class SessionManager {
         // Verifica sessão quando a página ganha foco
         window.addEventListener('focus', () => {
             // Verifica imediatamente quando volta ao foco
-            console.log('🔍 Página ganhou foco - verificando sessão');
+            debugLog('🔍 Página ganhou foco - verificando sessão');
             this.checkSessionStatus(false);
         });
 
@@ -449,7 +464,7 @@ class SessionManager {
         // Detecta mudanças de visibilidade da página
         document.addEventListener('visibilitychange', () => {
             if (!document.hidden) {
-                console.log('🔍 Página ficou visível - verificando sessão');
+                debugLog('🔍 Página ficou visível - verificando sessão');
                 this.checkSessionStatus(false);
             }
         });
@@ -457,7 +472,7 @@ class SessionManager {
         // Monitora mudanças em localStorage para detectar logout em outras abas
         window.addEventListener('storage', (e) => {
             if (e.key === 'session_logout' || e.key === 'server_instance_id') {
-                console.log('🔍 Mudança em storage detectada - verificando sessão');
+                debugLog('🔍 Mudança em storage detectada - verificando sessão');
                 this.checkSessionStatus(false);
             }
         });
@@ -479,7 +494,7 @@ class SessionManager {
     }
 
     async forceClearCache() {
-        console.log('🧹 SessionManager: Forçando limpeza de cache...');
+        debugLog('🧹 SessionManager: Forçando limpeza de cache...');
         
         try {
             // Chama endpoint de limpeza de cache
@@ -492,7 +507,7 @@ class SessionManager {
             const data = await response.json();
             
             if (data.status === 'success') {
-                console.log('✅ Cache limpo com sucesso');
+                debugLog('✅ Cache limpo com sucesso');
                 
                 // Limpa localStorage
                 try {
@@ -528,7 +543,7 @@ class SessionManager {
     }
 
     logout() {
-        console.log('👋 SessionManager: Iniciando logout...');
+        debugLog('👋 SessionManager: Iniciando logout...');
         
         // Sinaliza logout para outras abas
         try {
@@ -540,7 +555,7 @@ class SessionManager {
         // Limpa localStorage
         try {
             localStorage.removeItem('server_instance_id');
-            console.log('✅ localStorage limpo');
+            debugLog('✅ localStorage limpo');
         } catch (e) {
             console.warn('⚠️ Erro ao limpar localStorage:', e);
         }
@@ -548,7 +563,7 @@ class SessionManager {
         // Limpa sessionStorage
         try {
             sessionStorage.clear();
-            console.log('✅ sessionStorage limpo');
+            debugLog('✅ sessionStorage limpo');
         } catch (e) {
             console.warn('⚠️ Erro ao limpar sessionStorage:', e);
         }

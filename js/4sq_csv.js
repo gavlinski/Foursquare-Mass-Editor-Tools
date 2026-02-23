@@ -5,6 +5,21 @@ dojo.require("dijit.Tooltip");
 dojo.require("dijit.Menu");
 dojo.require("dojo.cookie");
 
+// Utilitários de logging condicional (apenas em localhost)
+var isLocalhost = function() {
+    return window.location.hostname === 'localhost' || 
+           window.location.hostname === '127.0.0.1' ||
+           window.location.hostname === '[::1]';
+};
+
+var debugLog = function() {
+    if (isLocalhost()) console.log.apply(console, arguments);
+};
+
+var debugInfo = function() {
+    if (isLocalhost()) console.info.apply(console, arguments);
+};
+
 var DATA_VERSIONAMENTO = "20250401";
 var MESES = new Array("01", "02", "03", "04", "05", "06", "07", "08", "09", "10", "11", "12");
 
@@ -89,7 +104,7 @@ function xmlhttpRequest(metodo, endpoint, acao, dados, i) {
 				} else if (metodo == "GET") {
 					montarTabela(resposta);
 					atualizarCategorias();
-					atualizarWidgetsDijit(); // Atualiza widgets para ocultar placeholders					console.info("Categorias recuperadas!");
+					atualizarWidgetsDijit(); // Atualiza widgets para ocultar placeholders					debugInfo("Categorias recuperadas!");
 					localStorage.setItem("categorias", JSON.stringify(resposta));
 					var d = new Date();
 					d.setHours(0, 0, 0, 0);
@@ -251,7 +266,7 @@ function buscarCategoriaIndividual(catId, linhaIndex) {
 								var cat = venueCategories[j];
 								categorias[cat.id] = {"nome": cat.name, "icone": cat.icon.prefix + "bg_32" + cat.icon.suffix};
 							}
-							console.info("Categorias do local " + venueId + " atualizadas via API");
+							debugInfo("Categorias do local " + venueId + " atualizadas via API");
 							
 							// Atualiza visualmente a linha
 							salvarCategoria(linhaIndex);
@@ -334,7 +349,7 @@ function atualizarCategorias() {
  * Chamada após carregar dados das categorias
  */
 function atualizarWidgetsDijit() {
-	console.log('🔧 Atualizando widgets Dijit para ocultar placeholders...');
+	debugLog('🔧 Atualizando widgets Dijit para ocultar placeholders...');
 	var totalLinhas = document.forms.length;
 	
 	for (var i = 0; i < totalLinhas; i++) {
@@ -360,7 +375,7 @@ function atualizarWidgetsDijit() {
 			}
 		}
 	}
-	console.log('✅ Widgets Dijit atualizados');
+	debugLog('✅ Widgets Dijit atualizados');
 }
 
 function salvarVenues() {
@@ -403,14 +418,14 @@ function salvarVenues() {
 		xmlhttpRequest("POST", "https://api.foursquare.com/v2/venues/" + venueId + "/" + acao, "edit", dados, i);
 		dojo.byId("result" + i).innerHTML = "<img src='img/loading.gif' alt='Enviando dados...'>";
 	}
-	console.info("Dados enviados!");
+	debugInfo("Dados enviados!");
 }
 
 function sinalizarVenues(problema) {
 	total = 0;
 	dijit.byId("flagButton").setAttribute("disabled", true);
 	var venueId, dados;
-	console.info("Enviando dados...");
+	debugInfo("Enviando dados...");
 	var totalLinhas = document.forms.length;
 	for (i = 0; i < totalLinhas; i++) {
 		dados = "oauth_token=" + oauth_token + "&problem=" + problema + "&v=" + DATA_VERSIONAMENTO;
@@ -425,7 +440,7 @@ function sinalizarVenues(problema) {
 }
 
 function carregarListaCategorias() {
-	console.info("Recuperando dados das categorias...");
+	debugInfo("Recuperando dados das categorias...");
 	xmlhttpRequest("GET", "https://api.foursquare.com/v2/venues/categories" + "?oauth_token=" + oauth_token + "&v=" + DATA_VERSIONAMENTO, null, null);
 }
 
@@ -472,7 +487,7 @@ dojo.addOnLoad(function() {
 		});
 	} else {
 		// Fallback para verificação legacy com cookie
-		console.log("🔄 Usando validação legacy de token CSV");
+		debugLog("🔄 Usando validação legacy de token CSV");
 		
 		// Verifica se o token existe via cookie
 		const legacyToken = dojo.cookie("oauth_token");
@@ -484,7 +499,7 @@ dojo.addOnLoad(function() {
 			return;
 		}
 		
-		console.log("✅ Token legacy válido - continuando inicialização CSV");
+		debugLog("✅ Token legacy válido - continuando inicialização CSV");
 		// Continua com a inicialização normal
 		initializeCSVApplication();
 	}
@@ -665,7 +680,7 @@ dojo.addOnLoad(function() {
 			montarTabela(resposta);
 			atualizarCategorias();
 			atualizarWidgetsDijit(); // Atualiza widgets para ocultar placeholders
-			console.info("Categorias recuperadas do localStorage!");
+			debugInfo("Categorias recuperadas do localStorage!");
 		}
 	}
 	} // Fecha initializeCSVApplication()

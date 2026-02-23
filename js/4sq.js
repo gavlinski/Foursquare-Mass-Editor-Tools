@@ -14,6 +14,21 @@ dojo.require("dijit.form.Select");
 var DATA_VERSIONAMENTO = "20250401";
 var MESES = new Array("01", "02", "03", "04", "05", "06", "07", "08", "09", "10", "11", "12");
 
+// Utilitários de logging condicional (apenas em localhost)
+var isLocalhost = function() {
+    return window.location.hostname === 'localhost' || 
+           window.location.hostname === '127.0.0.1' ||
+           window.location.hostname === '[::1]';
+};
+
+var debugLog = function() {
+    if (isLocalhost()) console.log.apply(console, arguments);
+};
+
+var debugInfo = function() {
+    if (isLocalhost()) console.info.apply(console, arguments);
+};
+
 var modo;
 var DADOS_COMPLETOS = 0;
 var DADOS_PARCIAIS = 1;
@@ -337,7 +352,7 @@ function xmlhttpRequest(metodo, endpoint, acao, dados, i) {
 				} else if ((metodo == "GET") && (acao == "reload") && (resposta.response.venue != undefined)) {
 					// Ação de reload - atualiza venue individual
 					atualizarTabela(resposta.response.venue, i);
-					console.info("✅ Venue " + (i + 1) + " recarregada com sucesso!");
+					debugInfo("✅ Venue " + (i + 1) + " recarregada com sucesso!");
 				} else if ((metodo == "GET") && (acao == "load") && (resposta.response.venue != undefined)) {
 					// Ação de load normal
 					atualizarTabela(resposta.response.venue, i);
@@ -346,7 +361,7 @@ function xmlhttpRequest(metodo, endpoint, acao, dados, i) {
 					atualizarTabela(resposta.response.venue, i);
 				} else if (resposta.response.categories != undefined) {
 					montarArvore(resposta);
-					console.info("Categorias recuperadas!");
+					debugInfo("Categorias recuperadas!");
 					localStorage.setItem("categorias", JSON.stringify(resposta));
 					var d = new Date();
 					d.setHours(0, 0, 0, 0);
@@ -407,7 +422,7 @@ function xmlhttpRequest(metodo, endpoint, acao, dados, i) {
 	xmlhttp.send(dados);
 	var xmlhttpTimeout = setTimeout(function ajaxTimeout() {
 		xmlhttp.abort();
-		console.info(metodo + " (" + i + ")" + " abortado!");
+		debugInfo(metodo + " (" + i + ")" + " abortado!");
 		if (i != null) {
 			totalTimeout++;
 			atualizarFalhas(metodo, i, acao, true);
@@ -845,7 +860,7 @@ function atualizarTabela(venue, i) {
 					if (venue.parent)
 						(venue.parent.id) ? parentId = venue.parent.id : parentId = "";
 				} catch(e) {
-					console.log(e);
+					debugLog(e);
 				}
 				document.forms[i]["parentId"].value = parentId;
 				if (parentId !== undefined) {
@@ -914,7 +929,7 @@ function atualizarTabela(venue, i) {
 					if (venue.menu)
 						(venue.menu.url) ? menuUrl = venue.menu.url : menuUrl = "";
 				} catch(e) {
-					console.log(e);
+					debugLog(e);
 				}
 				document.forms[i]["menu"].value = menuUrl;
 				if (menuUrl !== undefined) {
@@ -1033,19 +1048,19 @@ function atualizarTabela(venue, i) {
 			dijit.byId("menuSelecionar").setAttribute('disabled', true);
 	}
 	window.locais[i] = [(i + 1) + ". " + venue.name, venue.location.lat, venue.location.lng];
-	console.info("Venue " + i + " recuperada!");
+	debugInfo("Venue " + i + " recuperada!");
 	
 	// Atualiza marcadores no mapa quando venue é carregada
 	if (window.googleMaps && window.googleMaps.map) {
 		window.googleMaps.updateMarkers(window.locais);
-		console.info("Marcadores atualizados!");
+		debugInfo("Marcadores atualizados!");
 	}
 	
 	// Só limpa linhas editadas se for carregamento inicial (não reload)
 	// Durante reload, a limpeza é feita seletivamente em executarRecarregamento
 	if (!isReloading && totalCarregadas == (document.forms.length - totalNaoCarregadas)) {
 		limparLinhasEditadas();
-		console.info("Marcadores posicionados!");
+		debugInfo("Marcadores posicionados!");
 		
 		// Ativa navegação vertical após todos os campos estarem prontos
 		setupVerticalNavigation();
@@ -1112,7 +1127,7 @@ function montarArvore(resposta) {
 	var existingTree = dijit.byId("treeContainer");
 	if (existingTree) {
 		existingTree.destroyRecursive();
-		console.info("Árvore de categorias antiga destruída.");
+		debugInfo("Árvore de categorias antiga destruída.");
 	}
 	
 	// Cria árvore (primeira vez ou recriação)
@@ -1180,7 +1195,7 @@ function carregarDadosVenues() {
 	//if (localStorage && localStorage.getItem('venues'))
 		//json = JSON.parse(localStorage.getItem('venues'));
 	if (json == "") {
-		console.info("Recuperando dados completos das venues...");
+		debugInfo("Recuperando dados completos das venues...");
 		modo = DADOS_COMPLETOS;
 		for (i = 0; i < linhas; i++) {
 			venue = document.forms[i]["venue"].value;
@@ -1194,16 +1209,16 @@ function carregarDadosVenues() {
 		else {
 			var resposta = JSON.parse(localStorage.getItem('categorias'));
 			montarArvore(resposta);
-			console.info("Categorias recuperadas do localStorage!");
+			debugInfo("Categorias recuperadas do localStorage!");
 		}
 	} else {
-		console.info("Recuperando dados parciais das venues...");
+		debugInfo("Recuperando dados parciais das venues...");
 		modo = DADOS_PARCIAIS;
 		for (i = 0; i < linhas; i++) {
 			atualizarTabela(json.response.venues[i], i);
 			//console.info("Venue " + i + " recuperada via JSON!");
 		}
-		console.info("Dados parciais das venues recuperados via JSON!");
+		debugInfo("Dados parciais das venues recuperados via JSON!");
 	}
 }
 
@@ -1281,7 +1296,7 @@ function executarRecarregamento(excluirIndice) {
 				venuesParaRecarregar.push(venueIndex);
 			}
 		});
-		console.info("Recarregando " + venuesParaRecarregar.length + " venue" + (venuesParaRecarregar.length > 1 ? "s" : "") + " selecionada" + (venuesParaRecarregar.length > 1 ? "s" : "") + "...");
+		debugInfo("Recarregando " + venuesParaRecarregar.length + " venue" + (venuesParaRecarregar.length > 1 ? "s" : "") + " selecionada" + (venuesParaRecarregar.length > 1 ? "s" : "") + "...");
 	} else {
 		// Recarrega todas
 		for (var i = 0; i < document.forms.length; i++) {
@@ -1293,7 +1308,7 @@ function executarRecarregamento(excluirIndice) {
 		var mensagemLog = excluirIndice !== undefined 
 			? "Recarregando " + venuesParaRecarregar.length + " venue" + (venuesParaRecarregar.length > 1 ? "s" : "") + " (exceto a venue de origem)..."
 			: "Recarregando todas as " + venuesParaRecarregar.length + " venues...";
-		console.info(mensagemLog);
+		debugInfo(mensagemLog);
 	}
 	
 	// Salva estado dos checkboxes antes do reload
@@ -1352,7 +1367,7 @@ function executarRecarregamento(excluirIndice) {
 	} else {
 		var resposta = JSON.parse(localStorage.getItem('categorias'));
 		montarArvore(resposta);
-		console.info("Categorias recuperadas do localStorage!");
+		debugInfo("Categorias recuperadas do localStorage!");
 	}
 	
 	// Contador para progresso
@@ -1397,7 +1412,7 @@ function executarRecarregamento(excluirIndice) {
 			
 			// Atualiza marcadores do Google Maps
 			if (window.googleMaps && window.googleMaps.map && window.locais.length > 0) {
-				console.info("Atualizando marcadores do mapa...");
+				debugInfo("Atualizando marcadores do mapa...");
 				window.googleMaps.updateMarkers(window.locais);
 			}
 			
@@ -1412,7 +1427,7 @@ function executarRecarregamento(excluirIndice) {
 			dijit.byId("saveButton").setAttribute("disabled", false);
 			dijit.byId("reloadButton").setAttribute("disabled", false);
 			
-			console.info("✅ " + mensagemFinal);
+			debugInfo("✅ " + mensagemFinal);
 			
 			// Fecha modal após 2 segundos
 			setTimeout(function() {
@@ -1433,7 +1448,7 @@ function salvarVenues() {
 	dijit.byId("saveButton").setAttribute("disabled", true);
 	dijit.byId("reloadButton").setAttribute("disabled", true);
 	var i, venueId, dados, elementName;
-	console.info("Enviando dados...");
+	debugInfo("Enviando dados...");
 	for (l = 0; l < totalParaSalvar; l++) {
 		i = linhasEditadas[l];
 		dados = "oauth_token=" + oauth_token;
@@ -1492,13 +1507,13 @@ function salvarVenues() {
 		dados += "&v=" + DATA_VERSIONAMENTO;
 		venueId = document.forms[i]["venue"].value;
 		console.group("venue=" + venueId + " (" + i + ")");
-		console.log(dados);
+		debugLog(dados);
 		console.groupEnd();
 		var acao = "proposeedit";
 		xmlhttpRequest("POST", "https://api.foursquare.com/v2/venues/" + venueId + "/" + acao, "edit", dados, i);
 		dojo.byId("result" + i).innerHTML = "<img src='img/loading.gif' alt='Enviando dados...'>";
 	}
-	console.info("Dados enviados!");
+	debugInfo("Dados enviados!");
 }
 
 function sinalizarVenues(problema) {
@@ -1532,7 +1547,7 @@ function sinalizarVenues(problema) {
 	(totalParaSinalizar > 1) ? dijit.byId("dlg_save").set("title", "Sinalizando " + totalParaSinalizar + " venues...") : dijit.byId("dlg_save").set("title", "Sinalizando 1 venue...");
 	dijit.byId("dlg_save").show();
 	dijit.byId("menuSinalizar").setAttribute("disabled", true);
-	console.info("Enviando dados...");
+	debugInfo("Enviando dados...");
 	
 	var l = 0;
 	var linhas = linhasSelecionadas.slice(0);
@@ -1556,7 +1571,7 @@ function sinalizarVenues(problema) {
 				delayTime = 5000;
 			}
 			console.group("venue=" + venue + " (" + i + ")");
-			console.log(dados);
+			debugLog(dados);
 			console.groupEnd();
 			xmlhttpRequest("POST", "https://api.foursquare.com/v2/venues/" + venue + "/" + acao, "flag", dados, i);
 			dojo.byId("result" + i).innerHTML = "<img src='img/loading.gif' alt='Enviando dados...'>";
@@ -1565,7 +1580,7 @@ function sinalizarVenues(problema) {
 			if (l < totalParaSinalizar) {
 				sinalizar(delayTime);
 			} else {
-				console.info("Dados enviados!");
+				debugInfo("Dados enviados!");
 			}
 		}, delayTime); // wait 0 or 5000 milliseconds (API duplicate bug) to flag
 	}
@@ -1583,7 +1598,7 @@ function selecionarTodas(valor) {
 }
 
 function carregarListaCategorias() {
-	console.info("Recuperando dados das categorias...");
+	debugInfo("Recuperando dados das categorias...");
 	xmlhttpRequest("GET", "https://api.foursquare.com/v2/venues/categories" + "?oauth_token=" + oauth_token + "&v=" + DATA_VERSIONAMENTO, "load", null, null);
 }
 
@@ -1616,14 +1631,14 @@ function pad(str, len, pad, dir) {
 
 // Callback para integração com o sistema de mapas
 window.atualizarPosicaoMarcador = function(index, event) {
-	console.log('📍 Marcador movido:', index, event);
+	debugLog('📍 Marcador movido:', index, event);
 	
 	if (!event || !event.latLng) return;
 	
 	const marcador = index + 1;
 	const novaPosicao = event.latLng.lat() + ', ' + event.latLng.lng();
 	
-	console.info('Marcador ' + marcador + ' movido: ' + novaPosicao);
+	debugInfo('Marcador ' + marcador + ' movido: ' + novaPosicao);
 	
 	// Integração com o sistema existente
 	try {
@@ -1645,7 +1660,7 @@ window.atualizarPosicaoMarcador = function(index, event) {
 				}
 				
 				// Marca a linha como editada
-				console.log('🔵 Marcando linha ' + (index + 1) + ' como editada após arrastar marcador');
+				debugLog('🔵 Marcando linha ' + (index + 1) + ' como editada após arrastar marcador');
 				verificarAlteracao(dojo.query("input[name=venuell]")[index], index);
 				
 				// Atualiza CSV
@@ -1703,7 +1718,7 @@ dojo.addOnLoad(function inicializar() {
 		});
 	} else {
 		// Fallback para verificação legacy com cookie
-		console.log("🔄 Usando validação legacy de token");
+		debugLog("🔄 Usando validação legacy de token");
 		
 		// Verifica se o token existe via cookie
 		const legacyToken = dojo.cookie("oauth_token");
@@ -1715,7 +1730,7 @@ dojo.addOnLoad(function inicializar() {
 			return;
 		}
 		
-		console.log("✅ Token legacy válido - continuando inicialização");
+		debugLog("✅ Token legacy válido - continuando inicialização");
 		// Continua com a inicialização normal
 		initializeApplication();
 	}
@@ -1725,14 +1740,14 @@ dojo.addOnLoad(function inicializar() {
 	/*** Inicializar Google Maps ***/
 	if (document.getElementById('mapa')) {
 		const initMap = () => {
-			console.log('🚀 Inicializando o mapa...');
+			debugLog('🚀 Inicializando o mapa...');
 			if (window.googleMaps) {
 				window.googleMaps.initialize().then(() => {
-					console.info("Mapa carregado!");
+					debugInfo("Mapa carregado!");
 					// Se já há venues carregadas, posiciona os marcadores imediatamente
 					if (window.locais && window.locais.length > 0) {
 						window.googleMaps.updateMarkers(window.locais);
-						console.info("Marcadores posicionados no mapa!");
+						debugInfo("Marcadores posicionados no mapa!");
 					}
 				}).catch(error => {
 					console.error("Falha ao inicializar o mapa:", error);
@@ -1743,12 +1758,12 @@ dojo.addOnLoad(function inicializar() {
 		};
 
 		if (window.googleMaps) {
-			console.log('🚀 Google Maps já estava pronto. Inicializando imediatamente.');
+			debugLog('🚀 Google Maps já estava pronto. Inicializando imediatamente.');
 			initMap();
 		} else {
 			// Espera o evento que sinaliza que a API do Google Maps está pronta
 			document.addEventListener('google-maps-ready', () => {
-				console.log('🚀 Evento "google-maps-ready" recebido.');
+				debugLog('🚀 Evento "google-maps-ready" recebido.');
 				initMap();
 			});
 		}
@@ -1759,7 +1774,7 @@ dojo.addOnLoad(function inicializar() {
 	const mapaElement = dojo.byId('mapa');
 	if (mapaElement && !mapaElement.style.width) {
 		dojo.style("mapa", "width", dojo.byId('listContainer').offsetWidth.toString() + "px");
-		console.log('📏 Largura inicial do mapa definida automaticamente');
+		debugLog('📏 Largura inicial do mapa definida automaticamente');
 	}
 	
 	/*** Guia de Estilo ***/
@@ -2368,7 +2383,7 @@ function showDialogExportUrls() {
 			link.download = 'venues_urls' + sufixo + '_' + new Date().getTime() + '.txt';
 			link.click();
 			window.URL.revokeObjectURL(link.href);
-			console.info('📁 Arquivo exportado com sucesso!');
+			debugInfo('📁 Arquivo exportado com sucesso!');
 			
 			// Fecha a modal após salvar
 			dlg_export_urls.hide();
@@ -2379,7 +2394,7 @@ function showDialogExportUrls() {
 			textarea.select();
 			document.execCommand('copy');
 			alert('URLs copiadas para a área de transferência!');
-			console.info('📋 URLs copiadas para o clipboard!');
+			debugInfo('📋 URLs copiadas para o clipboard!');
 			
 			// Fecha a modal após copiar
 			dlg_export_urls.hide();
@@ -2438,7 +2453,7 @@ function showDialogExportDirectUrl() {
 			textarea.select();
 			document.execCommand('copy');
 			alert('URL copiada para a área de transferência!');
-			console.info('📋 URL direta copiada para o clipboard!');
+			debugInfo('📋 URL direta copiada para o clipboard!');
 			
 			// Fecha a modal após copiar
 			dlg_export_direct_url.hide();
@@ -2554,7 +2569,7 @@ function showDialogExportCsv() {
 			link.download = 'venues_export.csv';
 			link.click();
 			window.URL.revokeObjectURL(link.href);
-			console.info('📁 Arquivo CSV exportado com sucesso!');
+			debugInfo('📁 Arquivo CSV exportado com sucesso!');
 			
 			// Fecha a modal após salvar
 			dlg_export_csv.hide();
@@ -2678,7 +2693,7 @@ function showDialogReport() {
 			link.download = 'relatorio_edicoes.txt';
 			link.click();
 			window.URL.revokeObjectURL(link.href);
-			console.info('📁 Relatório exportado com sucesso!');
+			debugInfo('📁 Relatório exportado com sucesso!');
 			
 			// Fecha a modal após salvar
 			dlg_report.hide();
@@ -2742,12 +2757,7 @@ function setupVerticalNavigation() {
 		});
 	});
 	
-	console.log('⌨️ Navegação vertical (UP/DOWN arrows) ativada nos campos');
-}
-
-function verificarAlteracao(textbox, i) {
-	var index = csv[0].indexOf(textbox.name);
-	// Obtém o valor original, removendo aspas se existirem
+	debugLog('⌨️ Navegação vertical (UP/DOWN arrows) ativada nos campos');
 	var valorOriginal = csv[i + 1][index];
 	if (typeof valorOriginal === 'string') {
 		// Remove aspas do início e fim se existirem
