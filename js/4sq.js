@@ -11,7 +11,7 @@ dojo.require("dijit.Menu");
 dojo.require("dojo.cookie");
 dojo.require("dijit.form.Select");
 
-var DATA_VERSIONAMENTO = "20230404";
+var DATA_VERSIONAMENTO = "20250401";
 var MESES = new Array("01", "02", "03", "04", "05", "06", "07", "08", "09", "10", "11", "12");
 
 var modo;
