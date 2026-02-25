@@ -1,0 +1,770 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ferramenta de Comparação de APIs Foursquare</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 20px;
+            color: #333;
+        }
+        
+        .container {
+            max-width: 1600px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+            overflow: hidden;
+        }
+        
+        header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        
+        header h1 {
+            font-size: 28px;
+            margin-bottom: 10px;
+        }
+        
+        header p {
+            font-size: 14px;
+            opacity: 0.9;
+        }
+        
+        .controls {
+            padding: 30px;
+            background: #f8f9fa;
+            border-bottom: 2px solid #e9ecef;
+        }
+        
+        .control-group {
+            margin-bottom: 20px;
+        }
+        
+        .control-group label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: #495057;
+            font-size: 14px;
+        }
+        
+        .control-group select,
+        .control-group input {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #dee2e6;
+            border-radius: 6px;
+            font-size: 14px;
+            transition: border-color 0.2s;
+        }
+        
+        .control-group select:focus,
+        .control-group input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        
+        .control-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+        }
+        
+        .btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 14px 28px;
+            font-size: 16px;
+            font-weight: 600;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            margin-right: 10px;
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+        
+        .btn:active {
+            transform: translateY(0);
+        }
+        
+        .btn-secondary {
+            background: #6c757d;
+        }
+        
+        .results-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(450px, 1fr));
+            gap: 20px;
+            padding: 30px;
+        }
+        
+        .result-panel {
+            background: #f8f9fa;
+            border-radius: 8px;
+            padding: 20px;
+            border: 2px solid #dee2e6;
+        }
+        
+        .result-panel h3 {
+            color: #495057;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #dee2e6;
+            font-size: 16px;
+        }
+        
+        .result-panel pre {
+            background: #ffffff;
+            padding: 15px;
+            border-radius: 6px;
+            overflow-x: auto;
+            font-size: 12px;
+            line-height: 1.6;
+            max-height: 600px;
+            overflow-y: auto;
+            border: 1px solid #dee2e6;
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #6c757d;
+        }
+        
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .error {
+            background: #fff5f5;
+            color: #c53030;
+            padding: 15px;
+            border-radius: 6px;
+            border: 2px solid #feb2b2;
+            margin: 10px 0;
+        }
+        
+        .success {
+            background: #f0fff4;
+            color: #22543d;
+            padding: 15px;
+            border-radius: 6px;
+            border: 2px solid #9ae6b4;
+            margin: 10px 0;
+        }
+        
+        .info {
+            background: #ebf8ff;
+            color: #2c5282;
+            padding: 15px;
+            border-radius: 6px;
+            border: 2px solid #90cdf4;
+            margin: 10px 0;
+            font-size: 13px;
+        }
+        
+        .comparison-summary {
+            padding: 20px;
+            background: #fff3cd;
+            margin: 20px 30px;
+            border-radius: 8px;
+            border: 2px solid #ffc107;
+        }
+        
+        .comparison-summary h3 {
+            color: #856404;
+            margin-bottom: 10px;
+        }
+        
+        .field-comparison {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+            margin-top: 15px;
+        }
+        
+        .field-item {
+            padding: 8px;
+            background: white;
+            border-radius: 4px;
+            font-size: 12px;
+            text-align: center;
+        }
+        
+        .field-available {
+            background: #d4edda;
+            color: #155724;
+        }
+        
+        .field-missing {
+            background: #f8d7da;
+            color: #721c24;
+        }
+        
+        .tabs {
+            display: flex;
+            gap: 10px;
+            padding: 0 30px;
+            background: #f8f9fa;
+            border-bottom: 2px solid #dee2e6;
+        }
+        
+        .tab {
+            padding: 15px 25px;
+            cursor: pointer;
+            border: none;
+            background: transparent;
+            font-weight: 600;
+            color: #6c757d;
+            transition: all 0.2s;
+            border-bottom: 3px solid transparent;
+        }
+        
+        .tab:hover {
+            color: #495057;
+        }
+        
+        .tab.active {
+            color: #667eea;
+            border-bottom-color: #667eea;
+        }
+        
+        .docs-links {
+            padding: 20px 30px;
+            background: #e7f3ff;
+            border-bottom: 2px solid #90cdf4;
+        }
+        
+        .docs-links h4 {
+            color: #2c5282;
+            margin-bottom: 10px;
+            font-size: 14px;
+        }
+        
+        .docs-links a {
+            display: inline-block;
+            margin-right: 15px;
+            margin-bottom: 8px;
+            color: #3182ce;
+            text-decoration: none;
+            font-size: 13px;
+            padding: 4px 8px;
+            background: white;
+            border-radius: 4px;
+            transition: background 0.2s;
+        }
+        
+        .docs-links a:hover {
+            background: #bee3f8;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🔍 Ferramenta de Comparação de APIs Foursquare</h1>
+            <p>Compare respostas entre API v2 (depreciada), API v3 (depreciada) e Places API (atual)</p>
+        </header>
+        
+        <div class="tabs">
+            <button class="tab active" onclick="switchTab('search')">🔍 Busca (Search)</button>
+            <button class="tab" onclick="switchTab('details')">📍 Detalhes (Get)</button>
+            <button class="tab" onclick="switchTab('edit')">✏️ Edição (Post)</button>
+        </div>
+        
+        <!-- TAB: BUSCA -->
+        <div id="tab-search" class="tab-content">
+            <div class="docs-links">
+                <h4>📚 Documentação de Referência:</h4>
+                <a href="https://docs.foursquare.com/developer/reference/place-search" target="_blank">API v3 Docs</a>
+                <a href="https://docs.foursquare.com/fsq-developers-places/reference/place-search" target="_blank">Places API Docs</a>
+            </div>
+            
+            <div class="controls">
+                <div class="info">
+                    <strong>Objetivo:</strong> Verificar se a busca retorna campos adicionais (bairro, dentro, instagram, descrição, menu, horas) que não eram retornados na API v2 antiga.
+                </div>
+                
+                <div class="control-row">
+                    <div class="control-group">
+                        <label>🔑 API Key (OAuth Token ou API Key):</label>
+                        <input type="text" id="search-api-key" placeholder="Cole seu token aqui">
+                    </div>
+                    
+                    <div class="control-group">
+                        <label>🔍 Consulta de Busca:</label>
+                        <input type="text" id="search-query" placeholder="Ex: pizza" value="pizza">
+                    </div>
+                </div>
+                
+                <div class="control-row">
+                    <div class="control-group">
+                        <label>📍 Localização (lat,lng):</label>
+                        <input type="text" id="search-ll" placeholder="Ex: -15.7801,-47.9292" value="-15.7801,-47.9292">
+                    </div>
+                    
+                    <div class="control-group">
+                        <label>📏 Raio (metros):</label>
+                        <input type="number" id="search-radius" value="1000">
+                    </div>
+                    
+                    <div class="control-group">
+                        <label>🔢 Limite de Resultados:</label>
+                        <input type="number" id="search-limit" value="5">
+                    </div>
+                </div>
+                
+                <div style="margin-top: 20px;">
+                    <button class="btn" onclick="compareSearch()">🚀 Comparar APIs de Busca</button>
+                    <button class="btn btn-secondary" onclick="clearResults()">🗑️ Limpar</button>
+                </div>
+            </div>
+            
+            <div id="search-results" class="results-container"></div>
+            <div id="search-comparison" class="comparison-summary" style="display: none;"></div>
+        </div>
+        
+        <!-- TAB: DETALHES -->
+        <div id="tab-details" class="tab-content" style="display: none;">
+            <div class="docs-links">
+                <h4>📚 Documentação de Referência:</h4>
+                <a href="https://docs.foursquare.com/developer/reference/address-details" target="_blank">API v3 Docs</a>
+                <a href="https://docs.foursquare.com/fsq-developers-places/reference/place-details" target="_blank">Places API Docs</a>
+            </div>
+            
+            <div class="controls">
+                <div class="info">
+                    <strong>Objetivo:</strong> Comparar dados completos retornados por cada versão da API ao consultar um local específico.
+                </div>
+                
+                <div class="control-row">
+                    <div class="control-group">
+                        <label>🔑 API Key (OAuth Token ou API Key):</label>
+                        <input type="text" id="details-api-key" placeholder="Cole seu token aqui">
+                    </div>
+                    
+                    <div class="control-group">
+                        <label>🆔 Venue/Place ID:</label>
+                        <input type="text" id="details-venue-id" placeholder="Ex: 4b058f63f964a520c3a422e3">
+                    </div>
+                </div>
+                
+                <div style="margin-top: 20px;">
+                    <button class="btn" onclick="compareDetails()">🚀 Comparar APIs de Detalhes</button>
+                    <button class="btn btn-secondary" onclick="clearResults()">🗑️ Limpar</button>
+                </div>
+            </div>
+            
+            <div id="details-results" class="results-container"></div>
+            <div id="details-comparison" class="comparison-summary" style="display: none;"></div>
+        </div>
+        
+        <!-- TAB: EDIÇÃO -->
+        <div id="tab-edit" class="tab-content" style="display: none;">
+            <div class="docs-links">
+                <h4>📚 Documentação de Referência:</h4>
+                <a href="https://docs.foursquare.com/developer/reference/place-propose-edit" target="_blank">API v3 Docs</a>
+                <a href="https://docs.foursquare.com/fsq-developers-places/reference/place-suggest-edit" target="_blank">Places API Docs</a>
+            </div>
+            
+            <div class="controls">
+                <div class="info">
+                    <strong>Objetivo:</strong> Comparar estrutura de requisição e resposta para edição de locais em cada versão da API.
+                </div>
+                
+                <div class="control-row">
+                    <div class="control-group">
+                        <label>🔑 API Key (OAuth Token ou API Key):</label>
+                        <input type="text" id="edit-api-key" placeholder="Cole seu token aqui">
+                    </div>
+                    
+                    <div class="control-group">
+                        <label>🆔 Venue/Place ID:</label>
+                        <input type="text" id="edit-venue-id" placeholder="Ex: 4b058f63f964a520c3a422e3">
+                    </div>
+                </div>
+                
+                <div class="control-group">
+                    <label>📝 Nome do Local:</label>
+                    <input type="text" id="edit-name" placeholder="Novo nome (opcional)">
+                </div>
+                
+                <div style="margin-top: 20px;">
+                    <button class="btn" onclick="compareEdit()">📋 Comparar Estrutura de Edição</button>
+                    <button class="btn btn-secondary" onclick="clearResults()">🗑️ Limpar</button>
+                </div>
+                
+                <div class="error" style="margin-top: 20px;">
+                    <strong>⚠️ Atenção:</strong> Este modo NÃO fará requisições POST reais. Apenas mostra a estrutura esperada por cada API.
+                </div>
+            </div>
+            
+            <div id="edit-results" class="results-container"></div>
+        </div>
+    </div>
+    
+    <script>
+        // Estado global
+        let currentTab = 'search';
+        
+        // Gerenciamento de tabs
+        function switchTab(tabName) {
+            currentTab = tabName;
+            
+            // Atualiza tabs
+            document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
+            event.target.classList.add('active');
+            
+            // Atualiza conteúdo
+            document.querySelectorAll('.tab-content').forEach(content => content.style.display = 'none');
+            document.getElementById('tab-' + tabName).style.display = 'block';
+        }
+        
+        // Limpa resultados
+        function clearResults() {
+            document.querySelectorAll('.results-container').forEach(el => el.innerHTML = '');
+            document.querySelectorAll('.comparison-summary').forEach(el => el.style.display = 'none');
+        }
+        
+        // Mostra loading
+        function showLoading(containerId) {
+            const container = document.getElementById(containerId);
+            container.innerHTML = '<div class="loading"><div class="spinner"></div><p>Carregando...</p></div>';
+        }
+        
+        // Formata JSON com destaque
+        function formatJSON(obj) {
+            return JSON.stringify(obj, null, 2);
+        }
+        
+        // BUSCA: Compara APIs de busca
+        async function compareSearch() {
+            const apiKey = document.getElementById('search-api-key').value;
+            const query = document.getElementById('search-query').value;
+            const ll = document.getElementById('search-ll').value;
+            const radius = document.getElementById('search-radius').value;
+            const limit = document.getElementById('search-limit').value;
+            
+            if (!apiKey) {
+                alert('Por favor, informe uma API Key ou OAuth Token');
+                return;
+            }
+            
+            showLoading('search-results');
+            
+            const results = {
+                v2: null,
+                v3: null,
+                places: null
+            };
+            
+            // API v2 (depreciada)
+            try {
+                const v2Url = `https://api.foursquare.com/v2/venues/search?oauth_token=${apiKey}&v=20230404&ll=${ll}&query=${encodeURIComponent(query)}&radius=${radius}&limit=${limit}`;
+                const v2Response = await fetch(v2Url);
+                results.v2 = await v2Response.json();
+            } catch (error) {
+                results.v2 = { error: error.message };
+            }
+            
+            // API v3 (depreciada)
+            try {
+                const v3Url = `https://api.foursquare.com/v3/places/search?ll=${ll}&query=${encodeURIComponent(query)}&radius=${radius}&limit=${limit}`;
+                const v3Response = await fetch(v3Url, {
+                    headers: { 'Authorization': apiKey }
+                });
+                results.v3 = await v3Response.json();
+            } catch (error) {
+                results.v3 = { error: error.message };
+            }
+            
+            // Places API (atual)
+            try {
+                const placesUrl = `https://places-api.foursquare.com/places/search?ll=${ll}&query=${encodeURIComponent(query)}&radius=${radius}&limit=${limit}`;
+                const placesResponse = await fetch(placesUrl, {
+                    headers: { 'Authorization': apiKey }
+                });
+                results.places = await placesResponse.json();
+            } catch (error) {
+                results.places = { error: error.message };
+            }
+            
+            displaySearchResults(results);
+            analyzeSearchFields(results);
+        }
+        
+        function displaySearchResults(results) {
+            const container = document.getElementById('search-results');
+            container.innerHTML = `
+                <div class="result-panel">
+                    <h3>🔴 API v2 (Depreciada)</h3>
+                    <pre>${formatJSON(results.v2)}</pre>
+                </div>
+                <div class="result-panel">
+                    <h3>🟡 API v3 (Depreciada)</h3>
+                    <pre>${formatJSON(results.v3)}</pre>
+                </div>
+                <div class="result-panel">
+                    <h3>🟢 Places API (Atual)</h3>
+                    <pre>${formatJSON(results.places)}</pre>
+                </div>
+            `;
+        }
+        
+        function analyzeSearchFields(results) {
+            const fieldsToCheck = [
+                'neighborhood',  // bairro
+                'parentId',      // dentro
+                'instagram',     // instagram
+                'description',   // descrição
+                'menu',          // menu
+                'hours'          // horas
+            ];
+            
+            const analysis = {
+                v2: {},
+                v3: {},
+                places: {}
+            };
+            
+            // Analisa campos retornados
+            fieldsToCheck.forEach(field => {
+                analysis.v2[field] = hasField(results.v2, field);
+                analysis.v3[field] = hasField(results.v3, field);
+                analysis.places[field] = hasField(results.places, field);
+            });
+            
+            const summary = document.getElementById('search-comparison');
+            summary.style.display = 'block';
+            summary.innerHTML = `
+                <h3>📊 Análise de Campos Disponíveis na Busca</h3>
+                <p style="margin: 10px 0; font-size: 14px;">Verificação dos campos que NÃO eram retornados pela busca na API v2 antiga:</p>
+                <div class="field-comparison">
+                    ${fieldsToCheck.map(field => `
+                        <div class="field-item">
+                            <strong>${field}</strong><br>
+                            <span class="${analysis.v2[field] ? 'field-available' : 'field-missing'}">v2: ${analysis.v2[field] ? '✓' : '✗'}</span><br>
+                            <span class="${analysis.v3[field] ? 'field-available' : 'field-missing'}">v3: ${analysis.v3[field] ? '✓' : '✗'}</span><br>
+                            <span class="${analysis.places[field] ? 'field-available' : 'field-missing'}">Places: ${analysis.places[field] ? '✓' : '✗'}</span>
+                        </div>
+                    `).join('')}
+                </div>
+            `;
+        }
+        
+        function hasField(response, fieldName) {
+            if (!response || response.error) return false;
+            
+            const venues = response.response?.venues || response.results || [];
+            if (venues.length === 0) return false;
+            
+            const firstVenue = venues[0];
+            return firstVenue.hasOwnProperty(fieldName) || 
+                   firstVenue.location?.hasOwnProperty(fieldName) ||
+                   firstVenue.contact?.hasOwnProperty(fieldName);
+        }
+        
+        // DETALHES: Compara APIs de detalhes
+        async function compareDetails() {
+            const apiKey = document.getElementById('details-api-key').value;
+            const venueId = document.getElementById('details-venue-id').value;
+            
+            if (!apiKey || !venueId) {
+                alert('Por favor, informe API Key e Venue ID');
+                return;
+            }
+            
+            showLoading('details-results');
+            
+            const results = {
+                v2: null,
+                v3: null,
+                places: null
+            };
+            
+            // API v2
+            try {
+                const v2Url = `https://api.foursquare.com/v2/venues/${venueId}?oauth_token=${apiKey}&v=20230404`;
+                const v2Response = await fetch(v2Url);
+                results.v2 = await v2Response.json();
+            } catch (error) {
+                results.v2 = { error: error.message };
+            }
+            
+            // API v3
+            try {
+                const v3Url = `https://api.foursquare.com/v3/places/${venueId}`;
+                const v3Response = await fetch(v3Url, {
+                    headers: { 'Authorization': apiKey }
+                });
+                results.v3 = await v3Response.json();
+            } catch (error) {
+                results.v3 = { error: error.message };
+            }
+            
+            // Places API
+            try {
+                const placesUrl = `https://places-api.foursquare.com/places/${venueId}`;
+                const placesResponse = await fetch(placesUrl, {
+                    headers: { 'Authorization': apiKey }
+                });
+                results.places = await placesResponse.json();
+            } catch (error) {
+                results.places = { error: error.message };
+            }
+            
+            displayDetailsResults(results);
+        }
+        
+        function displayDetailsResults(results) {
+            const container = document.getElementById('details-results');
+            container.innerHTML = `
+                <div class="result-panel">
+                    <h3>🔴 API v2 (Depreciada)</h3>
+                    <pre>${formatJSON(results.v2)}</pre>
+                </div>
+                <div class="result-panel">
+                    <h3>🟡 API v3 (Depreciada)</h3>
+                    <pre>${formatJSON(results.v3)}</pre>
+                </div>
+                <div class="result-panel">
+                    <h3>🟢 Places API (Atual)</h3>
+                    <pre>${formatJSON(results.places)}</pre>
+                </div>
+            `;
+        }
+        
+        // EDIÇÃO: Mostra estrutura esperada
+        function compareEdit() {
+            const apiKey = document.getElementById('edit-api-key').value;
+            const venueId = document.getElementById('edit-venue-id').value;
+            const name = document.getElementById('edit-name').value || 'Novo Nome do Local';
+            
+            if (!apiKey || !venueId) {
+                alert('Por favor, informe API Key e Venue ID');
+                return;
+            }
+            
+            const structures = {
+                v2: {
+                    endpoint: `https://api.foursquare.com/v2/venues/${venueId}/proposeedit`,
+                    method: 'POST',
+                    authentication: 'OAuth Token via query string',
+                    parameters: {
+                        oauth_token: apiKey,
+                        v: '20230404',
+                        name: name,
+                        address: 'Rua Example, 123',
+                        crossStreet: 'perto da Av. Principal',
+                        city: 'São Paulo',
+                        state: 'SP',
+                        zip: '01234-567',
+                        phone: '(11) 1234-5678',
+                        twitter: '@example',
+                        instagram: '@example',
+                        categoryId: '4bf58dd8d48988d1c4941735',
+                        comment: 'Correção de dados'
+                    },
+                    notes: 'Usa venue_id. OAuth via query string. Endpoint "proposeedit".'
+                },
+                v3: {
+                    endpoint: `https://api.foursquare.com/v3/places/${venueId}/proposeedit`,
+                    method: 'POST',
+                    authentication: 'Authorization header',
+                    headers: {
+                        'Authorization': apiKey,
+                        'Content-Type': 'application/json'
+                    },
+                    body: {
+                        name: name,
+                        address: 'Rua Example, 123',
+                        locality: 'São Paulo',
+                        region: 'SP',
+                        postcode: '01234-567',
+                        tel: '(11) 1234-5678',
+                        twitter: '@example',
+                        instagram: '@example',
+                        category: '4bf58dd8d48988d1c4941735'
+                    },
+                    notes: 'Usa fsq_id. Authorization header. Estrutura JSON no body.'
+                },
+                places: {
+                    endpoint: `https://places-api.foursquare.com/places/${venueId}/suggest/edit`,
+                    method: 'POST',
+                    authentication: 'Authorization header',
+                    headers: {
+                        'Authorization': apiKey,
+                        'Content-Type': 'application/json'
+                    },
+                    body: {
+                        name: name,
+                        location: {
+                            address: 'Rua Example, 123',
+                            locality: 'São Paulo',
+                            region: 'SP',
+                            postcode: '01234-567'
+                        },
+                        contact: {
+                            phone: '(11) 1234-5678'
+                        },
+                        social_media: {
+                            twitter: '@example',
+                            instagram: '@example'
+                        },
+                        categories: [
+                            { id: '4bf58dd8d48988d1c4941735' }
+                        ]
+                    },
+                    notes: 'Usa fsq_place_id. Estrutura aninhada. Endpoint "suggest/edit".'
+                }
+            };
+            
+            const container = document.getElementById('edit-results');
+            container.innerHTML = `
+                <div class="result-panel">
+                    <h3>🔴 API v2 (Depreciada)</h3>
+                    <pre>${formatJSON(structures.v2)}</pre>
+                </div>
+                <div class="result-panel">
+                    <h3>🟡 API v3 (Depreciada)</h3>
+                    <pre>${formatJSON(structures.v3)}</pre>
+                </div>
+                <div class="result-panel">
+                    <h3>🟢 Places API (Atual)</h3>
+                    <pre>${formatJSON(structures.places)}</pre>
+                </div>
+            `;
+        }
+    </script>
+</body>
+</html>

@@ -104,6 +104,7 @@ if (!$oauth_token) {
 <title>Elio Tools</title>
 <meta charset="utf-8">
 <script src="js/dojo/dojo.js" djConfig="parseOnLoad: true"></script>
+<?php script_versioned('js/session-manager.js'); ?>
 <?php script_versioned('js/main.js'); ?>
 <script>
     // Remove o fragmento #_=_ adicionado por alguns provedores OAuth
@@ -190,7 +191,6 @@ function removeLocalCache($key) {
 <link rel="stylesheet" type="text/css" href="js/dijit/themes/tundra/tundra.css">
 <link rel="stylesheet" type="text/css" href="estilo.css?v=<?php echo time(); ?>">
 <link rel="stylesheet" type="text/css" href="includes/session-status-bar-variants.css?v=<?php echo time(); ?>">
-<?php script_versioned('js/session-manager.js'); ?>
 </head>
 <body class="tundra">
 

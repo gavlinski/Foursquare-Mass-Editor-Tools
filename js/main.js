@@ -11,20 +11,7 @@ dojo.require("dojox.form.Uploader");
 dojo.require("dojo.cookie");
 dojo.require("dojox.image");
 
-// Utilitários de logging condicional (apenas em localhost)
-var isLocalhost = function() {
-    return window.location.hostname === 'localhost' || 
-           window.location.hostname === '127.0.0.1' ||
-           window.location.hostname === '[::1]';
-};
-
-var debugLog = function() {
-    if (isLocalhost()) console.log.apply(console, arguments);
-};
-
-var debugInfo = function() {
-    if (isLocalhost()) console.info.apply(console, arguments);
-};
+// Utilitários de logging (isLocalhost, debugLog, debugInfo) são providos por session-manager.js
 
 dojo.addOnLoad(function() {
 	dojox.image.preload(["js/dijit/themes/claro/images/progressBarFull.png", "js/dijit/themes/claro/images/progressBarAnim.gif"]);
