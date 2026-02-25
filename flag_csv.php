@@ -28,6 +28,8 @@ if (isset($_SESSION["oauth_token"])) {
 } else {
 	header('Location: index.php'); /* Redirect browser */
 }
+
+include_once 'includes/asset_helper.php';
 ?>
 <!doctype html>
 <html lang="pt-BR">
@@ -42,8 +44,8 @@ if (isset($_SESSION["oauth_token"])) {
 <link rel="stylesheet" type="text/css" href="estilo.css?v=<?php echo time(); ?>">
 <link rel="stylesheet" type="text/css" href="includes/session-status-bar-variants.css?v=<?php echo time(); ?>">
 <script src="js/dojo/dojo.js" djConfig="parseOnLoad: true"></script>
+<?php script_versioned('js/session-manager.js'); ?>
 <?php script_versioned('js/4sq_csv.js'); ?>
-<?php script_versioned('js/session-manager.js', ['defer' => 'defer']); ?>
 </head>
 <body class="tundra">
 

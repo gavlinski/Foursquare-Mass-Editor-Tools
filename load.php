@@ -363,9 +363,11 @@ function validarVenues(array $lines): array|false
             if ($venueId !== null && !in_array($venueId, $venuesIds)) {
                 $venuesIds[] = $venueId;
                 
-                // Preserva URL original se válida
+                // Preserva URL original se válida (removendo ?ref= para evitar duplicação)
                 if (strlen($line) > 6 && stripos($line, 'foursquare.com') !== false) {
-                    $processedUrls[] = $line;
+                    // Remove TODOS os ?ref= da URL
+                    $cleanUrl = preg_replace('/\?ref=[^&]*/', '', $line);
+                    $processedUrls[] = $cleanUrl;
                 } else {
                     // Cria URL adequada baseada no tipo de ID
                     if (strlen($venueId) === 24) {
@@ -473,9 +475,10 @@ function parseVenues(string $html): array|false
                 if ($venueId !== null && !in_array($venueId, $venuesIds)) {
                     $venuesIds[$i] = $venueId;
                     
-                    // Preserva URL completa se contém domínio
+                    // Preserva URL completa se contém domínio (removendo ?ref= para evitar duplicação)
                     if (stripos($href, "foursquare.com") !== false) {
-                        $ret[$i] = $href;
+                        // Remove TODOS os ?ref= da URL
+                        $ret[$i] = preg_replace('/\?ref=[^&]*/', '', $href);
                     } else if (strpos($href, "/venue/") === 0 || strpos($href, "/v/") === 0) {
                         // URL relativa, adiciona domínio
                         $ret[$i] = "https://foursquare.com" . $href;

@@ -14,20 +14,7 @@ dojo.require("dijit.form.Select");
 var DATA_VERSIONAMENTO = "20250401";
 var MESES = new Array("01", "02", "03", "04", "05", "06", "07", "08", "09", "10", "11", "12");
 
-// Utilitários de logging condicional (apenas em localhost)
-var isLocalhost = function() {
-    return window.location.hostname === 'localhost' || 
-           window.location.hostname === '127.0.0.1' ||
-           window.location.hostname === '[::1]';
-};
-
-var debugLog = function() {
-    if (isLocalhost()) console.log.apply(console, arguments);
-};
-
-var debugInfo = function() {
-    if (isLocalhost()) console.info.apply(console, arguments);
-};
+// Utilitários de logging (isLocalhost, debugLog, debugInfo) são providos por session-manager.js
 
 var modo;
 var DADOS_COMPLETOS = 0;
@@ -489,6 +476,33 @@ function editarCategorias(i) {
 	}
 	atualizarCategorias(nomes, ids, icones);
 	dojo.byId("venueIndex").innerHTML = i;
+	
+	// Garante que a árvore de categorias está montada antes de abrir modal
+	// Verifica se existe o widget Tree real (não apenas o container DOM)
+	var containerElement = dojo.byId("treeContainer");
+	var hasTreeWidget = containerElement && containerElement.children && containerElement.children.length > 0;
+	
+	if (!hasTreeWidget) {
+		debugLog('🌳 Árvore de categorias não existe ou está vazia, verificando cache...');
+		var cachedCategories = localStorage.getItem('categorias');
+		if (cachedCategories) {
+			try {
+				var resposta = JSON.parse(cachedCategories);
+				debugLog('✅ Reconstruindo árvore a partir do cache');
+				montarArvore(resposta);
+				debugLog('🌳 Árvore reconstruída com sucesso');
+			} catch (e) {
+				debugLog('❌ Erro ao reconstruir árvore, carregando da API:', e);
+				carregarListaCategorias();
+			}
+		} else {
+			debugLog('📡 Cache vazio, carregando categorias da API');
+			carregarListaCategorias();
+		}
+	} else {
+		debugLog('✅ Árvore de categorias já existe, reutilizando');
+	}
+	
 	dijit.byId("dlg_cats").show();
 	
 	// Habilita checkbox apenas se houver 2+ venues com dados completos
@@ -638,34 +652,74 @@ function processarEdicaoCategorias() {
 				dojo.byId("cid" + i).value = dojo.byId("catsIds").innerHTML;
 				dojo.byId("cic" + i).value = dojo.byId("catsIcones").innerHTML;
 				dojo.byId("icone" + i).innerHTML = "<a id='catLnk" + i + "' href='javascript:editarCategorias(" + i + ")'><img id=catImg" + i + " src='" + dojo.byId("cic" + i).value.split(",", 1)[0] + "' style='height: 22px; width: 22px; margin-left: 0px'></a>";
-				//var index = csv[0].indexOf("categoryId");
-				//csv[parseInt(i) + 1][index] = dojo.byId("cid" + i).value;
-				var categoryIds = dojo.byId("cid" + i).value;
+				
+				// IMPORTANTE: Salva categorias ANTIGAS antes de atualizar (para calcular diferenças)
 				var categoriasAtuais = [];
-				if (categorias[i].ids != undefined)
+				if (categorias[i] && categorias[i].ids != undefined) {
 					categoriasAtuais = categorias[i].ids.split(",");
+					debugLog('📋 Categorias antigas da venue', i, ':', categoriasAtuais.join(', '));
+				}
+				
+				var categoryIds = dojo.byId("cid" + i).value;
 				var categoriasNovas = categoryIds.split(",");
+				debugLog('📋 Categorias novas da venue', i, ':', categoriasNovas.join(', '));
+				
+				// Atualiza coluna categoryId no CSV (índice 1)
+				var indexCategoryId = csv[0].indexOf("categoryId");
+				if (indexCategoryId !== -1) {
+					csv[parseInt(i) + 1][indexCategoryId] = '"' + categoryIds + '"';
+					debugLog('📝 CSV[categoryId] atualizado - Linha', i, ':', categoryIds);
+				}
+				
+				// Calcula removeCategoryIds (categorias que existiam mas foram removidas)
 				categoriasRemover = categoriasAtuais.filter(function(val) {
 					return categoriasNovas.indexOf(val) == -1;
 				});
 				if (categoriasRemover.length > 0) {
 					var index = csv[0].indexOf("removeCategoryIds");
 					csv[parseInt(i) + 1][index] = '"' + categoriasRemover.toString() + '"';
+					debugLog('🗑️ CSV[removeCategoryIds] atualizado - Linha', i, ':', categoriasRemover.toString());
+				} else {
+					debugLog('ℹ️ Nenhuma categoria removida na linha', i);
 				}
-				if (categoriasAtuais[0] != categoriasNovas[0]) {
+				
+				// Atualiza primaryCategoryId se categoria primária mudou
+				if (categoriasAtuais.length > 0 && categoriasAtuais[0] != categoriasNovas[0]) {
 					var index = csv[0].indexOf("primaryCategoryId");
 					csv[parseInt(i) + 1][index] = '"' + categoriasNovas[0] + '"';
+					debugLog('⭐ CSV[primaryCategoryId] atualizado - Linha', i, ': de', categoriasAtuais[0], 'para', categoriasNovas[0]);
+				} else if (categoriasAtuais.length === 0) {
+					// Venue com dados parciais sendo editada pela primeira vez
+					var index = csv[0].indexOf("primaryCategoryId");
+					csv[parseInt(i) + 1][index] = '"' + categoriasNovas[0] + '"';
+					debugLog('⭐ CSV[primaryCategoryId] definido pela primeira vez - Linha', i, ':', categoriasNovas[0]);
+				} else {
+					debugLog('ℹ️ Categoria primária não mudou na linha', i, '(permanece:', categoriasAtuais[0], ')');
 				}
-				try {
+				
+				// Calcula addCategoryIds (SOMENTE categorias secundárias novas - índices 1 e 2)
+				// primaryCategoryId já adiciona a categoria primária, então não deve ser incluída aqui
+				var categoriasSecundariasNovas = [];
+				for (var j = 1; j < categoriasNovas.length && j <= 2; j++) {
+					// Verifica se esta categoria secundária é nova (não existia antes)
+					if (categoriasAtuais.indexOf(categoriasNovas[j]) == -1) {
+						categoriasSecundariasNovas.push(categoriasNovas[j]);
+					}
+				}
+				if (categoriasSecundariasNovas.length > 0) {
 					var index = csv[0].indexOf("addCategoryIds");
-					var addCategoryIds;
-					if ((typeof categoriasNovas[1].ids != undefined) && (categoriasAtuais.indexOf(categoriasNovas[1]) == -1))
-						addCategoryIds = categoriasNovas[1];
-					if ((typeof categoriasNovas[2].ids != undefined) && (categoriasAtuais.indexOf(categoriasNovas[2]) == -1))
-						addCategoryIds += "," + categoriasNovas[2];
-					if (addCategoryIds != "")
-						csv[parseInt(i) + 1][index] = '"' + addCategoryIds + '"';
-				} catch(e) {
+					csv[parseInt(i) + 1][index] = '"' + categoriasSecundariasNovas.toString() + '"';
+					debugLog('➕ CSV[addCategoryIds] atualizado - Linha', i, ':', categoriasSecundariasNovas.toString());
+				} else {
+					debugLog('ℹ️ Nenhuma categoria secundária nova na linha', i);
+				}
+				
+				// AGORA SIM: Atualiza array global categorias[] após calcular diferenças
+				if (categorias[i]) {
+					categorias[i].ids = categoryIds;
+					categorias[i].nomes = nomes;
+					categorias[i].icones = dojo.byId("cic" + i).value;
+					debugLog('📝 Array categorias[] atualizado - Índice', i);
 				}
 				dojo.byId("result" + i).innerHTML = "";
 				if (linhasEditadas.indexOf(parseInt(i)) == -1)
@@ -793,8 +847,14 @@ function atualizarTabela(venue, i) {
 	var venuellValue = (venue.location.lat + ', ' + venue.location.lng).replace(/undefined/gi, "0.0");
 	var venuellWidget = dijit.byId(dojo.query("input[name=venuell]")[i].id);
 	if (venuellWidget) venuellWidget.set("value", venuellValue);
+	
+	// Verifica se esta linha foi marcada para recarregamento (precisa estar aqui para usar depois)
+	const isReloading = document.forms[i].getAttribute('data-reloading') === 'true';
+	const permitirEdicao = (modo == DADOS_COMPLETOS) || isReloading;
+	
 	linha = '"' + venue.id + '"';
-	if (modo == DADOS_COMPLETOS) 
+	// Adiciona categoryId se esta venue tem dados completos (corrige inconsistência no CSV)
+	if (permitirEdicao) 
 		linha += '&&' + '"' + categorias[i].ids + '"';
 	var elementName;
 	var length = document.forms[i].elements.length;
@@ -986,10 +1046,6 @@ function atualizarTabela(venue, i) {
 	csv[i + 1] = linha.replace(/undefined/gi, "").split("&&");
 	venuellOriginais[i] = document.forms[i]["venuell"].value;
 	
-	// Verifica se esta linha foi marcada para recarregamento
-	const isReloading = document.forms[i].getAttribute('data-reloading') === 'true';
-	const permitirEdicao = (modo == DADOS_COMPLETOS) || isReloading;
-	
 	// Marca esta venue como tendo dados completos se aplicável
 	if (permitirEdicao && venuesComDadosCompletos.indexOf(i) === -1) {
 		venuesComDadosCompletos.push(i);
@@ -1029,24 +1085,57 @@ function atualizarTabela(venue, i) {
 	var dicaVenue = atualizarDicaVenue(i);
 	createTooltip("venLnk" + i, dicaVenue);
 	
-	// Atualiza URL do link com canonicalUrl se disponível
+	// Atualiza URL do link com canonicalUrl se disponível (Bug #3 relacionado)
 	if (venue.canonicalUrl) {
 		const linkElement = dojo.byId("venLnk" + i);
 		if (linkElement) {
-			// Preserva o parâmetro ?ref= se existir
+			// Remove TODAS as ocorrências de ?ref= (flag global /g) e adiciona apenas uma
 			const currentHref = linkElement.getAttribute('href');
 			const refMatch = currentHref.match(/\?ref=([^&]+)/);
 			const refParam = refMatch ? '?ref=' + refMatch[1] : '';
-			linkElement.setAttribute('href', venue.canonicalUrl + refParam);
+			// Remove TODOS os ?ref= da URL canônica (pode ter duplicados)
+			const cleanCanonicalUrl = venue.canonicalUrl.replace(/\?ref=[^&]*/g, '');
+			linkElement.setAttribute('href', cleanCanonicalUrl + refParam);
+			debugLog('🔗 URL atualizada - Linha', i, ':', cleanCanonicalUrl + refParam);
 		}
 	}
 	
-	(modo == DADOS_COMPLETOS) ? csv[i + 1] = csv[i + 1].concat("", "", "", document.forms[i]["createdAt"].value + ";" + document.forms[i]["checkinsCount"].value + ";" + document.forms[i]["usersCount"].value + ";" + document.forms[i]["tipCount"].value + ";" + document.forms[i]["likesCount"].value + ";" + document.forms[i]["listedCount"].value + ";" + document.forms[i]["photosCount"].value + ";" + document.forms[i]["isClosed"].value + ";" + document.forms[i]["isPrivate"].value + ";" + document.forms[i]["isDeleted"].value) : csv[i + 1] = csv[i + 1].concat(document.forms[i]["checkinsCount"].value + ";" + document.forms[i]["usersCount"].value + ";" + document.forms[i]["tipCount"].value);
+	// Sempre adiciona colunas ao CSV (determinaremos formato no final)
+	// Temporariamente adiciona formato completo se aplicável, senão parcial
+	var estaVenueTemDadosCompletos = (modo == DADOS_COMPLETOS) || (venuesComDadosCompletos.indexOf(i) !== -1);
+	
+	if (estaVenueTemDadosCompletos) {
+		// Dados completos: adiciona todos os campos em colunas separadas
+		csv[i + 1] = csv[i + 1].concat(
+			"", "", "",
+			document.forms[i]["createdAt"].value,
+			document.forms[i]["checkinsCount"].value,
+			document.forms[i]["usersCount"].value,
+			document.forms[i]["tipCount"].value,
+			document.forms[i]["likesCount"].value,
+			document.forms[i]["listedCount"].value,
+			document.forms[i]["photosCount"].value,
+			document.forms[i]["isClosed"].value,
+			document.forms[i]["isPrivate"].value,
+			document.forms[i]["isDeleted"].value
+		);
+	} else {
+		// Dados parciais: adiciona apenas checkins, users, tips (temporário)
+		csv[i + 1] = csv[i + 1].concat(
+			document.forms[i]["checkinsCount"].value,
+			document.forms[i]["usersCount"].value,
+			document.forms[i]["tipCount"].value
+		);
+	}
+	
+	// Normaliza CSV apenas uma vez, quando todas venues foram carregadas (Bug #1 e #2)
 	if (totalCarregadas == document.forms.length - totalNaoCarregadas) {
-		(modo == DADOS_COMPLETOS) ? csv[0] = csv[0].concat("createdAt;checkins;users;tips;likes;listed;photos;closed;private;deleted") : csv[0] = csv[0].concat("checkins;users;tips");
+		normalizarCsv();
+		
 		if (dojo.query("input[name=selecao]:enabled").length == 0)
 			dijit.byId("menuSelecionar").setAttribute('disabled', true);
 	}
+	
 	window.locais[i] = [(i + 1) + ". " + venue.name, venue.location.lat, venue.location.lng];
 	debugInfo("Venue " + i + " recuperada!");
 	
@@ -1219,6 +1308,126 @@ function carregarDadosVenues() {
 			//console.info("Venue " + i + " recuperada via JSON!");
 		}
 		debugInfo("Dados parciais das venues recuperados via JSON!");
+	}
+}
+
+/**
+ * Normaliza estrutura do CSV para garantir consistência entre venues com dados parciais e completos
+ * - Insere coluna categoryId se necessário
+ * - Normaliza todas as linhas para formato completo (24 colunas) ou parcial (14 colunas)
+ * - Pode ser chamada após carregamento inicial ou após recarregamento de venues
+ */
+function normalizarCsv() {
+	// Verifica se há pelo menos um venue com dados completos
+	var temAlgumComDadosCompletos = (modo == DADOS_COMPLETOS) || (venuesComDadosCompletos.length > 0);
+	
+	debugLog('🔧 Normalização CSV iniciada:', {
+		modo: modo,
+		venuesComDadosCompletos: venuesComDadosCompletos.length,
+		venuesComDadosCompletosArray: venuesComDadosCompletos,
+		temAlgumComDadosCompletos: temAlgumComDadosCompletos,
+		headerAntes: csv[0].slice(0, 5).join(', ') + '...',
+		headerLength: csv[0].length
+	});
+	
+	if (temAlgumComDadosCompletos) {
+		// PASSO 1: Insere categoryId se necessário
+		var headerTemCategoryId = (csv[0].length > 1 && csv[0][1] === "categoryId");
+		debugLog('📋 Header tem categoryId?', headerTemCategoryId, '| Header:', csv[0].slice(0, 5));
+		
+		if (!headerTemCategoryId) {
+			// Insere categoryId no header (posição 1, logo após "venue")
+			csv[0].splice(1, 0, "categoryId");
+			debugLog('✅ CategoryId inserido no header. Novo header:', csv[0].slice(0, 5));
+			
+			// Insere categoryId em cada linha conforme seu tipo
+			var linhasAtualizadas = 0;
+			for (var k = 0; k < document.forms.length; k++) {
+				if (csv[k + 1]) {
+					// Verifica se ESTA linha específica foi recarregada (tem dados completos)
+					var foiRecarregada = venuesComDadosCompletos.indexOf(k) !== -1;
+					
+					if (foiRecarregada) {
+						// Linha recarregada JÁ TEM categoryId (adicionado na linha 791), não insere
+						debugLog('  → Linha', k, 'JÁ tem categoryId (recarregada), pulando');
+					} else {
+						// Linha parcial: insere categoria principal se disponível
+						var categoryIdValue = "";
+						if (categorias[k] && categorias[k].ids) {
+							// Pega apenas a primeira categoria (principal)
+							categoryIdValue = categorias[k].ids.split(",")[0] || "";
+						}
+						csv[k + 1].splice(1, 0, categoryIdValue);
+						linhasAtualizadas++;
+						debugLog('  → Linha', k, 'recebeu categoryId (parcial):', categoryIdValue || '(vazio)');
+					}
+				}
+			}
+			debugLog('✅ CategoryId inserido em', linhasAtualizadas, 'linhas parciais');
+		}
+		
+		// PASSO 2: Adiciona colunas finais ao header (verifica se já foi feito)
+		var jaTemColunasFinais = (csv[0].indexOf("createdAt") !== -1);
+		if (!jaTemColunasFinais) {
+			// Verifica se header já tem as 3 colunas parciais (checkins, users, tips)
+			var temColunasParciais = (csv[0].indexOf("checkins") !== -1);
+			
+			if (temColunasParciais) {
+				// Remove as 3 colunas parciais do final do header antes de adicionar as 13 completas
+				debugLog('📋 Header tem colunas parciais, removendo para substituir por completas');
+				// Encontra índice de "checkins" e remove dali até o final
+				var indexCheckins = csv[0].indexOf("checkins");
+				csv[0] = csv[0].slice(0, indexCheckins);
+			}
+			
+			// Adiciona colunas completas apenas ao HEADER (primaryCategoryId, addCategoryIds, removeCategoryIds vêm ANTES das métricas)
+			csv[0] = csv[0].concat("primaryCategoryId", "addCategoryIds", "removeCategoryIds", "createdAt", "checkins", "users", "tips", "likes", "listed", "photos", "closed", "private", "deleted");
+			
+			// Normaliza APENAS as linhas parciais (que ainda não têm as 13 colunas)
+			// IMPORTANTE: Se modo == DADOS_COMPLETOS desde início, todas as linhas JÁ TÊM as 13 colunas
+			var todasComDadosCompletos = (modo == DADOS_COMPLETOS && venuesComDadosCompletos.length === 0);
+			var linhasNormalizadas = 0;
+			
+			if (!todasComDadosCompletos) {
+				// Há mix de parciais e completas (ou apenas recarregadas)
+				for (var k = 0; k < document.forms.length; k++) {
+					var foiRecarregada = venuesComDadosCompletos.indexOf(k) !== -1;
+					
+					if (!foiRecarregada && csv[k + 1]) {
+						// Esta linha tem apenas 3 colunas no final (checkins, users, tips)
+						// Remove as 3 colunas do final
+						csv[k + 1] = csv[k + 1].slice(0, -3);
+						// Adiciona 13 colunas completas (3 vazias + 1 vazia + 3 com dados + 6 vazias)
+						csv[k + 1] = csv[k + 1].concat(
+							"", "", "",           // primaryCategoryId, addCategoryIds, removeCategoryIds (vazios)
+							"",                   // createdAt (vazio)
+							document.forms[k]["checkinsCount"].value,
+							document.forms[k]["usersCount"].value,
+							document.forms[k]["tipCount"].value,
+							"", "", "", "", "", "" // likes, listed, photos, closed, private, deleted (vazios)
+						);
+						linhasNormalizadas++;
+					}
+				}
+			} else {
+				debugLog('✅ Todas venues carregadas com dados completos desde início, linhas já têm 13 colunas');
+			}
+			debugLog('✅ Colunas finais adicionadas:', {
+				headerColunas: csv[0].length,
+				headerFinal: csv[0].slice(-5).join(', ') + ' (últimas 5)',
+				linhasNormalizadas: linhasNormalizadas,
+				primeiraLinhaExemplo: csv[1] ? csv[1].length + ' colunas' : 'N/A'
+			});
+		} else {
+			debugLog('⚠️ Colunas finais já adicionadas, pulando');
+		}
+	} else {
+		// Todas têm apenas dados parciais - NÃO cria coluna categoryId
+		var jaTemColunasParciais = (csv[0].indexOf("checkins") !== -1 && csv[0].length <= 14);
+		if (!jaTemColunasParciais) {
+			csv[0] = csv[0].concat("checkins", "users", "tips");
+			debugLog('✅ CSV mantido em modo parcial (3 colunas, SEM categoryId)');
+		}
 	}
 }
 
@@ -1415,6 +1624,10 @@ function executarRecarregamento(excluirIndice) {
 				debugInfo("Atualizando marcadores do mapa...");
 				window.googleMaps.updateMarkers(window.locais);
 			}
+			
+			// Normaliza CSV após recarregamento (para garantir consistência entre parciais e completos)
+			debugLog('🔄 Executando normalização após reload...');
+			normalizarCsv();
 			
 			// Exibe mensagem final
 			var mensagemFinal = "Recarregamento concluído!";
@@ -1909,8 +2122,8 @@ dojo.addOnLoad(function inicializar() {
 		} //else 
 			//console.info(c, elements[c].name, "ignorado");
 	}
-	if (json == "") // modo == DADOS_COMPLETOS
-		csv[0] = csv[0].concat("primaryCategoryId", "addCategoryIds", "removeCategoryIds");
+	// REMOVIDO: primaryCategoryId, addCategoryIds, removeCategoryIds são adicionados por normalizarCsv()
+	// para evitar duplicação quando modo == DADOS_COMPLETOS
 	select.addOption(options);
 	
 	var menuItem2 = new dijit.PopupMenuItem({
@@ -2250,9 +2463,10 @@ function showDialogExportUrls() {
 				break;
 				
 			case FORMATO_PADRAO:
-				// Usa array arq (já filtrado por seleção)
+				// Usa array arq (já filtrado por seleção) e remove ?ref= (Bug #3)
 				lista = arq.map(function(url) {
-					return url.replace(/%0A/g, '');
+					// Remove parâmetro ?ref= se existir
+					return url.replace(/%0A/g, '').replace(/\?ref=[^&]+/, '');
 				});
 				break;
 				
@@ -2758,6 +2972,11 @@ function setupVerticalNavigation() {
 	});
 	
 	debugLog('⌨️ Navegação vertical (UP/DOWN arrows) ativada nos campos');
+}
+
+function verificarAlteracao(textbox, i) {
+	var index = csv[0].indexOf(textbox.name);
+	// Obtém o valor original, removendo aspas se existirem
 	var valorOriginal = csv[i + 1][index];
 	if (typeof valorOriginal === 'string') {
 		// Remove aspas do início e fim se existirem

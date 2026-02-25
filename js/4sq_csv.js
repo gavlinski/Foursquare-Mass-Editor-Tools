@@ -5,20 +5,7 @@ dojo.require("dijit.Tooltip");
 dojo.require("dijit.Menu");
 dojo.require("dojo.cookie");
 
-// Utilitários de logging condicional (apenas em localhost)
-var isLocalhost = function() {
-    return window.location.hostname === 'localhost' || 
-           window.location.hostname === '127.0.0.1' ||
-           window.location.hostname === '[::1]';
-};
-
-var debugLog = function() {
-    if (isLocalhost()) console.log.apply(console, arguments);
-};
-
-var debugInfo = function() {
-    if (isLocalhost()) console.info.apply(console, arguments);
-};
+// Utilitários de logging (isLocalhost, debugLog, debugInfo) são providos por session-manager.js
 
 var DATA_VERSIONAMENTO = "20250401";
 var MESES = new Array("01", "02", "03", "04", "05", "06", "07", "08", "09", "10", "11", "12");
