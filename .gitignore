@@ -69,3 +69,8 @@ backup/*config*
 
 # Arquivos de certificados SSL
 ssl/*.pem
+
+# Documentação com dados sensíveis - NUNCA fazer commit
+docs/api/API_KEYS_DOCUMENTATION.md
+docs/features/PENDING.md
+docs/features/SESSION_BAR.md
