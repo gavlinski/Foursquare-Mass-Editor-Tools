@@ -17,7 +17,13 @@ RUN apt-get update \
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
 # Ativa módulos do Apache necessários
-RUN a2enmod rewrite headers deflate expires
+RUN a2enmod rewrite headers deflate expires ssl
+
+# Copiar certificados SSL para desenvolvimento
+COPY ssl/localhost.pem /etc/ssl/certs/localhost.pem
+COPY ssl/localhost-key.pem /etc/ssl/private/localhost-key.pem
+RUN chmod 644 /etc/ssl/certs/localhost.pem && \
+    chmod 600 /etc/ssl/private/localhost-key.pem
 
 # Copia arquivos do projeto para o container
 COPY . /var/www/html/
@@ -34,8 +40,8 @@ RUN composer install --no-dev --optimize-autoloader
 # Define permissões corretas
 RUN chown -R www-data:www-data /var/www/html
 
-# Expondo a porta padrão do Apache
-EXPOSE 80
+# Expondo as portas HTTP e HTTPS
+EXPOSE 80 443
 
 # Comando padrão
 CMD ["apache2-foreground"]

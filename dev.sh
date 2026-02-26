@@ -76,13 +76,15 @@ run_container() {
     docker run -d \
         --name foursquare-mass-editor \
         -p 80:80 \
+        -p 443:443 \
         -v $(pwd):/var/www/html \
         --env-file .env \
         foursquare-mass-editor:latest
     
     echo "✅ Container iniciado com sucesso!"
-    echo "🌐 Acesse: http://localhost/4sqmet/"
-    echo "📂 Debug: http://localhost/4sqmet/debug/"
+    echo "🌐 Acesse: https://localhost/4sqmet/ (HTTPS)"
+    echo "🔓 HTTP: http://localhost/4sqmet/ (redireciona para HTTPS)"
+    echo "📂 Debug: https://localhost/4sqmet/debug/"
     echo "📊 Status: Use './dev.sh status' para verificar"
 }
 

@@ -83,6 +83,69 @@ curl -I http://4sq.eliotools.site | grep -i "content-encoding"
 # Deve retornar: content-encoding: gzip
 ```
 
+---
+
+## 🔒 HTTPS Configuration
+
+### Desenvolvimento (Localhost)
+
+**Status**: ✅ Implementado  
+**Solução**: mkcert (certificados locais confiáveis)
+
+```bash
+# Instalação
+brew install mkcert
+mkcert -install
+
+# Gerar certificados
+mkdir -p ssl
+mkcert -cert-file ssl/localhost.pem -key-file ssl/localhost-key.pem localhost 127.0.0.1 ::1
+
+# Rebuild Docker
+./dev.sh build
+./dev.sh start
+
+# Acessar
+open https://localhost/4sqmet/
+```
+
+**Recursos**:
+- ✅ Certificados confiáveis no navegador
+- ✅ Cookies `Secure` funcionando
+- ✅ HSTS habilitado
+- ✅ HTTP → HTTPS redirect automático
+- ✅ Portas 80 e 443 mapeadas
+
+**Documentação completa**: [docs/HTTPS_SETUP.md](docs/HTTPS_SETUP.md)
+
+### Produção (4sq.eliotools.site)
+
+**Status**: ⏳ Pendente (aguardando Sprint 3)  
+**Solução**: Let's Encrypt (certificados gratuitos e auto-renováveis)
+
+```bash
+# Setup automático via script
+scp scripts/setup-ssl-production.sh root@4sq.eliotools.site:/tmp/
+ssh root@4sq.eliotools.site
+sudo bash /tmp/setup-ssl-production.sh
+
+# Verificar instalação
+certbot certificates
+systemctl status certbot.timer
+```
+
+**Recursos planejados**:
+- 🔐 Certificados Let's Encrypt (validade: 90 dias)
+- 🔄 Renovação automática (a cada 60 dias)
+- 🛡️ Rating SSL Labs: A+ (meta)
+- ✅ HSTS + Security Headers
+- ⚡ HTTP/2 suportado
+
+**Script de setup**: [scripts/setup-ssl-production.sh](scripts/setup-ssl-production.sh)  
+**Checklist de validação**: [HTTPS_VALIDATION_CHECKLIST.md](HTTPS_VALIDATION_CHECKLIST.md)
+
+---
+
 ### 3️⃣ **Testar Pipeline Localmente** (OPCIONAL)
 
 ```bash

@@ -67,3 +67,5 @@ backup/*credentials*
 backup/*config*
 *.backup
 
+# Arquivos de certificados SSL
+ssl/*.pem
