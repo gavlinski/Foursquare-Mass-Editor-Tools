@@ -502,10 +502,12 @@
     align-items: center;
     gap: 4px;
     font-size: 12px;
+    margin-left: 1.4px;
 }
 
 .variant-v6 .v6-status-row strong {
     color: #495057;
+    margin-left: 2px;
 }
 
 .variant-v6 .v6-status-row span {
