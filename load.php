@@ -34,6 +34,9 @@ header('Expires: 0');
 // Autoloader
 require_once __DIR__ . '/vendor/autoload.php';
 
+// Inclui helper de assets
+require_once __DIR__ . '/includes/asset_helper.php';
+
 // Inicialização da sessão
 if (!isset($_SESSION)) {
     session_start();
@@ -60,7 +63,7 @@ define("VERSION", "Venues Loader 3.0.0");
 define("LINKS", '<link rel="shortcut icon" href="favicon.ico" type="image/x-icon">
 <link rel="stylesheet" type="text/css" href="js/dijit/themes/tundra/tundra.css">
 <link rel="stylesheet" type="text/css" href="estilo.css?v=<?php echo time(); ?>">
-<script src="js/dojo/dojo.js" djConfig="parseOnLoad: true"></script>
+<?php dojo_script(['parseOnLoad' => true]); ?>
 ');
 define("HBODY", '</head>
 <body class="tundra">

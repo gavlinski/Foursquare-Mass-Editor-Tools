@@ -43,7 +43,7 @@ include_once 'includes/asset_helper.php';
 <link rel="stylesheet" type="text/css" href="js/dijit/themes/tundra/tundra.css">
 <link rel="stylesheet" type="text/css" href="estilo.css?v=<?php echo time(); ?>">
 <link rel="stylesheet" type="text/css" href="includes/session-status-bar-variants.css?v=<?php echo time(); ?>">
-<script src="js/dojo/dojo.js" djConfig="parseOnLoad: true"></script>
+<?php dojo_script(['parseOnLoad' => true]); ?>
 <?php script_versioned('js/session-manager.js'); ?>
 <?php script_versioned('js/4sq_csv.js'); ?>
 </head>

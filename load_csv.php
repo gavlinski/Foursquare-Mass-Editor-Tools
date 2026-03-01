@@ -20,6 +20,9 @@ if (!isset($_SESSION))
 if (!isset($_SESSION["oauth_token"])) {
 	header('Location: index.php');
 }
+
+// Inclui helper de assets
+require_once __DIR__ . '/includes/asset_helper.php';
 ?>
 <!doctype html>
 <html lang="pt-BR">
@@ -39,7 +42,7 @@ define("HBODY", '</head>
 ');
 define("CARREGANDO", LINKS . HBODY . '<div id="carregando">Carregando locais&hellip;</div>
 ');
-define("TEMPLATE1", '<script src="js/dojo/dojo.js" djConfig="parseOnLoad: true"></script>
+define("TEMPLATE1", '<?php dojo_script(["parseOnLoad" => true]); ?>
 <script>
 dojo.require("dijit.form.Button");
 document.getElementById("pb").style.display = "none";

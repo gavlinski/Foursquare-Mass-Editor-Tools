@@ -3,12 +3,32 @@
  * Asset Helper - Carrega versões minificadas em produção
  * 
  * Detecta automaticamente o ambiente e carrega a versão apropriada:
- * - Produção: .min.js (minificado)
- * - Desenvolvimento: .js (original para debug)
+ * - Produção: .min.js (minificado) + CDN para bibliotecas externas
+ * - Desenvolvimento: .js (original para debug) + arquivos locais
  * 
  * @package ElioTools
  * @version 3.0.0
  */
+
+// ============================================================
+// Configuração de CDN para Bibliotecas Externas
+// ============================================================
+
+/**
+ * URLs de CDN para Dojo Toolkit 1.8.14
+ * 
+ * Decisão de Design:
+ * - Dojo não é versionado no Git (3000+ arquivos, 15MB)
+ * - CDN oferece melhor performance (cache global, HTTP/2, compressão)
+ * - Fallback para arquivos locais em desenvolvimento
+ */
+define('DOJO_VERSION', '1.8.14');
+define('DOJO_CDN_BASE', 'https://ajax.googleapis.com/ajax/libs/dojo/' . DOJO_VERSION);
+
+// Fallback para arquivos locais se CDN estiver indisponível
+define('DOJO_LOCAL_BASE', '/js/dojo');
+define('DIJIT_LOCAL_BASE', '/js/dijit');
+define('DOJOX_LOCAL_BASE', '/js/dojox');
 
 // Detecta ambiente
 function isProduction() {
@@ -116,3 +136,96 @@ function script_versioned($path, $attributes = []) {
     
     echo sprintf('<script src="%s"%s></script>' . PHP_EOL, $src, $attrs);
 }
+
+// ============================================================
+// Dojo Toolkit CDN Management
+// ============================================================
+
+/**
+ * Retorna URL do Dojo principal (dojo.js)
+ * 
+ * Em produção: Usa Google CDN (cache global, HTTP/2)
+ * Em desenvolvimento: Usa arquivos locais (debug facilitado)
+ * 
+ * @param array $djConfig Configuração do Dojo
+ * @return string URL completa do dojo.js
+ */
+function dojo_url($djConfig = []) {
+    if (isProduction()) {
+        // Produção: Google CDN
+        return DOJO_CDN_BASE . '/dojo/dojo.js';
+    }
+    
+    // Desenvolvimento: Arquivos locais
+    if (file_exists($_SERVER['DOCUMENT_ROOT'] . DOJO_LOCAL_BASE . '/dojo.js')) {
+        return DOJO_LOCAL_BASE . '/dojo.js';
+    }
+    
+    // Fallback para CDN se arquivos locais não existirem
+    return DOJO_CDN_BASE . '/dojo/dojo.js';
+}
+
+/**
+ * Imprime tag <script> do Dojo com configuração
+ * 
+ * @param array $djConfig Configuração do djConfig
+ */
+function dojo_script($djConfig = ['parseOnLoad' => true]) {
+    $url = dojo_url($djConfig);
+    
+    // Converte array para string de configuração
+    $config_pairs = [];
+    foreach ($djConfig as $key => $value) {
+        if (is_bool($value)) {
+            $config_pairs[] = "{$key}: " . ($value ? 'true' : 'false');
+        } elseif (is_numeric($value)) {
+            $config_pairs[] = "{$key}: {$value}";
+        } else {
+            $config_pairs[] = "{$key}: '" . addslashes($value) . "'";
+        }
+    }
+    $config_str = implode(', ', $config_pairs);
+    
+    // Em produção, adiciona baseUrl para CDN
+    if (isProduction()) {
+        echo sprintf(
+            '<script>var dojoConfig = { %s, baseUrl: "%s/dojo/", packages: [{name: "dijit", location: "../dijit"}, {name: "dojox", location: "../dojox"}] };</script>' . PHP_EOL,
+            $config_str,
+            DOJO_CDN_BASE
+        );
+    }
+    
+    echo sprintf('<script src="%s"></script>' . PHP_EOL, $url);
+}
+
+/**
+ * Retorna URL do tema Dojo (CSS)
+ * 
+ * @param string $theme Nome do tema (tundra, claro, nihilo, soria)
+ * @return string URL do CSS do tema
+ */
+function dojo_theme_url($theme = 'tundra') {
+    if (isProduction()) {
+        return DOJO_CDN_BASE . '/dijit/themes/' . $theme . '/' . $theme . '.css';
+    }
+    
+    // Desenvolvimento: Arquivos locais
+    $local_path = DIJIT_LOCAL_BASE . '/themes/' . $theme . '/' . $theme . '.css';
+    if (file_exists($_SERVER['DOCUMENT_ROOT'] . $local_path)) {
+        return $local_path;
+    }
+    
+    // Fallback para CDN
+    return DOJO_CDN_BASE . '/dijit/themes/' . $theme . '/' . $theme . '.css';
+}
+
+/**
+ * Imprime tag <link> do tema Dojo
+ * 
+ * @param string $theme Nome do tema
+ */
+function dojo_theme($theme = 'tundra') {
+    $url = dojo_theme_url($theme);
+    echo sprintf('<link rel="stylesheet" type="text/css" href="%s">' . PHP_EOL, $url);
+}
+

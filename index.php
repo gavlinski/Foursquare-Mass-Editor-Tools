@@ -23,6 +23,9 @@ require_once __DIR__ . '/vendor/autoload.php';
 // Inclui a classe FoursquareApi original
 require_once __DIR__ . '/FoursquareAPI.Class.php';
 
+// Inclui helper de assets
+require_once __DIR__ . '/includes/asset_helper.php';
+
 use ElioTools\Config\AppConfig;
 use ElioTools\Security\SessionManager;
 
@@ -184,9 +187,9 @@ if ($token) {
 <head>
 <title>Elio Tools</title>
 <meta charset="utf-8">
-<script src="js/dojo/dojo.js" djConfig="parseOnLoad: true"></script>
+<?php dojo_script(['parseOnLoad' => true]); ?>
 <link rel="shortcut icon" href="favicon.ico" type="image/x-icon">
-<link rel="stylesheet" type="text/css" href="js/dijit/themes/tundra/tundra.css">
+<?php dojo_theme('tundra'); ?>
 <link rel="stylesheet" type="text/css" href="estilo.css?v=<?php echo time(); ?>">
 <script>
 // Remove fragmento #_=_ do OAuth (sem recarregar a página)

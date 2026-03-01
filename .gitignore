@@ -1,7 +1,9 @@
+.DS_Store
+
+# Bibliotecas externas (carregadas via CDN em produção)
 js/dijit/
 js/dojo/
 js/dojox/
-.DS_Store
 
 # Dependências do Composer
 vendor/

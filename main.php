@@ -103,7 +103,7 @@ if (!$oauth_token) {
 <head>
 <title>Elio Tools</title>
 <meta charset="utf-8">
-<script src="js/dojo/dojo.js" djConfig="parseOnLoad: true"></script>
+<?php dojo_script(['parseOnLoad' => true]); ?>
 <?php script_versioned('js/session-manager.js'); ?>
 <?php script_versioned('js/main.js'); ?>
 <script>
@@ -188,7 +188,7 @@ function removeLocalCache($key) {
 }
 ?>
 <link rel="shortcut icon" href="favicon.ico" type="image/x-icon">
-<link rel="stylesheet" type="text/css" href="js/dijit/themes/tundra/tundra.css">
+<?php dojo_theme('tundra'); ?>
 <link rel="stylesheet" type="text/css" href="estilo.css?v=<?php echo time(); ?>">
 <link rel="stylesheet" type="text/css" href="includes/session-status-bar-variants.css?v=<?php echo time(); ?>">
 </head>
