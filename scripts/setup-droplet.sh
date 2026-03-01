@@ -310,7 +310,7 @@ docker run -d \
     --restart unless-stopped \
     -p 80:80 \
     -p 443:443 \
-    -v $(pwd):/var/www/html \
+    --env-file $(pwd)/.env \
     -v $(pwd)/ssl:/etc/ssl/4sqmet \
     4sqmet:latest
 
