@@ -12,8 +12,8 @@ ssh-keygen -t ed25519 -C "4sqmet-prod-droplet" -f ~/.ssh/4sqmet_prod
 cat ~/.ssh/4sqmet_prod.pub | pbcopy
 ```
 
-- [ ] Chave gerada: `~/.ssh/4sqmet_prod`
-- [ ] Chave pública copiada
+- [x] Chave gerada: `~/.ssh/4sqmet_prod`
+- [x] Chave pública copiada
 
 ### 0.2 Adicionar SSH Key ao DigitalOcean
 
@@ -25,7 +25,7 @@ cat ~/.ssh/4sqmet_prod.pub | pbcopy
 5. Add SSH Key
 ```
 
-- [ ] SSH Key adicionada ao DigitalOcean
+- [x] SSH Key adicionada ao DigitalOcean
 
 ---
 
@@ -54,17 +54,17 @@ Project: Default ou criar "Foursquare Tools"
 
 ### Passos no Console:
 
-1. [ ] Acessar: https://cloud.digitalocean.com/droplets
-2. [ ] Click: **Create → Droplets**
-3. [ ] Região: **New York - NYC3**
-4. [ ] Imagem: **Marketplace → Docker on Ubuntu 22.04**
-5. [ ] Plano: **Basic - 1GB - $6/mo**
-6. [ ] SSH: Selecionar **4sqmet-prod-key**
-7. [ ] Monitoring: ✅ **Enable**
-8. [ ] Hostname: **4sqmet-prod-v3**
-9. [ ] Tags: `production`, `4sqmet`, `foursquare-tools`, `docker`, `web-app`
-10. [ ] Click: **Create Droplet**
-11. [ ] Aguardar ~60 segundos (provisionamento)
+1. [x] Acessar: https://cloud.digitalocean.com/droplets
+2. [x] Click: **Create → Droplets**
+3. [x] Região: **New York - NYC3**
+4. [x] Imagem: **Marketplace → Docker on Ubuntu 22.04**
+5. [x] Plano: **Basic - 1GB - $6/mo**
+6. [x] SSH: Selecionar **4sqmet-prod-key**
+7. [x] Monitoring: ✅ **Enable**
+8. [x] Hostname: **4sqmet-prod-v3**
+9. [x] Tags: `production`, `4sqmet`, `foursquare-tools`, `docker`, `web-app`
+10. [x] Click: **Create Droplet**
+11. [x] Aguardar ~60 segundos (provisionamento)
 
 ### Anotar Informações:
 
@@ -74,7 +74,7 @@ DROPLET_IP=___.___.___.___ # (exemplo: 165.227.xxx.xxx)
 DROPLET_ID=________________ # (exemplo: 47290481)
 ```
 
-- [ ] IP anotado: `DROPLET_IP=_______________`
+- [x] IP anotado: `DROPLET_IP=134.209.163.143`
 
 ---
 
@@ -88,7 +88,7 @@ ssh -i ~/.ssh/4sqmet_prod root@${DROPLET_IP}
 # Confirmar fingerprint: yes
 ```
 
-- [ ] SSH conectado com sucesso
+- [x] SSH conectado com sucesso
 
 ### 2.2 Executar Setup Automatizado
 
@@ -107,22 +107,33 @@ bash /tmp/setup-droplet.sh
 ```
 
 **O que o script faz:**
-- ✅ Atualiza sistema Ubuntu
+- ✅ Atualiza sistema Ubuntu (apt update + upgrade)
+- ⚠️  **REBOOT**: Se kernel for atualizado, script solicitará reboot
+  - Opção 1: Reboot agora e re-executar script (recomendado)
+  - Opção 2: Continuar sem reboot (pode causar avisos de dessincronia)
 - ✅ Verifica/instala Docker
 - ✅ Configura firewall (UFW)
 - ✅ Instala Certbot
 - ✅ Cria diretórios (/var/www/4sqmet, /var/backups, /var/log)
 - ✅ Clona repositório GitHub
 - ✅ Cria .env placeholder (será atualizado no primeiro deploy)
-- ✅ Build imagem Docker
+- ✅ Build imagem Docker (BUILD_ENV=production, sem certificados SSL de dev)
 - ✅ Inicia container
 
-**Tempo estimado**: 5-10 minutos
+**Tempo estimado**: 5-10 minutos (+ tempo de reboot se necessário)
 
-- [ ] Script executado com sucesso
-- [ ] Container `4sqmet` rodando
+**Se houver reboot**:
+```bash
+# Após reiniciar, reconectar e continuar:
+ssh -i ~/.ssh/4sqmet_prod root@${DROPLET_IP}
+bash /root/continue-4sqmet-setup.sh
+```
 
-> **💡 Nota**: Não precisa configurar `.env` manualmente! Ele será criado/atualizado automaticamente durante o deploy via secrets do GitHub Actions.
+- [x] Script executado com sucesso
+- [x] Reboot realizado (se necessário)
+- [x] Container `4sqmet` rodando
+
+> **💡 Nota**: O Dockerfile usa `BUILD_ENV=production` que NÃO copia certificados SSL de desenvolvimento. Certificados Let's Encrypt serão configurados na Fase 6.
 
 ### 2.3 Verificar Aplicação
 
@@ -138,8 +149,10 @@ curl -I http://localhost/4sqmet/
 # As credenciais reais serão injetadas no primeiro deploy
 ```
 
-- [ ] Container rodando
-- [ ] Aplicação iniciou (mesmo com erro de credenciais)
+**Status Atual**: ✅ Container rodando | ✅ HTTP funcionando em http://134.209.163.143/
+
+- [x] Container rodando
+- [x] Aplicação iniciou (aguardando credenciais via CI/CD)
 
 ---
 
@@ -337,48 +350,63 @@ curl -I http://4sq.eliotools.site/4sqmet/
 
 ---
 
-## ✅ Fase 6: Configurar HTTPS (15 min)
+## ✅ Fase 6: Configurar HTTPS (10 min)
 
-### 6.1 Obter Certificado Let's Encrypt
+### 6.1 Executar Script Automatizado de SSL
 
 ```bash
-# SSH no servidor
+# No seu Mac - copiar script para servidor
+scp -i ~/.ssh/4sqmet_prod scripts/setup-ssl-production.sh root@${DROPLET_IP}:/tmp/
+
+# Conectar ao servidor
 ssh -i ~/.ssh/4sqmet_prod root@${DROPLET_IP}
 
-# Parar container temporariamente (Certbot precisa porta 80)
-docker stop 4sqmet
-
-# Obter certificado
-certbot certonly --standalone -d 4sq.eliotools.site \
-  --email seu-email@example.com --agree-tos --non-interactive
-
-# Certificados salvos em:
-# /etc/letsencrypt/live/4sq.eliotools.site/fullchain.pem
-# /etc/letsencrypt/live/4sq.eliotools.site/privkey.pem
+# Executar script (substituir email)
+bash /tmp/setup-ssl-production.sh 4sq.eliotools.site seu-email@example.com
 ```
 
-- [ ] Certificado SSL obtido
+**O que o script faz automaticamente:**
+1. ✅ Verifica DNS e pré-requisitos
+2. ✅ Instala/verifica Certbot
+3. 🔄 Para container Docker temporariamente (libera porta 80)
+4. 🔐 Obtém certificado Let's Encrypt via HTTP challenge
+5. 🔗 Cria symlink de certificados para Docker (`ssl/production`)
+6. ⚙️  Verifica configuração Apache
+7. 🔄 Configura renovação automática (certbot.timer + hook)
+8. 🐳 Reinicia container com SSL
+9. ✅ Valida HTTPS funcionando
 
-### 6.2 Configurar SSL no Container
+**Certificados salvos em**:
+```
+/etc/letsencrypt/live/4sq.eliotools.site/fullchain.pem
+/etc/letsencrypt/live/4sq.eliotools.site/privkey.pem
+/var/www/4sqmet/ssl/production → symlink para certificados
+```
+
+**Tempo estimado**: 3-5 minutos
+
+- [ ] Script executado com sucesso
+- [ ] Certificado SSL obtido
+- [ ] Container reiniciado com HTTPS
+
+> **💡 Nota**: O script para o container automaticamente para liberar a porta 80 durante o challenge do Let's Encrypt, depois reinicia com SSL configurado.
+
+### 6.2 Verificar Instalação
 
 ```bash
 # No servidor
-cd /var/www/4sqmet
+# Ver informações do certificado
+certbot certificates
 
-# Criar link simbólico (se não existir)
-ln -sf /etc/letsencrypt/live/4sq.eliotools.site ssl/production
+# Status da renovação automática  
+systemctl status certbot.timer
 
-# Atualizar apache-config.conf (se necessário)
-# Certificados já configurados em:
-# SSLCertificateFile /etc/ssl/4sqmet/fullchain.pem
-# SSLCertificateKeyFile /etc/ssl/4sqmet/privkey.pem
-
-# Reiniciar container com SSL
-docker start 4sqmet
+# Ver resumo salvo pelo script
+cat /root/4sqmet-ssl-info.txt
 ```
 
-- [ ] SSL configurado
-- [ ] Container reiniciado
+- [ ] Certificado válido listado
+- [ ] Auto-renewal ativo
 
 ### 6.3 Testar HTTPS
 
@@ -394,24 +422,17 @@ openssl s_client -connect 4sq.eliotools.site:443 -servername 4sq.eliotools.site 
 
 - [ ] HTTPS funcionando
 - [ ] Certificado válido
-- [ ] HTTP redireciona para HTTPS
+- [ ] HTTP redireciona para HTTPS (301)
 
-### 6.4 Configurar Auto-Renewal
+### 6.4 Auditoria SSL (Opcional)
 
-```bash
-# No servidor
-systemctl enable certbot.timer
-systemctl start certbot.timer
-
-# Verificar status
-systemctl status certbot.timer
-
-# Testar renovação (dry-run)
-certbot renew --dry-run
+```
+Teste SSL Labs: https://www.ssllabs.com/ssltest/analyze.html?d=4sq.eliotools.site
+Meta: Rating A ou A+
 ```
 
-- [ ] Auto-renewal habilitado
-- [ ] Dry-run bem-sucedido
+- [ ] SSL Labs testado (opcional)
+- [ ] Rating satisfatório (opcional)
 
 ---
 

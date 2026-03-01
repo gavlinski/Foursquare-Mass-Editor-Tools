@@ -90,6 +90,41 @@ apt install -y -qq \
 
 print_success "Sistema atualizado!"
 
+# Verificar se reboot é necessário (atualização de kernel)
+if [ -f /var/run/reboot-required ]; then
+    print_warning "⚠️  REBOOT NECESSÁRIO!"
+    echo ""
+    echo -e "${YELLOW}O kernel do sistema foi atualizado e requer reinicialização.${NC}"
+    echo -e "${YELLOW}Continuar sem reboot pode causar avisos de dessincronia de versões.${NC}"
+    echo ""
+    echo "Opções:"
+    echo "  1) Reboot agora e re-executar este script após reiniciar"
+    echo "  2) Continuar sem reboot (não recomendado)"
+    echo ""
+    read -p "Escolha (1/2): " -n 1 -r REBOOT_CHOICE
+    echo ""
+    
+    if [[ $REBOOT_CHOICE == "1" ]]; then
+        print_info "Salvando progresso e agendando reboot..."
+        echo "#!/bin/bash" > /root/continue-4sqmet-setup.sh
+        echo "cd /tmp" >> /root/continue-4sqmet-setup.sh
+        echo "bash setup-droplet.sh" >> /root/continue-4sqmet-setup.sh
+        chmod +x /root/continue-4sqmet-setup.sh
+        
+        print_success "Script de continuação criado em: /root/continue-4sqmet-setup.sh"
+        echo ""
+        echo -e "${BLUE}Após o reboot, execute:${NC}"
+        echo -e "  ${GREEN}bash /root/continue-4sqmet-setup.sh${NC}"
+        echo ""
+        print_info "Reiniciando em 5 segundos..."
+        sleep 5
+        reboot
+        exit 0
+    else
+        print_warning "Continuando sem reboot. Monitorar avisos de kernel."
+    fi
+fi
+
 #############################################
 # FASE 2: Verificar Docker
 #############################################
@@ -235,12 +270,39 @@ fi
 #############################################
 print_header "🐳 Fase 8/8: Build e Deploy Docker"
 
-print_info "Parando containers existentes (se houver)..."
+print_info "Verificando conflitos de porta..."
+
+# Parar containers existentes
 docker stop 4sqmet 2>/dev/null || true
 docker rm 4sqmet 2>/dev/null || true
 
-print_info "Building imagem Docker..."
-docker build -t 4sqmet:latest .
+# Verificar se algo está usando porta 80/443
+if netstat -tuln | grep -q ':80 '; then
+    print_warning "Porta 80 já está em uso. Verificando serviço..."
+    
+    # Verificar se é Apache do host
+    if systemctl is-active --quiet apache2; then
+        print_info "Apache2 do sistema detectado. Parando e desabilitando..."
+        systemctl stop apache2
+        systemctl disable apache2
+        print_success "Apache2 do sistema desabilitado"
+    fi
+    
+    # Verificar se ainda está em uso
+    if netstat -tuln | grep -q ':80 '; then
+        print_error "Porta 80 ainda está em uso por outro serviço"
+        echo "Serviços usando porta 80:"
+        netstat -tulnp | grep ':80 '
+        echo ""
+        echo "Execute: sudo lsof -i :80 para identificar o processo"
+        exit 1
+    fi
+fi
+
+print_success "Portas 80/443 disponíveis"
+
+print_info "Building imagem Docker (ambiente de produção)..."
+docker build --build-arg BUILD_ENV=production -t 4sqmet:latest .
 
 print_info "Iniciando container..."
 docker run -d \
@@ -285,13 +347,13 @@ echo "   • Backups: /var/backups/4sqmet"
 echo "   • Logs: /var/log/4sqmet"
 echo ""
 echo "🌐 URLs de Acesso:"
-echo "   • HTTP:  http://${SERVER_IP}/4sqmet/"
-echo "   • HTTPS: Configurar após apontar DNS"
+echo "   • HTTP:  http://${SERVER_IP}/"
+echo "   • HTTPS: https://4sq.eliotools.site (após DNS + SSL)"
 echo ""
 echo "🔐 Próximos Passos:"
 echo ""
 echo "1️⃣  Testar aplicação:"
-echo "   curl -I http://${SERVER_IP}/4sqmet/"
+echo "   curl -I http://${SERVER_IP}/"
 echo ""
 echo "2️⃣  Configurar DNS (Namecheap):"
 echo "   • Tipo: A Record"
@@ -300,7 +362,7 @@ echo "   • Value: ${SERVER_IP}"
 echo "   • TTL: Automatic"
 echo ""
 echo "3️⃣  Configurar SSL (após DNS propagar):"
-echo "   certbot --apache -d 4sq.eliotools.site"
+echo "   bash /tmp/setup-ssl-production.sh 4sq.eliotools.site seu-email@example.com"
 echo ""
 echo "4️⃣  Configurar GitHub Actions:"
 echo "   • Settings → Secrets → Actions"
@@ -339,8 +401,8 @@ Container: 4sqmet
 Status: $(docker inspect -f '{{.State.Status}}' 4sqmet)
 
 URLs:
-- HTTP:  http://${SERVER_IP}/4sqmet/
-- HTTPS: https://4sq.eliotools.site (após DNS)
+- HTTP:  http://${SERVER_IP}/
+- HTTPS: https://4sq.eliotools.site (após DNS + SSL)
 
 Diretórios:
 - Aplicação: /var/www/4sqmet

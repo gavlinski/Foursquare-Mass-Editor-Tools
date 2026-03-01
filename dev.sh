@@ -59,8 +59,8 @@ check_dependencies() {
 
 # Função para build da imagem
 build_image() {
-    echo "🔨 Construindo imagem Docker..."
-    docker build -t foursquare-mass-editor:latest .
+    echo "🔨 Construindo imagem Docker (ambiente de desenvolvimento)..."
+    docker build --build-arg BUILD_ENV=development -t foursquare-mass-editor:latest .
     echo "✅ Imagem construída com sucesso!"
 }
 

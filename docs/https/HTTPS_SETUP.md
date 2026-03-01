@@ -129,15 +129,21 @@ Strict-Transport-Security: max-age=31536000; includeSubDomains
 
 ```
 ssl/
-├── localhost.pem           # Certificado SSL (não commitado)
-└── localhost-key.pem       # Chave privada (não commitada)
+├── localhost.pem           # Certificado SSL para dev (não commitado)
+├── localhost-key.pem       # Chave privada para dev (não commitada)
+└── production/             # Symlink para /etc/letsencrypt/live/[domain] (produção)
 
-Dockerfile                  # Configurado para copiar certificados
+Dockerfile                  # BUILD_ARG para dev/prod, cópia condicional de certificados
 apache-config.conf          # VirtualHost 443 + redirect 80→443
-dev.sh                      # Mapeia portas 80 e 443
+dev.sh                      # Mapeia portas 80/443, build com BUILD_ENV=development
+deploy.sh                   # Build com BUILD_ENV=production
 .env                        # URLs HTTPS configuradas
 .gitignore                  # Ignora ssl/*.pem
 ```
+
+**Desenvolvimento vs Produção**:
+- **Dev**: Dockerfile copia certificados mkcert de `ssl/` (BUILD_ENV=development)
+- **Prod**: Dockerfile NÃO copia certificados, usa Let's Encrypt via volume mount (BUILD_ENV=production)
 
 ### Troubleshooting
 
@@ -214,60 +220,76 @@ grep "a2enmod ssl" Dockerfile
 
 A produção usa **Let's Encrypt** para certificados SSL gratuitos e auto-renováveis.
 
+**Status Atual**: ✅ Apache HTTP funcionando | ⏳ HTTPS pendente de configuração
+
 ### Pré-requisitos
 
-- **Domínio apontando para servidor** (DNS configurado)
-- **Apache 2.4+** instalado
-- **Certbot** (instalado automaticamente pelo script)
-- **Porta 80 e 443 abertas** no firewall
+- ✅ **Domínio apontando para servidor** (DNS configurado: 134.209.163.143)
+- ✅ **Docker com Apache rodando** (porta 80 ativa)
+- ✅ **Firewall configurado** (portas 80/443 abertas)
+- ✅ **Certbot instalado** (via setup-droplet.sh)
 
 ### Instalação Automática via Script
 
-#### 1. Configurar DNS
+#### 1. Configurar DNS ✅ CONCLUÍDO
 
 ```
 Tipo: A
-Nome: 4sq (ou @)
-Valor: [IP do servidor]
-TTL: 3600
+Nome: 4sq
+Valor: 134.209.163.143
+TTL: Automatic
 ```
 
-**Aguarde propagação** (~5-30 minutos):
+**Verificar propagação**:
 ```bash
 dig 4sq.eliotools.site
+# Deve retornar: 134.209.163.143
 ```
 
-#### 2. Executar Script de Setup
+#### 2. Executar Script de Setup SSL
 
 ```bash
 # Copiar script para servidor
-scp scripts/setup-ssl-production.sh root@4sq.eliotools.site:/tmp/
+scp -i ~/.ssh/4sqmet_prod scripts/setup-ssl-production.sh root@134.209.163.143:/tmp/
 
 # Conectar ao servidor
-ssh root@4sq.eliotools.site
+ssh -i ~/.ssh/4sqmet_prod root@134.209.163.143
 
-# Executar script
-cd /tmp
-sudo bash setup-ssl-production.sh
+# Executar script com domínio e email
+sudo bash /tmp/setup-ssl-production.sh 4sq.eliotools.site seu-email@example.com
 ```
 
-**O script faz**:
-1. Instala certbot
-2. Habilita mod_ssl
-3. Obtém certificado Let's Encrypt
-4. Configura renovação automática
-5. Configura VirtualHost Apache
+**O script faz automaticamente**:
+1. ✅ Verifica DNS e conectividade
+2. ✅ Instala/verifica Certbot
+3. 🔄 Para container Docker temporariamente (libera porta 80)
+4. 🔐 Obtém certificado Let's Encrypt via HTTP challenge
+5. 🔗 Cria symlink de certificados para Docker
+6. ⚙️  Verifica configuração Apache
+7. 🔄 Configura renovação automática (certbot.timer)
+8. 🐳 Reinicia container com SSL configurado
+9. ✅ Valida HTTPS funcionando
+
+**Tempo estimado**: 3-5 minutos
 
 #### 3. Validar Instalação
 
 ```bash
 # Testar HTTPS
-curl -I https://4sq.eliotools.site
+curl -I https://4sq.eliotools.site/4sqmet/
 
 # Verificar certificado
 certbot certificates
 
 # Status de renovação automática
+systemctl status certbot.timer
+```
+
+**Output esperado**:
+```
+HTTP/1.1 200 OK
+Strict-Transport-Security: max-age=31536000
+```
 systemctl status certbot.timer
 ```
 

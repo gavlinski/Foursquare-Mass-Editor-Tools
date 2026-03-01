@@ -1,5 +1,8 @@
 FROM php:8.1-apache
 
+# Build argument para diferenciar desenvolvimento e produção
+ARG BUILD_ENV=production
+
 # Instala extensões e utilitários recomendados
 RUN apt-get update \
     && apt-get install -y --no-install-recommends \
@@ -19,17 +22,31 @@ COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 # Ativa módulos do Apache necessários
 RUN a2enmod rewrite headers deflate expires ssl
 
-# Copiar certificados SSL para desenvolvimento
-COPY ssl/localhost.pem /etc/ssl/certs/localhost.pem
-COPY ssl/localhost-key.pem /etc/ssl/private/localhost-key.pem
-RUN chmod 644 /etc/ssl/certs/localhost.pem && \
-    chmod 600 /etc/ssl/private/localhost-key.pem
-
 # Copia arquivos do projeto para o container
 COPY . /var/www/html/
 
-# Copia configuração do Apache
-COPY apache-config.conf /etc/apache2/sites-available/000-default.conf
+# Copia configuração do Apache apropriada para o ambiente
+# Desenvolvimento: /4sqmet/ (com Alias)
+# Produção: raiz / (sem Alias)
+RUN if [ "$BUILD_ENV" = "development" ]; then \
+        cp /var/www/html/apache-config.conf /etc/apache2/sites-available/000-default.conf && \
+        echo "✅ Apache configurado para desenvolvimento (/4sqmet/)"; \
+    else \
+        cp /var/www/html/apache-config-production.conf /etc/apache2/sites-available/000-default.conf && \
+        echo "✅ Apache configurado para produção (raiz /)"; \
+    fi
+
+# Configurar certificados SSL APENAS para desenvolvimento
+# Em produção, usar Let's Encrypt via volume mount
+RUN if [ "$BUILD_ENV" = "development" ] && [ -f /var/www/html/ssl/localhost.pem ]; then \
+        cp /var/www/html/ssl/localhost.pem /etc/ssl/certs/localhost.pem && \
+        cp /var/www/html/ssl/localhost-key.pem /etc/ssl/private/localhost-key.pem && \
+        chmod 644 /etc/ssl/certs/localhost.pem && \
+        chmod 600 /etc/ssl/private/localhost-key.pem && \
+        echo "✅ Certificados SSL de desenvolvimento instalados"; \
+    else \
+        echo "ℹ️  Ambiente de produção - certificados SSL via Let's Encrypt"; \
+    fi
 
 # Define diretório de trabalho
 WORKDIR /var/www/html

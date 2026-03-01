@@ -77,8 +77,16 @@ cd Foursquare-Mass-Editor-Tools
 ./dev.sh run
 
 # Access the application
-open http://localhost/4sqmet
+open https://localhost/4sqmet
 ```
+
+> **📍 URL Differences by Environment:**
+> - **Development**: `https://localhost/4sqmet/` (sub-directory with HTTPS)
+> - **Production**: `https://4sq.eliotools.site/` (root domain)
+> 
+> OAuth Redirect URIs must match:
+> - Dev: `https://localhost/4sqmet/index.php`
+> - Prod: `https://4sq.eliotools.site/index.php`
 
 ### Manual Setup
 ```bash

@@ -253,7 +253,7 @@ Backups: Optional ($1.20/mês - recomendado após 1 mês)
 
 ```bash
 # Será algo como:
-DROPLET_IP=165.227.xxx.xxx
+DROPLET_IP=134.209.163.143
 ```
 
 ### 2. Testar Conexão SSH

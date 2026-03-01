@@ -87,8 +87,13 @@
 
 ## 🚀 Produção (4sq.eliotools.site)
 
+**Status Atual**: Droplet criado | Apache HTTP funcionando | HTTPS pendente
+
 ### Conectividade e Certificados
 
+- [x] Droplet provisionado (NYC3, Docker Ubuntu 22.04, 1GB RAM)
+- [x] SSH configurado e acessível
+- [x] Apache respondendo HTTP: `http://134.209.163.143/`
 - [ ] `https://4sq.eliotools.site` carrega sem avisos
 - [ ] Certificado válido (emitido por Let's Encrypt)
 - [ ] Certificado não expirado
@@ -97,6 +102,8 @@
 - [ ] Issuer: `Let's Encrypt Authority X3`
 - [ ] HTTP redireciona para HTTPS
 - [ ] HTTP/1.1 301 Moved Permanently
+
+**Próximo Passo**: Executar `scripts/setup-ssl-production.sh` após DNS propagar
 
 ### Renovação Automática
 

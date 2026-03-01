@@ -228,8 +228,8 @@ $SSH_CMD "${PRODUCTION_USER}@${PRODUCTION_SERVER}" << 'EOF'
     docker stop 4sqmet 2>/dev/null || echo "Container não estava rodando"
     docker rm 4sqmet 2>/dev/null || echo "Container não existia"
     
-    echo "🏗️  Building nova imagem..."
-    docker build -t 4sqmet:latest .
+    echo "🏗️  Building nova imagem (ambiente de produção)..."
+    docker build --build-arg BUILD_ENV=production -t 4sqmet:latest .
     
     # Limpar imagens antigas (dangling)
     echo "🧹 Limpando imagens antigas..."
