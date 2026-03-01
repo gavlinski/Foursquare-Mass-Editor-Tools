@@ -1,0 +1,70 @@
+version: '3.8'
+
+services:
+  app:
+    container_name: 4sqmet
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: 4sqmet:latest
+    restart: unless-stopped
+    
+    ports:
+      - "80:80"
+      - "443:443"
+    
+    volumes:
+      # Application code
+      - .:/var/www/html:rw
+      
+      # SSL certificates (quando configurado)
+      - ./ssl:/etc/ssl/4sqmet:ro
+      
+      # Logs persistentes
+      - /var/log/4sqmet:/var/log/apache2:rw
+    
+    environment:
+      # Essas variáveis serão lidas do .env automaticamente
+      - FOURSQUARE_CLIENT_KEY=${FOURSQUARE_CLIENT_KEY}
+      - FOURSQUARE_CLIENT_SECRET=${FOURSQUARE_CLIENT_SECRET}
+      - FOURSQUARE_REDIRECT_URI=${FOURSQUARE_REDIRECT_URI}
+      - GOOGLE_MAPS_API_KEY=${GOOGLE_MAPS_API_KEY}
+      - GOOGLE_MAPS_MAP_ID=${GOOGLE_MAPS_MAP_ID}
+      - APP_ENV=${APP_ENV:-production}
+      - APP_DEBUG=${APP_DEBUG:-false}
+      - APP_URL=${APP_URL}
+      - SESSION_LIFETIME=${SESSION_LIFETIME:-1440}
+      - SESSION_SECURE=${SESSION_SECURE:-true}
+      - SESSION_HTTPONLY=${SESSION_HTTPONLY:-true}
+      - COOKIE_SECURE=${COOKIE_SECURE:-true}
+      - COOKIE_HTTPONLY=${COOKIE_HTTPONLY:-true}
+      - COOKIE_SAMESITE=${COOKIE_SAMESITE:-Strict}
+    
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost/4sqmet/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    
+    labels:
+      - "com.4sqmet.app=foursquare-mass-editor"
+      - "com.4sqmet.version=3.0.0"
+      - "com.4sqmet.environment=production"
+    
+    networks:
+      - 4sqmet-network
+
+networks:
+  4sqmet-network:
+    driver: bridge
+    name: 4sqmet-network
+
+# Optional: Adicionar volume separado para backups
+# volumes:
+#   backups:
+#     driver: local
+#     driver_opts:
+#       type: none
+#       o: bind
+#       device: /var/backups/4sqmet

@@ -17,7 +17,7 @@ NC='\033[0m' # No Color
 # Configurações
 PRODUCTION_SERVER="4sq.eliotools.site"
 PRODUCTION_USER="${DEPLOY_USER:-root}"
-PRODUCTION_PATH="/var/www/html"
+PRODUCTION_PATH="/var/www/4sqmet"
 BRANCH="${DEPLOY_BRANCH:-refactor-ia}"
 BACKUP_DIR="/var/backups/4sqmet"
 TIMESTAMP=$(date +"%Y%m%d_%H%M%S")
@@ -178,63 +178,80 @@ $SSH_CMD "${PRODUCTION_USER}@${PRODUCTION_SERVER}" << EOF
     echo "📦 Instalando dependências do Composer..."
     composer install --no-dev --optimize-autoloader --no-interaction
     
-    echo "🔧 Verificando permissões..."
-    chown -R www-data:www-data ${PRODUCTION_PATH}
-    find ${PRODUCTION_PATH} -type f -exec chmod 644 {} \;
-    find ${PRODUCTION_PATH} -type d -exec chmod 755 {} \;
-    
-    echo "✅ Deploy concluído"
+    echo "✅ Código atualizado"
 EOF
 
 echo -e "${GREEN}✅ Código atualizado em produção${NC}"
 
-# Etapa 5: Build e otimização em produção
-echo -e "\n${BLUE}━━━ Etapa 5/6: Build em produção ━━━${NC}"
-echo -e "${YELLOW}⚙️  Executando build no servidor...${NC}"
+# Etapa 5: Build Docker em produção
+echo -e "\n${BLUE}━━━ Etapa 5/6: Build Docker ━━━${NC}"
+echo -e "${YELLOW}🐳 Rebuilding imagem Docker...${NC}"
 
 $SSH_CMD "${PRODUCTION_USER}@${PRODUCTION_SERVER}" << 'EOF'
     set -e
-    cd /var/www/html
+    cd ${PRODUCTION_PATH:-/var/www/4sqmet}
     
-    # Verifica se Node.js está instalado
-    if command -v node &> /dev/null; then
-        echo "📦 Instalando dependências npm..."
-        npm install --production
-        
-        echo "🔧 Executando build..."
-        bash build.sh
-        
-        echo "✅ Build em produção concluído"
-    else
-        echo "⚠️  Node.js não instalado. Build de minificação pulado."
-        echo "   Usando arquivos .min.js já commitados."
-    fi
+    echo "🔧 Parando container atual..."
+    docker stop 4sqmet 2>/dev/null || echo "Container não estava rodando"
+    docker rm 4sqmet 2>/dev/null || echo "Container não existia"
+    
+    echo "🏗️  Building nova imagem..."
+    docker build -t 4sqmet:latest .
+    
+    # Limpar imagens antigas (dangling)
+    echo "🧹 Limpando imagens antigas..."
+    docker image prune -f
+    
+    echo "✅ Imagem Docker atualizada"
 EOF
 
-echo -e "${GREEN}✅ Build em produção concluído${NC}"
+echo -e "${GREEN}✅ Build Docker concluído${NC}"
 
-# Etapa 6: Restart do Apache
-echo -e "\n${BLUE}━━━ Etapa 6/6: Restart de serviços ━━━${NC}"
-echo -e "${YELLOW}🔄 Reiniciando Apache...${NC}"
+# Etapa 6: Iniciar container Docker
+echo -e "\n${BLUE}━━━ Etapa 6/6: Iniciar aplicação ━━━${NC}"
+echo -e "${YELLOW}🚀 Iniciando container Docker...${NC}"
 
-$SSH_CMD "${PRODUCTION_USER}@${PRODUCTION_SERVER}" << EOF
+$SSH_CMD "${PRODUCTION_USER}@${PRODUCTION_SERVER}" << 'EOF'
     set -e
+    cd ${PRODUCTION_PATH:-/var/www/4sqmet}
     
-    echo "🔄 Reiniciando Apache..."
-    systemctl restart apache2
+    echo "🐳 Iniciando container..."
+    docker run -d \
+        --name 4sqmet \
+        --restart unless-stopped \
+        -p 80:80 \
+        -p 443:443 \
+        -v $(pwd):/var/www/html \
+        -v $(pwd)/ssl:/etc/ssl/4sqmet \
+        4sqmet:latest
     
-    echo "✅ Apache reiniciado"
+    # Aguardar container inicializar
+    echo "⏳ Aguardando container inicializar..."
+    sleep 5
     
-    # Verifica status
-    if systemctl is-active --quiet apache2; then
-        echo "✅ Apache está rodando corretamente"
+    # Verificar status
+    if docker ps | grep -q 4sqmet; then
+        echo "✅ Container 4sqmet está rodando"
+        docker ps --filter name=4sqmet --format "table {{.Names}}\t{{.Status}}\t{{.Ports}}"
     else
-        echo "❌ Apache não está rodando!"
+        echo "❌ Container não está rodando!"
+        echo "Últimas 20 linhas do log:"
+        docker logs --tail 20 4sqmet
         exit 1
     fi
+    
+    # Verificar health do container
+    echo "🔍 Verificando saúde do container..."
+    sleep 3
+    HEALTH=$(docker inspect --format='{{.State.Health.Status}}' 4sqmet 2>/dev/null || echo "no-healthcheck")
+    if [ "$HEALTH" = "healthy" ] || [ "$HEALTH" = "no-healthcheck" ]; then
+        echo "✅ Container saudável"
+    else
+        echo "⚠️  Container status: $HEALTH"
+    fi
 EOF
 
-echo -e "${GREEN}✅ Serviços reiniciados${NC}"
+echo -e "${GREEN}✅ Aplicação iniciada${NC}"
 
 # Verificação final
 echo -e "\n${BLUE}━━━ Verificação final ━━━${NC}"
@@ -262,9 +279,14 @@ echo -e "   Backup: ${GREEN}${BACKUP_DIR}/backup_${TIMESTAMP}.tar.gz${NC}"
 
 echo -e "\n${YELLOW}📝 Para fazer rollback:${NC}"
 echo -e "   ${CYAN}ssh ${PRODUCTION_USER}@${PRODUCTION_SERVER}${NC}"
-echo -e "   ${CYAN}cd ${BACKUP_DIR}${NC}"
-echo -e "   ${CYAN}tar -xzf backup_${TIMESTAMP}.tar.gz -C ${PRODUCTION_PATH}${NC}"
-echo -e "   ${CYAN}systemctl restart apache2${NC}"
+echo -e "   ${CYAN}cd ${PRODUCTION_PATH}${NC}"
+echo -e "   ${CYAN}docker stop 4sqmet && docker rm 4sqmet${NC}"
+echo -e "   ${CYAN}tar -xzf ${BACKUP_DIR}/backup_${TIMESTAMP}.tar.gz -C ${PRODUCTION_PATH}${NC}"
+echo -e "   ${CYAN}docker build -t 4sqmet:latest .${NC}"
+echo -e "   ${CYAN}docker run -d --name 4sqmet --restart unless-stopped -p 80:80 -p 443:443 -v \$(pwd):/var/www/html 4sqmet:latest${NC}"
+
+echo -e "\n${YELLOW}📊 Monitorar logs:${NC}"
+echo -e "   ${CYAN}docker logs -f 4sqmet${NC}"
 
 echo -e "\n${GREEN}✅ Deploy finalizado com sucesso!${NC}\n"
 
