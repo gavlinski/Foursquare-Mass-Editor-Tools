@@ -74,3 +74,4 @@ ssl/*.pem
 docs/api/API_KEYS_DOCUMENTATION.md
 docs/features/PENDING.md
 docs/features/SESSION_BAR.md
+docs/deployment/SECRETS_MANAGEMENT.md

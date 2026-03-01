@@ -159,6 +159,13 @@ jobs:
         env:
           DEPLOY_USER: ${{ secrets.DEPLOY_USER }}
           DEPLOY_BRANCH: ${{ github.ref_name }}
+          # Application secrets (para atualizar .env no servidor)
+          FOURSQUARE_CLIENT_KEY: ${{ secrets.FOURSQUARE_CLIENT_KEY }}
+          FOURSQUARE_CLIENT_SECRET: ${{ secrets.FOURSQUARE_CLIENT_SECRET }}
+          FOURSQUARE_REDIRECT_URI: ${{ secrets.FOURSQUARE_REDIRECT_URI }}
+          GOOGLE_MAPS_API_KEY: ${{ secrets.GOOGLE_MAPS_API_KEY }}
+          GOOGLE_MAPS_MAP_ID: ${{ secrets.GOOGLE_MAPS_MAP_ID }}
+          APP_URL: ${{ secrets.APP_URL }}
         run: |
           echo "🚀 Deploying branch: ${DEPLOY_BRANCH}"
           bash deploy.sh

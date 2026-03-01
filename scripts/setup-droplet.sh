@@ -213,31 +213,21 @@ git log -1 --oneline
 print_header "⚙️  Fase 7/8: Configurando Ambiente"
 
 if [ ! -f ".env" ]; then
-    print_info "Criando arquivo .env..."
+    print_info "Criando arquivo .env placeholder..."
     cp .env.example .env
     
-    echo -e "\n${YELLOW}Configure as credenciais API no arquivo .env:${NC}"
-    echo "  - Foursquare Client Key/Secret"
-    echo "  - Google Maps API Key"
-    echo "  - Google Maps Map ID"
+    echo -e "\n${YELLOW}✨ O arquivo .env foi criado com placeholders.${NC}"
+    echo -e "${BLUE}ℹ️  As credenciais reais serão injetadas automaticamente via GitHub Actions${NC}"
+    echo -e "${BLUE}   no primeiro deploy, a partir dos secrets configurados.${NC}"
+    echo ""
+    echo -e "${CYAN}Para testar manualmente antes do deploy automático:${NC}"
+    echo "  1. Configurar secrets no GitHub (ver docs/deployment/CICD_SETUP.md)"
+    echo "  2. Ou editar .env manualmente: vim /var/www/4sqmet/.env"
     echo ""
     
-    read -p "Editar .env agora? (y/n) " -n 1 -r
-    echo
-    if [[ $REPLY =~ ^[Yy]$ ]]; then
-        vim .env
-    else
-        print_warning "Lembre-se de editar .env antes de iniciar a aplicação!"
-        print_info "Use: vim /var/www/4sqmet/.env"
-    fi
+    print_success ".env placeholder criado"
 else
     print_success "Arquivo .env já existe"
-fi
-
-# Verificar se .env tem credenciais configuradas
-if grep -q "YOUR_FOURSQUARE_CLIENT_KEY" .env; then
-    print_warning "⚠️  ATENÇÃO: .env ainda tem placeholders!"
-    print_warning "   Edite o arquivo antes de acessar a aplicação"
 fi
 
 #############################################

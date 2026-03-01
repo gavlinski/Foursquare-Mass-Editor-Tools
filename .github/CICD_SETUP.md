@@ -10,10 +10,31 @@ Configure os seguintes secrets no GitHub:
 
 ### Acessar: `Settings` → `Secrets and variables` → `Actions` → `New repository secret`
 
-| Secret Name | Descrição | Exemplo |
-|------------|-----------|---------|
+| Secret Name | Descrição | Exemplo/Valor |
+|------------|-----------|---------------|
+| **Deploy SSH** | | |
 | `DEPLOY_SSH_KEY` | Chave SSH privada para acesso ao servidor | `-----BEGIN OPENSSH PRIVATE KEY-----...` |
-| `DEPLOY_USER` | Usuário SSH do servidor de produção | `root` ou `deploy` |
+| `DEPLOY_USER` | Usuário SSH do servidor de produção | `root` |
+| `DEPLOY_HOST` | IP ou domínio do servidor | `4sq.eliotools.site` ou IP |
+| **Foursquare API** | | |
+| `FOURSQUARE_CLIENT_KEY` | Client ID da aplicação Foursquare | `AKR40GT...` (50 chars) |
+| `FOURSQUARE_CLIENT_SECRET` | Client Secret da aplicação | `WGUZCMW...` (48 chars) |
+| `FOURSQUARE_REDIRECT_URI` | URL de callback OAuth | `https://4sq.eliotools.site/4sqmet/index.php` |
+| **Google Maps API** | | |
+| `GOOGLE_MAPS_API_KEY` | API Key do Google Maps | `AIzaSy...` (39 chars) |
+| `GOOGLE_MAPS_MAP_ID` | Map ID para customização | `522d4feb...` (24 chars hex) |
+| **Application Config** | | |
+| `APP_URL` | URL principal da aplicação | `https://4sq.eliotools.site` |
+
+**Total:** 10 secrets
+
+### Por que usar secrets para credenciais?
+
+✅ **Segurança**: Criptografados no GitHub (AES-256), nunca expostos em logs  
+✅ **Rotação fácil**: Atualiza no GitHub → próximo deploy aplica automaticamente  
+✅ **Auditoria**: GitHub registra quando/quem modificou  
+✅ **Zero manual**: Deploy cria/atualiza `.env` automaticamente no servidor  
+✅ **Sem commits sensíveis**: Credenciais nunca entram no repositório
 
 ## 🔑 Gerando e Configurando SSH Key
 
@@ -44,17 +65,72 @@ chmod 700 ~/.ssh
 chmod 600 ~/.ssh/authorized_keys
 ```
 
-### 3. No GitHub:
+### 3. No GitHub - Configurar Todos os Secrets:
 
 ```
 Settings → Secrets and variables → Actions → New repository secret
+```
 
+**A. Deploy SSH (3 secrets):**
+```
 Nome: DEPLOY_SSH_KEY
 Valor: [Cole o conteúdo completo de ~/.ssh/4sqmet_deploy]
 
 Nome: DEPLOY_USER  
 Valor: root
+
+Nome: DEPLOY_HOST
+Valor: 4sq.eliotools.site (ou IP do droplet)
 ```
+
+**B. Foursquare API (3 secrets):**
+```
+Nome: FOURSQUARE_CLIENT_KEY
+Valor: [Seu Client ID - 50 caracteres]
+
+Nome: FOURSQUARE_CLIENT_SECRET
+Valor: [Seu Client Secret - 48 caracteres]
+
+Nome: FOURSQUARE_REDIRECT_URI
+Valor: https://4sq.eliotools.site/4sqmet/index.php
+```
+
+> 📝 Obtenha suas credenciais em: https://pt.foursquare.com/developers/home
+
+**C. Google Maps API (2 secrets):**
+```
+Nome: GOOGLE_MAPS_API_KEY
+Valor: [Sua API Key - começa com AIzaSy]
+
+Nome: GOOGLE_MAPS_MAP_ID
+Valor: [Seu Map ID - 24 caracteres hexadecimais]
+```
+
+> 📝 Obtenha suas credenciais em: https://console.cloud.google.com/google/maps-apis/credentials
+
+**D. Application Config (1 secret):**
+```
+Nome: APP_URL
+Valor: https://4sq.eliotools.site
+```
+
+### ✅ Validação dos Secrets
+
+Após configurar, verifique no GitHub:
+```
+Settings → Secrets and variables → Actions
+```
+
+Deve listar **10 secrets**:
+- ✅ DEPLOY_SSH_KEY (536 bytes~)
+- ✅ DEPLOY_USER (4 bytes)
+- ✅ DEPLOY_HOST (22 bytes~)
+- ✅ FOURSQUARE_CLIENT_KEY (50 bytes)
+- ✅ FOURSQUARE_CLIENT_SECRET (48 bytes)
+- ✅ FOURSQUARE_REDIRECT_URI (50 bytes~)
+- ✅ GOOGLE_MAPS_API_KEY (39 bytes)
+- ✅ GOOGLE_MAPS_MAP_ID (24 bytes)
+- ✅ APP_URL (30 bytes~)
 
 ## 🚀 Workflows Disponíveis
 

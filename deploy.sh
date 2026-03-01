@@ -175,6 +175,39 @@ $SSH_CMD "${PRODUCTION_USER}@${PRODUCTION_SERVER}" << EOF
     git checkout ${BRANCH}
     git pull origin ${BRANCH}
     
+    echo "⚙️  Atualizando .env com secrets..."
+    if [ -n "${FOURSQUARE_CLIENT_KEY}" ]; then
+        # Criar/atualizar .env com valores dos secrets do GitHub
+        cat > .env << ENVEOF
+# Foursquare API Credentials
+FOURSQUARE_CLIENT_KEY=${FOURSQUARE_CLIENT_KEY}
+FOURSQUARE_CLIENT_SECRET=${FOURSQUARE_CLIENT_SECRET}
+FOURSQUARE_REDIRECT_URI=${FOURSQUARE_REDIRECT_URI}
+
+# Google Maps Credentials
+GOOGLE_MAPS_API_KEY=${GOOGLE_MAPS_API_KEY}
+GOOGLE_MAPS_MAP_ID=${GOOGLE_MAPS_MAP_ID}
+
+# Application Settings
+APP_ENV=production
+APP_DEBUG=false
+APP_URL=${APP_URL}
+
+# Session Configuration
+SESSION_LIFETIME=1440
+SESSION_SECURE=true
+SESSION_HTTPONLY=true
+
+# Cookie Settings
+COOKIE_SECURE=true
+COOKIE_HTTPONLY=true
+COOKIE_SAMESITE=Strict
+ENVEOF
+        echo "✅ .env atualizado com secrets do GitHub Actions"
+    else
+        echo "⚠️  Secrets não fornecidos, usando .env existente"
+    fi
+    
     echo "📦 Instalando dependências do Composer..."
     composer install --no-dev --optimize-autoloader --no-interaction
     

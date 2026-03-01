@@ -113,7 +113,7 @@ bash /tmp/setup-droplet.sh
 - ✅ Instala Certbot
 - ✅ Cria diretórios (/var/www/4sqmet, /var/backups, /var/log)
 - ✅ Clona repositório GitHub
-- ✅ Configura .env (interativo)
+- ✅ Cria .env placeholder (será atualizado no primeiro deploy)
 - ✅ Build imagem Docker
 - ✅ Inicia container
 
@@ -122,29 +122,9 @@ bash /tmp/setup-droplet.sh
 - [ ] Script executado com sucesso
 - [ ] Container `4sqmet` rodando
 
-### 2.3 Configurar .env (durante setup)
+> **💡 Nota**: Não precisa configurar `.env` manualmente! Ele será criado/atualizado automaticamente durante o deploy via secrets do GitHub Actions.
 
-O script perguntará se deseja editar `.env`. Configure:
-
-```bash
-FOURSQUARE_CLIENT_KEY=YOUR_FOURSQUARE_CLIENT_KEY_50_CHARS
-FOURSQUARE_CLIENT_SECRET=YOUR_FOURSQUARE_CLIENT_SECRET_48_CHARS
-FOURSQUARE_REDIRECT_URI=https://4sq.eliotools.site/4sqmet/index.php
-
-GOOGLE_MAPS_API_KEY=YOUR_GOOGLE_MAPS_API_KEY_39_CHARS
-GOOGLE_MAPS_MAP_ID=YOUR_GOOGLE_MAPS_MAP_ID_24_CHARS
-
-APP_ENV=production
-APP_DEBUG=false
-APP_URL=https://4sq.eliotools.site
-
-SESSION_SECURE=true
-COOKIE_SECURE=true
-```
-
-- [ ] .env configurado com credenciais reais
-
-### 2.4 Verificar Aplicação
+### 2.3 Verificar Aplicação
 
 ```bash
 # No servidor
@@ -154,11 +134,12 @@ docker logs -f 4sqmet
 # Testar HTTP
 curl -I http://localhost/4sqmet/
 
-# Deve retornar: HTTP/1.1 200 OK
+# Pode retornar erro 500 ou falha de OAuth - é esperado!
+# As credenciais reais serão injetadas no primeiro deploy
 ```
 
 - [ ] Container rodando
-- [ ] Aplicação respondendo (HTTP 200)
+- [ ] Aplicação iniciou (mesmo com erro de credenciais)
 
 ---
 
@@ -201,7 +182,7 @@ docker logs --tail 100 -f 4sqmet
 
 ---
 
-## ✅ Fase 4: Configurar CI/CD (10 min)
+## ✅ Fase 4: Configurar CI/CD (15 min)
 
 ### 4.1 Configurar GitHub Secrets
 
@@ -211,8 +192,9 @@ docker logs --tail 100 -f 4sqmet
 3. New repository secret
 ```
 
-**Secrets para adicionar:**
+**Secrets para adicionar (10 total):**
 
+**A. Deploy SSH (3 secrets):**
 ```yaml
 DEPLOY_SSH_KEY:
   # Conteúdo de ~/.ssh/4sqmet_prod (chave PRIVADA)
@@ -225,9 +207,47 @@ DEPLOY_HOST:
   # Valor: ${DROPLET_IP} ou 4sq.eliotools.site (após DNS)
 ```
 
+**B. Foursquare API (3 secrets):**
+```yaml
+FOURSQUARE_CLIENT_KEY:
+  # Seu Client ID (50 caracteres)
+  # Obter em: https://pt.foursquare.com/developers/home
+  
+FOURSQUARE_CLIENT_SECRET:
+  # Seu Client Secret (48 caracteres)
+  
+FOURSQUARE_REDIRECT_URI:
+  # Valor: https://4sq.eliotools.site/4sqmet/index.php
+```
+
+**C. Google Maps API (2 secrets):**
+```yaml
+GOOGLE_MAPS_API_KEY:
+  # Sua API Key (começa com AIzaSy)
+  # Obter em: https://console.cloud.google.com/google/maps-apis/credentials
+  
+GOOGLE_MAPS_MAP_ID:
+  # Seu Map ID (24 caracteres hexadecimais)
+```
+
+**D. Application Config (1 secret):**
+```yaml
+APP_URL:
+  # Valor: https://4sq.eliotools.site
+```
+
+**E. Total:**
 - [ ] `DEPLOY_SSH_KEY` configurado
 - [ ] `DEPLOY_USER` configurado  
 - [ ] `DEPLOY_HOST` configurado
+- [ ] `FOURSQUARE_CLIENT_KEY` configurado
+- [ ] `FOURSQUARE_CLIENT_SECRET` configurado
+- [ ] `FOURSQUARE_REDIRECT_URI` configurado
+- [ ] `GOOGLE_MAPS_API_KEY` configurado
+- [ ] `GOOGLE_MAPS_MAP_ID` configurado
+- [ ] `APP_URL` configurado
+
+> **💡 Benefício**: O deploy agora cria/atualiza `.env` automaticamente no servidor com esses valores. Zero configuração manual!
 
 ### 4.2 Testar Deploy Manual
 
