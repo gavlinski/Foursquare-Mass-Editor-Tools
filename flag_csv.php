@@ -43,9 +43,11 @@ include_once 'includes/asset_helper.php';
 <?php dojo_theme('tundra'); ?>
 <link rel="stylesheet" type="text/css" href="estilo.css?v=<?php echo time(); ?>">
 <link rel="stylesheet" type="text/css" href="includes/session-status-bar-variants.css?v=<?php echo time(); ?>">
-<?php dojo_script(['parseOnLoad' => true]); ?>
-<?php script_versioned('js/session-manager.js'); ?>
-<?php script_versioned('js/4sq_csv.js'); ?>
+<?php 
+dojo_script(['parseOnLoad' => true]);
+script_versioned('js/session-manager.js');
+script_versioned('js/4sq_csv.js');
+?>
 </head>
 <body class="tundra">
 

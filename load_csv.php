@@ -38,7 +38,9 @@ define("LINKS", '<link rel="shortcut icon" href="favicon.ico" type="image/x-icon
 <link rel="stylesheet" type="text/css" href="' . $DOJO_THEME_URL . '">
 <link rel="stylesheet" type="text/css" href="estilo.css">
 ');
-define("DOJO_INIT", '<?php dojo_script(["parseOnLoad" => true]); ?>');
+ob_start();
+dojo_script(["parseOnLoad" => true]);
+define("DOJO_INIT", ob_get_clean());
 define("HBODY", '</head>
 <body class="tundra">
 ');
