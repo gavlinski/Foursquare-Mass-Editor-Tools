@@ -30,10 +30,17 @@ class SessionManager {
         this.serverInstanceId = null;
         this.restartDetected = false;
         
-        // Aguarda um pequeno delay para garantir que o DOM está pronto
+        // Calcula delay inicial baseado em quanto tempo a página está carregada
+        // Se a página acabou de carregar (< 2s), aguarda mais tempo para sessão se estabelecer
+        const pageLoadTime = performance.now();
+        const initialDelay = pageLoadTime < 2000 ? 2000 : 100;
+        
+        debugLog(`🔧 SessionManager: Inicialização com delay de ${initialDelay}ms (página carregada há ${Math.round(pageLoadTime)}ms)`);
+        
+        // Aguarda para garantir que DOM está pronto e sessão estabelecida
         setTimeout(() => {
             this.init();
-        }, 100);
+        }, initialDelay);
     }
 
     init() {
