@@ -38,10 +38,13 @@ if [ -z "$DEPLOY_USER" ]; then
     echo -e "   ${CYAN}Configure: export DEPLOY_USER=seu_usuario${NC}\n"
 fi
 
-if [ -z "$DEPLOY_KEY" ] && [ -z "$SSH_KEY_PATH" ]; then
+# Verifica se SSH está configurado (ssh-agent ou chave direta)
+if [ -z "$SSH_AUTH_SOCK" ] && [ -z "$DEPLOY_KEY" ] && [ -z "$SSH_KEY_PATH" ]; then
     echo -e "${YELLOW}⚠️  Nenhuma chave SSH especificada.${NC}"
     echo -e "   ${CYAN}Configure: export SSH_KEY_PATH=/path/to/key${NC}"
     echo -e "   ${CYAN}Ou adicione ao ssh-agent: ssh-add ~/.ssh/id_rsa${NC}\n"
+elif [ -n "$SSH_AUTH_SOCK" ]; then
+    echo -e "${GREEN}✅ SSH Agent detectado (${SSH_AUTH_SOCK})${NC}\n"
 fi
 
 # Verifica se está na branch correta
@@ -116,18 +119,24 @@ fi
 
 # Etapa 1: Build local
 echo -e "\n${BLUE}━━━ Etapa 1/6: Build local ━━━${NC}"
-echo -e "${YELLOW}📦 Executando build de produção...${NC}"
 
-if [ ! -f "build.sh" ]; then
-    echo -e "${RED}❌ build.sh não encontrado!${NC}"
-    exit 1
-fi
-
-if bash build.sh; then
-    echo -e "${GREEN}✅ Build concluído com sucesso${NC}"
+if [ "$IS_CI_ENVIRONMENT" = "true" ]; then
+    echo -e "${GREEN}🤖 Ambiente CI: build já foi realizado no job anterior${NC}"
+    echo -e "${YELLOW}⏭️  Pulando build local...${NC}"
 else
-    echo -e "${RED}❌ Erro no build. Deploy abortado.${NC}"
-    exit 1
+    echo -e "${YELLOW}📦 Executando build de produção...${NC}"
+    
+    if [ ! -f "build.sh" ]; then
+        echo -e "${RED}❌ build.sh não encontrado!${NC}"
+        exit 1
+    fi
+    
+    if bash build.sh; then
+        echo -e "${GREEN}✅ Build concluído com sucesso${NC}"
+    else
+        echo -e "${RED}❌ Erro no build. Deploy abortado.${NC}"
+        exit 1
+    fi
 fi
 
 # Etapa 2: Testes locais (se existirem)
