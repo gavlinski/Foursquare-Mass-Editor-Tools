@@ -132,7 +132,7 @@ fi
 
 # Etapa 2: Testes locais (se existirem)
 echo -e "\n${BLUE}━━━ Etapa 2/6: Testes locais ━━━${NC}"
-if [ -f "composer.json" ] && grep -q "phpunit" composer.json; then
+if [ -f "composer.json" ] && grep -q "phpunit" composer.json && [ -d "tests" ]; then
     echo -e "${YELLOW}🧪 Executando testes...${NC}"
     composer test || {
         echo -e "${RED}❌ Testes falharam. Deploy abortado.${NC}"
