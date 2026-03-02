@@ -147,9 +147,12 @@ fi
 echo -e "\n${BLUE}━━━ Etapa 3/6: Backup em produção ━━━${NC}"
 echo -e "${YELLOW}💾 Criando backup do código atual...${NC}"
 
-SSH_CMD="ssh"
+# Configurar comando SSH com opções para CI/CD
+SSH_OPTS="-T -o BatchMode=yes -o ConnectTimeout=10"
 if [ -n "$SSH_KEY_PATH" ]; then
-    SSH_CMD="ssh -i $SSH_KEY_PATH"
+    SSH_CMD="ssh $SSH_OPTS -i $SSH_KEY_PATH"
+else
+    SSH_CMD="ssh $SSH_OPTS"
 fi
 
 $SSH_CMD "${PRODUCTION_USER}@${PRODUCTION_SERVER}" << EOF
