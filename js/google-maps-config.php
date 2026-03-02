@@ -24,5 +24,8 @@ echo "window.googleMapsConfig = " . json_encode([
     'geocoding' => $mapsConfig['geocoding']
 ], JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES) . ";\n\n";
 
-echo "console.log('🔧 Configuração Google Maps carregada:', window.googleMapsConfig);\n";
+// Log de debug apenas em localhost (desenvolvimento)
+echo "if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' || window.location.hostname === '[::1]') {\n";
+echo "    console.log('🔧 Configuração Google Maps carregada:', window.googleMapsConfig);\n";
+echo "}\n";
 ?>
