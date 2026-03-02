@@ -234,6 +234,14 @@ ENVEOF
         echo "⚠️  Secrets não fornecidos, usando .env existente"
     fi
     
+    echo "⚙️  Criando google_maps_credentials.php..."
+    if [ -f "includes/google_maps_credentials.php.example" ]; then
+        cp includes/google_maps_credentials.php.example includes/google_maps_credentials.php
+        echo "✅ google_maps_credentials.php criado (lê do .env)"
+    else
+        echo "⚠️  Arquivo .example não encontrado"
+    fi
+    
     echo "✅ Código atualizado (dependências PHP serão instaladas no Docker build)"
     
     # ━━━ ETAPA 5: BUILD DOCKER ━━━
