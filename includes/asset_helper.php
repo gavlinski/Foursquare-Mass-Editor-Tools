@@ -172,6 +172,7 @@ function dojo_url($djConfig = []) {
  */
 function dojo_script($djConfig = ['parseOnLoad' => true]) {
     $url = dojo_url($djConfig);
+    $is_cdn = (strpos($url, 'ajax.googleapis.com') !== false);
     
     // Converte array para string de configuração
     $config_pairs = [];
@@ -186,13 +187,17 @@ function dojo_script($djConfig = ['parseOnLoad' => true]) {
     }
     $config_str = implode(', ', $config_pairs);
     
-    // Em produção, adiciona baseUrl para CDN
-    if (isProduction()) {
+    // Se usar CDN (produção ou fallback), configura baseUrl
+    if ($is_cdn) {
         echo sprintf(
-            '<script>var dojoConfig = { %s, baseUrl: "%s/dojo/", packages: [{name: "dijit", location: "../dijit"}, {name: "dojox", location: "../dojox"}] };</script>' . PHP_EOL,
+            '<script>var dojoConfig = { %s, baseUrl: "%s/", packages: [{name: "dojo", location: "dojo"}, {name: "dijit", location: "dijit"}, {name: "dojox", location: "dojox"}] };</script>' . PHP_EOL,
             $config_str,
             DOJO_CDN_BASE
         );
+    } else {
+        // Desenvolvimento com arquivos locais - usa djConfig inline
+        echo sprintf('<script data-dojo-config="%s" src="%s"></script>' . PHP_EOL, $config_str, $url);
+        return;
     }
     
     echo sprintf('<script src="%s"></script>' . PHP_EOL, $url);

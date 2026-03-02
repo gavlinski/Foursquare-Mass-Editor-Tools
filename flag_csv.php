@@ -40,7 +40,7 @@ include_once 'includes/asset_helper.php';
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
 <link rel="shortcut icon" href="favicon.ico" type="image/x-icon">
-<link rel="stylesheet" type="text/css" href="js/dijit/themes/tundra/tundra.css">
+<?php dojo_theme('tundra'); ?>
 <link rel="stylesheet" type="text/css" href="estilo.css?v=<?php echo time(); ?>">
 <link rel="stylesheet" type="text/css" href="includes/session-status-bar-variants.css?v=<?php echo time(); ?>">
 <?php dojo_script(['parseOnLoad' => true]); ?>
