@@ -22,6 +22,9 @@ BRANCH="${DEPLOY_BRANCH:-refactor-ia}"
 BACKUP_DIR="/var/backups/4sqmet"
 TIMESTAMP=$(date +"%Y%m%d_%H%M%S")
 
+# Detecta ambiente CI (GitHub Actions, GitLab CI, etc.)
+IS_CI_ENVIRONMENT="${CI:-false}"
+
 # Banner
 echo -e "${BLUE}"
 echo "╔════════════════════════════════════════════════════════════╗"
@@ -45,13 +48,18 @@ fi
 CURRENT_BRANCH=$(git branch --show-current)
 if [ "$CURRENT_BRANCH" != "$BRANCH" ]; then
     echo -e "${RED}❌ Você está na branch '${CURRENT_BRANCH}', mas o deploy é da '${BRANCH}'.${NC}"
-    echo -e "${YELLOW}Deseja fazer checkout para '${BRANCH}'? (s/n)${NC}"
-    read -r response
-    if [[ "$response" =~ ^[Ss]$ ]]; then
+    if [ "$IS_CI_ENVIRONMENT" = "true" ]; then
+        echo -e "${YELLOW}🤖 Ambiente CI: fazendo checkout automaticamente para '${BRANCH}'${NC}"
         git checkout "$BRANCH"
     else
-        echo -e "${RED}Deploy cancelado.${NC}"
-        exit 1
+        echo -e "${YELLOW}Deseja fazer checkout para '${BRANCH}'? (s/n)${NC}"
+        read -r response
+        if [[ "$response" =~ ^[Ss]$ ]]; then
+            git checkout "$BRANCH"
+        else
+            echo -e "${RED}Deploy cancelado.${NC}"
+            exit 1
+        fi
     fi
 fi
 
@@ -71,10 +79,15 @@ REMOTE=$(git rev-parse @{u})
 
 if [ "$LOCAL" != "$REMOTE" ]; then
     echo -e "${YELLOW}⚠️  Branch local não está sincronizada com origin.${NC}"
-    echo -e "${YELLOW}Deseja fazer pull antes do deploy? (s/n)${NC}"
-    read -r response
-    if [[ "$response" =~ ^[Ss]$ ]]; then
+    if [ "$IS_CI_ENVIRONMENT" = "true" ]; then
+        echo -e "${YELLOW}🤖 Ambiente CI: fazendo pull automaticamente${NC}"
         git pull origin "$BRANCH"
+    else
+        echo -e "${YELLOW}Deseja fazer pull antes do deploy? (s/n)${NC}"
+        read -r response
+        if [[ "$response" =~ ^[Ss]$ ]]; then
+            git pull origin "$BRANCH"
+        fi
     fi
 fi
 
@@ -88,12 +101,17 @@ echo -e "   Branch: ${GREEN}${BRANCH}${NC}"
 echo -e "   Commit: ${GREEN}$(git log -1 --pretty=format:'%h - %s')${NC}"
 echo -e "${CYAN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
 echo -e "${RED}⚠️  ATENÇÃO: Este deploy afetará o site em produção!${NC}"
-echo -e "${YELLOW}Deseja continuar? (s/n)${NC}"
-read -r response
 
-if [[ ! "$response" =~ ^[Ss]$ ]]; then
-    echo -e "${YELLOW}Deploy cancelado pelo usuário.${NC}"
-    exit 0
+if [ "$IS_CI_ENVIRONMENT" = "true" ]; then
+    echo -e "${GREEN}🤖 Ambiente CI detectado: prosseguindo automaticamente${NC}"
+else
+    echo -e "${YELLOW}Deseja continuar? (s/n)${NC}"
+    read -r response
+    
+    if [[ ! "$response" =~ ^[Ss]$ ]]; then
+        echo -e "${YELLOW}Deploy cancelado pelo usuário.${NC}"
+        exit 0
+    fi
 fi
 
 # Etapa 1: Build local
