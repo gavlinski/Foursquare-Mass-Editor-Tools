@@ -264,8 +264,8 @@ ENVEOF
         --restart unless-stopped \
         -p 80:80 \
         -p 443:443 \
-        -v \$(pwd):/var/www/html \
-        -v \$(pwd)/ssl:/etc/ssl/4sqmet \
+        -v \$(pwd)/.env:/var/www/html/.env:ro \
+        -v \$(pwd)/ssl:/etc/ssl/4sqmet:ro \
         4sqmet:latest >/dev/null
     
     echo "⏳ Aguardando container inicializar..."
