@@ -51,8 +51,8 @@ RUN if [ "$BUILD_ENV" = "development" ] && [ -f /var/www/html/ssl/localhost.pem 
 # Define diretório de trabalho
 WORKDIR /var/www/html
 
-# Instala dependências do Composer
-RUN composer install --no-dev --optimize-autoloader
+# Instala dependências do Composer (sem interação para CI/CD)
+RUN composer install --no-dev --optimize-autoloader --no-interaction
 
 # Define permissões corretas
 RUN chown -R www-data:www-data /var/www/html

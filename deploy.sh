@@ -238,10 +238,7 @@ ENVEOF
         echo "⚠️  Secrets não fornecidos, usando .env existente"
     fi
     
-    echo "📦 Instalando dependências do Composer..."
-    composer install --no-dev --optimize-autoloader --no-interaction
-    
-    echo "✅ Código atualizado"
+    echo "✅ Código atualizado (dependências PHP serão instaladas no Docker build)"
 EOF
 
 echo -e "${GREEN}✅ Código atualizado em produção${NC}"
