@@ -152,52 +152,49 @@ else
     echo -e "${YELLOW}⚠️  Nenhum teste configurado. Pulando...${NC}"
 fi
 
-# Etapa 3: Backup remoto
-echo -e "\n${BLUE}━━━ Etapa 3/6: Backup em produção ━━━${NC}"
-echo -e "${YELLOW}💾 Criando backup do código atual...${NC}"
+# Etapas 3-6: Executar remotamente (uma única conexão SSH)
+echo -e "\n${BLUE}━━━ Etapas 3-6: Deploy Remoto ━━━${NC}"
+echo -e "${YELLOW}🚀 Conectando ao servidor e executando deploy completo...${NC}"
 
 # Configurar comando SSH com opções para CI/CD
-SSH_OPTS="-T -o BatchMode=yes -o ConnectTimeout=10"
+SSH_OPTS="-T -o BatchMode=yes -o ConnectTimeout=10 -o LogLevel=ERROR"
 if [ -n "$SSH_KEY_PATH" ]; then
     SSH_CMD="ssh $SSH_OPTS -i $SSH_KEY_PATH"
 else
     SSH_CMD="ssh $SSH_OPTS"
 fi
 
+# Executar todas as etapas em uma única sessão SSH
 $SSH_CMD "${PRODUCTION_USER}@${PRODUCTION_SERVER}" << EOF
     set -e
-    echo "📁 Criando diretório de backup..."
+    
+    # ━━━ ETAPA 3: BACKUP ━━━
+    echo ""
+    echo "━━━ Etapa 3/6: Backup em produção ━━━"
+    echo "💾 Criando backup do código atual..."
     mkdir -p ${BACKUP_DIR}
     
-    echo "📦 Compactando código atual..."
     if [ -d "${PRODUCTION_PATH}" ]; then
         cd ${PRODUCTION_PATH}
         tar -czf ${BACKUP_DIR}/backup_${TIMESTAMP}.tar.gz \
             --exclude='vendor' \
             --exclude='node_modules' \
             --exclude='.git' \
-            .
+            . 2>/dev/null
         echo "✅ Backup criado: backup_${TIMESTAMP}.tar.gz"
         
         # Mantém apenas os 5 backups mais recentes
         cd ${BACKUP_DIR}
-        ls -t backup_*.tar.gz | tail -n +6 | xargs -r rm
+        ls -t backup_*.tar.gz 2>/dev/null | tail -n +6 | xargs -r rm
         echo "🧹 Backups antigos removidos (mantidos 5 mais recentes)"
     else
         echo "⚠️  Diretório de produção não existe. Pulando backup."
     fi
-EOF
-
-echo -e "${GREEN}✅ Backup concluído${NC}"
-
-# Etapa 4: Deploy para produção
-echo -e "\n${BLUE}━━━ Etapa 4/6: Deploy para servidor ━━━${NC}"
-echo -e "${YELLOW}🚀 Fazendo deploy do código...${NC}"
-
-$SSH_CMD "${PRODUCTION_USER}@${PRODUCTION_SERVER}" << EOF
-    set -e
     
-    # Navega para o diretório de produção
+    # ━━━ ETAPA 4: DEPLOY CÓDIGO ━━━
+    echo ""
+    echo "━━━ Etapa 4/6: Deploy para servidor ━━━"
+    echo "🚀 Fazendo deploy do código..."
     cd ${PRODUCTION_PATH}
     
     echo "📥 Atualizando código via Git..."
@@ -207,7 +204,6 @@ $SSH_CMD "${PRODUCTION_USER}@${PRODUCTION_SERVER}" << EOF
     
     echo "⚙️  Atualizando .env com secrets..."
     if [ -n "${FOURSQUARE_CLIENT_KEY}" ]; then
-        # Criar/atualizar .env com valores dos secrets do GitHub
         cat > .env << ENVEOF
 # Foursquare API Credentials
 FOURSQUARE_CLIENT_KEY=${FOURSQUARE_CLIENT_KEY}
@@ -239,41 +235,28 @@ ENVEOF
     fi
     
     echo "✅ Código atualizado (dependências PHP serão instaladas no Docker build)"
-EOF
-
-echo -e "${GREEN}✅ Código atualizado em produção${NC}"
-
-# Etapa 5: Build Docker em produção
-echo -e "\n${BLUE}━━━ Etapa 5/6: Build Docker ━━━${NC}"
-echo -e "${YELLOW}🐳 Rebuilding imagem Docker...${NC}"
-
-$SSH_CMD "${PRODUCTION_USER}@${PRODUCTION_SERVER}" << 'EOF'
-    set -e
-    cd ${PRODUCTION_PATH:-/var/www/4sqmet}
+    
+    # ━━━ ETAPA 5: BUILD DOCKER ━━━
+    echo ""
+    echo "━━━ Etapa 5/6: Build Docker ━━━"
+    echo "🐳 Rebuilding imagem Docker..."
     
     echo "🔧 Parando container atual..."
-    docker stop 4sqmet 2>/dev/null || echo "Container não estava rodando"
-    docker rm 4sqmet 2>/dev/null || echo "Container não existia"
+    docker stop 4sqmet 2>/dev/null || echo "   Container não estava rodando"
+    docker rm 4sqmet 2>/dev/null || echo "   Container não existia"
     
     echo "🏗️  Building nova imagem (ambiente de produção)..."
-    docker build --build-arg BUILD_ENV=production -t 4sqmet:latest .
+    docker build --build-arg BUILD_ENV=production -t 4sqmet:latest . --quiet
     
-    # Limpar imagens antigas (dangling)
     echo "🧹 Limpando imagens antigas..."
-    docker image prune -f
+    docker image prune -f >/dev/null 2>&1
     
     echo "✅ Imagem Docker atualizada"
-EOF
-
-echo -e "${GREEN}✅ Build Docker concluído${NC}"
-
-# Etapa 6: Iniciar container Docker
-echo -e "\n${BLUE}━━━ Etapa 6/6: Iniciar aplicação ━━━${NC}"
-echo -e "${YELLOW}🚀 Iniciando container Docker...${NC}"
-
-$SSH_CMD "${PRODUCTION_USER}@${PRODUCTION_SERVER}" << 'EOF'
-    set -e
-    cd ${PRODUCTION_PATH:-/var/www/4sqmet}
+    
+    # ━━━ ETAPA 6: INICIAR APLICAÇÃO ━━━
+    echo ""
+    echo "━━━ Etapa 6/6: Iniciar aplicação ━━━"
+    echo "🚀 Iniciando container Docker..."
     
     echo "🐳 Iniciando container..."
     docker run -d \
@@ -281,18 +264,16 @@ $SSH_CMD "${PRODUCTION_USER}@${PRODUCTION_SERVER}" << 'EOF'
         --restart unless-stopped \
         -p 80:80 \
         -p 443:443 \
-        -v $(pwd):/var/www/html \
-        -v $(pwd)/ssl:/etc/ssl/4sqmet \
-        4sqmet:latest
+        -v \$(pwd):/var/www/html \
+        -v \$(pwd)/ssl:/etc/ssl/4sqmet \
+        4sqmet:latest >/dev/null
     
-    # Aguardar container inicializar
     echo "⏳ Aguardando container inicializar..."
     sleep 5
     
-    # Verificar status
     if docker ps | grep -q 4sqmet; then
         echo "✅ Container 4sqmet está rodando"
-        docker ps --filter name=4sqmet --format "table {{.Names}}\t{{.Status}}\t{{.Ports}}"
+        docker ps --filter name=4sqmet --format "   {{.Names}}: {{.Status}}"
     else
         echo "❌ Container não está rodando!"
         echo "Últimas 20 linhas do log:"
@@ -300,18 +281,19 @@ $SSH_CMD "${PRODUCTION_USER}@${PRODUCTION_SERVER}" << 'EOF'
         exit 1
     fi
     
-    # Verificar health do container
     echo "🔍 Verificando saúde do container..."
     sleep 3
-    HEALTH=$(docker inspect --format='{{.State.Health.Status}}' 4sqmet 2>/dev/null || echo "no-healthcheck")
-    if [ "$HEALTH" = "healthy" ] || [ "$HEALTH" = "no-healthcheck" ]; then
+    HEALTH=\$(docker inspect --format='{{.State.Health.Status}}' 4sqmet 2>/dev/null || echo "no-healthcheck")
+    if [ "\$HEALTH" = "healthy" ] || [ "\$HEALTH" = "no-healthcheck" ]; then
         echo "✅ Container saudável"
     else
-        echo "⚠️  Container status: $HEALTH"
+        echo "⚠️  Container status: \$HEALTH"
     fi
+    
+    echo "✅ Aplicação iniciada"
 EOF
 
-echo -e "${GREEN}✅ Aplicação iniciada${NC}"
+echo -e "${GREEN}✅ Deploy remoto concluído${NC}"
 
 # Verificação final
 echo -e "\n${BLUE}━━━ Verificação final ━━━${NC}"

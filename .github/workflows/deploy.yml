@@ -145,7 +145,7 @@ jobs:
           path: js/
       
       - name: 🔐 Setup SSH Key
-        uses: webfactory/ssh-agent@v0.9.0
+        uses: webfactory/ssh-agent@v0.9.1
         with:
           ssh-private-key: ${{ secrets.DEPLOY_SSH_KEY }}
       
@@ -254,7 +254,7 @@ jobs:
     
     steps:
       - name: 🔐 Setup SSH Key
-        uses: webfactory/ssh-agent@v0.9.0
+        uses: webfactory/ssh-agent@v0.9.1
         with:
           ssh-private-key: ${{ secrets.DEPLOY_SSH_KEY }}
       
