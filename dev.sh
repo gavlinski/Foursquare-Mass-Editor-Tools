@@ -17,29 +17,71 @@ check_docker() {
 
 # Função para baixar e instalar o Dojo Toolkit
 download_dojo() {
-    if [ ! -d "js/dojo" ] || [ ! -d "js/dijit" ] || [ ! -d "js/dojox" ]; then
-        echo "📦 Dojo Toolkit não encontrado. Baixando v1.8.14..."
-        curl -L -o dojo.tar.gz http://download.dojotoolkit.org/release-1.8.14/dojo-release-1.8.14.tar.gz
-        echo "📂 Extraindo Dojo Toolkit..."
-        tar -xzf dojo.tar.gz
-        echo "🚚 Movendo arquivos..."
-        cp -r dojo-release-1.8.14/dojo js/
-        cp -r dojo-release-1.8.14/dijit js/
-        cp -r dojo-release-1.8.14/dojox js/
-        echo "🧹 Limpando arquivos temporários..."
-        rm -rf dojo-release-1.8.14 dojo.tar.gz
-        echo "✅ Dojo Toolkit instalado com sucesso!"
-    else
-        echo "✅ Dojo Toolkit já instalado."
+    echo "📦 Baixando Dojo Toolkit v1.8.14..."
+    
+    # URL correta do Dojo Toolkit 1.8.14
+    DOJO_URL="https://download.dojotoolkit.org/release-1.8.14/dojo-release-1.8.14.tar.gz"
+    
+    # Tenta baixar
+    if ! curl -L -f -o dojo.tar.gz "$DOJO_URL"; then
+        echo "❌ Erro ao baixar Dojo Toolkit"
+        echo "💡 Alternativa: Baixe manualmente de $DOJO_URL"
+        echo "   e extraia as pastas dojo/, dijit/, dojox/ para js/"
+        return 1
     fi
+    
+    echo "📂 Extraindo Dojo Toolkit..."
+    if ! tar -xzf dojo.tar.gz; then
+        echo "❌ Erro ao extrair arquivo"
+        rm -f dojo.tar.gz
+        return 1
+    fi
+    
+    echo "🚚 Movendo arquivos..."
+    mkdir -p js
+    cp -r dojo-release-1.8.14/dojo js/
+    cp -r dojo-release-1.8.14/dijit js/
+    cp -r dojo-release-1.8.14/dojox js/
+    
+    echo "🧹 Limpando arquivos temporários..."
+    rm -rf dojo-release-1.8.14 dojo.tar.gz
+    
+    echo "✅ Dojo Toolkit instalado com sucesso!"
+    return 0
+}
+
+# Função para verificar se Dojo está instalado
+check_dojo() {
+    if [ ! -d "js/dojo" ] || [ ! -d "js/dijit" ] || [ ! -d "js/dojox" ]; then
+        return 1
+    fi
+    return 0
 }
 
 # Função para verificar dependências do projeto
 check_dependencies() {
     echo "🔍 Verificando dependências do projeto..."
     
-    # Verifica e instala Dojo Toolkit
-    download_dojo
+    # Verifica Dojo Toolkit (opcional)
+    if ! check_dojo; then
+        echo ""
+        echo "⚠️  Dojo Toolkit não encontrado (js/dojo/, js/dijit/, js/dojox/)"
+        echo "💡 Em desenvolvimento, você pode:"
+        echo "   1. Usar arquivos locais (recomendado para debug)"
+        echo "   2. Usar CDN do Google (carregamento automático)"
+        echo ""
+        read -p "Deseja baixar Dojo Toolkit agora? (s/N): " -n 1 -r
+        echo
+        if [[ $REPLY =~ ^[Ss]$ ]]; then
+            download_dojo || {
+                echo "⚠️  Continuando sem Dojo local (usará CDN)"
+            }
+        else
+            echo "⏭️  Pulando download - aplicação usará CDN"
+        fi
+    else
+        echo "✅ Dojo Toolkit encontrado localmente"
+    fi
     
     # Verifica se existe arquivo .env
     if [ ! -f .env ]; then
@@ -55,6 +97,26 @@ check_dependencies() {
     fi
     
     echo "✅ Dependências verificadas!"
+}
+
+# Função para reiniciar o Apache dentro do container
+reload_apache() {
+    echo "🔄 Recarregando configuração do Apache..."
+    
+    # Copia configuração atualizada para o container
+    echo "📋 Copiando apache-config.conf..."
+    docker cp apache-config.conf foursquare-mass-editor:/etc/apache2/sites-available/000-default.conf
+    
+    # Testa configuração
+    if docker exec foursquare-mass-editor apache2ctl -t 2>&1 | grep -q "Syntax OK"; then
+        docker exec foursquare-mass-editor apache2ctl graceful 2>/dev/null
+        echo "✅ Apache recarregado com sucesso!"
+        echo "💡 CSP atualizado para permitir Dojo CDN"
+    else
+        echo "❌ Erro na configuração do Apache"
+        docker exec foursquare-mass-editor apache2ctl -t
+        return 1
+    fi
 }
 
 # Função para build da imagem
@@ -200,12 +262,25 @@ case "${1:-}" in
         stop_container
         run_container
         ;;
+    "reload")
+        check_docker
+        reload_apache
+        ;;
     "status")
         check_docker
         status
         ;;
+    "dojo")
+        # Comando para baixar Dojo manualmente
+        if check_dojo; then
+            echo "✅ Dojo Toolkit já instalado"
+            echo "📂 Localização: js/dojo/, js/dijit/, js/dojox/"
+        else
+            download_dojo
+        fi
+        ;;
     *)
-        echo "Uso: $0 {build|run|start|stop|logs|install|restart|status}"
+        echo "Uso: $0 {build|run|start|stop|logs|install|restart|reload|status|dojo}"
         echo ""
         echo "Comandos disponíveis:"
         echo "  build    - Constrói a imagem Docker"
@@ -215,7 +290,9 @@ case "${1:-}" in
         echo "  logs     - Mostra logs do container"
         echo "  install  - Instala dependências do Composer"
         echo "  restart  - Reinicia o container"
+        echo "  reload   - Recarrega configuração do Apache (sem reiniciar container)"
         echo "  status   - Verifica status e sincronização de arquivos"
+        echo "  dojo     - Baixa Dojo Toolkit manualmente (opcional)"
         exit 1
         ;;
 esac
