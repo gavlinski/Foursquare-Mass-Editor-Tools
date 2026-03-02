@@ -10,13 +10,18 @@ dojo.require("dojo.cookie");
 var DATA_VERSIONAMENTO = "20250401";
 var MESES = new Array("01", "02", "03", "04", "05", "06", "07", "08", "09", "10", "11", "12");
 
-var oauth_token = dojo.cookie("oauth_token");
+var oauth_token; // Inicializado via dojo.ready() após módulos carregarem
 
 var relatorio = [];
 
 var total = 0;
 var timer;
 var categorias = [];
+
+// Inicializa variáveis que dependem de módulos Dojo
+dojo.ready(function() {
+	oauth_token = dojo.cookie("oauth_token");
+});
 
 function addZero(i) {
 	if (i < 10)

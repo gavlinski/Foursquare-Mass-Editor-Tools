@@ -14,7 +14,9 @@ dojo.require("dojox.image");
 // Utilitários de logging (isLocalhost, debugLog, debugInfo) são providos por session-manager.js
 
 dojo.addOnLoad(function() {
-	dojox.image.preload(["js/dijit/themes/claro/images/progressBarFull.png", "js/dijit/themes/claro/images/progressBarAnim.gif"]);
+	// Preload de imagens do tema (Dojo carregará automaticamente quando necessário)
+	// dojox.image.preload(["js/dijit/themes/tundra/images/progressBarFull.png", "js/dijit/themes/tundra/images/progressBarAnim.gif"]);
+	
 	dlg_csv = new dijit.Dialog({
 		title: "Arquivo CSV",
 		style: "width: 570px"
