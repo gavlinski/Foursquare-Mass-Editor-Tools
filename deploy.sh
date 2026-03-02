@@ -15,7 +15,7 @@ CYAN='\033[0;36m'
 NC='\033[0m' # No Color
 
 # Configurações
-PRODUCTION_SERVER="4sq.eliotools.site"
+PRODUCTION_SERVER="${DEPLOY_HOST:-4sq.eliotools.site}"  # Permite override via DEPLOY_HOST
 PRODUCTION_USER="${DEPLOY_USER:-root}"
 PRODUCTION_PATH="/var/www/4sqmet"
 BRANCH="${DEPLOY_BRANCH:-refactor-ia}"
