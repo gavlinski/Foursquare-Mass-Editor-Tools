@@ -29,12 +29,17 @@ var CATEGORIAS_STATES_MUNICIPALITIES = [
 ];
 var CATEGORIA_CITY = "50aa9e094b90af0d42d5de0d";
 
-var oauth_token = dojo.cookie("oauth_token");
+var oauth_token; // Inicializado via dojo.ready() após módulos carregarem
 var txt = "";
 var json = "";
 
 var csv = [];
 var relatorio = [];
+
+// Inicializa variáveis que dependem de módulos Dojo
+dojo.ready(function() {
+	oauth_token = dojo.cookie("oauth_token");
+});
 
 var categorias = [];
 var store = {};
@@ -2922,10 +2927,47 @@ function showDialogReport() {
 /**
  * Implementa navegação vertical com teclas UP/DOWN nos campos de input
  * Simula comportamento de planilha: DOWN vai para o mesmo campo na linha abaixo
+ * Pula automaticamente campos desabilitados
  */
 function setupVerticalNavigation() {
 	const listContainer = dojo.byId("listContainer");
 	if (!listContainer) return;
+	
+	/**
+	 * Procura recursivamente o próximo campo habilitado na direção especificada
+	 * @param {string} fieldName - Nome do campo a procurar
+	 * @param {number} startIndex - Índice da linha inicial
+	 * @param {number} direction - Direção da busca (1 para baixo, -1 para cima)
+	 * @returns {HTMLElement|null} Próximo input habilitado ou null se não encontrar
+	 */
+	function findNextEnabledInput(fieldName, startIndex, direction) {
+		const maxAttempts = 100; // Limite de segurança para evitar loops infinitos
+		let attempts = 0;
+		let currentIndex = startIndex + direction;
+		
+		while (attempts < maxAttempts) {
+			const targetRow = dojo.byId("linha" + currentIndex);
+			
+			// Se não existe mais linha nesta direção, retorna null
+			if (!targetRow) {
+				return null;
+			}
+			
+			// Procura o input com o mesmo name na linha
+			const targetInput = dojo.query("input[name='" + fieldName + "'][type='text']", targetRow)[0];
+			
+			// Se encontrou o input e ele está habilitado, retorna
+			if (targetInput && !targetInput.disabled) {
+				return targetInput;
+			}
+			
+			// Se o input está desabilitado, continua procurando na mesma direção
+			currentIndex += direction;
+			attempts++;
+		}
+		
+		return null;
+	}
 	
 	// Busca todos os inputs dentro das linhas (exceto hidden)
 	dojo.query("section.row input[type='text']", listContainer).forEach(function(input) {
@@ -2952,15 +2994,12 @@ function setupVerticalNavigation() {
 			// Extrai o índice da linha atual do ID (formato: "linha0", "linha1", etc)
 			const currentIndex = parseInt(currentRow.id.replace("linha", ""), 10);
 			
-			// Calcula o índice da linha de destino
-			const targetIndex = (e.keyCode === dojo.keys.DOWN_ARROW) ? currentIndex + 1 : currentIndex - 1;
+			// Determina a direção da navegação (1 = DOWN, -1 = UP)
+			const direction = (e.keyCode === dojo.keys.DOWN_ARROW) ? 1 : -1;
 			
-			// Verifica se a linha de destino existe
-			const targetRow = dojo.byId("linha" + targetIndex);
-			if (!targetRow) return;
+			// Procura o próximo campo habilitado recursivamente
+			const targetInput = findNextEnabledInput(fieldName, currentIndex, direction);
 			
-			// Encontra o input com o mesmo name na linha de destino
-			const targetInput = dojo.query("input[name='" + fieldName + "'][type='text']", targetRow)[0];
 			if (targetInput) {
 				// Move o foco para o campo de destino
 				setTimeout(function() {
@@ -2971,7 +3010,7 @@ function setupVerticalNavigation() {
 		});
 	});
 	
-	debugLog('⌨️ Navegação vertical (UP/DOWN arrows) ativada nos campos');
+	debugLog('⌨️ Navegação vertical (UP/DOWN arrows) ativada nos campos (pula desabilitados)');
 }
 
 function verificarAlteracao(textbox, i) {
