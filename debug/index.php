@@ -70,6 +70,13 @@
             </div>
         </a>
 
+        <a href="test_dojo_cdn.php">
+            <div class="card">
+                <h2><span class="tag tag-ui">UI</span> Diagnóstico de CDN do Dojo</h2>
+                <p>Valida carregamento de módulos via CDN, testa dojo.cookie e dojoConfig. Útil para troubleshooting de timing assíncrono.</p>
+            </div>
+        </a>
+
         <div class="card">
             <h2><span class="tag tag-api">API</span> Endpoints de Backend</h2>
             <p>APIs diretas para automação e testes via curl/Postman:</p>
