@@ -32,30 +32,33 @@ require_once __DIR__ . '/includes/asset_helper.php';
 <meta http-equiv="cache-control" content="no-cache">
 <meta http-equiv="pragma" content="no-cache">
 <?php
+$DOJO_THEME_URL = dojo_theme_url('tundra');
 define("VERSION", "Venues Searcher 3.0.0");
 define("LINKS", '<link rel="shortcut icon" href="favicon.ico" type="image/x-icon">
-<link rel="stylesheet" type="text/css" href="js/dijit/themes/tundra/tundra.css">
+<link rel="stylesheet" type="text/css" href="' . $DOJO_THEME_URL . '">
 <link rel="stylesheet" type="text/css" href="estilo.css">
 ');
+ob_start();
+dojo_script(["parseOnLoad" => true]);
+define("DOJO_INIT", ob_get_clean());
 define("HBODY", '</head>
 <body class="tundra">
 ');
-define("PESQUISANDO", LINKS . HBODY . '<div id="carregando">Pesquisando venues&hellip;</div>
+define("PESQUISANDO", LINKS . DOJO_INIT . HBODY . '<div id="carregando">Pesquisando venues&hellip;</div>
 ');
-define("TEMPLATE1", '<?php dojo_script(["parseOnLoad" => true]); ?>
-<script>dojo.require("dijit.form.Button");</script>
+define("TEMPLATE1", '<script>dojo.require("dijit.form.Button");</script>
 ');
 define("TEMPLATE2", '<p><button dojoType="dijit.form.Button" type="button" onclick="history.go(-1)" style="margin-left: 0px;">Voltar</button></p>
 </body>
 </html>');
-define("ERRO01", TEMPLATE1 . '<p>Erro na convers&atilde;o do endere&ccedil;o em coordenadas geogr&aacute;ficas.</p>
+define("ERRO01", LINKS . DOJO_INIT . HBODY . TEMPLATE1 . '<p>Erro na convers&atilde;o do endere&ccedil;o em coordenadas geogr&aacute;ficas.</p>
 <p>Verifique o endere&ccedil;o ou as coordenadas e tente novamente.</p>
 ' . TEMPLATE2);
-define("ERRO02", TEMPLATE1 . '<p>Nenhuma venue encontrada nas coordenadas geogr&aacute;ficas informadas.</p>
+define("ERRO02", LINKS . DOJO_INIT . HBODY . TEMPLATE1 . '<p>Nenhuma venue encontrada nas coordenadas geogr&aacute;ficas informadas.</p>
 <p>Verifique a latitude e longitude e tente novamente.</p>
 ' . TEMPLATE2);
 define("ERRO99", '<meta http-equiv="refresh" content="5; url=index.php">
-' . LINKS . '</head>
+' . LINKS . DOJO_INIT . '</head>
 <body>
 <p>Erro ao fazer a pesquisa.</p>
 </body>

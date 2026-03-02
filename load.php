@@ -59,29 +59,30 @@ if (!isset($_SESSION["oauth_token"])) {
 <meta http-equiv="cache-control" content="no-cache">
 <meta http-equiv="pragma" content="no-cache">
 <?php
+$DOJO_THEME_URL = dojo_theme_url('tundra');
 define("VERSION", "Venues Loader 3.0.0");
 define("LINKS", '<link rel="shortcut icon" href="favicon.ico" type="image/x-icon">
-<link rel="stylesheet" type="text/css" href="js/dijit/themes/tundra/tundra.css">
-<link rel="stylesheet" type="text/css" href="estilo.css?v=<?php echo time(); ?>">
-<?php dojo_script(['parseOnLoad' => true]); ?>
+<link rel="stylesheet" type="text/css" href="' . $DOJO_THEME_URL . '">
+<link rel="stylesheet" type="text/css" href="estilo.css?v=' . time() . '">
 ');
+define("DOJO_INIT", '<?php dojo_script(["parseOnLoad" => true]); ?>');
 define("HBODY", '</head>
 <body class="tundra">
 ');
-define("CARREGANDO", LINKS . HBODY . '<div id="carregando">Carregando locais&hellip;</div>
+define("CARREGANDO", LINKS . DOJO_INIT . HBODY . '<div id="carregando">Carregando locais&hellip;</div>
 ');
 define("TEMPLATE1", '<script>dojo.require("dijit.form.Button");</script>
 ');
 define("TEMPLATE2", '<p><button dojoType="dijit.form.Button" type="button" onclick="history.go(-1)" style="margin-left: 0px;">Voltar</button></p>
 </body>
 </html>');
-define("ERRO01", LINKS . HBODY . TEMPLATE1 . '<p>O limite da API &eacute; de 500 requisi&ccedil;&otilde;es por hora por conjunto de endpoints por OAuth.</p>
+define("ERRO01", LINKS . DOJO_INIT . HBODY . TEMPLATE1 . '<p>O limite da API &eacute; de 500 requisi&ccedil;&otilde;es por hora por conjunto de endpoints por OAuth.</p>
 <p>Reduza a quantidade de linhas e tente novamente.</p>
 ' . TEMPLATE2);
-//define("ERRO02", LINKS . HBODY . TEMPLATE1 . '<p>Erro na leitura do ID ou URL de um dos locais.</p>
+//define("ERRO02", LINKS . DOJO_INIT . HBODY . TEMPLATE1 . '<p>Erro na leitura do ID ou URL de um dos locais.</p>
 //<p>Verifique o arquivo ou a lista e tente novamente.</p>
 //' . TEMPLATE2);
-define("ERRO03", LINKS . HBODY . TEMPLATE1 . '<p>Nenhum local encontrado no endere&ccedil;o informado.</p>
+define("ERRO03", LINKS . DOJO_INIT . HBODY . TEMPLATE1 . '<p>Nenhum local encontrado no endere&ccedil;o informado.</p>
 <p><b>Poss&iacute;veis causas:</b></p>
 <ul>
 <li>A p&aacute;gina exige autentica&ccedil;&atilde;o (login) para ser acessada</li>
@@ -97,7 +98,7 @@ define("ERRO03", LINKS . HBODY . TEMPLATE1 . '<p>Nenhum local encontrado no ende
 </ul>
 ' . TEMPLATE2);
 define("ERRO99", '<meta http-equiv="refresh" content="5; url=index.php">
-' . LINKS . '</head>
+' . LINKS . DOJO_INIT . '</head>
 <body>
 <p>Erro na leitura dos dados.</p>
 </body>
