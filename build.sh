@@ -20,6 +20,41 @@ echo "║   Foursquare Mass Editor Tools - Build System v3.0        ║"
 echo "╚════════════════════════════════════════════════════════════╝"
 echo -e "${NC}"
 
+# Detecta se npm está disponível, senão tenta usar Docker
+if ! command -v npm &> /dev/null; then
+    # Verifica se já está dentro de Docker (evita recursão)
+    if [ -f /.dockerenv ] || grep -q docker /proc/1/cgroup 2>/dev/null; then
+        echo -e "${RED}❌ npm não encontrado dentro do container Docker!${NC}"
+        exit 1
+    fi
+    
+    # Verifica se Docker está disponível
+    if ! command -v docker &> /dev/null; then
+        echo -e "${RED}❌ npm/npx não encontrado e Docker não está disponível.${NC}"
+        echo -e "${YELLOW}💡 Solução: Instale Node.js ou Docker${NC}"
+        exit 1
+    fi
+    
+    echo -e "${YELLOW}🐳 npm não encontrado localmente. Usando Docker...${NC}"
+    echo -e "${BLUE}   Imagem: node:22-alpine (~50MB)${NC}\n"
+    
+    # Executa build dentro de container Docker
+    if docker run --rm \
+        -v "$(pwd):/workspace" \
+        -w /workspace \
+        node:22-alpine \
+        sh build-docker.sh; then
+        
+        echo -e "\n${GREEN}✅ Build concluído com sucesso via Docker!${NC}"
+        echo -e "${BLUE}💡 Para builds mais rápidos, considere instalar Node.js localmente${NC}\n"
+        exit 0
+    else
+        echo -e "\n${RED}❌ Erro no build via Docker${NC}"
+        exit 1
+    fi
+fi
+
+# NPM disponível localmente - continua fluxo normal
 # Verifica se node_modules existe
 if [ ! -d "node_modules" ]; then
     echo -e "${YELLOW}📦 Instalando dependências...${NC}"

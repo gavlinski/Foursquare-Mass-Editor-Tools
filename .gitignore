@@ -77,3 +77,7 @@ docs/api/API_KEYS_DOCUMENTATION.md
 docs/features/PENDING.md
 docs/features/SESSION_BAR.md
 docs/deployment/SECRETS_MANAGEMENT.md
+
+# Build artifacts (JavaScript minificado)
+*.min.js
+*.min.js.map
