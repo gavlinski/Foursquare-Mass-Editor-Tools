@@ -272,7 +272,7 @@ ENVEOF
         --restart unless-stopped \
         -p 80:80 \
         -p 443:443 \
-        -v \$(pwd)/.env:/var/www/html/.env:ro \
+        --env-file .env \
         -v \$(pwd)/ssl:/etc/ssl/4sqmet:ro \
         4sqmet:latest >/dev/null
     

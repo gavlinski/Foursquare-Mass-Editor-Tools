@@ -3,6 +3,8 @@
  * Debug: Teste de configuração do Google Maps
  * 
  * Este arquivo verifica se as credenciais do Google Maps estão sendo carregadas corretamente
+ * 
+ * NOTA: Com --env-file no docker run, getenv() funciona nativamente sem precisar de Dotenv
  */
 
 header('Content-Type: text/html; charset=utf-8');
