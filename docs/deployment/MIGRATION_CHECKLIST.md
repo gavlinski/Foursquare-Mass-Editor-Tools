@@ -170,21 +170,21 @@ ${DROPLET_IP} 4sq.eliotools.site
 # Salvar: Ctrl+O, Enter, Ctrl+X
 ```
 
-- [ ] Override DNS configurado
+- [x] Override DNS configurado
 
 ### 3.2 Testar Fluxos Principais
 
-Abrir no navegador: `http://4sq.eliotools.site/4sqmet/`
+Abrir no navegador: `http://4sq.eliotools.site/`
 
 **Checklist de Testes:**
-- [ ] Página principal carrega
-- [ ] Login OAuth Foursquare funciona
-- [ ] Busca de venues por coordenadas
-- [ ] Upload CSV funciona
-- [ ] Edição em massa abre
-- [ ] Google Maps renderiza
-- [ ] Salvar edições funciona
-- [ ] Session persiste (refresh página)
+- [x] Página principal carrega
+- [x] Login OAuth Foursquare funciona
+- [x] Busca de venues por coordenadas
+- [x] Upload CSV funciona
+- [x] Edição em massa abre
+- [x] Google Maps renderiza
+- [x] Salvar edições funciona
+- [x] Session persiste (refresh página)
 
 **Se algum teste falhar:**
 ```bash
@@ -250,15 +250,15 @@ APP_URL:
 ```
 
 **E. Total:**
-- [ ] `DEPLOY_SSH_KEY` configurado
-- [ ] `DEPLOY_USER` configurado  
-- [ ] `DEPLOY_HOST` configurado
-- [ ] `FOURSQUARE_CLIENT_KEY` configurado
-- [ ] `FOURSQUARE_CLIENT_SECRET` configurado
-- [ ] `FOURSQUARE_REDIRECT_URI` configurado
-- [ ] `GOOGLE_MAPS_API_KEY` configurado
-- [ ] `GOOGLE_MAPS_MAP_ID` configurado
-- [ ] `APP_URL` configurado
+- [x] `DEPLOY_SSH_KEY` configurado
+- [x] `DEPLOY_USER` configurado  
+- [x] `DEPLOY_HOST` configurado
+- [x] `FOURSQUARE_CLIENT_KEY` configurado
+- [x] `FOURSQUARE_CLIENT_SECRET` configurado
+- [x] `FOURSQUARE_REDIRECT_URI` configurado
+- [x] `GOOGLE_MAPS_API_KEY` configurado
+- [x] `GOOGLE_MAPS_MAP_ID` configurado
+- [x] `APP_URL` configurado
 
 > **💡 Benefício**: O deploy agora cria/atualiza `.env` automaticamente no servidor com esses valores. Zero configuração manual!
 
