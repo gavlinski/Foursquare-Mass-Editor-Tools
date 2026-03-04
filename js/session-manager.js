@@ -289,34 +289,59 @@ class SessionManager {
         }
     }
 
-    showSystemInfo() {
+    async showSystemInfo() {
         // Coleta informações do sistema e ambiente
         const systemInfo = this.getSystemInfo();
-        const info = [
-            `🖥️ Navegador: ${systemInfo.browser}`,
-            `📱 Plataforma: ${systemInfo.platform}`,
-            `🌐 User Agent: ${systemInfo.userAgent}`,
-            `📍 URL Atual: ${systemInfo.currentUrl}`,
-            `🕐 Timestamp: ${systemInfo.timestamp}`,
-            ``,
-            `⚙️ Tecnologias do Sistema:`,
-            `• PHP 8.1 (Backend modernizado)`,
-            `• Dojo Toolkit v1.8.14`,
-            `• JavaScript ES6`,
-            `• Docker + Apache 2.4`,
-            `• Composer PSR-4`,
-            `• Foursquare API v2`,
-            ``,
-            `🔧 Funcionalidades:`,
-            `• OAuth2 Authentication`,
-            `• Session Management`,
-            `• Bulk Venue Editing`,
-            `• CSV Import/Export`,
-            `• Google Maps Integration`,
-            `• Real-time Status Monitoring`
-        ].join('\n');
         
-        alert(`ℹ️ Informações do Sistema:\n\n${info}`);
+        // Busca informações de build/versão do servidor
+        let buildInfo = null;
+        try {
+            const response = await fetch('version.php', {
+                method: 'GET',
+                credentials: 'same-origin',
+                cache: 'no-cache'
+            });
+            
+            if (response.ok) {
+                buildInfo = await response.json();
+                debugLog('🔧 Build info carregada:', buildInfo);
+            } else {
+                debugLog('⚠️ Não foi possível carregar build info:', response.status);
+            }
+        } catch (error) {
+            debugLog('⚠️ Erro ao buscar build info:', error);
+        }
+        
+        // Monta as informações para exibição (apenas dados dinâmicos)
+        const infoSections = [];
+        
+        // Seção de Versão/Build (se disponível)
+        if (buildInfo) {
+            infoSections.push([
+                `📦 Versão e Build:`,
+                `• Versão: ${buildInfo.version}`,
+                `• Commit: ${buildInfo.commit_short} (${buildInfo.branch})`,
+                `• Build: ${buildInfo.build_date}`,
+                `• Idade: ${buildInfo.build_age || 'agora'}`,
+                `• Método: ${buildInfo.built_with === 'docker' ? 'Docker' : 'Local'}`,
+                `• PHP: ${buildInfo.php_version}`,
+                `• Servidor: ${buildInfo.server_software}`
+            ].join('\n'));
+        }
+        
+        // Seção de Ambiente do Cliente
+        infoSections.push([
+            `🖥️ Ambiente do Cliente:`,
+            `• Navegador: ${systemInfo.browser} (${systemInfo.platform})`,
+            `• Resolução: ${systemInfo.screen} (Viewport: ${systemInfo.viewport})`,
+            `• Cookies: ${systemInfo.cookiesEnabled ? 'Habilitados' : 'Desabilitados'}`,
+            `• Status: ${systemInfo.onlineStatus}`,
+            `• Timestamp: ${systemInfo.timestamp}`
+        ].join('\n'));
+        
+        const info = infoSections.join('\n\n');
+        
+        alert(`ℹ️ Informações do Sistema\n\n${info}`);
     }
 
     getSystemInfo() {
