@@ -81,3 +81,4 @@ docs/deployment/SECRETS_MANAGEMENT.md
 # Build artifacts (JavaScript minificado)
 *.min.js
 *.min.js.map
+build-info.json

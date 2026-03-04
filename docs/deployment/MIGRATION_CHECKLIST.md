@@ -277,7 +277,7 @@ export SSH_KEY_PATH=~/.ssh/4sqmet_prod
 bash deploy.sh
 ```
 
-- [ ] Deploy manual bem-sucedido
+- [x] Deploy manual bem-sucedido
 
 ### 4.3 Testar GitHub Actions
 
@@ -288,8 +288,8 @@ bash deploy.sh
 4. Aguardar execução (~5 min)
 ```
 
-- [ ] GitHub Actions executado com sucesso
-- [ ] Deploy automático funcionou
+- [x] GitHub Actions executado com sucesso
+- [x] Deploy automático funcionou
 
 ---
 

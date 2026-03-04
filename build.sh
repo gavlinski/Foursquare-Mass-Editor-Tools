@@ -166,6 +166,47 @@ if ! grep -q "*.min.js" .gitignore 2>/dev/null; then
     echo -e "\n# Build artifacts\n*.min.js\n*.min.js.map" >> .gitignore
 fi
 
+# Gera arquivo de informações de build
+echo -e "\n${BLUE}📋 Gerando informações de build...${NC}"
+
+BUILD_DATE=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
+BUILD_TIMESTAMP=$(date +%s)
+COMMIT_HASH=$(git rev-parse HEAD 2>/dev/null || echo "unknown")
+COMMIT_SHORT=$(git rev-parse --short HEAD 2>/dev/null || echo "unknown")
+BRANCH=$(git rev-parse --abbrev-ref HEAD 2>/dev/null || echo "unknown")
+VERSION=$(git describe --tags --always 2>/dev/null || echo "dev-$(date +%Y%m%d)")
+
+# Detecta se está rodando em Docker ou localmente
+if [ -f /.dockerenv ] || grep -q docker /proc/1/cgroup 2>/dev/null; then
+    BUILT_WITH="docker"
+else
+    BUILT_WITH="local"
+fi
+
+# Cria o arquivo build-info.json
+cat > build-info.json <<EOF
+{
+  "build_date": "${BUILD_DATE}",
+  "build_timestamp": ${BUILD_TIMESTAMP},
+  "commit_hash": "${COMMIT_HASH}",
+  "commit_short": "${COMMIT_SHORT}",
+  "branch": "${BRANCH}",
+  "version": "${VERSION}",
+  "built_with": "${BUILT_WITH}",
+  "environment": "production"
+}
+EOF
+
+if [ -f build-info.json ]; then
+    echo -e "${GREEN}   ✅ build-info.json criado${NC}"
+    echo -e "      Versão: ${VERSION}"
+    echo -e "      Commit: ${COMMIT_SHORT}"
+    echo -e "      Branch: ${BRANCH}"
+    echo -e "      Build: ${BUILT_WITH}"
+else
+    echo -e "${RED}   ❌ Erro ao criar build-info.json${NC}"
+fi
+
 echo -e "\n${GREEN}🚀 Build pronto para deploy!${NC}\n"
 
 exit 0
