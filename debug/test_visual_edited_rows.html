@@ -1,0 +1,812 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Teste Visual: Linhas Editadas - Foursquare Mass Editor</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background: #f5f5f5;
+            padding: 20px;
+            line-height: 1.6;
+        }
+        
+        h1 {
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 24px;
+        }
+        
+        .intro {
+            background: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 30px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .intro h2 {
+            color: #2d5be3;
+            font-size: 18px;
+            margin-bottom: 10px;
+        }
+        
+        .intro ul {
+            margin-left: 20px;
+            margin-top: 10px;
+        }
+        
+        .intro li {
+            margin-bottom: 5px;
+        }
+        
+        .option-section {
+            background: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 30px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .option-section h2 {
+            color: #333;
+            font-size: 20px;
+            margin-bottom: 5px;
+        }
+        
+        .option-section .description {
+            color: #666;
+            font-size: 14px;
+            margin-bottom: 20px;
+            font-style: italic;
+        }
+        
+        .option-section .pros-cons {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-bottom: 20px;
+            padding: 15px;
+            background: #f9f9f9;
+            border-radius: 4px;
+        }
+        
+        .pros-cons h4 {
+            font-size: 14px;
+            margin-bottom: 8px;
+        }
+        
+        .pros-cons ul {
+            font-size: 13px;
+            margin-left: 20px;
+        }
+        
+        .pros-cons li {
+            margin-bottom: 4px;
+        }
+        
+        .pros h4 { color: #28a745; }
+        .cons h4 { color: #dc3545; }
+        
+        /* Base comum para todas as rows */
+        .row {
+            display: flex;
+            align-items: center;
+            margin: 8px 0;
+            padding: 8px 12px;
+            background: white;
+            border: 2px solid #dee2e6;
+            border-left: 4px solid #dee2e6; /* Mesma cor para harmonia visual */
+            border-radius: 4px;
+            min-height: 40px;
+            transition: all 0.2s ease;
+        }
+        
+        .row:hover {
+            border-color: #0066cc;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+        }
+        
+        .row-number {
+            font-weight: 600;
+            margin-right: 15px;
+            color: #666;
+            min-width: 30px;
+        }
+        
+        .row-content {
+            flex: 1;
+            display: flex;
+            gap: 10px;
+        }
+        
+        .field {
+            padding: 6px 10px;
+            border: 1px solid #ccc;
+            border-radius: 3px;
+            background: #fff;
+            font-size: 14px;
+        }
+        
+        .controls {
+            margin-top: 15px;
+            display: flex;
+            gap: 10px;
+        }
+        
+        .btn {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+        
+        .btn-edit {
+            background: #007bff;
+            color: white;
+        }
+        
+        .btn-edit:hover {
+            background: #0056b3;
+        }
+        
+        .btn-error {
+            background: #dc3545;
+            color: white;
+        }
+        
+        .btn-error:hover {
+            background: #c82333;
+        }
+        
+        .btn-reset {
+            background: #6c757d;
+            color: white;
+        }
+        
+        .btn-reset:hover {
+            background: #545b62;
+        }
+        
+        /* ============================================
+           OPÇÃO 1: Borda Azul Persistente (Sugestão Original)
+           ============================================ */
+        .option1 .row.edited {
+            border: 2px solid #2d5be3; /* Borda azul completa ao redor */
+            border-left: 4px solid #2d5be3; /* Mantém borda esquerda mais grossa */
+        }
+        
+        .option1 .row.edited:hover {
+            border-color: #1e3fb8;
+        }
+        
+        .option1 .row.error {
+            border: 2px solid #dc3545; /* Borda vermelha completa ao redor */
+            border-left: 4px solid #dc3545;
+            background: #fff5f5;
+        }
+        
+        .option1 .row.error:hover {
+            border-color: #c82333;
+            background: #ffe6e6;
+        }
+        
+        /* ============================================
+           OPÇÃO 2: Borda + Faixa Lateral Esquerda (Moderna)
+           ============================================ */
+        .option2 .row.edited {
+            border-left-color: #2d5be3; /* Apenas troca cor da borda existente */
+            background: #f8f9ff;
+        }
+        
+        .option2 .row.edited:hover {
+            border-left-color: #1e3fb8;
+            background: #f0f2ff;
+        }
+        
+        .option2 .row.error {
+            border-left-color: #dc3545; /* Vermelho para indicar erro */
+            background: #fff5f5;
+        }
+        
+        .option2 .row.error:hover {
+            border-left-color: #c82333;
+            background: #ffe6e6;
+        }
+        
+        /* ============================================
+           OPÇÃO 3: Background Gradiente Sutil
+           ============================================ */
+        .option3 .row.edited {
+            background: linear-gradient(90deg, #f0f2ff 0%, #ffffff 100%);
+            border-color: #2d5be3;
+        }
+        
+        .option3 .row.edited:hover {
+            background: linear-gradient(90deg, #e6e9ff 0%, #f8f9ff 100%);
+            border-color: #1e3fb8;
+        }
+        
+        .option3 .row.error {
+            background: linear-gradient(90deg, #ffe6e6 0%, #ffffff 100%);
+            border-color: #dc3545;
+        }
+        
+        .option3 .row.error:hover {
+            background: linear-gradient(90deg, #ffd6d6 0%, #fff5f5 100%);
+            border-color: #c82333;
+        }
+        
+        /* ============================================
+           OPÇÃO 4: Ícone + Badge (Alta Visibilidade)
+           ============================================ */
+        .option4 .row.edited {
+            border-color: #2d5be3;
+            position: relative;
+        }
+        
+        .option4 .row.edited::before {
+            content: "✎";
+            position: absolute;
+            right: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: #2d5be3;
+            color: white;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            font-weight: bold;
+        }
+        
+        .option4 .row.edited:hover {
+            border-color: #1e3fb8;
+        }
+        
+        .option4 .row.error {
+            border-color: #dc3545;
+            background: #fff5f5;
+            position: relative;
+        }
+        
+        .option4 .row.error::before {
+            content: "⚠";
+            position: absolute;
+            right: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: #dc3545;
+            color: white;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            font-weight: bold;
+        }
+        
+        .option4 .row.error:hover {
+            border-color: #c82333;
+            background: #ffe6e6;
+        }
+        
+        .option4 .row.edited:hover::before {
+            background: #1e3fb8;
+        }
+        
+        /* ============================================
+           OPÇÃO 5: Glow/Shadow (Elegante e Sutil)
+           ============================================ */
+        .option5 .row.edited {
+            border-color: #2d5be3;
+            box-shadow: 0 0 0 3px rgba(45, 91, 227, 0.1),
+                        0 2px 8px rgba(45, 91, 227, 0.15);
+        }
+        
+        .option5 .row.edited:hover {
+            border-color: #1e3fb8;
+            box-shadow: 0 0 0 4px rgba(45, 91, 227, 0.15),
+                        0 4px 12px rgba(45, 91, 227, 0.25);
+        }
+        
+        .option5 .row.error {
+            border-color: #dc3545;
+            box-shadow: 0 0 0 3px rgba(220, 53, 69, 0.1),
+                        0 2px 8px rgba(220, 53, 69, 0.15);
+        }
+        
+        .option5 .row.error:hover {
+            border-color: #c82333;
+            box-shadow: 0 0 0 4px rgba(220, 53, 69, 0.15),
+                        0 4px 12px rgba(220, 53, 69, 0.25);
+        }
+        
+        /* Badge de status */
+        .status-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+            margin-left: auto;
+        }
+        
+        .status-edited {
+            background: #e7f0ff;
+            color: #2d5be3;
+        }
+        
+        .accessibility-note {
+            background: #fff3cd;
+            border: 1px solid #ffc107;
+            border-radius: 4px;
+            padding: 12px;
+            margin-top: 15px;
+            font-size: 13px;
+        }
+        
+        .accessibility-note strong {
+            color: #856404;
+        }
+        
+        .recommendation {
+            background: #d4edda;
+            border: 1px solid #28a745;
+            border-radius: 4px;
+            padding: 15px;
+            margin: 20px 0;
+        }
+        
+        .recommendation h3 {
+            color: #155724;
+            margin-bottom: 8px;
+            font-size: 16px;
+        }
+        
+        .recommendation p {
+            color: #155724;
+            font-size: 14px;
+            line-height: 1.6;
+        }
+    </style>
+</head>
+<body>
+    <div class="intro">
+        <h1>🎨 Teste Visual: Indicadores de Linhas Editadas</h1>
+        <h2>Objetivo</h2>
+        <p>Escolher a melhor representação visual para linhas que possuem alterações pendentes de salvamento ou erros.</p>
+        
+        <h2 style="margin-top: 15px;">Instruções</h2>
+        <ul>
+            <li>Clique em <strong>"Simular Edição"</strong> para marcar linhas como editadas (estado: alterações pendentes)</li>
+            <li>Clique em <strong>"Simular Erro"</strong> para marcar linhas com erro (estado: falha ao carregar/salvar)</li>
+            <li>Passe o mouse sobre as linhas para ver o comportamento de hover</li>
+            <li>Compare as 5 opções considerando: visibilidade, elegância e acessibilidade</li>
+            <li>Clique em <strong>"Resetar"</strong> para limpar as edições e testar novamente</li>
+        </ul>
+    </div>
+    
+    <div class="recommendation">
+        <h3>🏆 Recomendação do Desenvolvedor</h3>
+        <p>
+            <strong>Opção 2 ou Opção 5</strong> são as mais alinhadas aos padrões modernos de UX/UI:<br>
+            • <strong>Opção 2</strong> (Faixa Lateral): Padrão usado por VS Code, GitHub, Slack - excelente para indicar mudanças<br>
+            • <strong>Opção 5</strong> (Glow/Shadow): Elegante e não-intrusiva, mantém foco no conteúdo<br>
+            Ambas oferecem alta visibilidade sem comprometer a legibilidade ou sobrecarregar visualmente.
+        </p>
+    </div>
+    
+    <!-- OPÇÃO 1 -->
+    <div class="option-section option1">
+        <h2>Opção 1: Borda Azul Persistente (Sugestão Original)</h2>
+        <p class="description">Borda com cor diferente (#2d5be3) para linhas editadas</p>
+        
+        <div class="pros-cons">
+            <div class="pros">
+                <h4>✅ Prós:</h4>
+                <ul>
+                    <li>Simples e direto</li>
+                    <li>Fácil de implementar</li>
+                    <li>Mudança de cor clara</li>
+                </ul>
+            </div>
+            <div class="cons">
+                <h4>❌ Contras:</h4>
+                <ul>
+                    <li>Pode não ser suficientemente distinto</li>
+                    <li>Diferença entre hover e editado pode ser sutil</li>
+                    <li>Menos moderno visualmente</li>
+                </ul>
+            </div>
+        </div>
+        
+        <div class="row">
+            <span class="row-number">01.</span>
+            <div class="row-content">
+                <input class="field" type="text" placeholder="Nome do Local" value="Café Central">
+                <input class="field" type="text" placeholder="Endereço" value="Rua Principal, 123">
+                <input class="field" type="text" placeholder="Cidade" value="São Paulo">
+            </div>
+        </div>
+        <div class="row edited">
+            <span class="row-number">02.</span>
+            <div class="row-content">
+                <input class="field" type="text" placeholder="Nome do Local" value="Restaurante Italiano">
+                <input class="field" type="text" placeholder="Endereço" value="Av. Central, 456">
+                <input class="field" type="text" placeholder="Cidade" value="Rio de Janeiro">
+            </div>
+        </div>
+        <div class="row">
+            <span class="row-number">03.</span>
+            <div class="row-content">
+                <input class="field" type="text" placeholder="Nome do Local" value="Padaria do Bairro">
+                <input class="field" type="text" placeholder="Endereço" value="Rua das Flores, 789">
+                <input class="field" type="text" placeholder="Cidade" value="Curitiba">
+            </div>
+        </div>
+        <div class="row edited">
+            <span class="row-number">04.</span>
+            <div class="row-content">
+                <input class="field" type="text" placeholder="Nome do Local" value="Bar do João">
+                <input class="field" type="text" placeholder="Endereço" value="Praça Central, 100">
+                <input class="field" type="text" placeholder="Cidade" value="Brasília">
+            </div>
+        </div>
+        
+        <div class="controls">
+            <button class="btn btn-edit" onclick="toggleEdit(this, 'option1')">Simular Edição</button>
+            <button class="btn btn-error" onclick="toggleError(this, 'option1')">Simular Erro</button>
+            <button class="btn btn-reset" onclick="resetEdit(this, 'option1')">Resetar</button>
+        </div>
+    </div>
+    
+    <!-- OPÇÃO 2 -->
+    <div class="option-section option2">
+        <h2>Opção 2: Faixa Lateral + Background (Moderna) 🌟</h2>
+        <p class="description">Barra lateral esquerda colorida + fundo sutil azul claro</p>
+        
+        <div class="pros-cons">
+            <div class="pros">
+                <h4>✅ Prós:</h4>
+                <ul>
+                    <li><strong>Padrão da indústria</strong> (VS Code, GitHub, Slack)</li>
+                    <li>Alta visibilidade sem ser agressivo</li>
+                    <li>Diferenciação clara do estado normal</li>
+                    <li>Elegante e moderno</li>
+                </ul>
+            </div>
+            <div class="cons">
+                <h4>❌ Contras:</h4>
+                <ul>
+                    <li>Requer ajuste no layout (borda esquerda mais grossa)</li>
+                </ul>
+            </div>
+        </div>
+        
+        <div class="row">
+            <span class="row-number">01.</span>
+            <div class="row-content">
+                <input class="field" type="text" placeholder="Nome do Local" value="Café Central">
+                <input class="field" type="text" placeholder="Endereço" value="Rua Principal, 123">
+                <input class="field" type="text" placeholder="Cidade" value="São Paulo">
+            </div>
+        </div>
+        <div class="row edited">
+            <span class="row-number">02.</span>
+            <div class="row-content">
+                <input class="field" type="text" placeholder="Nome do Local" value="Restaurante Italiano">
+                <input class="field" type="text" placeholder="Endereço" value="Av. Central, 456">
+                <input class="field" type="text" placeholder="Cidade" value="Rio de Janeiro">
+            </div>
+        </div>
+        <div class="row">
+            <span class="row-number">03.</span>
+            <div class="row-content">
+                <input class="field" type="text" placeholder="Nome do Local" value="Padaria do Bairro">
+                <input class="field" type="text" placeholder="Endereço" value="Rua das Flores, 789">
+                <input class="field" type="text" placeholder="Cidade" value="Curitiba">
+            </div>
+        </div>
+        <div class="row edited">
+            <span class="row-number">04.</span>
+            <div class="row-content">
+                <input class="field" type="text" placeholder="Nome do Local" value="Bar do João">
+                <input class="field" type="text" placeholder="Endereço" value="Praça Central, 100">
+                <input class="field" type="text" placeholder="Cidade" value="Brasília">
+            </div>
+        </div>
+        
+        <div class="controls">
+            <button class="btn btn-edit" onclick="toggleEdit(this, 'option2')">Simular Edição</button>
+            <button class="btn btn-error" onclick="toggleError(this, 'option2')">Simular Erro</button>
+            <button class="btn btn-reset" onclick="resetEdit(this, 'option2')">Resetar</button>
+        </div>
+        
+        <div class="accessibility-note">
+            <strong>♿ Acessibilidade:</strong> A faixa lateral é reconhecida universalmente como indicador de mudança, facilitando a compreensão para todos os usuários.
+        </div>
+    </div>
+    
+    <!-- OPÇÃO 3 -->
+    <div class="option-section option3">
+        <h2>Opção 3: Background Gradiente Sutil</h2>
+        <p class="description">Gradiente suave de azul claro para branco + borda azul</p>
+        
+        <div class="pros-cons">
+            <div class="pros">
+                <h4>✅ Prós:</h4>
+                <ul>
+                    <li>Visualmente elegante</li>
+                    <li>Destaque sutil mas efetivo</li>
+                    <li>Moderno e profissional</li>
+                </ul>
+            </div>
+            <div class="cons">
+                <h4>❌ Contras:</h4>
+                <ul>
+                    <li>Pode ser muito sutil para alguns usuários</li>
+                    <li>Gradiente pode distrair do conteúdo</li>
+                    <li>Performance levemente afetada (gradientes)</li>
+                </ul>
+            </div>
+        </div>
+        
+        <div class="row">
+            <span class="row-number">01.</span>
+            <div class="row-content">
+                <input class="field" type="text" placeholder="Nome do Local" value="Café Central">
+                <input class="field" type="text" placeholder="Endereço" value="Rua Principal, 123">
+                <input class="field" type="text" placeholder="Cidade" value="São Paulo">
+            </div>
+        </div>
+        <div class="row edited">
+            <span class="row-number">02.</span>
+            <div class="row-content">
+                <input class="field" type="text" placeholder="Nome do Local" value="Restaurante Italiano">
+                <input class="field" type="text" placeholder="Endereço" value="Av. Central, 456">
+                <input class="field" type="text" placeholder="Cidade" value="Rio de Janeiro">
+            </div>
+        </div>
+        <div class="row">
+            <span class="row-number">03.</span>
+            <div class="row-content">
+                <input class="field" type="text" placeholder="Nome do Local" value="Padaria do Bairro">
+                <input class="field" type="text" placeholder="Endereço" value="Rua das Flores, 789">
+                <input class="field" type="text" placeholder="Cidade" value="Curitiba">
+            </div>
+        </div>
+        <div class="row edited">
+            <span class="row-number">04.</span>
+            <div class="row-content">
+                <input class="field" type="text" placeholder="Nome do Local" value="Bar do João">
+                <input class="field" type="text" placeholder="Endereço" value="Praça Central, 100">
+                <input class="field" type="text" placeholder="Cidade" value="Brasília">
+            </div>
+        </div>
+        
+        <div class="controls">
+            <button class="btn btn-edit" onclick="toggleEdit(this, 'option3')">Simular Edição</button>
+            <button class="btn btn-error" onclick="toggleError(this, 'option3')">Simular Erro</button>
+            <button class="btn btn-reset" onclick="resetEdit(this, 'option3')">Resetar</button>
+        </div>
+    </div>
+    
+    <!-- OPÇÃO 4 -->
+    <div class="option-section option4">
+        <h2>Opção 4: Ícone + Badge (Alta Visibilidade)</h2>
+        <p class="description">Borda azul + ícone de lápis em badge circular no canto direito</p>
+        
+        <div class="pros-cons">
+            <div class="pros">
+                <h4>✅ Prós:</h4>
+                <ul>
+                    <li><strong>Máxima visibilidade</strong></li>
+                    <li>Indicador visual explícito</li>
+                    <li>Difícil de ignorar</li>
+                    <li>Intuitivo (lápis = edição)</li>
+                </ul>
+            </div>
+            <div class="cons">
+                <h4>❌ Contras:</h4>
+                <ul>
+                    <li>Pode ser visualmente poluído com muitas linhas</li>
+                    <li>Ocupa espaço adicional</li>
+                    <li>Pode sobrepor conteúdo em telas pequenas</li>
+                </ul>
+            </div>
+        </div>
+        
+        <div class="row">
+            <span class="row-number">01.</span>
+            <div class="row-content">
+                <input class="field" type="text" placeholder="Nome do Local" value="Café Central">
+                <input class="field" type="text" placeholder="Endereço" value="Rua Principal, 123">
+                <input class="field" type="text" placeholder="Cidade" value="São Paulo">
+            </div>
+        </div>
+        <div class="row edited">
+            <span class="row-number">02.</span>
+            <div class="row-content">
+                <input class="field" type="text" placeholder="Nome do Local" value="Restaurante Italiano">
+                <input class="field" type="text" placeholder="Endereço" value="Av. Central, 456">
+                <input class="field" type="text" placeholder="Cidade" value="Rio de Janeiro">
+            </div>
+        </div>
+        <div class="row">
+            <span class="row-number">03.</span>
+            <div class="row-content">
+                <input class="field" type="text" placeholder="Nome do Local" value="Padaria do Bairro">
+                <input class="field" type="text" placeholder="Endereço" value="Rua das Flores, 789">
+                <input class="field" type="text" placeholder="Cidade" value="Curitiba">
+            </div>
+        </div>
+        <div class="row edited">
+            <span class="row-number">04.</span>
+            <div class="row-content">
+                <input class="field" type="text" placeholder="Nome do Local" value="Bar do João">
+                <input class="field" type="text" placeholder="Endereço" value="Praça Central, 100">
+                <input class="field" type="text" placeholder="Cidade" value="Brasília">
+            </div>
+        </div>
+        
+        <div class="controls">
+            <button class="btn btn-edit" onclick="toggleEdit(this, 'option4')">Simular Edição</button>
+            <button class="btn btn-error" onclick="toggleError(this, 'option4')">Simular Erro</button>
+            <button class="btn btn-reset" onclick="resetEdit(this, 'option4')">Resetar</button>
+        </div>
+        
+        <div class="accessibility-note">
+            <strong>⚠️ Atenção:</strong> Em listas com muitas edições simultâneas, múltiplos badges podem poluir visualmente.
+        </div>
+    </div>
+    
+    <!-- OPÇÃO 5 -->
+    <div class="option-section option5">
+        <h2>Opção 5: Glow/Shadow (Elegante e Sutil) 🌟</h2>
+        <p class="description">Borda azul + sombra suave colorida (efeito glow)</p>
+        
+        <div class="pros-cons">
+            <div class="pros">
+                <h4>✅ Prós:</h4>
+                <ul>
+                    <li><strong>Extremamente elegante</strong></li>
+                    <li>Não-intrusivo mas visível</li>
+                    <li>Efeito "premium" e moderno</li>
+                    <li>Mantém foco no conteúdo</li>
+                </ul>
+            </div>
+            <div class="cons">
+                <h4>❌ Contras:</h4>
+                <ul>
+                    <li>Pode ser sutil demais para monitores de baixa qualidade</li>
+                    <li>Sombras múltiplas podem afetar performance levemente</li>
+                </ul>
+            </div>
+        </div>
+        
+        <div class="row">
+            <span class="row-number">01.</span>
+            <div class="row-content">
+                <input class="field" type="text" placeholder="Nome do Local" value="Café Central">
+                <input class="field" type="text" placeholder="Endereço" value="Rua Principal, 123">
+                <input class="field" type="text" placeholder="Cidade" value="São Paulo">
+            </div>
+        </div>
+        <div class="row edited">
+            <span class="row-number">02.</span>
+            <div class="row-content">
+                <input class="field" type="text" placeholder="Nome do Local" value="Restaurante Italiano">
+                <input class="field" type="text" placeholder="Endereço" value="Av. Central, 456">
+                <input class="field" type="text" placeholder="Cidade" value="Rio de Janeiro">
+            </div>
+        </div>
+        <div class="row">
+            <span class="row-number">03.</span>
+            <div class="row-content">
+                <input class="field" type="text" placeholder="Nome do Local" value="Padaria do Bairro">
+                <input class="field" type="text" placeholder="Endereço" value="Rua das Flores, 789">
+                <input class="field" type="text" placeholder="Cidade" value="Curitiba">
+            </div>
+        </div>
+        <div class="row edited">
+            <span class="row-number">04.</span>
+            <div class="row-content">
+                <input class="field" type="text" placeholder="Nome do Local" value="Bar do João">
+                <input class="field" type="text" placeholder="Endereço" value="Praça Central, 100">
+                <input class="field" type="text" placeholder="Cidade" value="Brasília">
+            </div>
+        </div>
+        
+        <div class="controls">
+            <button class="btn btn-edit" onclick="toggleEdit(this, 'option5')">Simular Edição</button>
+            <button class="btn btn-error" onclick="toggleError(this, 'option5')">Simular Erro</button>
+            <button class="btn btn-reset" onclick="resetEdit(this, 'option5')">Resetar</button>
+        </div>
+        
+        <div class="accessibility-note">
+            <strong>♿ Acessibilidade:</strong> O efeito glow oferece contraste suficiente mantendo elegância, funcionando bem para a maioria dos usuários.
+        </div>
+    </div>
+    
+    <script>
+        function toggleEdit(button, optionClass) {
+            const section = button.closest('.option-section');
+            const rows = section.querySelectorAll('.row:not(.edited):not(.error)');
+            
+            rows.forEach((row, index) => {
+                if (index % 2 === 1) { // Alterna linhas para simular edição
+                    row.classList.add('edited');
+                }
+            });
+            
+            button.disabled = true;
+            button.textContent = 'Linhas Editadas!';
+            button.style.opacity = '0.6';
+        }
+        
+        function toggleError(button, optionClass) {
+            const section = button.closest('.option-section');
+            const rows = section.querySelectorAll('.row:not(.error):not(.edited)');
+            
+            rows.forEach((row, index) => {
+                if (index % 3 === 0) { // Marca algumas linhas com erro
+                    row.classList.add('error');
+                }
+            });
+            
+            button.disabled = true;
+            button.textContent = 'Erros Simulados!';
+            button.style.opacity = '0.6';
+        }
+        
+        function resetEdit(button, optionClass) {
+            const section = button.closest('.option-section');
+            const rows = section.querySelectorAll('.row');
+            const editBtn = section.querySelector('.btn-edit');
+            const errorBtn = section.querySelector('.btn-error');
+            
+            rows.forEach(row => {
+                row.classList.remove('edited');
+                row.classList.remove('error');
+            });
+            
+            if (editBtn) {
+                editBtn.disabled = false;
+                editBtn.textContent = 'Simular Edição';
+                editBtn.style.opacity = '1';
+            }
+            
+            if (errorBtn) {
+                errorBtn.disabled = false;
+                errorBtn.textContent = 'Simular Erro';
+                errorBtn.style.opacity = '1';
+            }
+        }
+    </script>
+    
+    <footer style="text-align: center; padding: 30px 20px; margin-top: 40px; border-top: 2px solid #e0e0e0;">
+        <a href="index.php" style="display: inline-flex; align-items: center; gap: 8px; color: #3498db; text-decoration: none; padding: 12px 24px; border-radius: 8px; background: #f8f9fa; font-weight: 500; font-size: 14px; transition: all 0.2s; border: 1px solid #dee2e6;" onmouseover="this.style.color='#2980b9'; this.style.background='#e9ecef'; this.style.borderColor='#ced4da';" onmouseout="this.style.color='#3498db'; this.style.background='#f8f9fa'; this.style.borderColor='#dee2e6';">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+                <path d="M8 0a8 8 0 1 0 0 16A8 8 0 0 0 8 0zm3.5 7.5a.5.5 0 0 1 0 1H5.707l2.147 2.146a.5.5 0 0 1-.708.708l-3-3a.5.5 0 0 1 0-.708l3-3a.5.5 0 1 1 .708.708L5.707 7.5H11.5z"/>
+            </svg>
+            Voltar para Debug
+        </a>
+    </footer>
+</body>
+</html>

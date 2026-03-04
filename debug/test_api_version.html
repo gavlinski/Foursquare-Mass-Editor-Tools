@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Teste de Versionamento da API Foursquare</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 20px;
+            color: #333;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+            overflow: hidden;
+        }
+        
+        header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        
+        header h1 {
+            font-size: 24px;
+            margin-bottom: 10px;
+        }
+        
+        .info-box {
+            background: #e7f3ff;
+            border-left: 4px solid #3182ce;
+            padding: 20px;
+            margin: 20px;
+            border-radius: 6px;
+        }
+        
+        .info-box h3 {
+            color: #2c5282;
+            margin-bottom: 10px;
+        }
+        
+        .info-box ul {
+            margin-left: 20px;
+            line-height: 1.8;
+        }
+        
+        .controls {
+            padding: 30px;
+            background: #f8f9fa;
+            border-bottom: 2px solid #e9ecef;
+        }
+        
+        .control-group {
+            margin-bottom: 15px;
+        }
+        
+        .control-group label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: #495057;
+        }
+        
+        .control-group input {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #dee2e6;
+            border-radius: 6px;
+            font-size: 14px;
+        }
+        
+        .btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 14px 28px;
+            font-size: 16px;
+            font-weight: 600;
+            border-radius: 6px;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+        
+        .results {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 20px;
+            padding: 30px;
+        }
+        
+        .result-panel {
+            background: #f8f9fa;
+            border-radius: 8px;
+            padding: 20px;
+            border: 2px solid #dee2e6;
+        }
+        
+        .result-panel h3 {
+            color: #495057;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #dee2e6;
+        }
+        
+        .result-panel pre {
+            background: #ffffff;
+            padding: 15px;
+            border-radius: 6px;
+            overflow-x: auto;
+            font-size: 12px;
+            line-height: 1.6;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        
+        .comparison {
+            padding: 20px;
+            margin: 20px 30px;
+            background: #d4edda;
+            border-left: 4px solid #28a745;
+            border-radius: 6px;
+        }
+        
+        .comparison h3 {
+            color: #155724;
+            margin-bottom: 10px;
+        }
+        
+        .diff {
+            background: #fff3cd;
+            border-left: 4px solid #ffc107;
+            padding: 20px;
+            margin: 20px 30px;
+            border-radius: 6px;
+        }
+        
+        .diff h3 {
+            color: #856404;
+            margin-bottom: 10px;
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #6c757d;
+        }
+        
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🧪 Teste de Versionamento da API Foursquare v2</h1>
+            <p>Compare resultados entre diferentes versões do parâmetro v=YYYYMMDD</p>
+        </header>
+        
+        <div class="info-box">
+            <h3>📚 Informações sobre Versionamento</h3>
+            <ul>
+                <li><strong>Versão Atual:</strong> 20230404 (04 de abril de 2023) - ~3 anos desatualizada</li>
+                <li><strong>Versão Recomendada:</strong> 20250401 (01 de abril de 2025) - incluir melhorias de 2024</li>
+                <li><strong>Mudança Importante (Abril 2024):</strong> Endpoints agora aceitam Category Codes além de Category IDs</li>
+                <li><strong>Documentação:</strong> <a href="https://docs.foursquare.com/developer/reference/versioning" target="_blank">Versioning Guide</a></li>
+            </ul>
+        </div>
+        
+        <div class="controls">
+            <div class="control-group">
+                <label>🔑 OAuth Token:</label>
+                <input type="text" id="token" placeholder="Cole seu OAuth token aqui">
+            </div>
+            
+            <div class="control-group">
+                <label>🆔 Venue ID para testar:</label>
+                <input type="text" id="venue-id" placeholder="Ex: 4b058f63f964a520c3a422e3" value="4b058f63f964a520c3a422e3">
+            </div>
+            
+            <button class="btn" onclick="compareVersions()">🚀 Comparar Versões</button>
+        </div>
+        
+        <div id="results"></div>
+    </div>
+    
+    <script>
+        async function compareVersions() {
+            const token = document.getElementById('token').value;
+            const venueId = document.getElementById('venue-id').value;
+            
+            if (!token || !venueId) {
+                alert('Por favor, preencha OAuth Token e Venue ID');
+                return;
+            }
+            
+            const resultsDiv = document.getElementById('results');
+            resultsDiv.innerHTML = '<div class="loading"><div class="spinner"></div><p>Carregando comparações...</p></div>';
+            
+            const versions = [
+                { date: '20230404', label: '🔴 Versão Atual (Abril 2023)' },
+                { date: '20240401', label: '🟡 Versão Intermediária (Abril 2024)' },
+                { date: '20250401', label: '🟢 Versão Recomendada (Abril 2025)' }
+            ];
+            
+            const results = {};
+            
+            // Testa todas as versões
+            for (const version of versions) {
+                try {
+                    const url = `https://api.foursquare.com/v2/venues/${venueId}?oauth_token=${token}&v=${version.date}`;
+                    const response = await fetch(url);
+                    results[version.date] = {
+                        label: version.label,
+                        data: await response.json(),
+                        status: response.status
+                    };
+                } catch (error) {
+                    results[version.date] = {
+                        label: version.label,
+                        error: error.message
+                    };
+                }
+            }
+            
+            displayResults(results);
+            analyzeChanges(results);
+        }
+        
+        function displayResults(results) {
+            const resultsDiv = document.getElementById('results');
+            
+            let html = '<div class="results">';
+            
+            for (const [version, result] of Object.entries(results)) {
+                html += `
+                    <div class="result-panel">
+                        <h3>${result.label}</h3>
+                        <pre>${JSON.stringify(result.error || result.data, null, 2)}</pre>
+                    </div>
+                `;
+            }
+            
+            html += '</div>';
+            resultsDiv.innerHTML = html;
+        }
+        
+        function analyzeChanges(results) {
+            const resultsDiv = document.getElementById('results');
+            
+            // Compara estruturas
+            const v2023 = results['20230404']?.data;
+            const v2024 = results['20240401']?.data;
+            const v2025 = results['20250401']?.data;
+            
+            if (!v2023 || !v2024 || !v2025) {
+                resultsDiv.innerHTML += `
+                    <div class="diff">
+                        <h3>❌ Erro ao comparar</h3>
+                        <p>Não foi possível buscar dados de todas as versões. Verifique seu token e venue ID.</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            // Verifica diferenças
+            const venue2023 = v2023.response?.venue || {};
+            const venue2024 = v2024.response?.venue || {};
+            const venue2025 = v2025.response?.venue || {};
+            
+            const keys2023 = Object.keys(venue2023).sort();
+            const keys2024 = Object.keys(venue2024).sort();
+            const keys2025 = Object.keys(venue2025).sort();
+            
+            const newIn2024 = keys2024.filter(k => !keys2023.includes(k));
+            const newIn2025 = keys2025.filter(k => !keys2024.includes(k));
+            const removed2024 = keys2023.filter(k => !keys2024.includes(k));
+            const removed2025 = keys2024.filter(k => !keys2025.includes(k));
+            
+            let analysisHtml = '';
+            
+            if (newIn2024.length === 0 && newIn2025.length === 0 && 
+                removed2024.length === 0 && removed2025.length === 0) {
+                analysisHtml = `
+                    <div class="comparison">
+                        <h3>✅ Atualização Segura!</h3>
+                        <p><strong>Não foram detectadas mudanças estruturais entre as versões.</strong></p>
+                        <p>Você pode atualizar o DATA_VERSIONAMENTO para <strong>20250401</strong> com segurança.</p>
+                        <br>
+                        <p><strong>Benefícios da atualização:</strong></p>
+                        <ul style="margin-left: 20px; margin-top: 10px;">
+                            <li>Suporte a Category Codes (adicionado em abril/2024)</li>
+                            <li>API mais atualizada e otimizada</li>
+                            <li>Melhor compatibilidade futura</li>
+                        </ul>
+                    </div>
+                `;
+            } else {
+                analysisHtml = `
+                    <div class="diff">
+                        <h3>⚠️ Diferenças Detectadas</h3>
+                        ${newIn2024.length > 0 ? `<p><strong>Novos campos em 2024:</strong> ${newIn2024.join(', ')}</p>` : ''}
+                        ${newIn2025.length > 0 ? `<p><strong>Novos campos em 2025:</strong> ${newIn2025.join(', ')}</p>` : ''}
+                        ${removed2024.length > 0 ? `<p><strong>Campos removidos em 2024:</strong> ${removed2024.join(', ')}</p>` : ''}
+                        ${removed2025.length > 0 ? `<p><strong>Campos removidos em 2025:</strong> ${removed2025.join(', ')}</p>` : ''}
+                        <br>
+                        <p><strong>Recomendação:</strong> Revise as diferenças antes de atualizar.</p>
+                    </div>
+                `;
+            }
+            
+            resultsDiv.innerHTML += analysisHtml;
+        }
+    </script>
+    
+    <footer style="text-align: center; padding: 30px 20px; margin-top: 40px; border-top: 2px solid #e0e0e0;">
+        <a href="index.php" style="display: inline-flex; align-items: center; gap: 8px; color: #3498db; text-decoration: none; padding: 12px 24px; border-radius: 8px; background: #f8f9fa; font-weight: 500; font-size: 14px; transition: all 0.2s; border: 1px solid #dee2e6;" onmouseover="this.style.color='#2980b9'; this.style.background='#e9ecef'; this.style.borderColor='#ced4da';" onmouseout="this.style.color='#3498db'; this.style.background='#f8f9fa'; this.style.borderColor='#dee2e6';">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+                <path d="M8 0a8 8 0 1 0 0 16A8 8 0 0 0 8 0zm3.5 7.5a.5.5 0 0 1 0 1H5.707l2.147 2.146a.5.5 0 0 1-.708.708l-3-3a.5.5 0 0 1 0-.708l3-3a.5.5 0 1 1 .708.708L5.707 7.5H11.5z"/>
+            </svg>
+            Voltar para Debug
+        </a>
+    </footer>
+</body>
+</html>
