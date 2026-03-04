@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Teste de Preservação de Scroll</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 2500px;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            max-width: 600px;
+            margin: 0 auto;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        }
+        .marker {
+            background: #f0f0f0;
+            padding: 20px;
+            margin: 40px 0;
+            border-radius: 8px;
+            border-left: 4px solid #667eea;
+        }
+        a {
+            display: inline-block;
+            background: #667eea;
+            color: white;
+            padding: 12px 24px;
+            text-decoration: none;
+            border-radius: 8px;
+            font-weight: bold;
+            transition: background 0.2s;
+        }
+        a:hover {
+            background: #764ba2;
+        }
+        .info-box {
+            background: #e7f3ff;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            border-left: 4px solid #0066cc;
+        }
+        .console-log {
+            background: #1e1e1e;
+            color: #00ff00;
+            padding: 10px;
+            border-radius: 4px;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🧪 Teste de Preservação de Scroll</h1>
+        
+        <div class="info-box">
+            <strong>📋 Instruções:</strong>
+            <ol>
+                <li>Role a página até o <strong>final</strong></li>
+                <li>Abra o <strong>Console do navegador</strong> (F12 → Console)</li>
+                <li>Clique em <strong>"Ir para Página 2"</strong></li>
+                <li>Clique em <strong>"Voltar"</strong> na Página 2</li>
+                <li>Verifique se voltou para a <strong>mesma posição</strong></li>
+            </ol>
+        </div>
+
+        <div class="marker" style="margin-top: 100px;">
+            <h3>📍 Marcador 1 (Topo)</h3>
+            <p>Esta é a primeira seção da página.</p>
+        </div>
+
+        <div class="marker" style="margin-top: 200px;">
+            <h3>📍 Marcador 2 (Meio)</h3>
+            <p>Esta é a seção do meio da página.</p>
+        </div>
+
+        <div class="marker" style="margin-top: 300px;">
+            <h3>📍 Marcador 3 (Antes do Link)</h3>
+            <p>Role mais um pouco para chegar ao link de teste.</p>
+        </div>
+
+        <div class="marker" style="margin-top: 400px;">
+            <h3>🎯 CLIQUE AQUI</h3>
+            <p>Este é o ponto recomendado para testar. Role até aqui e então clique no link abaixo:</p>
+            
+            <a href="test_scroll_preservation_page2.html" onclick="saveScrollPosition(); return true;">
+                ➡️ Ir para Página 2
+            </a>
+            
+            <div class="console-log" id="log">
+                Aguardando interação...
+            </div>
+        </div>
+
+        <div class="marker" style="margin-top: 500px;">
+            <h3>📍 Marcador 4 (Final)</h3>
+            <p>Esta é a última seção da página.</p>
+        </div>
+    </div>
+
+    <script>
+        function addLog(message) {
+            const log = document.getElementById('log');
+            const timestamp = new Date().toLocaleTimeString();
+            log.innerHTML = `[${timestamp}] ${message}<br>` + log.innerHTML;
+            console.log(`[${timestamp}] ${message}`);
+        }
+
+        function saveScrollPosition() {
+            const scrollPos = window.scrollY || document.documentElement.scrollTop;
+            sessionStorage.setItem('testScrollPos', scrollPos);
+            addLog(`📍 Salvando posição: ${scrollPos}px`);
+            addLog(`✅ Posição salva no sessionStorage`);
+            console.log('📦 sessionStorage:', sessionStorage.getItem('testScrollPos'));
+        }
+
+        // Restaurar posição ao carregar
+        (function() {
+            const savedScrollPos = sessionStorage.getItem('testScrollPos');
+            if (savedScrollPos) {
+                const scrollPos = parseInt(savedScrollPos);
+                addLog(`🔄 Restaurando scroll para: ${scrollPos}px`);
+                
+                // Tenta restaurar imediatamente
+                window.scrollTo(0, scrollPos);
+                
+                // E também após um pequeno delay
+                setTimeout(function() {
+                    window.scrollTo(0, scrollPos);
+                    addLog(`✅ Scroll restaurado com sucesso!`);
+                    sessionStorage.removeItem('testScrollPos');
+                }, 100);
+            } else {
+                addLog(`ℹ️  Nenhuma posição salva (primeira visita)`);
+            }
+        })();
+
+        // Log da posição atual ao rolar
+        let scrollTimeout;
+        window.addEventListener('scroll', function() {
+            clearTimeout(scrollTimeout);
+            scrollTimeout = setTimeout(function() {
+                const currentPos = window.scrollY || document.documentElement.scrollTop;
+                document.title = `Scroll: ${Math.round(currentPos)}px`;
+            }, 100);
+        });
+    </script>
+</body>
+</html>

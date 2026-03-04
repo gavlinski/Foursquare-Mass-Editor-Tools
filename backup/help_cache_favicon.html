@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Como Limpar Cache do Favicon</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            padding: 40px;
+            background: #f5f7fa;
+            line-height: 1.6;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            padding: 40px;
+            border-radius: 12px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #2c3e50;
+            border-bottom: 3px solid #3498db;
+            padding-bottom: 10px;
+        }
+        h2 {
+            color: #34495e;
+            margin-top: 30px;
+        }
+        .method {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+            border-left: 4px solid #3498db;
+        }
+        .keyboard {
+            background: #2c3e50;
+            color: white;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-family: 'Courier New', monospace;
+            font-weight: bold;
+        }
+        .warning {
+            background: #fff3cd;
+            padding: 15px;
+            border-radius: 8px;
+            border-left: 4px solid #ffc107;
+            margin: 20px 0;
+        }
+        .success {
+            background: #d4edda;
+            padding: 15px;
+            border-radius: 8px;
+            border-left: 4px solid #28a745;
+            margin: 20px 0;
+        }
+        code {
+            background: #f4f4f4;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: 'Courier New', monospace;
+        }
+        ol {
+            padding-left: 25px;
+        }
+        li {
+            margin: 10px 0;
+        }
+        .favicon-example {
+            text-align: center;
+            margin: 30px 0;
+            padding: 20px;
+            background: #f0f2f5;
+            border-radius: 8px;
+        }
+        img {
+            width: 64px;
+            height: 64px;
+            image-rendering: pixelated;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🖼️ Como Atualizar o Favicon (Limpar Cache)</h1>
+
+        <div class="success">
+            <strong>✅ Favicon atual:</strong><br>
+            <div class="favicon-example">
+                <img src="../favicon.ico" alt="Favicon atual">
+                <p><small>Se você vê o favicon antigo aqui, o cache precisa ser limpo</small></p>
+            </div>
+        </div>
+
+        <div class="warning">
+            <strong>⚠️ Por que o favicon não atualiza?</strong><br>
+            Os navegadores fazem cache agressivo de favicons para economizar banda e melhorar performance. 
+            Mesmo depois de substituir o arquivo, o navegador pode mostrar a versão antiga por dias.
+        </div>
+
+        <h2>🔧 Métodos para Forçar Atualização</h2>
+
+        <div class="method">
+            <h3>1️⃣ Hard Refresh (Mais Rápido)</h3>
+            <p><strong>Chrome, Firefox, Edge:</strong></p>
+            <ul>
+                <li><strong>Windows/Linux:</strong> <span class="keyboard">Ctrl</span> + <span class="keyboard">Shift</span> + <span class="keyboard">R</span></li>
+                <li><strong>Mac:</strong> <span class="keyboard">Cmd</span> + <span class="keyboard">Shift</span> + <span class="keyboard">R</span></li>
+            </ul>
+            <p>ou</p>
+            <ul>
+                <li><strong>Windows/Linux:</strong> <span class="keyboard">Ctrl</span> + <span class="keyboard">F5</span></li>
+                <li><strong>Mac:</strong> <span class="keyboard">Cmd</span> + <span class="keyboard">Option</span> + <span class="keyboard">R</span></li>
+            </ul>
+        </div>
+
+        <div class="method">
+            <h3>2️⃣ Limpar Cache Completo (Recomendado)</h3>
+            
+            <h4>🌐 Google Chrome / Edge:</h4>
+            <ol>
+                <li>Pressione <span class="keyboard">Ctrl</span> + <span class="keyboard">Shift</span> + <span class="keyboard">Del</span> (Mac: <span class="keyboard">Cmd</span> + <span class="keyboard">Shift</span> + <span class="keyboard">Del</span>)</li>
+                <li>Selecione <strong>"Tempo todo"</strong> ou <strong>"Desde sempre"</strong></li>
+                <li>Marque <strong>"Imagens e arquivos em cache"</strong></li>
+                <li>Clique em <strong>"Limpar dados"</strong></li>
+            </ol>
+
+            <h4>🦊 Firefox:</h4>
+            <ol>
+                <li>Pressione <span class="keyboard">Ctrl</span> + <span class="keyboard">Shift</span> + <span class="keyboard">Del</span> (Mac: <span class="keyboard">Cmd</span> + <span class="keyboard">Shift</span> + <span class="keyboard">Del</span>)</li>
+                <li>Selecione <strong>"Tudo"</strong> em Intervalo de tempo</li>
+                <li>Marque <strong>"Cache"</strong></li>
+                <li>Clique em <strong>"Limpar agora"</strong></li>
+            </ol>
+
+            <h4>🧭 Safari (Mac):</h4>
+            <ol>
+                <li>Menu <strong>Safari</strong> → <strong>Preferências</strong> → <strong>Avançado</strong></li>
+                <li>Marque <strong>"Mostrar menu Desenvolver"</strong></li>
+                <li>Menu <strong>Desenvolver</strong> → <strong>Esvaziar Caches</strong></li>
+                <li>Ou pressione <span class="keyboard">Cmd</span> + <span class="keyboard">Option</span> + <span class="keyboard">E</span></li>
+            </ol>
+        </div>
+
+        <div class="method">
+            <h3>3️⃣ Limpar Apenas o Favicon (Específico)</h3>
+            
+            <h4>Chrome/Edge:</h4>
+            <ol>
+                <li>Abra uma nova aba anônima (<span class="keyboard">Ctrl</span> + <span class="keyboard">Shift</span> + <span class="keyboard">N</span>)</li>
+                <li>Acesse diretamente: <code>http://localhost/favicon.ico</code></li>
+                <li>Pressione <span class="keyboard">Ctrl</span> + <span class="keyboard">Shift</span> + <span class="keyboard">R</span></li>
+                <li>Feche a aba anônima e recarregue a página principal</li>
+            </ol>
+
+            <h4>Firefox:</h4>
+            <ol>
+                <li>Digite na barra de endereços: <code>about:cache</code></li>
+                <li>Clique em <strong>"List Cache Entries"</strong> em "disk"</li>
+                <li>Procure por <code>favicon.ico</code></li>
+                <li>Clique no link e depois em <strong>"Delete"</strong></li>
+            </ol>
+        </div>
+
+        <div class="method">
+            <h3>4️⃣ Método DevTools (Para Desenvolvedores)</h3>
+            <ol>
+                <li>Abra DevTools (<span class="keyboard">F12</span>)</li>
+                <li>Clique com botão direito no ícone de recarregar</li>
+                <li>Selecione <strong>"Esvaziar cache e recarregar forçado"</strong></li>
+            </ol>
+        </div>
+
+        <div class="method">
+            <h3>5️⃣ Forçar Nova Versão (Via URL Query String)</h3>
+            <ol>
+                <li>Abra diretamente: <code>http://localhost/favicon.ico?v=2</code></li>
+                <li>Você verá o novo favicon</li>
+                <li>Depois disso, o cache será atualizado</li>
+            </ol>
+        </div>
+
+        <h2>✅ Como Verificar se Funcionou</h2>
+        <div class="success">
+            <ol>
+                <li>Recarregue esta página</li>
+                <li>Verifique o ícone no <strong>canto superior da imagem acima</strong></li>
+                <li>Verifique a <strong>aba do navegador</strong></li>
+                <li>Verifique os <strong>favoritos</strong> (se tiver adicionado)</li>
+            </ol>
+        </div>
+
+        <h2>🔄 Teste de Scroll</h2>
+        <div class="warning">
+            <strong>📍 Quanto ao problema do scroll:</strong><br>
+            Criei um arquivo de teste isolado para diagnosticar o problema:
+            <ul>
+                <li><a href="test_scroll_preservation.html" target="_blank">🧪 Teste de Preservação de Scroll</a></li>
+            </ul>
+            <p>Abra o link acima, siga as instruções e verifique no <strong>Console do navegador</strong> (F12 → Console) 
+            se aparecem as mensagens de salvamento e restauração da posição.</p>
+        </div>
+
+        <h2>🐛 Debug do Scroll</h2>
+        <div class="method">
+            <p>Para verificar se o código de scroll está funcionando:</p>
+            <ol>
+                <li>Acesse qualquer página de debug (ex: <a href="test_session_debug.html">test_session_debug.html</a>)</li>
+                <li>Abra o Console (<span class="keyboard">F12</span> → Console)</li>
+                <li>Role a página para baixo</li>
+                <li>Clique em "Voltar para Debug"</li>
+                <li>Verifique se aparecem as mensagens:
+                    <ul>
+                        <li><code>📍 Salvando posição: XXXpx</code></li>
+                        <li><code>✅ Posição salva</code></li>
+                    </ul>
+                </li>
+                <li>Na página index.php, verifique se aparece:
+                    <ul>
+                        <li><code>🔄 Restaurando scroll para: XXXpx</code></li>
+                    </ul>
+                </li>
+            </ol>
+        </div>
+
+        <p style="text-align: center; margin-top: 40px; color: #7f8c8d;">
+            <a href="index.php" style="color: #3498db; text-decoration: none;">← Voltar para Debug</a>
+        </p>
+    </div>
+</body>
+</html>

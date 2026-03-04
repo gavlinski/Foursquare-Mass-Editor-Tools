@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Página 2 - Teste de Scroll</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .container {
+            background: white;
+            padding: 40px;
+            border-radius: 12px;
+            max-width: 600px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            text-align: center;
+        }
+        h1 {
+            color: #f5576c;
+            margin-bottom: 20px;
+        }
+        .info-box {
+            background: #fff3cd;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+            border-left: 4px solid #ffc107;
+            text-align: left;
+        }
+        a {
+            display: inline-block;
+            background: #f5576c;
+            color: white;
+            padding: 15px 30px;
+            text-decoration: none;
+            border-radius: 8px;
+            font-weight: bold;
+            font-size: 18px;
+            transition: background 0.2s;
+            margin-top: 20px;
+        }
+        a:hover {
+            background: #f093fb;
+        }
+        .console-log {
+            background: #1e1e1e;
+            color: #00ff00;
+            padding: 15px;
+            border-radius: 4px;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            margin-top: 20px;
+            text-align: left;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>✅ Página 2</h1>
+        
+        <div class="info-box">
+            <strong>📋 Próximo Passo:</strong>
+            <p>Agora clique no botão "Voltar" abaixo. Você deve retornar para a <strong>mesma posição</strong> onde estava na Página 1 (próximo ao link "Ir para Página 2").</p>
+            <p><strong>⚠️ Importante:</strong> Não use o botão Voltar do navegador, use o link abaixo!</p>
+        </div>
+
+        <a href="test_scroll_preservation.html">
+            ⬅️ Voltar para Página 1
+        </a>
+
+        <div class="console-log" id="log">
+            <strong>📦 Estado do sessionStorage:</strong><br>
+            <span id="storage-info">Carregando...</span>
+        </div>
+    </div>
+
+    <script>
+        // Mostrar estado do sessionStorage
+        const storageInfo = document.getElementById('storage-info');
+        const savedPos = sessionStorage.getItem('testScrollPos');
+        
+        if (savedPos) {
+            storageInfo.innerHTML = `
+                ✅ Posição salva encontrada: <strong>${savedPos}px</strong><br>
+                <small>Esta posição será restaurada ao voltar</small>
+            `;
+            console.log('✅ Posição salva:', savedPos);
+        } else {
+            storageInfo.innerHTML = `
+                ❌ Nenhuma posição salva encontrada<br>
+                <small style="color: #ff6b6b;">O teste pode não funcionar corretamente</small>
+            `;
+            console.error('❌ sessionStorage vazio!');
+        }
+
+        // Log ao carregar
+        console.log('📄 Página 2 carregada');
+        console.log('📦 sessionStorage completo:', sessionStorage);
+    </script>
+</body>
+</html>
