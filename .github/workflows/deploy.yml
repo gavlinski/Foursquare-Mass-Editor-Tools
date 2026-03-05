@@ -117,6 +117,7 @@ jobs:
           path: |
             js/*.min.js
             js/*.min.js.map
+            build-info.json
           retention-days: 7
       
       - name: ✅ Build completed
@@ -144,7 +145,7 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: minified-assets
-          path: js/
+          path: .  # Download para raiz, mantendo estrutura original (js/*.min.js e build-info.json)
       
       - name: 🔐 Setup SSH Key
         uses: webfactory/ssh-agent@v0.9.1
@@ -171,6 +172,32 @@ jobs:
           APP_URL: ${{ secrets.APP_URL }}
         run: |
           echo "🚀 Deploying branch: ${DEPLOY_BRANCH}"
+          
+          # CRITICAL: Copy build artifacts to server BEFORE running deploy.sh
+          # This ensures build-info.json and minified files are available for Docker build
+          echo "📤 Copying build artifacts to server..."
+          
+          # Build-info.json (root directory)
+          if [ -f "build-info.json" ]; then
+            scp -o StrictHostKeyChecking=no -o BatchMode=yes \
+              build-info.json \
+              ${DEPLOY_USER}@${DEPLOY_HOST}:/var/www/4sqmet/
+            echo "✅ build-info.json copied"
+          else
+            echo "⚠️  build-info.json not found - will use defaults"
+          fi
+          
+          # Minified JavaScript files
+          if ls js/*.min.js 1> /dev/null 2>&1; then
+            scp -o StrictHostKeyChecking=no -o BatchMode=yes \
+              js/*.min.js js/*.min.js.map \
+              ${DEPLOY_USER}@${DEPLOY_HOST}:/var/www/4sqmet/js/
+            echo "✅ Minified assets copied"
+          else
+            echo "⚠️  Minified assets not found"
+          fi
+          
+          echo ""
           bash deploy.sh
       
       - name: 🔍 Health check

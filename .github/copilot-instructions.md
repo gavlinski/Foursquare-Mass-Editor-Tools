@@ -280,6 +280,37 @@ fi
   - SSH to server, git pull, composer install
   - Restarts Apache service
 
+### Critical: build-info.json in CI/CD
+**IMPORTANT**: `build-info.json` is in `.gitignore` and must be transferred as artifact:
+
+```yaml
+# .github/workflows/deploy.yml
+# Job: build
+- name: Upload build artifacts
+  path: |
+    js/*.min.js
+    js/*.min.js.map
+    build-info.json  # ← CRITICAL: Must include this
+
+# Job: deploy
+- name: Download build artifacts
+  path: .  # ← CRITICAL: Root path keeps structure
+
+- name: Deploy to server
+  run: |
+    # CRITICAL: SCP artifacts BEFORE deploy.sh
+    scp build-info.json ${DEPLOY_USER}@${DEPLOY_HOST}:/var/www/4sqmet/
+    scp js/*.min.js ${DEPLOY_USER}@${DEPLOY_HOST}:/var/www/4sqmet/js/
+    bash deploy.sh
+```
+
+**Why this is critical:**
+1. `build-info.json` is generated during CI/CD build with correct Git metadata
+2. File is NOT in Git repository (ignored)
+3. `git pull` on server won't bring the file
+4. Must be copied explicitly via SCP before Docker build
+5. Without it, `version.php` uses fallback values ("Development", "dev", etc.)
+
 ### Environment Field
 The `"environment": "production"` field indicates:
 - **Build type** (minified/production build)
@@ -591,70 +622,6 @@ echo '<input dojoType="dijit.form.TextBox" style="width: 10em;">';
 // Check console for Map ID requirement (v3.32+)
 // Verify API key restrictions in Google Cloud Console
 ```
-
-## 🏗️ Build System & Version Tracking
-
-### Build Info System
-The project uses `build-info.json` to track build metadata. This file is:
-- **Generated** by build scripts (not committed to git)
-- **Environment-specific** (different in local vs CI/CD)
-- **Read by** `version.php` and `js/session-manager.js`
-
-```json
-{
-  "build_date": "2026-03-05T01:28:36Z",
-  "build_timestamp": 1772674116,
-  "commit_hash": "full_commit_hash",
-  "commit_short": "short_hash",
-  "branch": "refactor-ia",
-  "version": "4SQMET-02_03_00-117-gddcf206",
-  "build_source": "local",
-  "environment": "production"
-}
-```
-
-### Build Source Values
-The `build_source` field indicates WHO triggered the build:
-
-- **`"local"`** - Developer ran `./build.sh` manually in their machine
-- **`"deploy"`** - Developer ran `./deploy.sh` for manual production deploy
-- **`"ci"`** - GitHub Actions automatic build (CI/CD pipeline)
-
-**Detection Logic** (in build.sh and build-docker.sh):
-```bash
-if [ -z "$BUILD_SOURCE" ]; then
-    if [ "$CI" = "true" ] || [ "$GITHUB_ACTIONS" = "true" ] || [ -n "$CI_COMMIT_SHA" ]; then
-        BUILD_SOURCE="ci"
-    else
-        BUILD_SOURCE="local"
-    fi
-fi
-```
-
-### Build Scripts
-- **`build.sh`**: Main orchestrator, detects npm availability
-  - If npm absent → Uses Docker container (node:22-alpine)
-  - If npm present → Local build with Terser
-  - Detects CI environment automatically
-  - Sets BUILD_SOURCE before generating build-info.json
-
-- **`build-docker.sh`**: Runs inside Docker container
-  - Receives BUILD_SOURCE via environment variable
-  - Falls back to CI detection if not set
-  - Generates build-info.json inside container
-
-- **`deploy.sh`**: Manual production deployment
-  - Sets `export BUILD_SOURCE="deploy"` before build
-  - Runs build.sh to generate artifacts
-  - SSH to server, git pull, composer install
-  - Restarts Apache service
-
-### Environment Field
-The `"environment": "production"` field indicates:
-- **Build type** (minified/production build)
-- **NOT runtime environment** (local vs production server)
-- Always "production" because builds are always minified
-- To check runtime environment, use `$_SERVER['SERVER_NAME']` in PHP
 
 ## 📊 Version Endpoint & System Info
 
