@@ -299,7 +299,10 @@ class SessionManager {
             const response = await fetch('version.php', {
                 method: 'GET',
                 credentials: 'same-origin',
-                cache: 'no-cache'
+                cache: 'no-cache',
+                headers: {
+                    'Accept': 'application/json'
+                }
             });
             
             if (response.ok) {
@@ -317,13 +320,28 @@ class SessionManager {
         
         // Seção de Versão/Build (se disponível)
         if (buildInfo) {
+            // Determina label da origem da build
+            let buildSourceLabel = 'Desconhecido';
+            const buildSource = buildInfo.build_source || 'unknown';
+            switch(buildSource) {
+                case 'ci':
+                    buildSourceLabel = 'Automático (CI/CD)';
+                    break;
+                case 'deploy':
+                    buildSourceLabel = 'Manual (Deploy Script)';
+                    break;
+                case 'local':
+                    buildSourceLabel = 'Manual (Desenvolvedor)';
+                    break;
+            }
+            
             infoSections.push([
                 `📦 Versão e Build:`,
                 `• Versão: ${buildInfo.version}`,
                 `• Commit: ${buildInfo.commit_short} (${buildInfo.branch})`,
                 `• Build: ${buildInfo.build_date}`,
                 `• Idade: ${buildInfo.build_age || 'agora'}`,
-                `• Método: ${buildInfo.built_with === 'docker' ? 'Docker' : 'Local'}`,
+                `• Origem: ${buildSourceLabel}`,
                 `• PHP: ${buildInfo.php_version}`,
                 `• Servidor: ${buildInfo.server_software}`
             ].join('\n'));
