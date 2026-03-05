@@ -1,5 +1,7 @@
 # 🔨 Build e Deploy - Guia Completo
 
+> **📖 Para setup inicial de servidor de produção, veja**: [deployment/DEPLOY.md](deployment/DEPLOY.md)
+
 ## 📋 Índice
 - [Entendendo as Informações de Build](#entendendo-as-informações-de-build)
 - [Badges e Tags Possíveis](#badges-e-tags-possíveis)
@@ -459,20 +461,40 @@ Job 2: Tests (2-3 min)
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 Job 3: Build & Minify (3-4 min)
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+✓ Checkout code (fetch-depth: 0 para tags)
 ✓ Setup Node.js 18
 ✓ npm install
-✓ ./build.sh (gera *.min.js)
-✓ Upload artifacts (arquivos minificados)
+✓ ./build.sh (gera *.min.js + build-info.json)
+✓ Upload artifacts (*.min.js + build-info.json)
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 Job 4: Deploy (2-3 min)
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+✓ Checkout code (fetch-depth: 0)
 ✓ Download build artifacts
+✓ SCP artifacts to server (build-info.json + *.min.js)
 ✓ Setup SSH (usa secrets.DEPLOY_SSH_KEY)
 ✓ ./deploy.sh (modo não-interativo)
 ```
 
 **Total:** ~10-15 minutos do push até site atualizado
+
+**⚠️ CRÍTICO - fetch-depth: 0**
+
+Todos os jobs que precisam de informações Git devem usar `fetch-depth: 0`:
+
+```yaml
+- name: 📥 Checkout code
+  uses: actions/checkout@v4
+  with:
+    fetch-depth: 0  # Fetch all history and tags
+```
+
+**Por quê?**
+- Sem isso, apenas o último commit é baixado (shallow checkout)
+- `git describe --tags` não encontra tags → retorna apenas hash curto
+- Versão fica "abc123" em vez de "4SQMET-02_03_00-117-gabc123"
+- Build-info.json com dados incompletos
 
 **Características:**
 - ✅ **Totalmente automático** após push
@@ -550,6 +572,45 @@ git push       # Push primeiro!
 
 ## 🐛 Troubleshooting
 
+### Problema: Versão mostra apenas commit hash curto no CI/CD (ex: "7a693ca" em vez de "4SQMET-02_03_00-117-gddcf206")
+
+**Causa:** Checkout shallow no CI/CD sem fetch de tags
+
+O `git describe --tags --always` precisa do histórico completo para encontrar tags. Se o workflow faz checkout shallow (padrão), apenas o commit atual é baixado.
+
+**Sintoma:**
+```json
+// ❌ INCORRETO (sem tags)
+{
+  "version": "7a693ca"
+}
+
+// ✅ CORRETO (com tags)
+{
+  "version": "4SQMET-02_03_00-117-gddcf206"
+}
+```
+
+**Solução:** Adicionar `fetch-depth: 0` no workflow
+
+```yaml
+# .github/workflows/deploy.yml
+jobs:
+  build:
+    steps:
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # ← CRÍTICO: Fetch all history and tags
+```
+
+**Verificação:**
+```bash
+# Deve retornar versão completa com tag
+git describe --tags --always
+# 4SQMET-02_03_00-117-gddcf206
+```
+
 ### Problema: `build-info.json` mostra commit antigo
 
 **Causa:** Não rodou build depois dos novos commits
@@ -604,6 +665,12 @@ find . -name "*.php" -exec php -l {} \;  # Valida sintaxe
 
 ## 📚 Referências
 
+### Documentação Relacionada
+- **[deployment/DEPLOY.md](deployment/DEPLOY.md)**: Guia rápido de deploy e setup de produção
+- **[deployment/DEPLOYMENT_STRATEGY.md](deployment/DEPLOYMENT_STRATEGY.md)**: Análise de estratégias de deploy
+- **[TODO_DEPLOY_ADVANCED.md](TODO_DEPLOY_ADVANCED.md)**: Deploy avançado (rollback, branch específica)
+
+### Arquivos do Sistema
 - **Scripts:** `build.sh`, `build-docker.sh`, `deploy.sh`, `dev.sh`
 - **CI/CD:** `.github/workflows/deploy.yml`
 - **Version Endpoint:** `version.php`
@@ -612,5 +679,5 @@ find . -name "*.php" -exec php -l {} \;  # Valida sintaxe
 
 ---
 
-**Última atualização:** 4 de março de 2026  
+**Última atualização:** 5 de março de 2026  
 **Versão:** 3.0.0

@@ -281,6 +281,7 @@ ssh -i ~/.ssh/4sqmet_deploy root@4sq.eliotools.site
 ## 📚 Documentação Relacionada
 
 - **[DEPLOYMENT_STRATEGY.md](DEPLOYMENT_STRATEGY.md)**: Análise completa das opções
+- **[../BUILD_AND_DEPLOY.md](../BUILD_AND_DEPLOY.md)**: Sistema de build, cenários e troubleshooting
 - **[../.github/CICD_SETUP.md](../.github/CICD_SETUP.md)**: Configuração do CI/CD
 - **[../https/HTTPS_SETUP.md](../https/HTTPS_SETUP.md)**: Configuração HTTPS completa
 
