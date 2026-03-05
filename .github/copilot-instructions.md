@@ -223,6 +223,302 @@ $client_key = getenv('FOURSQUARE_CLIENT_KEY') ?:
               "YOUR_FOURSQUARE_CLIENT_KEY";
 ```
 
+## 🏗️ Build System & Version Tracking
+
+### Build Info System
+The project uses `build-info.json` to track build metadata. This file is:
+- **Generated** by build scripts (not committed to git)
+- **Environment-specific** (different in local vs CI/CD)
+- **Read by** `version.php` and `js/session-manager.js`
+
+```json
+{
+  "build_date": "2026-03-05T01:28:36Z",
+  "build_timestamp": 1772674116,
+  "commit_hash": "full_commit_hash",
+  "commit_short": "short_hash",
+  "branch": "refactor-ia",
+  "version": "4SQMET-02_03_00-117-gddcf206",
+  "build_source": "local|deploy|ci",
+  "environment": "production"
+}
+```
+
+### Build Source Values
+The `build_source` field indicates WHO triggered the build:
+
+- **`"local"`** - Developer ran `./build.sh` manually in their machine
+- **`"deploy"`** - Developer ran `./deploy.sh` for manual production deploy
+- **`"ci"`** - GitHub Actions automatic build (CI/CD pipeline)
+
+**Detection Logic** (in build.sh and build-docker.sh):
+```bash
+if [ -z "$BUILD_SOURCE" ]; then
+    if [ "$CI" = "true" ] || [ "$GITHUB_ACTIONS" = "true" ] || [ -n "$CI_COMMIT_SHA" ]; then
+        BUILD_SOURCE="ci"
+    else
+        BUILD_SOURCE="local"
+    fi
+fi
+```
+
+### Build Scripts
+- **`build.sh`**: Main orchestrator, detects npm availability
+  - If npm absent → Uses Docker container (node:22-alpine)
+  - If npm present → Local build with Terser
+  - Detects CI environment automatically
+  - Sets BUILD_SOURCE before generating build-info.json
+
+- **`build-docker.sh`**: Runs inside Docker container
+  - Receives BUILD_SOURCE via environment variable
+  - Falls back to CI detection if not set
+  - Generates build-info.json inside container
+
+- **`deploy.sh`**: Manual production deployment
+  - Sets `export BUILD_SOURCE="deploy"` before build
+  - Runs build.sh to generate artifacts
+  - SSH to server, git pull, composer install
+  - Restarts Apache service
+
+### Environment Field
+The `"environment": "production"` field indicates:
+- **Build type** (minified/production build)
+- **NOT runtime environment** (local vs production server)
+- Always "production" because builds are always minified
+- To check runtime environment, use `$_SERVER['SERVER_NAME']` in PHP
+
+## 📊 Version Endpoint & System Info
+
+### version.php - Content Negotiation
+The `version.php` file serves both HTML and JSON based on request headers:
+
+```php
+// Detect format
+$format = $_GET['format'] ?? '';
+$acceptHeader = $_SERVER['HTTP_ACCEPT'] ?? '';
+
+if ($format === 'json' || strpos($acceptHeader, 'application/json') !== false) {
+    // Return JSON
+    header('Content-Type: application/json');
+    echo json_encode($response);
+} else {
+    // Return HTML
+    header('Content-Type: text/html; charset=utf-8');
+    // ... HTML page ...
+}
+```
+
+### API Usage
+```bash
+# HTML (browser or default)
+https://localhost/version.php
+
+# JSON (with Accept header)
+curl -H "Accept: application/json" https://localhost/version.php
+
+# JSON (with query parameter)
+curl https://localhost/version.php?format=json
+```
+
+### System Info Modal (Session Manager)
+The session manager displays system info by fetching version.php:
+
+```javascript
+async showSystemInfo() {
+    try {
+        // CRITICAL: Must include Accept header
+        const response = await fetch('version.php', {
+            method: 'GET',
+            headers: {
+                'Accept': 'application/json'  // ← Without this, returns HTML
+            },
+            credentials: 'same-origin',
+            cache: 'no-cache'
+        });
+
+        if (!response.ok) {
+            throw new Error(`HTTP ${response.status}`);
+        }
+
+        const data = await response.json();
+        // Display modal with version + client info
+    } catch (error) {
+        console.error('❌ Erro ao buscar informações do sistema:', error);
+        // Fallback: show only client info
+    }
+}
+```
+
+**Common Bug**: Forgetting `Accept: application/json` header causes:
+- Server returns HTML instead of JSON
+- JSON.parse() fails
+- Modal shows only client info (missing version section)
+
+### Build Source Labels & Badges
+Display labels in both version.php (HTML) and session-manager.js (modal):
+
+| build_source | Label (HTML & Modal) | Badge Color |
+|--------------|---------------------|-------------|
+| `"ci"` | Automático (CI/CD) | Green (#d4edda) |
+| `"deploy"` | Manual (Deploy Script) | Yellow (#fff3cd) |
+| `"local"` | Manual (Desenvolvedor) | Gray (#e9ecef) |
+
+**Implementation**:
+```javascript
+// session-manager.js
+let buildSourceLabel = 'Desconhecido';
+const buildSource = buildInfo.build_source || 'unknown';
+
+switch(buildSource) {
+    case 'ci':
+        buildSourceLabel = 'Automático (CI/CD)';
+        break;
+    case 'deploy':
+        buildSourceLabel = 'Manual (Deploy Script)';
+        break;
+    case 'local':
+        buildSourceLabel = 'Manual (Desenvolvedor)';
+        break;
+}
+```
+
+## 🐛 Debug Tools & Scroll Preservation
+
+### Debug Directory Structure
+**ALWAYS use consolidated debug tools** in `debug/` folder:
+- `debug/index.php` - Main debug tools index with scroll preservation
+- `debug/session_test_manager.php` - Session creation/validation
+- `debug/debug_session.php` - Session debugging endpoint
+- `debug/test_session_debug.html` - Session UI testing
+- `debug/css_test_interface.php` - CSS testing tool
+- `debug/test_integration_markers.html` - Google Maps integration testing
+
+**NEVER create temporary debug files in root directory.**
+
+### Scroll Preservation System
+The debug tools index preserves scroll position when navigating away and back:
+
+**Problem**: User scrolls to bottom of debug index → clicks link → returns → scroll resets to top
+
+**Solution**: sessionStorage + multi-retry restoration strategy
+
+#### Implementation Pattern
+
+**Step 1: Save scroll position on links LEAVING debug/index.php**
+```html
+<a href="test_session_debug.html" 
+   onclick="sessionStorage.setItem('debugIndexScrollPos', window.scrollY || document.documentElement.scrollTop);">
+    Test Session Debug
+</a>
+```
+
+**Step 2: Restore scroll position when RETURNING to debug/index.php**
+```javascript
+// IIFE at bottom of debug/index.php (after DOM fully loaded)
+(function() {
+    const savedScrollPos = sessionStorage.getItem('debugIndexScrollPos');
+    
+    if (savedScrollPos) {
+        const scrollPos = parseInt(savedScrollPos);
+        
+        // Multi-retry strategy for reliability
+        window.scrollTo(0, scrollPos);  // Immediate
+        
+        setTimeout(() => window.scrollTo(0, scrollPos), 50);   // After 50ms
+        setTimeout(() => window.scrollTo(0, scrollPos), 100);  // After 100ms
+        setTimeout(() => window.scrollTo(0, scrollPos), 500);  // After 500ms
+        
+        // Cleanup
+        sessionStorage.removeItem('debugIndexScrollPos');
+    }
+})();
+```
+
+#### Standardized Footer Navigation
+All debug test pages must include standardized footer:
+
+```html
+<footer style="text-align: center; padding: 30px 20px; margin-top: 40px; border-top: 2px solid #e0e0e0; background: white;">
+    <a href="index.php" 
+       style="display: inline-flex; align-items: center; gap: 10px; padding: 12px 24px; 
+              background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
+              color: white; text-decoration: none; border-radius: 8px; 
+              font-weight: 600; transition: transform 0.2s, box-shadow 0.2s; 
+              box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M19 12H5M12 19l-7-7 7-7"/>
+        </svg>
+        ← Voltar para Debug
+    </a>
+</footer>
+```
+
+#### Critical Rules
+- ✅ **Save scroll** on links LEAVING debug/index.php
+- ❌ **DO NOT save** on back links (would overwrite with scroll=0)
+- ✅ **Multi-retry** restoration (50ms, 100ms, 500ms delays)
+- ✅ **Cleanup** sessionStorage after restoration
+- ✅ **Standardize** all test pages with footer navigation
+- ❌ **DO NOT duplicate** back links at top (creates confusion)
+
+## 🚀 Deployment Workflows
+
+### When to Use deploy.sh vs CI/CD
+
+**Prefer CI/CD (GitHub Actions)** for normal workflow:
+```bash
+git add .
+git commit -m "feat: new feature"
+git push origin refactor-ia
+# Wait ~10-15 min for automatic deployment
+```
+
+**Use deploy.sh for these specific scenarios**:
+
+1. **CI/CD Down/Broken** - GitHub Actions failing, need immediate deploy
+2. **Hotfix Urgent** - Critical fix needs deploy in 2-3min (CI/CD queue ~10-15min)
+3. **New Server Setup** - First deploy before CI/CD configured
+4. **Staging Environment** - Testing server without CI/CD integration
+5. **Expired GitHub Secrets** - SSH keys expired, use local credentials temporarily
+
+### Deploy Script Limitations
+The current `deploy.sh`:
+- ✅ Always does `git pull origin refactor-ia` (fixed branch)
+- ❌ Cannot choose different branch
+- ❌ Cannot rollback to specific commit
+- ❌ Cannot deploy uncommitted local files
+- ❌ Cannot send package/zip file
+- ❌ Requires push before deploy (doesn't transfer local files)
+
+**For advanced deploy scenarios**, see `docs/TODO_DEPLOY_ADVANCED.md`:
+- Branch-specific deploys
+- Commit-specific rollbacks
+- Package local uncommitted files
+- Hotfix specific files only
+- Emergency rollback procedures
+
+### Correct Manual Deploy Workflow
+```bash
+# 1. Make changes locally
+git add .
+git commit -m "fix: critical bug"
+
+# 2. Push to repository (REQUIRED)
+git push origin refactor-ia
+
+# 3. Run deploy script (pulls from repository)
+./deploy.sh
+
+# Script does:
+# - export BUILD_SOURCE="deploy"
+# - ./build.sh (generates minified files)
+# - SSH to server
+# - git pull origin refactor-ia
+# - composer install --no-dev
+# - Set permissions (www-data:www-data)
+# - Restart Apache
+```
+
 ## 📊 Venue Editing Workflow
 
 ### Process Flow
@@ -296,14 +592,321 @@ echo '<input dojoType="dijit.form.TextBox" style="width: 10em;">';
 // Verify API key restrictions in Google Cloud Console
 ```
 
+## 🏗️ Build System & Version Tracking
+
+### Build Info System
+The project uses `build-info.json` to track build metadata. This file is:
+- **Generated** by build scripts (not committed to git)
+- **Environment-specific** (different in local vs CI/CD)
+- **Read by** `version.php` and `js/session-manager.js`
+
+```json
+{
+  "build_date": "2026-03-05T01:28:36Z",
+  "build_timestamp": 1772674116,
+  "commit_hash": "full_commit_hash",
+  "commit_short": "short_hash",
+  "branch": "refactor-ia",
+  "version": "4SQMET-02_03_00-117-gddcf206",
+  "build_source": "local",
+  "environment": "production"
+}
+```
+
+### Build Source Values
+The `build_source` field indicates WHO triggered the build:
+
+- **`"local"`** - Developer ran `./build.sh` manually in their machine
+- **`"deploy"`** - Developer ran `./deploy.sh` for manual production deploy
+- **`"ci"`** - GitHub Actions automatic build (CI/CD pipeline)
+
+**Detection Logic** (in build.sh and build-docker.sh):
+```bash
+if [ -z "$BUILD_SOURCE" ]; then
+    if [ "$CI" = "true" ] || [ "$GITHUB_ACTIONS" = "true" ] || [ -n "$CI_COMMIT_SHA" ]; then
+        BUILD_SOURCE="ci"
+    else
+        BUILD_SOURCE="local"
+    fi
+fi
+```
+
+### Build Scripts
+- **`build.sh`**: Main orchestrator, detects npm availability
+  - If npm absent → Uses Docker container (node:22-alpine)
+  - If npm present → Local build with Terser
+  - Detects CI environment automatically
+  - Sets BUILD_SOURCE before generating build-info.json
+
+- **`build-docker.sh`**: Runs inside Docker container
+  - Receives BUILD_SOURCE via environment variable
+  - Falls back to CI detection if not set
+  - Generates build-info.json inside container
+
+- **`deploy.sh`**: Manual production deployment
+  - Sets `export BUILD_SOURCE="deploy"` before build
+  - Runs build.sh to generate artifacts
+  - SSH to server, git pull, composer install
+  - Restarts Apache service
+
+### Environment Field
+The `"environment": "production"` field indicates:
+- **Build type** (minified/production build)
+- **NOT runtime environment** (local vs production server)
+- Always "production" because builds are always minified
+- To check runtime environment, use `$_SERVER['SERVER_NAME']` in PHP
+
+## 📊 Version Endpoint & System Info
+
+### version.php - Content Negotiation
+The `version.php` file serves both HTML and JSON based on request headers:
+
+```php
+// Detect format
+$format = $_GET['format'] ?? '';
+$acceptHeader = $_SERVER['HTTP_ACCEPT'] ?? '';
+
+if ($format === 'json' || strpos($acceptHeader, 'application/json') !== false) {
+    // Return JSON
+    header('Content-Type: application/json');
+    echo json_encode($response);
+} else {
+    // Return HTML
+    header('Content-Type: text/html; charset=utf-8');
+    // ... HTML page ...
+}
+```
+
+### API Usage
+```bash
+# HTML (browser or default)
+https://localhost/version.php
+
+# JSON (with Accept header)
+curl -H "Accept: application/json" https://localhost/version.php
+
+# JSON (with query parameter)
+curl https://localhost/version.php?format=json
+```
+
+### System Info Modal (Session Manager)
+The session manager displays system info by fetching version.php:
+
+```javascript
+async showSystemInfo() {
+    try {
+        // CRITICAL: Must include Accept header
+        const response = await fetch('version.php', {
+            method: 'GET',
+            headers: {
+                'Accept': 'application/json'  // ← Without this, returns HTML
+            },
+            credentials: 'same-origin',
+            cache: 'no-cache'
+        });
+
+        if (!response.ok) {
+            throw new Error(`HTTP ${response.status}`);
+        }
+
+        const data = await response.json();
+        // Display modal with version + client info
+    } catch (error) {
+        console.error('❌ Erro ao buscar informações do sistema:', error);
+        // Fallback: show only client info
+    }
+}
+```
+
+**Common Bug**: Forgetting `Accept: application/json` header causes:
+- Server returns HTML instead of JSON
+- JSON.parse() fails
+- Modal shows only client info (missing version section)
+
+### Build Source Labels & Badges
+Display labels in both version.php (HTML) and session-manager.js (modal):
+
+| build_source | Label (HTML & Modal) | Badge Color |
+|--------------|---------------------|-------------|
+| `"ci"` | Automático (CI/CD) | Green (#d4edda) |
+| `"deploy"` | Manual (Deploy Script) | Yellow (#fff3cd) |
+| `"local"` | Manual (Desenvolvedor) | Gray (#e9ecef) |
+
+**Implementation**:
+```javascript
+// session-manager.js
+let buildSourceLabel = 'Desconhecido';
+const buildSource = buildInfo.build_source || 'unknown';
+
+switch(buildSource) {
+    case 'ci':
+        buildSourceLabel = 'Automático (CI/CD)';
+        break;
+    case 'deploy':
+        buildSourceLabel = 'Manual (Deploy Script)';
+        break;
+    case 'local':
+        buildSourceLabel = 'Manual (Desenvolvedor)';
+        break;
+}
+```
+
+## 🐛 Debug Tools & Scroll Preservation
+
+### Debug Directory Structure
+**ALWAYS use consolidated debug tools** in `debug/` folder:
+- `debug/index.php` - Main debug tools index with scroll preservation
+- `debug/session_test_manager.php` - Session creation/validation
+- `debug/debug_session.php` - Session debugging endpoint
+- `debug/test_session_debug.html` - Session UI testing
+- `debug/css_test_interface.php` - CSS testing tool
+- `debug/test_integration_markers.html` - Google Maps integration testing
+
+**NEVER create temporary debug files in root directory.**
+
+### Scroll Preservation System
+The debug tools index preserves scroll position when navigating away and back:
+
+**Problem**: User scrolls to bottom of debug index → clicks link → returns → scroll resets to top
+
+**Solution**: sessionStorage + multi-retry restoration strategy
+
+#### Implementation Pattern
+
+**Step 1: Save scroll position on links LEAVING debug/index.php**
+```html
+<a href="test_session_debug.html" 
+   onclick="sessionStorage.setItem('debugIndexScrollPos', window.scrollY || document.documentElement.scrollTop);">
+    Test Session Debug
+</a>
+```
+
+**Step 2: Restore scroll position when RETURNING to debug/index.php**
+```javascript
+// IIFE at bottom of debug/index.php (after DOM fully loaded)
+(function() {
+    const savedScrollPos = sessionStorage.getItem('debugIndexScrollPos');
+    
+    if (savedScrollPos) {
+        const scrollPos = parseInt(savedScrollPos);
+        
+        // Multi-retry strategy for reliability
+        window.scrollTo(0, scrollPos);  // Immediate
+        
+        setTimeout(() => window.scrollTo(0, scrollPos), 50);   // After 50ms
+        setTimeout(() => window.scrollTo(0, scrollPos), 100);  // After 100ms
+        setTimeout(() => window.scrollTo(0, scrollPos), 500);  // After 500ms
+        
+        // Cleanup
+        sessionStorage.removeItem('debugIndexScrollPos');
+    }
+})();
+```
+
+#### Standardized Footer Navigation
+All debug test pages must include standardized footer:
+
+```html
+<footer style="text-align: center; padding: 30px 20px; margin-top: 40px; border-top: 2px solid #e0e0e0; background: white;">
+    <a href="index.php" 
+       style="display: inline-flex; align-items: center; gap: 10px; padding: 12px 24px; 
+              background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
+              color: white; text-decoration: none; border-radius: 8px; 
+              font-weight: 600; transition: transform 0.2s, box-shadow 0.2s; 
+              box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M19 12H5M12 19l-7-7 7-7"/>
+        </svg>
+        ← Voltar para Debug
+    </a>
+</footer>
+```
+
+#### Critical Rules
+- ✅ **Save scroll** on links LEAVING debug/index.php
+- ❌ **DO NOT save** on back links (would overwrite with scroll=0)
+- ✅ **Multi-retry** restoration (50ms, 100ms, 500ms delays)
+- ✅ **Cleanup** sessionStorage after restoration
+- ✅ **Standardize** all test pages with footer navigation
+- ❌ **DO NOT duplicate** back links at top (creates confusion)
+
+## 🚀 Deployment Workflows
+
+### When to Use deploy.sh vs CI/CD
+
+**Prefer CI/CD (GitHub Actions)** for normal workflow:
+```bash
+git add .
+git commit -m "feat: new feature"
+git push origin refactor-ia
+# Wait ~10-15 min for automatic deployment
+```
+
+**Use deploy.sh for these specific scenarios**:
+
+1. **CI/CD Down/Broken** - GitHub Actions failing, need immediate deploy
+2. **Hotfix Urgent** - Critical fix needs deploy in 2-3min (CI/CD queue ~10-15min)
+3. **New Server Setup** - First deploy before CI/CD configured
+4. **Staging Environment** - Testing server without CI/CD integration
+5. **Expired GitHub Secrets** - SSH keys expired, use local credentials temporarily
+
+### Deploy Script Limitations
+The current `deploy.sh`:
+- ✅ Always does `git pull origin refactor-ia` (fixed branch)
+- ❌ Cannot choose different branch
+- ❌ Cannot rollback to specific commit
+- ❌ Cannot deploy uncommitted local files
+- ❌ Cannot send package/zip file
+- ❌ Requires push before deploy (doesn't transfer local files)
+
+**For advanced deploy scenarios**, see `docs/TODO_DEPLOY_ADVANCED.md`:
+- Branch-specific deploys
+- Commit-specific rollbacks
+- Package local uncommitted files
+- Hotfix specific files only
+- Emergency rollback procedures
+
+### Correct Manual Deploy Workflow
+```bash
+# 1. Make changes locally
+git add .
+git commit -m "fix: critical bug"
+
+# 2. Push to repository (REQUIRED)
+git push origin refactor-ia
+
+# 3. Run deploy script (pulls from repository)
+./deploy.sh
+
+# Script does:
+# - export BUILD_SOURCE="deploy"
+# - ./build.sh (generates minified files)
+# - SSH to server
+# - git pull origin refactor-ia
+# - composer install --no-dev
+# - Set permissions (www-data:www-data)
+# - Restart Apache
+```
+
 ## 📚 Additional Resources
 
-For detailed technical documentation, see:
+### Documentation Files
 - **Migration Guide**: `docs/MIGRATION.md`
 - **Google Maps Migration**: `docs/GOOGLE_MAPS_MIGRATION.md`
 - **API Keys Documentation**: `docs/API_KEYS_DOCUMENTATION.md`
+- **Build & Deploy Guide**: `docs/BUILD_AND_DEPLOY.md`
+- **Advanced Deploy Modes (TODO)**: `docs/TODO_DEPLOY_ADVANCED.md`
+
+### GitHub Copilot Agent Skills
+For topic-specific deep knowledge, see `.github/skills/`:
+- **build-system**: Build scripts, minification, build_source field
+- **deploy-workflows**: dev/manual/CI-CD deployment methods
+- **scroll-preservation**: sessionStorage, onclick handlers, restoration
+- **session-management**: OAuth2, session monitoring, system info modal
+- **version-info**: version.php API, build-info.json, badges
+- **debug-tools**: Debug interface, consolidated test tools
 
 ---
 
 **Generated by AI as guidance**  
-**Last Updated**: December 2025
+**Last Updated**: January 2026
