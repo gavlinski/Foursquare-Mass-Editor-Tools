@@ -42,6 +42,18 @@ COMMIT_SHORT=$(git rev-parse --short HEAD 2>/dev/null || echo "unknown")
 BRANCH=$(git rev-parse --abbrev-ref HEAD 2>/dev/null || echo "unknown")
 VERSION=$(git describe --tags --always 2>/dev/null || echo "dev-$(date +%Y%m%d)")
 
+# Detecta origem da build (quem disparou)
+# BUILD_SOURCE deve ser passado via variável de ambiente
+if [ -z "$BUILD_SOURCE" ]; then
+    # Se não foi definido, assume que veio do build.sh (via Docker)
+    # Verifica se é ambiente CI
+    if [ "$CI" = "true" ] || [ "$GITHUB_ACTIONS" = "true" ]; then
+        BUILD_SOURCE="ci"
+    else
+        BUILD_SOURCE="local"
+    fi
+fi
+
 # Cria o arquivo build-info.json
 cat > build-info.json <<EOF
 {
@@ -51,7 +63,7 @@ cat > build-info.json <<EOF
   "commit_short": "${COMMIT_SHORT}",
   "branch": "${BRANCH}",
   "version": "${VERSION}",
-  "built_with": "docker",
+  "build_source": "${BUILD_SOURCE}",
   "environment": "production"
 }
 EOF

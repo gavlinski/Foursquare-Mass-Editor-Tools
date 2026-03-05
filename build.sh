@@ -176,11 +176,15 @@ COMMIT_SHORT=$(git rev-parse --short HEAD 2>/dev/null || echo "unknown")
 BRANCH=$(git rev-parse --abbrev-ref HEAD 2>/dev/null || echo "unknown")
 VERSION=$(git describe --tags --always 2>/dev/null || echo "dev-$(date +%Y%m%d)")
 
-# Detecta se está rodando em Docker ou localmente
-if [ -f /.dockerenv ] || grep -q docker /proc/1/cgroup 2>/dev/null; then
-    BUILT_WITH="docker"
-else
-    BUILT_WITH="local"
+# Detecta origem da build (quem disparou)
+# BUILD_SOURCE pode ser definido externamente (deploy.sh ou CI/CD)
+if [ -z "$BUILD_SOURCE" ]; then
+    # Se não foi definido externamente, detecta baseado no ambiente
+    if [ "$CI" = "true" ] || [ "$GITHUB_ACTIONS" = "true" ] || [ -n "$CI_COMMIT_SHA" ]; then
+        BUILD_SOURCE="ci"
+    else
+        BUILD_SOURCE="local"
+    fi
 fi
 
 # Cria o arquivo build-info.json
@@ -192,7 +196,7 @@ cat > build-info.json <<EOF
   "commit_short": "${COMMIT_SHORT}",
   "branch": "${BRANCH}",
   "version": "${VERSION}",
-  "built_with": "${BUILT_WITH}",
+  "build_source": "${BUILD_SOURCE}",
   "environment": "production"
 }
 EOF
@@ -202,7 +206,7 @@ if [ -f build-info.json ]; then
     echo -e "      Versão: ${VERSION}"
     echo -e "      Commit: ${COMMIT_SHORT}"
     echo -e "      Branch: ${BRANCH}"
-    echo -e "      Build: ${BUILT_WITH}"
+    echo -e "      Origem: ${BUILD_SOURCE}"
 else
     echo -e "${RED}   ❌ Erro ao criar build-info.json${NC}"
 fi

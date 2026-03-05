@@ -100,6 +100,8 @@ jobs:
       
       - name: 🔧 Build and minify JavaScript
         run: bash build.sh
+        env:
+          BUILD_SOURCE: ci
       
       - name: 📊 Display build stats
         run: |

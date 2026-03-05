@@ -131,6 +131,9 @@ else
         exit 1
     fi
     
+    # Define origem da build como "deploy" (manual via script)
+    export BUILD_SOURCE="deploy"
+    
     if bash build.sh; then
         echo -e "${GREEN}✅ Build concluído com sucesso${NC}"
     else

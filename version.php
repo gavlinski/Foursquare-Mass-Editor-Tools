@@ -23,7 +23,7 @@ $defaultBuildInfo = [
     'commit_short' => 'dev',
     'branch' => 'unknown',
     'version' => 'dev',
-    'built_with' => 'manual',
+    'build_source' => 'local',
     'environment' => 'development'
 ];
 
@@ -240,6 +240,14 @@ header('Content-Type: text/html; charset=utf-8');
             background: #e2e3e5;
             color: #383d41;
         }
+        .badge-ci {
+            background: #d4edda;
+            color: #155724;
+        }
+        .badge-deploy {
+            background: #fff3cd;
+            color: #856404;
+        }
         .nav-footer {
             margin-top: 30px;
             padding-top: 20px;
@@ -307,15 +315,42 @@ header('Content-Type: text/html; charset=utf-8');
             </div>
 
             <div class="info-card">
-                <h3>🛠️ Método de Build</h3>
+                <h3>🛠️ Origem da Build</h3>
                 <div class="value">
-                    <?php if ($buildInfo['built_with'] === 'docker'): ?>
-                        <span class="badge badge-docker">Docker</span>
-                    <?php else: ?>
-                        <span class="badge badge-local">Local</span>
-                    <?php endif; ?>
+                    <?php 
+                    $buildSource = $buildInfo['build_source'] ?? 'unknown';
+                    switch($buildSource) {
+                        case 'ci':
+                            echo '<span class="badge badge-ci">Automático (CI/CD)</span>';
+                            break;
+                        case 'deploy':
+                            echo '<span class="badge badge-deploy">Manual (Deploy Script)</span>';
+                            break;
+                        case 'local':
+                            echo '<span class="badge badge-local">Manual (Desenvolvedor)</span>';
+                            break;
+                        default:
+                            echo '<span class="badge badge-local">Desconhecido</span>';
+                    }
+                    ?>
                 </div>
-                <div class="detail">Build automatizado</div>
+                <div class="detail">
+                    <?php
+                    switch($buildSource) {
+                        case 'ci':
+                            echo 'GitHub Actions Pipeline';
+                            break;
+                        case 'deploy':
+                            echo 'Via script deploy.sh';
+                            break;
+                        case 'local':
+                            echo 'Via script build.sh';
+                            break;
+                        default:
+                            echo 'Origem não identificada';
+                    }
+                    ?>
+                </div>
             </div>
 
             <div class="info-card">
