@@ -176,6 +176,27 @@ function pesquisarVenues($params) {
 		$params["ll"] = $coordinates["latitude"] . "," . $coordinates["longitude"];
 	}
 	
+	// Extrai coordenadas centrais do parâmetro ll
+	list($centerLat, $centerLng) = explode(',', $params["ll"]);
+	$centerLat = floatval(trim($centerLat));
+	$centerLng = floatval(trim($centerLng));
+	
+	// Calcula quadrantes adjacentes para buscas múltiplas (quando limit > 50)
+	// Usa o raio fornecido ou valor padrão de 1000m
+	$radius = isset($params["radius"]) ? intval($params["radius"]) : 1000;
+	
+	// Constantes de conversão: 1 grau ≈ 111km
+	$latOffset = ($radius * 0.7) / 111000; // 0.7 = offset para evitar sobreposição excessiva
+	$lngOffset = ($radius * 0.7) / (111000 * cos(deg2rad($centerLat)));
+	
+	$coordinates = array(
+		"center" => $centerLat . "," . $centerLng,
+		"southwest" => ($centerLat - $latOffset) . "," . ($centerLng - $lngOffset),
+		"northeast" => ($centerLat + $latOffset) . "," . ($centerLng + $lngOffset),
+		"southeast" => ($centerLat - $latOffset) . "," . ($centerLng + $lngOffset),
+		"northwest" => ($centerLat + $latOffset) . "," . ($centerLng - $lngOffset)
+	);
+	
 	/*** Perform a request to a authenticated-only resource ***/
 	if ($params["limit"] <= 50) {
 		$response = $foursquare -> GetPrivate("venues/search", $params);
@@ -262,18 +283,24 @@ function pesquisarVenues($params) {
 			$i = 0;
 			$response_venues = array();
 			foreach ($json->response->responses as $resp) {
-				if (count($resp->response->venues) > 0) {
+				// Verifica se a resposta tem a estrutura esperada antes de acessar
+				if (isset($resp->response->venues) && is_array($resp->response->venues) && count($resp->response->venues) > 0) {
 					$array = extrairVenuesIdsUrls($resp->response->venues, $pbar, $size, $i);
-					$r = $response["response"]["responses"][$i/50]["response"]["venues"];
-					if (count($venuesIds) > 0) {
-						foreach ($r as $key => &$value)
-							if (!in_array($value["id"], $venuesIds))
-								$response_venues["response"]["venues"][] = $r[$key];
-							else
-								unset($r[$key]); // remove venue duplicada
-						unset($value);
-					} else {
-						$response_venues["response"]["venues"] = $r;
+					
+					// Verifica se o array response tem a estrutura esperada
+					$responseIndex = intval($i/50);
+					if (isset($response["response"]["responses"][$responseIndex]["response"]["venues"])) {
+						$r = $response["response"]["responses"][$responseIndex]["response"]["venues"];
+						if (count($venuesIds) > 0) {
+							foreach ($r as $key => &$value)
+								if (!in_array($value["id"], $venuesIds))
+									$response_venues["response"]["venues"][] = $r[$key];
+								else
+									unset($r[$key]); // remove venue duplicada
+							unset($value);
+						} else {
+							$response_venues["response"]["venues"] = $r;
+						}
 					}
 					$venuesIds = array_merge($venuesIds, $array["venues"]);
 					$file = array_merge($file, $array["file"]);
