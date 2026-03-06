@@ -229,7 +229,15 @@ class FoursquareApi {
 		
 		// Carrega configurações do Google Maps
 		$mapsConfig = include __DIR__ . '/includes/google_maps_config.php';
-		$apiKey = $mapsConfig['google_maps_api_key'] ?? 'SUA_GOOGLE_MAPS_API_KEY_AQUI';
+		
+		// Usa API Key de Geocoding server-side se disponível, senão tenta a chave JavaScript
+		$apiKey = $mapsConfig['google_maps_geocoding_key'] ?? $mapsConfig['google_maps_api_key'] ?? null;
+		
+		// Se não há API Key configurada, retorna null
+		if (!$apiKey || $apiKey === 'YOUR_GOOGLE_MAPS_API_KEY' || $apiKey === 'SUA_GOOGLE_MAPS_API_KEY_AQUI') {
+			error_log('GeoLocate: API Key do Google Maps não configurada');
+			return NULL;
+		}
 		
 		$params = array(
 			"address" => $addr,

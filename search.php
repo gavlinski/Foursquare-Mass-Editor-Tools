@@ -51,8 +51,10 @@ define("TEMPLATE1", '<script>dojo.require("dijit.form.Button");</script>
 define("TEMPLATE2", '<p><button dojoType="dijit.form.Button" type="button" onclick="history.go(-1)" style="margin-left: 0px;">Voltar</button></p>
 </body>
 </html>');
-define("ERRO01", LINKS . DOJO_INIT . HBODY . TEMPLATE1 . '<p>Erro na convers&atilde;o do endere&ccedil;o em coordenadas geogr&aacute;ficas.</p>
-<p>Verifique o endere&ccedil;o ou as coordenadas e tente novamente.</p>
+define("ERRO01", LINKS . DOJO_INIT . HBODY . TEMPLATE1 . '<p><strong>Geocodifica&ccedil;&atilde;o n&atilde;o dispon&iacute;vel</strong></p>
+<p>A convers&atilde;o de endere&ccedil;os em coordenadas n&atilde;o est&aacute; configurada. Por favor, informe as coordenadas geogr&aacute;ficas diretamente no formato:</p>
+<p><code>-29.9178,-51.1794</code> (latitude,longitude)</p>
+<p><small>Para habilitar geocodifica&ccedil;&atilde;o de endere&ccedil;os, configure GOOGLE_MAPS_GEOCODING_KEY no arquivo .env</small></p>
 ' . TEMPLATE2);
 define("ERRO02", LINKS . DOJO_INIT . HBODY . TEMPLATE1 . '<p>Nenhuma venue encontrada nas coordenadas geogr&aacute;ficas informadas.</p>
 <p>Verifique a latitude e longitude e tente novamente.</p>

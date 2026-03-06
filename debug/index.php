@@ -239,6 +239,34 @@
             </div>
         </div>
 
+        <!-- Geocodificação -->
+        <div class="category">
+            <h3 class="category-title">
+                <span class="category-icon">📍</span>
+                Geocodificação (Google Maps)
+            </h3>
+            
+            <a href="test_geocoding_detailed.php" onclick="sessionStorage.setItem('debugIndexScrollPos', window.scrollY || document.documentElement.scrollTop);">
+                <div class="card">
+                    <h2><span class="tag tag-maps">MAPS</span> Debug Detalhado de Geocodificação</h2>
+                    <p>Diagnóstico completo da conversão de endereços em coordenadas. Mostra resposta completa da API, status codes e mensagens de erro detalhadas.</p>
+                </div>
+            </a>
+            
+            <a href="test_geocoding.php" onclick="sessionStorage.setItem('debugIndexScrollPos', window.scrollY || document.documentElement.scrollTop);">
+                <div class="card">
+                    <h2><span class="tag tag-maps">MAPS</span> Teste Rápido de Geocodificação</h2>
+                    <p>Testa múltiplos endereços simultaneamente. Verifica se GOOGLE_MAPS_GEOCODING_KEY está configurada e funcional.</p>
+                </div>
+            </a>
+            
+            <div class="card" style="background: #e8f5e9; border-left-color: #4caf50;">
+                <h2><span class="tag tag-help">HELP</span> Como Configurar Geocoding API</h2>
+                <p>📚 Guia completo: <a href="../docs/GEOCODING_SETUP.md" target="_blank" style="display: inline; color: #2e7d32; font-weight: 600;">docs/GEOCODING_SETUP.md</a></p>
+                <p style="margin-top: 8px; font-size: 0.9rem;">✅ Cota gratuita: 10.000 requisições/mês | 💰 Custo adicional: $5 por 1.000</p>
+            </div>
+        </div>
+
         <!-- Interface e UI -->
         <div class="category">
             <h3 class="category-title">
