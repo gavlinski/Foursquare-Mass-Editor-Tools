@@ -51,11 +51,43 @@ define("TEMPLATE1", '<script>dojo.require("dijit.form.Button");</script>
 define("TEMPLATE2", '<p><button dojoType="dijit.form.Button" type="button" onclick="history.go(-1)" style="margin-left: 0px;">Voltar</button></p>
 </body>
 </html>');
-define("ERRO01", LINKS . DOJO_INIT . HBODY . TEMPLATE1 . '<p><strong>Geocodifica&ccedil;&atilde;o n&atilde;o dispon&iacute;vel</strong></p>
-<p>A convers&atilde;o de endere&ccedil;os em coordenadas n&atilde;o est&aacute; configurada. Por favor, informe as coordenadas geogr&aacute;ficas diretamente no formato:</p>
-<p><code>-29.9178,-51.1794</code> (latitude,longitude)</p>
-<p><small>Para habilitar geocodifica&ccedil;&atilde;o de endere&ccedil;os, configure GOOGLE_MAPS_GEOCODING_KEY no arquivo .env</small></p>
-' . TEMPLATE2);
+define("ERRO01", LINKS . DOJO_INIT . HBODY . TEMPLATE1 . '
+<script>
+console.warn("⚠️ Geocodificação não disponível: GOOGLE_MAPS_GEOCODING_KEY não configurada");
+console.info("ℹ️ Para habilitar geocodificação de endereços, o administrador deve configurar GOOGLE_MAPS_GEOCODING_KEY no arquivo .env");
+console.info("📚 Documentação: docs/GEOCODING_SETUP.md");
+</script>
+<div style="max-width: 610px; margin: 40px auto; padding: 35px; background: #fff; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+	<h2 style="color: #e67e22; margin-top: 0;">🗺️ Geocodifica&ccedil;&atilde;o n&atilde;o dispon&iacute;vel</h2>
+	<p style="font-size: 1rem; line-height: 1.6; color: #333; margin: 20px 0;">
+		A convers&atilde;o de endere&ccedil;os em coordenadas geogr&aacute;ficas n&atilde;o est&aacute; habilitada.
+	</p>
+	<p style="font-size: 1rem; line-height: 0.6; color: #333; margin: 20px 0;">
+		Por favor, informe as coordenadas diretamente no formato <strong>latitude,longitude</strong>:
+	</p>
+	<div style="background: #f8f9fa; padding: 15px; border-radius: 5px; border-left: 4px solid #3498db; margin: 20px 0;">
+		<code style="font-family: \'Courier New\', monospace; font-size: 1.1rem; color: #2c3e50;">-29.9178,-51.1794</code>
+	</div>
+	<p style="font-size: 1rem; line-height: 0.6; color: #666; margin: 20px 0;">
+		<strong>Onde encontrar coordenadas:</strong>
+	</p>
+	<ul style="font-size: 1rem; line-height: 1.6; color: #666;">
+		<li>Google Maps: <a href="https://support.google.com/maps/answer/18539" target="_blank" style="color: #3498db;">clique com bot&atilde;o direito no mapa</a></li>
+		<li>Foursquare: copie do campo <strong>Lat/Lng</strong> do local</li>
+	</ul>
+	<hr style="border: none; border-top: 1px solid #e0e0e0; margin: 20px 0 30px;">
+	<p style="font-size: 0.95rem; line-height: 0.6; color: #95a5a6; margin: 0 0 30px 0;">
+		💡 Para habilitar a busca por endere&ccedil;os, entre em contato com o administrador ou 
+		<a href="https://github.com/gavlinski/Foursquare-Mass-Editor-Tools/issues/new?title=Solicita%C3%A7%C3%A3o:%20Habilitar%20Geocodifica%C3%A7%C3%A3o&labels=feature" 
+		   target="_blank" 
+		   style="color: #3498db; text-decoration: none;">
+			abra uma issue no GitHub
+		</a>
+	</p>
+	<button dojoType="dijit.form.Button" type="button" onclick="history.go(-1)" style="margin-left: 0px;">Voltar</button>
+</div>
+</body>
+</html>');
 define("ERRO02", LINKS . DOJO_INIT . HBODY . TEMPLATE1 . '<p>Nenhuma venue encontrada nas coordenadas geogr&aacute;ficas informadas.</p>
 <p>Verifique a latitude e longitude e tente novamente.</p>
 ' . TEMPLATE2);
