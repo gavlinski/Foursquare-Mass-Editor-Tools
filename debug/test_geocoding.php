@@ -53,17 +53,28 @@ echo "<h1>🗺️ Teste de Geocodificação</h1>\n";
 
 // Verifica se há API key configurada
 $mapsConfig = include __DIR__ . '/../includes/google_maps_config.php';
-$apiKey = $mapsConfig['google_maps_api_key'] ?? 'SUA_GOOGLE_MAPS_API_KEY_AQUI';
+$apiKey = $mapsConfig['google_maps_geocoding_key'] ?? $mapsConfig['google_maps_api_key'] ?? 'SUA_GOOGLE_MAPS_API_KEY_AQUI';
+$keyType = isset($mapsConfig['google_maps_geocoding_key']) ? 'Geocoding (Server-Side)' : 'JavaScript (Fallback)';
 
 echo "<div class='teste'>\n";
+echo "<strong>Tipo de Key:</strong> " . $keyType . "<br>\n";
 echo "<strong>API Key configurada:</strong> ";
 if ($apiKey === 'YOUR_GOOGLE_MAPS_API_KEY' || $apiKey === 'SUA_GOOGLE_MAPS_API_KEY_AQUI') {
     echo "<span class='erro'>❌ NÃO (usando placeholder)</span><br>\n";
-    echo "<small>Configure GOOGLE_MAPS_API_KEY no arquivo .env ou em includes/google_maps_credentials.php</small>\n";
+    echo "<small>Configure GOOGLE_MAPS_GEOCODING_KEY no arquivo .env ou em includes/google_maps_credentials.php</small>\n";
 } else {
     echo "<span class='sucesso'>✅ SIM</span> (";
     echo substr($apiKey, 0, 10) . "..." . substr($apiKey, -5);
     echo ")<br>\n";
+    
+    // Aviso se estiver usando chave JavaScript como fallback
+    if (!isset($mapsConfig['google_maps_geocoding_key'])) {
+        echo "<div style='background: #fff3cd; border: 1px solid #ffc107; padding: 10px; border-radius: 5px; margin-top: 10px;'>\n";
+        echo "⚠️ <strong>Aviso:</strong> Usando chave JavaScript como fallback.<br>\n";
+        echo "<small>Esta chave tem restrições de HTTP referrers e não funcionará para geocodificação server-side.</small><br>\n";
+        echo "<small>Configure <code>GOOGLE_MAPS_GEOCODING_KEY</code> no .env com uma chave de restrição de IP.</small>\n";
+        echo "</div>\n";
+    }
 }
 echo "</div>\n";
 
@@ -110,7 +121,7 @@ echo "              box-shadow: 0 4px 6px rgba(0,0,0,0.1);'>\n";
 echo "        <svg width='20' height='20' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2'>\n";
 echo "            <path d='M19 12H5M12 19l-7-7 7-7'/>\n";
 echo "        </svg>\n";
-echo "        ← Voltar para Debug\n";
+echo "        Voltar para Debug\n";
 echo "    </a>\n";
 echo "</footer>\n";
 

@@ -43,13 +43,29 @@ echo "<h1>🔍 Debug Detalhado - Geocodificação Google Maps</h1>\n";
 
 // Carrega configurações
 $mapsConfig = include __DIR__ . '/../includes/google_maps_config.php';
-$apiKey = $mapsConfig['google_maps_api_key'] ?? 'SUA_GOOGLE_MAPS_API_KEY_AQUI';
+
+// Usa API Key de Geocoding server-side se disponível, senão tenta a chave JavaScript
+$apiKey = $mapsConfig['google_maps_geocoding_key'] ?? $mapsConfig['google_maps_api_key'] ?? 'SUA_GOOGLE_MAPS_API_KEY_AQUI';
+$keyType = isset($mapsConfig['google_maps_geocoding_key']) ? 'Geocoding (Server-Side)' : 'JavaScript (Fallback)';
 
 echo "<div class='section'>\n";
 echo "<h2>1. Configuração</h2>\n";
+echo "<strong>Tipo de Key:</strong> " . $keyType . "<br>\n";
 echo "<strong>API Key:</strong> " . substr($apiKey, 0, 15) . "..." . substr($apiKey, -10) . "<br>\n";
 echo "<strong>Language:</strong> " . ($mapsConfig['geocoding']['language'] ?? 'pt-BR') . "<br>\n";
 echo "<strong>Region:</strong> " . ($mapsConfig['geocoding']['region'] ?? 'BR') . "<br>\n";
+
+// Aviso se estiver usando chave JavaScript como fallback
+if (!isset($mapsConfig['google_maps_geocoding_key'])) {
+    echo "<div class='warning' style='margin-top: 15px;'>\n";
+    echo "⚠️ <strong>Atenção:</strong> Usando chave JavaScript como fallback.<br>\n";
+    echo "Esta chave tem restrições de HTTP referrers e <strong>não funcionará</strong> para geocodificação server-side.<br>\n";
+    echo "<br><strong>Solução:</strong><br>\n";
+    echo "1. Configure <code>GOOGLE_MAPS_GEOCODING_KEY</code> no arquivo <code>.env</code><br>\n";
+    echo "2. Use uma API Key com restrição de <strong>IP addresses</strong> (não HTTP referrers)<br>\n";
+    echo "3. Veja documentação completa em: <a href='../docs/GEOCODING_SETUP.md' target='_blank'>docs/GEOCODING_SETUP.md</a>\n";
+    echo "</div>\n";
+}
 echo "</div>\n";
 
 // Teste direto com cURL
@@ -189,7 +205,7 @@ echo "              box-shadow: 0 4px 6px rgba(0,0,0,0.1);'>\n";
 echo "        <svg width='20' height='20' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2'>\n";
 echo "            <path d='M19 12H5M12 19l-7-7 7-7'/>\n";
 echo "        </svg>\n";
-echo "        ← Voltar para Debug\n";
+echo "        Voltar para Debug\n";
 echo "    </a>\n";
 echo "</footer>\n";
 
