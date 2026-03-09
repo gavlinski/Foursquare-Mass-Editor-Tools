@@ -658,65 +658,75 @@ function processarEdicaoCategorias() {
 				dojo.byId("cic" + i).value = dojo.byId("catsIcones").innerHTML;
 				dojo.byId("icone" + i).innerHTML = "<a id='catLnk" + i + "' href='javascript:editarCategorias(" + i + ")'><img id=catImg" + i + " src='" + dojo.byId("cic" + i).value.split(",", 1)[0] + "' style='height: 22px; width: 22px; margin-left: 0px'></a>";
 				
-				// IMPORTANTE: Salva categorias ANTIGAS antes de atualizar (para calcular diferenças)
-				var categoriasAtuais = [];
-				if (categorias[i] && categorias[i].ids != undefined) {
-					categoriasAtuais = categorias[i].ids.split(",");
-					debugLog('📋 Categorias antigas da venue', i, ':', categoriasAtuais.join(', '));
+				// SOLUÇÃO SIMPLES: Lê categoryId ORIGINAL do CSV (essa coluna NUNCA é modificada)
+				// Ela sempre contém o estado original do Foursquare, servindo como fonte da verdade
+				var indexCategoryId = csv[0].indexOf("categoryId");
+				var categoryIdOriginalCSV = "";
+				var categoriasOriginais = [];
+				
+				if (indexCategoryId !== -1 && csv[parseInt(i) + 1] && csv[parseInt(i) + 1][indexCategoryId]) {
+					categoryIdOriginalCSV = csv[parseInt(i) + 1][indexCategoryId].replace(/"/g, "");
+					if (categoryIdOriginalCSV) {
+						categoriasOriginais = categoryIdOriginalCSV.split(",");
+					}
 				}
 				
+				// Pega categorias NOVAS selecionadas na árvore
 				var categoryIds = dojo.byId("cid" + i).value;
 				var categoriasNovas = categoryIds.split(",");
-				debugLog('📋 Categorias novas da venue', i, ':', categoriasNovas.join(', '));
 				
-				// Atualiza coluna categoryId no CSV (índice 1)
-				var indexCategoryId = csv[0].indexOf("categoryId");
-				if (indexCategoryId !== -1) {
-					csv[parseInt(i) + 1][indexCategoryId] = '"' + categoryIds + '"';
-					debugLog('📝 CSV[categoryId] atualizado - Linha', i, ':', categoryIds);
-				}
+				debugLog('📋 CSV[categoryId] ORIGINAL (imutável) - Linha', i, ':', categoriasOriginais.join(', ') || '(vazio)');
+				debugLog('📋 Categorias NOVAS (selecionadas) - Linha', i, ':', categoriasNovas.join(', '));
 				
-				// Calcula removeCategoryIds (categorias que existiam mas foram removidas)
-				categoriasRemover = categoriasAtuais.filter(function(val) {
+				// Calcula diferenças comparando SEMPRE com categorias ORIGINAIS do CSV
+				// Categorias removidas: estavam no original mas não estão mais nas novas
+				categoriasRemover = categoriasOriginais.filter(function(val) {
 					return categoriasNovas.indexOf(val) == -1;
 				});
-				if (categoriasRemover.length > 0) {
-					var index = csv[0].indexOf("removeCategoryIds");
-					csv[parseInt(i) + 1][index] = '"' + categoriasRemover.toString() + '"';
-					debugLog('🗑️ CSV[removeCategoryIds] atualizado - Linha', i, ':', categoriasRemover.toString());
-				} else {
-					debugLog('ℹ️ Nenhuma categoria removida na linha', i);
+				
+				// Categorias adicionadas (secundárias): estão nas novas mas não no original
+				// IMPORTANTE: Só adiciona secundárias (índices 1 e 2) porque primaryCategoryId já cuida da primária
+				var categoriasSecundariasNovas = [];
+				for (var j = 1; j < categoriasNovas.length && j <= 2; j++) {
+					if (categoriasOriginais.indexOf(categoriasNovas[j]) == -1) {
+						categoriasSecundariasNovas.push(categoriasNovas[j]);
+					}
 				}
 				
-				// Atualiza primaryCategoryId se categoria primária mudou
-				if (categoriasAtuais.length > 0 && categoriasAtuais[0] != categoriasNovas[0]) {
+				debugLog('🔍 Diferenças calculadas - Adicionar:', categoriasSecundariasNovas.join(',') || '(nenhuma)', '| Remover:', categoriasRemover.join(',') || '(nenhuma)');
+				
+				// Atualiza removeCategoryIds no CSV (SEMPRE, mesmo se vazio para limpar valores antigos)
+				var indexRemove = csv[0].indexOf("removeCategoryIds");
+				if (categoriasRemover.length > 0) {
+					csv[parseInt(i) + 1][indexRemove] = '"' + categoriasRemover.toString() + '"';
+					debugLog('🗑️ CSV[removeCategoryIds] atualizado - Linha', i, ':', categoriasRemover.toString());
+				} else {
+					csv[parseInt(i) + 1][indexRemove] = '""'; // Limpa coluna se não há categorias a remover
+					debugLog('ℹ️ Nenhuma categoria removida na linha', i, '- CSV[removeCategoryIds] limpo');
+				}
+				
+				// Atualiza primaryCategoryId se mudou em relação ao original
+				if (categoriasOriginais.length > 0 && categoriasOriginais[0] != categoriasNovas[0]) {
 					var index = csv[0].indexOf("primaryCategoryId");
 					csv[parseInt(i) + 1][index] = '"' + categoriasNovas[0] + '"';
-					debugLog('⭐ CSV[primaryCategoryId] atualizado - Linha', i, ': de', categoriasAtuais[0], 'para', categoriasNovas[0]);
-				} else if (categoriasAtuais.length === 0) {
+					debugLog('⭐ CSV[primaryCategoryId] atualizado - Linha', i, ': de', categoriasOriginais[0], 'para', categoriasNovas[0]);
+				} else if (categoriasOriginais.length === 0) {
 					// Venue com dados parciais sendo editada pela primeira vez
 					var index = csv[0].indexOf("primaryCategoryId");
 					csv[parseInt(i) + 1][index] = '"' + categoriasNovas[0] + '"';
 					debugLog('⭐ CSV[primaryCategoryId] definido pela primeira vez - Linha', i, ':', categoriasNovas[0]);
 				} else {
-					debugLog('ℹ️ Categoria primária não mudou na linha', i, '(permanece:', categoriasAtuais[0], ')');
+					debugLog('ℹ️ Categoria primária não mudou na linha', i, '(permanece:', categoriasOriginais[0] || 'vazio', ')');
 				}
 				
-				// Calcula addCategoryIds (SOMENTE categorias secundárias novas - índices 1 e 2)
-				// primaryCategoryId já adiciona a categoria primária, então não deve ser incluída aqui
-				var categoriasSecundariasNovas = [];
-				for (var j = 1; j < categoriasNovas.length && j <= 2; j++) {
-					// Verifica se esta categoria secundária é nova (não existia antes)
-					if (categoriasAtuais.indexOf(categoriasNovas[j]) == -1) {
-						categoriasSecundariasNovas.push(categoriasNovas[j]);
-					}
-				}
+				// Atualiza addCategoryIds no CSV (SEMPRE, mesmo se vazio para limpar valores antigos)
+				var indexAdd = csv[0].indexOf("addCategoryIds");
 				if (categoriasSecundariasNovas.length > 0) {
-					var index = csv[0].indexOf("addCategoryIds");
-					csv[parseInt(i) + 1][index] = '"' + categoriasSecundariasNovas.toString() + '"';
+					csv[parseInt(i) + 1][indexAdd] = '"' + categoriasSecundariasNovas.toString() + '"';
 					debugLog('➕ CSV[addCategoryIds] atualizado - Linha', i, ':', categoriasSecundariasNovas.toString());
 				} else {
-					debugLog('ℹ️ Nenhuma categoria secundária nova na linha', i);
+					csv[parseInt(i) + 1][indexAdd] = '""'; // Limpa coluna se não há categorias a adicionar
+					debugLog('ℹ️ Nenhuma categoria secundária nova na linha', i, '- CSV[addCategoryIds] limpo');
 				}
 				
 				// AGORA SIM: Atualiza array global categorias[] após calcular diferenças
@@ -1217,11 +1227,30 @@ function montarArvore(resposta) {
 	JSONText = JSON.stringify(restructuredData);
 	//console.log(JSONText);
 	
-	// Verifica se widget já existe - se sim, destrói antes de recriar
+	// Verifica se widget já existe - se sim, REUTILIZA (não destrói!)
 	var existingTree = dijit.byId("treeContainer");
 	if (existingTree) {
-		existingTree.destroyRecursive();
-		debugInfo("Árvore de categorias antiga destruída.");
+		// Árvore já existe e está funcional - reutiliza sem destruir
+		debugInfo("✅ Árvore de categorias já existe - reutilizando sem destruir.");
+		return; // Não precisa recriar
+	}
+	
+	// Garante que o container DOM existe
+	var containerElement = dojo.byId("treeContainer");
+	if (!containerElement) {
+		// Se o container foi removido, recria ele APÓS o catsContainer (posição correta)
+		var catsContainer = dojo.byId("catsContainer");
+		if (catsContainer) {
+			// Usa dojo.place com "after" para posicionar logo após o catsContainer
+			containerElement = dojo.place('<div id="treeContainer"></div>', catsContainer, "after");
+			debugInfo("Container DOM #treeContainer recriado após #catsContainer.");
+		} else {
+			debugInfo("⚠️ Container #catsContainer não encontrado, não é possível recriar árvore.");
+			return;
+		}
+	} else {
+		// Limpa o conteúdo HTML residual
+		containerElement.innerHTML = "";
 	}
 	
 	// Cria árvore (primeira vez ou recriação)
@@ -1253,6 +1282,7 @@ function montarArvore(resposta) {
 		}
 	}, "treeContainer");
 	treeWidget.startup();
+	debugInfo("✅ Árvore de categorias criada/recriada com sucesso.");
 }
 
 function treeOnClick(item) {
@@ -1693,31 +1723,71 @@ function salvarVenues() {
 		var ll = document.forms[i]["venuell"].value;
 		if ((ll != null) && (ll != "") && (ll != venuellOriginais[i]))
 			dados += "&venuell=" + encodeURIComponent(ll.replace(/ /g, ""));
-		if (modo == DADOS_COMPLETOS) {
+		
+		// Verifica se esta venue tem dados completos (modo global OU venue individual recarregada)
+		var estaVenueTemDadosCompletos = (modo == DADOS_COMPLETOS) || (venuesComDadosCompletos.indexOf(i) !== -1);
+		
+		debugLog('🔍 salvarVenues - Venue', i, ':', {
+			modo: modo,
+			modoString: modo == DADOS_COMPLETOS ? 'DADOS_COMPLETOS' : 'DADOS_PARCIAIS',
+			venuesComDadosCompletos: venuesComDadosCompletos,
+			indiceDentroArray: venuesComDadosCompletos.indexOf(i),
+			estaVenueTemDadosCompletos: estaVenueTemDadosCompletos,
+			categoryIdValue: document.forms[i]["categoryId"].value
+		});
+		
+		if (estaVenueTemDadosCompletos) {
 			var categoryIds = document.forms[i]["categoryId"].value;
+			debugLog('📋 Processando categorias para venue', i, '- categoryIds:', categoryIds);
+			
 			if ((categoryIds != null) && (categoryIds != "")) {
-				var categoriasAtuais = [];
-				if (categorias[i].ids != undefined)
-					categoriasAtuais = categorias[i].ids.split(",");
-				var categoriasNovas = categoryIds.split(",");
-				categoriasRemover = categoriasAtuais.filter(function(val) {
-					return categoriasNovas.indexOf(val) == -1;
+				// LÊ DO CSV as colunas já calculadas por processarEdicaoCategorias()
+				// (não recalcula pois categorias[i].ids já foi sobrescrito com novos valores)
+				var indexPrimaryCategoryId = csv[0].indexOf("primaryCategoryId");
+				var indexRemoveCategoryIds = csv[0].indexOf("removeCategoryIds");
+				var indexAddCategoryIds = csv[0].indexOf("addCategoryIds");
+				
+				debugLog('🔍 Índices CSV:', {
+					primaryCategoryId: indexPrimaryCategoryId,
+					removeCategoryIds: indexRemoveCategoryIds,
+					addCategoryIds: indexAddCategoryIds
 				});
-				if (categoriasRemover.length > 0)
-					dados += "&removeCategoryIds=" + categoriasRemover.toString();
-				if (categoriasAtuais[0] != categoriasNovas[0])
-					dados += "&primaryCategoryId=" + categoriasNovas[0];
-				try {
-					if ((typeof categoriasNovas[1].ids != undefined) && (categoriasAtuais.indexOf(categoriasNovas[1]) == -1)) {
-						dados += "&addCategoryIds=" + categoriasNovas[1];
-						if ((typeof categoriasNovas[2].ids != undefined) && (categoriasAtuais.indexOf(categoriasNovas[2]) == -1))
-							dados += "," + categoriasNovas[2];
-					} else if ((typeof categoriasNovas[2].ids != undefined) && (categoriasAtuais.indexOf(categoriasNovas[2]) == -1)) {
-						dados += "&addCategoryIds=" + categoriasNovas[2];
-					}
-				} catch(e) {
+				
+				// Remove aspas dos valores do CSV
+				var primaryFromCsv = (indexPrimaryCategoryId !== -1 && csv[i + 1][indexPrimaryCategoryId]) 
+					? csv[i + 1][indexPrimaryCategoryId].replace(/"/g, '') 
+					: '';
+				var removeFromCsv = (indexRemoveCategoryIds !== -1 && csv[i + 1][indexRemoveCategoryIds]) 
+					? csv[i + 1][indexRemoveCategoryIds].replace(/"/g, '') 
+					: '';
+				var addFromCsv = (indexAddCategoryIds !== -1 && csv[i + 1][indexAddCategoryIds]) 
+					? csv[i + 1][indexAddCategoryIds].replace(/"/g, '') 
+					: '';
+				
+				debugLog('📊 Valores do CSV venue', i, ':', {
+					primaryCategoryId: primaryFromCsv,
+					removeCategoryIds: removeFromCsv,
+					addCategoryIds: addFromCsv
+				});
+				
+				// Adiciona parâmetros aos dados do POST
+				if (removeFromCsv != '') {
+					dados += "&removeCategoryIds=" + removeFromCsv;
+					debugLog('✅ removeCategoryIds adicionado:', removeFromCsv);
 				}
+				if (primaryFromCsv != '') {
+					dados += "&primaryCategoryId=" + primaryFromCsv;
+					debugLog('✅ primaryCategoryId adicionado:', primaryFromCsv);
+				}
+				if (addFromCsv != '') {
+					dados += "&addCategoryIds=" + addFromCsv;
+					debugLog('✅ addCategoryIds adicionado:', addFromCsv);
+				}
+			} else {
+				debugLog('⚠️ categoryIds vazio ou null para venue', i);
 			}
+		} else {
+			debugLog('⚠️ Venue', i, 'NÃO tem dados completos - categorias NÃO serão processadas');
 		}
 		var comentario = encodeURIComponent(dijit.byId("textareaComment").value);
 		if (comentario != "")
