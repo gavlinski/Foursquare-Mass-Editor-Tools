@@ -294,6 +294,13 @@
                     <p>Valida carregamento de módulos via CDN, testa dojo.cookie e dojoConfig. Útil para troubleshooting de timing assíncrono.</p>
                 </div>
             </a>
+            
+            <a href="test_progressbar.php" onclick="sessionStorage.setItem('debugIndexScrollPos', window.scrollY || document.documentElement.scrollTop);">
+                <div class="card">
+                    <h2><span class="tag tag-ui">UI</span> Teste Progress Bar + Validação</h2>
+                    <p>Verifica se as imagens do ProgressBar carregam corretamente. Mostra configuração atual do sistema (local ou CDN), testa carregamento das imagens e valida CSS dinâmico.</p>
+                </div>
+            </a>
         </div>
 
         <!-- APIs Foursquare -->
