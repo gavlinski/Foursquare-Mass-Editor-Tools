@@ -32,10 +32,15 @@ require_once __DIR__ . '/includes/asset_helper.php';
 <meta http-equiv="cache-control" content="no-cache">
 <meta http-equiv="pragma" content="no-cache">
 <?php
-$DOJO_THEME_URL = dojo_theme_url('tundra');
 define("VERSION", "Venues Searcher 3.0.0");
+
+// Captura tag <link> e CSS dinâmico do ProgressBar
+ob_start();
+dojo_theme('tundra');
+$DOJO_THEME_LINK = ob_get_clean();
+
 define("LINKS", '<link rel="shortcut icon" href="favicon.ico" type="image/x-icon">
-<link rel="stylesheet" type="text/css" href="' . $DOJO_THEME_URL . '">
+' . $DOJO_THEME_LINK . '
 <link rel="stylesheet" type="text/css" href="estilo.css">
 ');
 ob_start();

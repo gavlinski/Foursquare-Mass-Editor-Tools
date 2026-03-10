@@ -59,10 +59,15 @@ if (!isset($_SESSION["oauth_token"])) {
 <meta http-equiv="cache-control" content="no-cache">
 <meta http-equiv="pragma" content="no-cache">
 <?php
-$DOJO_THEME_URL = dojo_theme_url('tundra');
 define("VERSION", "Venues Loader 3.0.0");
+
+// Captura tag <link> e CSS dinâmico do ProgressBar
+ob_start();
+dojo_theme('tundra');
+$DOJO_THEME_LINK = ob_get_clean();
+
 define("LINKS", '<link rel="shortcut icon" href="favicon.ico" type="image/x-icon">
-<link rel="stylesheet" type="text/css" href="' . $DOJO_THEME_URL . '">
+' . $DOJO_THEME_LINK . '
 <link rel="stylesheet" type="text/css" href="estilo.css?v=' . time() . '">
 ');
 ob_start();
