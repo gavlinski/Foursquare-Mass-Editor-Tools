@@ -82,3 +82,10 @@ docs/deployment/SECRETS_MANAGEMENT.md
 *.min.js
 *.min.js.map
 build-info.json
+
+# Documentação temporária de debug (não versionada)
+debug/*.md
+debug/PROGRESSBAR_VALIDATION.md
+debug/RESOLUTION_COMPLETE.md
+debug/VALIDATION_LOCAL_DOJO.md
+debug/README_VISUAL_OPTIONS.md
