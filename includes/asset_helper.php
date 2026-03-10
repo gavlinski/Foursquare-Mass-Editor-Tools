@@ -3,8 +3,27 @@
  * Asset Helper - Carrega versões minificadas em produção
  * 
  * Detecta automaticamente o ambiente e carrega a versão apropriada:
- * - Produção: .min.js (minificado) + CDN para bibliotecas externas
- * - Desenvolvimento: .js (original para debug) + arquivos locais
+ * - Produção: .min.js (minificado) + SEMPRE CDN para Dojo/Dijit/Dojox
+ * - Desenvolvimento: .js (original para debug) + Local OU CDN baseado em DOJO_SOURCE
+ * 
+ * IMPORTANTE: Configuração do Dojo Toolkit
+ * 
+ * PRODUÇÃO (eliotools.site):
+ *   - SEMPRE usa CDN do Google (ajax.googleapis.com)
+ *   - Ignora DOJO_SOURCE do .env
+ *   - Garante performance e cache global
+ * 
+ * DESENVOLVIMENTO (localhost):
+ *   - Respeita variável DOJO_SOURCE do arquivo .env:
+ *     • DOJO_SOURCE=local  → Usa arquivos locais (js/dojo/, js/dijit/, js/dojox/)
+ *     • DOJO_SOURCE=cdn    → Usa CDN do Google
+ *   - Configure via: ./dev.sh config
+ *   - Fallback automático para CDN se arquivos locais não existirem
+ * 
+ * USO 100% CONSISTENTE:
+ *   - Se configurado para local: TODOS os recursos vêm de arquivos locais
+ *   - Se configurado para CDN: TODOS os recursos vêm do Google CDN
+ *   - CSS do ProgressBar gerado dinamicamente para manter consistência
  * 
  * @package ElioTools
  * @version 3.0.0
@@ -18,14 +37,17 @@
  * URLs de CDN para Dojo Toolkit 1.8.14
  * 
  * Decisão de Design:
- * - Dojo não é versionado no Git (3000+ arquivos, 15MB)
- * - CDN oferece melhor performance (cache global, HTTP/2, compressão)
- * - Fallback para arquivos locais em desenvolvimento
+ * - Em PRODUÇÃO: SEMPRE CDN (performance, cache global, HTTP/2)
+ * - Em DESENVOLVIMENTO: Configurável via DOJO_SOURCE no .env
+ *   • local: Arquivos locais (js/dojo/, js/dijit/, js/dojox/)
+ *   • cdn: Google CDN (padrão)
+ * - Arquivos locais NÃO estão no Git (3000+ arquivos, 15MB)
+ * - Use ./dev.sh config para escolher a fonte
  */
 define('DOJO_VERSION', '1.8.14');
 define('DOJO_CDN_BASE', 'https://ajax.googleapis.com/ajax/libs/dojo/' . DOJO_VERSION);
 
-// Fallback para arquivos locais se CDN estiver indisponível
+// Paths locais (usados apenas se DOJO_SOURCE=local em desenvolvimento)
 define('DOJO_LOCAL_BASE', '/js/dojo');
 define('DIJIT_LOCAL_BASE', '/js/dijit');
 define('DOJOX_LOCAL_BASE', '/js/dojox');
@@ -38,18 +60,74 @@ function isProduction() {
         return true;
     }
     
-    // Método 2: Hostname
+    // Método 2: Hostname de produção
     $hostname = $_SERVER['HTTP_HOST'] ?? $_SERVER['SERVER_NAME'] ?? 'localhost';
     if (strpos($hostname, 'eliotools.site') !== false) {
         return true;
     }
     
-    // Método 3: IP não é localhost
-    $server_addr = $_SERVER['SERVER_ADDR'] ?? '127.0.0.1';
-    if ($server_addr !== '127.0.0.1' && $server_addr !== '::1' && !strpos($hostname, 'localhost')) {
-        return true;
+    // Método 3: Detecta desenvolvimento (localhost, 127.0.0.1, ::1, IPs Docker)
+    // Se qualquer uma dessas condições for TRUE, é desenvolvimento (não produção)
+    if (strpos($hostname, 'localhost') !== false) {
+        return false; // É localhost, definitivamente desenvolvimento
     }
     
+    $server_addr = $_SERVER['SERVER_ADDR'] ?? '127.0.0.1';
+    if ($server_addr === '127.0.0.1' || $server_addr === '::1') {
+        return false; // É IP loopback, desenvolvimento
+    }
+    
+    // IPs privados (Docker, redes internas)
+    if (preg_match('/^(127\.|10\.|172\.(1[6-9]|2[0-9]|3[01])\.|192\.168\.)/', $server_addr)) {
+        return false; // É rede privada, desenvolvimento
+    }
+    
+    // Se chegou aqui e não é nenhum dos casos acima, é produção
+    return true;
+}
+
+/**
+ * Detecta se deve usar Dojo local ou CDN
+ * 
+ * Lógica:
+ * - Produção: SEMPRE CDN
+ * - Desenvolvimento: Respeita DOJO_SOURCE do .env (local ou cdn)
+ * 
+ * @return bool True se deve usar arquivos locais, False se deve usar CDN
+ */
+function useLocalDojo() {
+    // Produção SEMPRE usa CDN
+    if (isProduction()) {
+        return false;
+    }
+    
+    // Desenvolvimento: lê preferência do .env
+    $dojoSource = getenv('DOJO_SOURCE') ?: ($_ENV['DOJO_SOURCE'] ?? 'cdn');
+    
+    // Se configurado para local, verifica se arquivos existem
+    if ($dojoSource === 'local') {
+        // Determina DOCUMENT_ROOT de forma mais robusta
+        $docRoot = $_SERVER['DOCUMENT_ROOT'] ?? '';
+        
+        // Se DOCUMENT_ROOT está vazio (CLI), usa caminho relativo ao script
+        if (empty($docRoot)) {
+            $docRoot = dirname(__DIR__);  // Pasta raiz do projeto
+        }
+        
+        $dojoPath = $docRoot . DOJO_LOCAL_BASE . '/dojo.js';
+        $dijitPath = $docRoot . DIJIT_LOCAL_BASE . '/themes/tundra/tundra.css';
+        
+        // Só usa local se arquivos existirem
+        if (file_exists($dojoPath) && file_exists($dijitPath)) {
+            return true;
+        }
+        
+        // Fallback para CDN se arquivos não existirem
+        error_log('AVISO: DOJO_SOURCE=local mas arquivos não encontrados em: ' . $dojoPath);
+        return false;
+    }
+    
+    // Padrão: CDN
     return false;
 }
 
@@ -144,35 +222,35 @@ function script_versioned($path, $attributes = []) {
 /**
  * Retorna URL do Dojo principal (dojo.js)
  * 
- * Em produção: Usa Google CDN (cache global, HTTP/2)
- * Em desenvolvimento: Usa arquivos locais (debug facilitado)
+ * Lógica de decisão:
+ * - Produção: SEMPRE CDN
+ * - Desenvolvimento: Respeita DOJO_SOURCE do .env
  * 
  * @param array $djConfig Configuração do Dojo
  * @return string URL completa do dojo.js
  */
 function dojo_url($djConfig = []) {
-    if (isProduction()) {
-        // Produção: Google CDN
-        return DOJO_CDN_BASE . '/dojo/dojo.js';
-    }
-    
-    // Desenvolvimento: Arquivos locais
-    if (file_exists($_SERVER['DOCUMENT_ROOT'] . DOJO_LOCAL_BASE . '/dojo.js')) {
+    // Verifica se deve usar arquivos locais
+    if (useLocalDojo()) {
         return DOJO_LOCAL_BASE . '/dojo.js';
     }
     
-    // Fallback para CDN se arquivos locais não existirem
+    // Usa CDN (padrão e produção)
     return DOJO_CDN_BASE . '/dojo/dojo.js';
 }
 
 /**
  * Imprime tag <script> do Dojo com configuração
  * 
+ * Lógica:
+ * - Arquivos locais: Usa data-dojo-config inline
+ * - CDN: Usa dojoConfig global + baseUrl configurado
+ * 
  * @param array $djConfig Configuração do djConfig
  */
 function dojo_script($djConfig = ['parseOnLoad' => true]) {
     $url = dojo_url($djConfig);
-    $is_cdn = (strpos($url, 'ajax.googleapis.com') !== false);
+    $usingLocal = useLocalDojo();
     
     // Converte array para string de configuração
     $config_pairs = [];
@@ -187,50 +265,93 @@ function dojo_script($djConfig = ['parseOnLoad' => true]) {
     }
     $config_str = implode(', ', $config_pairs);
     
-    // Se usar CDN (produção ou fallback), configura baseUrl
-    if ($is_cdn) {
+    if ($usingLocal) {
+        // Arquivos locais: configuração inline no atributo data-dojo-config
+        echo sprintf('<script data-dojo-config="%s" src="%s"></script>' . PHP_EOL, $config_str, $url);
+    } else {
+        // CDN: configuração global com baseUrl
         echo sprintf(
             '<script>var dojoConfig = { %s, baseUrl: "%s/", packages: [{name: "dojo", location: "dojo"}, {name: "dijit", location: "dijit"}, {name: "dojox", location: "dojox"}] };</script>' . PHP_EOL,
             $config_str,
             DOJO_CDN_BASE
         );
-    } else {
-        // Desenvolvimento com arquivos locais - usa djConfig inline
-        echo sprintf('<script data-dojo-config="%s" src="%s"></script>' . PHP_EOL, $config_str, $url);
-        return;
+        echo sprintf('<script src="%s"></script>' . PHP_EOL, $url);
     }
-    
-    echo sprintf('<script src="%s"></script>' . PHP_EOL, $url);
 }
 
 /**
  * Retorna URL do tema Dojo (CSS)
  * 
+ * Lógica:
+ * - Produção: SEMPRE CDN
+ * - Desenvolvimento: Respeita DOJO_SOURCE do .env
+ * 
  * @param string $theme Nome do tema (tundra, claro, nihilo, soria)
  * @return string URL do CSS do tema
  */
 function dojo_theme_url($theme = 'tundra') {
-    if (isProduction()) {
-        return DOJO_CDN_BASE . '/dijit/themes/' . $theme . '/' . $theme . '.css';
+    // Verifica se deve usar arquivos locais
+    if (useLocalDojo()) {
+        return DIJIT_LOCAL_BASE . '/themes/' . $theme . '/' . $theme . '.css';
     }
     
-    // Desenvolvimento: Arquivos locais
-    $local_path = DIJIT_LOCAL_BASE . '/themes/' . $theme . '/' . $theme . '.css';
-    if (file_exists($_SERVER['DOCUMENT_ROOT'] . $local_path)) {
-        return $local_path;
-    }
-    
-    // Fallback para CDN
+    // Usa CDN (padrão e produção)
     return DOJO_CDN_BASE . '/dijit/themes/' . $theme . '/' . $theme . '.css';
 }
 
 /**
  * Imprime tag <link> do tema Dojo
  * 
+ * Automaticamente inclui CSS dinâmico do ProgressBar
+ * para garantir caminhos corretos (local ou CDN)
+ * 
  * @param string $theme Nome do tema
  */
 function dojo_theme($theme = 'tundra') {
     $url = dojo_theme_url($theme);
     echo sprintf('<link rel="stylesheet" type="text/css" href="%s">' . PHP_EOL, $url);
+    
+    // Injeta CSS dinâmico do ProgressBar
+    dojo_progressbar_css($theme);
+}
+
+/**
+ * Retorna caminho base para imagens do Dojo theme
+ * 
+ * Usado para CSS dinâmico (ProgressBar)
+ * 
+ * @param string $theme Nome do tema
+ * @return string URL base das imagens do tema
+ */
+function dojo_theme_images_base($theme = 'tundra') {
+    if (useLocalDojo()) {
+        return DIJIT_LOCAL_BASE . '/themes/' . $theme . '/images/';
+    }
+    return DOJO_CDN_BASE . '/dijit/themes/' . $theme . '/images/';
+}
+
+/**
+ * Imprime CSS dinâmico para ProgressBar
+ * 
+ * Sobrescreve as regras do estilo.css com caminhos corretos
+ * baseados na configuração (local ou CDN)
+ * 
+ * @param string $theme Nome do tema
+ */
+function dojo_progressbar_css($theme = 'tundra') {
+    $imagesBase = dojo_theme_images_base($theme);
+    
+    echo '<style>' . PHP_EOL;
+    echo '/* ProgressBar - Imagens do Dojo (' . (useLocalDojo() ? 'LOCAL' : 'CDN') . ') */' . PHP_EOL;
+    echo '.pb_bar {' . PHP_EOL;
+    echo '    background: #ffffff url("' . $imagesBase . 'progressBarEmpty.png") repeat-x center center;' . PHP_EOL;
+    echo '}' . PHP_EOL;
+    echo '.pb_before {' . PHP_EOL;
+    echo '    background: #abd6ff url("' . $imagesBase . 'progressBarFull.png") repeat-x center center;' . PHP_EOL;
+    echo '}' . PHP_EOL;
+    echo '.pb_indeterminate {' . PHP_EOL;
+    echo '    background: #fff url("' . $imagesBase . 'progressBarAnim.gif") repeat-x center center;' . PHP_EOL;
+    echo '}' . PHP_EOL;
+    echo '</style>' . PHP_EOL;
 }
 
