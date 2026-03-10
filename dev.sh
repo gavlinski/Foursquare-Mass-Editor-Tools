@@ -58,36 +58,131 @@ check_dojo() {
     return 0
 }
 
+# Função para configurar fonte do Dojo (local ou CDN)
+configure_dojo_source() {
+    echo ""
+    echo "📦 Configuração do Dojo Toolkit"
+    echo "================================"
+    echo ""
+    echo "Escolha a fonte dos arquivos Dojo para DESENVOLVIMENTO:"
+    echo ""
+    echo "  1️⃣  Arquivos LOCAIS (js/dojo/, js/dijit/, js/dojox/)"
+    echo "     ✅ Melhor para debug detalhado"
+    echo "     ✅ Funciona offline"
+    echo "     ❌ Download inicial ~15MB"
+    echo ""
+    echo "  2️⃣  Google CDN (ajax.googleapis.com)"
+    echo "     ✅ Sem download inicial"
+    echo "     ✅ Cache compartilhado"
+    echo "     ✅ Performance otimizada"
+    echo "     ❌ Requer internet"
+    echo ""
+    echo "⚠️  Em PRODUÇÃO, sempre usará CDN (independente desta escolha)"
+    echo ""
+    
+    while true; do
+        read -p "Sua escolha (1=Local, 2=CDN): " -n 1 -r choice
+        echo
+        
+        case $choice in
+            1)
+                echo "✅ Configurado para usar arquivos LOCAIS"
+                
+                # Verifica se arquivos existem
+                if ! check_dojo; then
+                    echo "📥 Baixando Dojo Toolkit..."
+                    if download_dojo; then
+                        # Atualiza .env
+                        update_env_dojo_source "local"
+                        return 0
+                    else
+                        echo "❌ Erro ao baixar. Deseja usar CDN como fallback? (s/N)"
+                        read -p "> " -n 1 -r fallback
+                        echo
+                        if [[ $fallback =~ ^[Ss]$ ]]; then
+                            update_env_dojo_source "cdn"
+                            return 0
+                        else
+                            return 1
+                        fi
+                    fi
+                else
+                    update_env_dojo_source "local"
+                    return 0
+                fi
+                ;;
+            2)
+                echo "✅ Configurado para usar GOOGLE CDN"
+                update_env_dojo_source "cdn"
+                return 0
+                ;;
+            *)
+                echo "❌ Opção inválida. Digite 1 ou 2."
+                ;;
+        esac
+    done
+}
+
+# Função para atualizar DOJO_SOURCE no .env
+update_env_dojo_source() {
+    local source=$1
+    
+    if [ ! -f .env ]; then
+        cp .env.example .env
+    fi
+    
+    # Remove linha antiga se existir
+    sed -i.bak '/^DOJO_SOURCE=/d' .env
+    
+    # Adiciona nova configuração
+    echo "DOJO_SOURCE=$source" >> .env
+    
+    # Remove backup
+    rm -f .env.bak
+    
+    echo "📝 Configuração salva em .env: DOJO_SOURCE=$source"
+}
+
 # Função para verificar dependências do projeto
 check_dependencies() {
     echo "🔍 Verificando dependências do projeto..."
-    
-    # Verifica Dojo Toolkit (opcional)
-    if ! check_dojo; then
-        echo ""
-        echo "⚠️  Dojo Toolkit não encontrado (js/dojo/, js/dijit/, js/dojox/)"
-        echo "💡 Em desenvolvimento, você pode:"
-        echo "   1. Usar arquivos locais (recomendado para debug)"
-        echo "   2. Usar CDN do Google (carregamento automático)"
-        echo ""
-        read -p "Deseja baixar Dojo Toolkit agora? (s/N): " -n 1 -r
-        echo
-        if [[ $REPLY =~ ^[Ss]$ ]]; then
-            download_dojo || {
-                echo "⚠️  Continuando sem Dojo local (usará CDN)"
-            }
-        else
-            echo "⏭️  Pulando download - aplicação usará CDN"
-        fi
-    else
-        echo "✅ Dojo Toolkit encontrado localmente"
-    fi
     
     # Verifica se existe arquivo .env
     if [ ! -f .env ]; then
         echo "⚠️  Arquivo .env não encontrado. Copiando do exemplo..."
         cp .env.example .env
-        echo "📝 Edite o arquivo .env com suas configurações antes de continuar."
+        echo "📝 Edite o arquivo .env com suas configurações."
+    fi
+    
+    # Verifica configuração do Dojo
+    local dojo_source=$(grep "^DOJO_SOURCE=" .env 2>/dev/null | cut -d'=' -f2)
+    
+    if [ -z "$dojo_source" ]; then
+        # Primeira execução - perguntar preferência
+        configure_dojo_source
+    else
+        echo "📦 Fonte do Dojo configurada: $dojo_source"
+        
+        # Se configurado para local mas arquivos não existem, avisar
+        if [ "$dojo_source" = "local" ] && ! check_dojo; then
+            echo "⚠️  Configurado para usar arquivos locais, mas eles não existem!"
+            echo ""
+            read -p "Deseja baixá-los agora? (s/N): " -n 1 -r
+            echo
+            if [[ $REPLY =~ ^[Ss]$ ]]; then
+                download_dojo || {
+                    echo "❌ Erro ao baixar. Trocando para CDN..."
+                    update_env_dojo_source "cdn"
+                }
+            else
+                echo "💡 Trocando para CDN temporariamente..."
+                update_env_dojo_source "cdn"
+            fi
+        elif [ "$dojo_source" = "local" ]; then
+            echo "✅ Dojo Toolkit local encontrado (js/dojo/, js/dijit/, js/dojox/)"
+        else
+            echo "✅ Usando Dojo Toolkit via Google CDN"
+        fi
     fi
     
     # Verifica se existe composer.lock ou vendor
@@ -180,11 +275,11 @@ status() {
     if docker ps --filter name=foursquare-mass-editor --format "table {{.Names}}\t{{.Status}}" | grep -q foursquare-mass-editor; then
         echo "✅ Container: RODANDO"
         echo "🔗 URLs:"
-        echo "   • Principal: http://localhost/4sqmet/"
-        echo "   • Debug: http://localhost/4sqmet/debug/"
+        echo "   • Principal: https://localhost/4sqmet/"
+        echo "   • Debug: https://localhost/4sqmet/debug/"
         
-        # Teste de conectividade
-        if curl -s -o /dev/null -w "%{http_code}" http://localhost/4sqmet/ | grep -q "200"; then
+        # Teste de conectividade (ignora certificado self-signed com -k)
+        if curl -s -k -o /dev/null -w "%{http_code}" https://localhost/4sqmet/ | grep -qE "200|301|302"; then
             echo "✅ Conectividade: OK"
         else
             echo "❌ Conectividade: FALHOU"
@@ -279,8 +374,16 @@ case "${1:-}" in
             download_dojo
         fi
         ;;
+    "config")
+        # Reconfigurar fonte do Dojo
+        echo "🔧 Reconfiguração da fonte do Dojo Toolkit"
+        configure_dojo_source
+        echo ""
+        echo "✅ Configuração atualizada!"
+        echo "💡 Reinicie o container para aplicar: ./dev.sh restart"
+        ;;
     *)
-        echo "Uso: $0 {build|run|start|stop|logs|install|restart|reload|status|dojo}"
+        echo "Uso: $0 {build|run|start|stop|logs|install|restart|reload|status|dojo|config}"
         echo ""
         echo "Comandos disponíveis:"
         echo "  build    - Constrói a imagem Docker"
@@ -292,7 +395,8 @@ case "${1:-}" in
         echo "  restart  - Reinicia o container"
         echo "  reload   - Recarrega configuração do Apache (sem reiniciar container)"
         echo "  status   - Verifica status e sincronização de arquivos"
-        echo "  dojo     - Baixa Dojo Toolkit manualmente (opcional)"
+        echo "  dojo     - Baixa Dojo Toolkit manualmente (força download local)"
+        echo "  config   - Reconfigura fonte do Dojo (local ou CDN)"
         exit 1
         ;;
 esac

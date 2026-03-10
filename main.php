@@ -748,7 +748,7 @@ var sc_security="a38fdf67";
 src="https://www.statcounter.com/counter/counter.js"
 async></script>
 <noscript><div class="statcounter"><a title="Web Analytics"
-href="http://statcounter.com/" target="_blank"><img
+href="https://statcounter.com/" target="_blank"><img
 class="statcounter"
 src="//c.statcounter.com/7288306/0/a38fdf67/1/" alt="Web
 Analytics"></a></div></noscript>

@@ -24,10 +24,10 @@ class AppConfig
         $this->config = [
             'client_key' => $_ENV['FOURSQUARE_CLIENT_KEY'] ?? $client_key ?? '',
             'client_secret' => $_ENV['FOURSQUARE_CLIENT_SECRET'] ?? $client_secret ?? '',
-            'redirect_uri' => $_ENV['FOURSQUARE_REDIRECT_URI'] ?? $redirect_uri ?? 'http://localhost/4sqmet',
+            'redirect_uri' => $_ENV['FOURSQUARE_REDIRECT_URI'] ?? $redirect_uri ?? 'https://localhost/4sqmet',
             'app_env' => $_ENV['APP_ENV'] ?? 'production',
             'app_debug' => filter_var($_ENV['APP_DEBUG'] ?? false, FILTER_VALIDATE_BOOLEAN),
-            'app_url' => $_ENV['APP_URL'] ?? 'http://localhost/4sqmet',
+            'app_url' => $_ENV['APP_URL'] ?? 'https://localhost/4sqmet',
         ];
     }
 
