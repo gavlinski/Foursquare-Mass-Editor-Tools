@@ -239,23 +239,33 @@ a:hover {
 	position: relative;
 	margin: 5px 0 5px 0;
 }
+
+/* ============================================================
+ * Progress Bar Personalizado (ProgressBar.Class.php)
+ * ============================================================
+ * IMPORTANTE: Background-images são injetados dinamicamente
+ * - CSS dinâmico via dojo_progressbar_css() em asset_helper.php
+ * - URLs adaptam automaticamente (LOCAL ou CDN) baseado em DOJO_SOURCE
+ * - Produção: SEMPRE CDN (performance)
+ * - Desenvolvimento: LOCAL ou CDN (configurável via .env)
+ * ============================================================ */
 .pb_bar {
 	width: 100%;
 	height: 1.3em;
 	border: 1px solid;
 	border-color: #a2a2a2 #b8b8b8 #b8b8b8 #a2a2a2;
-	background: #ffffff url("js/dijit/themes/tundra/images/progressBarEmpty.png") repeat-x center center;
+	/* background-image injetado dinamicamente por dojo_progressbar_css() */
 }
 .pb_before {
 	float: left;
 	height: 1.3em;
-	background: #abd6ff url("js/dijit/themes/tundra/images/progressBarFull.png") repeat-x center center;
 	border-right: 1px solid #b8b8b8;
+	/* background-image injetado dinamicamente por dojo_progressbar_css() */
 }
 .pb_indeterminate {
 	float: left;
 	height: 1.3em;
-	background: #fff url("js/dijit/themes/tundra/images/progressBarAnim.gif") repeat-x center center;
+	/* background-image injetado dinamicamente por dojo_progressbar_css() */
 }
 .pb_text {
 	padding-top: 0.1em;
