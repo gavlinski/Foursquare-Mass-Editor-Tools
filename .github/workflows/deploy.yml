@@ -172,6 +172,7 @@ jobs:
           FOURSQUARE_REDIRECT_URI: ${{ secrets.FOURSQUARE_REDIRECT_URI }}
           GOOGLE_MAPS_API_KEY: ${{ secrets.GOOGLE_MAPS_API_KEY }}
           GOOGLE_MAPS_MAP_ID: ${{ secrets.GOOGLE_MAPS_MAP_ID }}
+          GOOGLE_MAPS_GEOCODING_KEY: ${{ secrets.GOOGLE_MAPS_GEOCODING_KEY }}
           APP_URL: ${{ secrets.APP_URL }}
         run: |
           echo "🚀 Deploying branch: ${DEPLOY_BRANCH}"

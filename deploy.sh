@@ -217,10 +217,16 @@ FOURSQUARE_REDIRECT_URI=${FOURSQUARE_REDIRECT_URI}
 GOOGLE_MAPS_API_KEY=${GOOGLE_MAPS_API_KEY}
 GOOGLE_MAPS_MAP_ID=${GOOGLE_MAPS_MAP_ID}
 
+# Google Maps Geocoding API Key (Server-Side)
+GOOGLE_MAPS_GEOCODING_KEY=${GOOGLE_MAPS_GEOCODING_KEY}
+
 # Application Settings
 APP_ENV=production
 APP_DEBUG=false
 APP_URL=${APP_URL}
+
+# Dojo Toolkit Source (produção sempre usa CDN)
+DOJO_SOURCE=cdn
 
 # Session Configuration
 SESSION_LIFETIME=1440
