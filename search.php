@@ -96,6 +96,48 @@ console.info("📚 Documentação: docs/GEOCODING_SETUP.md");
 define("ERRO02", LINKS . DOJO_INIT . HBODY . TEMPLATE1 . '<p>Nenhuma venue encontrada nas coordenadas geogr&aacute;ficas informadas.</p>
 <p>Verifique a latitude e longitude e tente novamente.</p>
 ' . TEMPLATE2);
+define("ERRO03", LINKS . DOJO_INIT . HBODY . TEMPLATE1 . '
+<script>
+console.error("❌ Falha na geocodificação: local não encontrado ou API indisponível");
+</script>
+<div style="max-width: 650px; margin: 40px auto; padding: 35px; background: #fff; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+	<h2 style="color: #e74c3c; margin-top: 0;">🌍 Endere&ccedil;o n&atilde;o encontrado</h2>
+	<p style="font-size: 1.1rem; line-height: 1.6; color: #333; margin: 20px 0;">
+		N&atilde;o foi poss&iacute;vel converter o endere&ccedil;o em coordenadas geogr&aacute;ficas.
+	</p>
+	<div style="background: #fff3cd; padding: 20px; border-radius: 5px; border-left: 4px solid #ffc107; margin: 20px 0;">
+		<p style="margin: 0 0 15px 0; font-weight: 600; color: #856404;">📍 Dicas para melhorar a busca:</p>
+		<ul style="margin: 0; padding-left: 20px; color: #856404;">
+			<li style="margin: 8px 0;">Use nomes completos: <strong>"Porto Alegre, RS"</strong> em vez de <strong>"POA"</strong></li>
+			<li style="margin: 8px 0;">Adicione o estado: <strong>"Canoas, RS"</strong></li>
+			<li style="margin: 8px 0;">Para cidades pequenas, adicione o pa&iacute;s: <strong>"Gramado, RS, Brasil"</strong></li>
+			<li style="margin: 8px 0;">Evite abrevia&ccedil;&otilde;es muito espec&iacute;ficas</li>
+		</ul>
+	</div>
+	<div style="background: #e8f4f8; padding: 20px; border-radius: 5px; border-left: 4px solid #3498db; margin: 20px 0;">
+		<p style="margin: 0 0 10px 0; font-weight: 600; color: #1e5f7e;">💡 Alternativa: Use coordenadas diretamente</p>
+		<p style="margin: 0 0 10px 0; color: #1e5f7e;">Formato: <code style="background: #fff; padding: 3px 8px; border-radius: 3px;">latitude,longitude</code></p>
+		<p style="margin: 0; color: #5a9ab8; font-size: 0.95rem;">
+			Exemplo: <code style="background: #fff; padding: 3px 8px; border-radius: 3px; color: #2c3e50;">-29.9178,-51.1794</code>
+		</p>
+	</div>
+	<div style="margin: 20px 0; padding: 15px; background: #f8f9fa; border-radius: 5px;">
+		<p style="margin: 0 0 10px 0; font-size: 0.95rem; color: #666;"><strong>Onde encontrar coordenadas:</strong></p>
+		<ul style="margin: 0; padding-left: 20px; font-size: 0.95rem; color: #666;">
+			<li style="margin: 5px 0;">🗺️ <a href="https://www.google.com.br/maps" target="_blank" style="color: #3498db;">Google Maps</a>: clique com bot&atilde;o direito no mapa</li>
+			<li style="margin: 5px 0;">📍 Foursquare: copie do campo <strong>Lat/Lng</strong> do local</li>
+		</ul>
+	</div>
+	<hr style="border: none; border-top: 1px solid #e0e0e0; margin: 25px 0;">
+	<p style="font-size: 0.9rem; color: #95a5a6; margin: 0 0 20px 0;">
+		⚠️ Se o problema persistir, a API do Google Maps pode estar temporariamente indispon&iacute;vel. Tente novamente em alguns minutos.
+	</p>
+	<p style="text-align: center;">
+		<button dojoType="dijit.form.Button" type="button" onclick="history.go(-1)" style="margin-left: 0px;">Voltar e Tentar Novamente</button>
+	</p>
+</div>
+</body>
+</html>');
 define("ERRO99", '<meta http-equiv="refresh" content="5; url=index.php">
 ' . LINKS . DOJO_INIT . '</head>
 <body>
@@ -146,12 +188,30 @@ echo EDIT;
  * 
  * Converte caracteres acentuados para seus equivalentes ASCII.
  * Útil para normalização de endereços e queries de busca.
+ * Compatível com PHP 8.1+
  * 
  * @param string $str String com acentos
  * @return string String sem acentos
  */
 function stripAccents($str) {
-    return strtr($str, utf8_decode('àáâãäçèéêëìíîïñòóôõöùúûüýÿÀÁÂÃÄÇÈÉÊËÌÍÎÏÑÒÓÔÕÖÙÚÛÜÝ'), 'aaaaaceeeeiiiinooooouuuuyyAAAAACEEEEIIIINOOOOOUUUUY');
+    // Normaliza para NFD (Normalization Form Decomposed) e remove marcas diacríticas
+    if (function_exists('normalizer_normalize')) {
+        $normalized = normalizer_normalize($str, Normalizer::FORM_D);
+        // Remove caracteres de combinação (marcas diacríticas)
+        return preg_replace('/\p{Mn}/u', '', $normalized);
+    }
+    
+    // Fallback: mapeamento manual de caracteres
+    $unwanted_array = [
+        'Š'=>'S', 'š'=>'s', 'Ž'=>'Z', 'ž'=>'z', 'À'=>'A', 'Á'=>'A', 'Â'=>'A', 'Ã'=>'A', 'Ä'=>'A', 'Å'=>'A',
+        'Æ'=>'A', 'Ç'=>'C', 'È'=>'E', 'É'=>'E', 'Ê'=>'E', 'Ë'=>'E', 'Ì'=>'I', 'Í'=>'I', 'Î'=>'I', 'Ï'=>'I',
+        'Ñ'=>'N', 'Ò'=>'O', 'Ó'=>'O', 'Ô'=>'O', 'Õ'=>'O', 'Ö'=>'O', 'Ø'=>'O', 'Ù'=>'U', 'Ú'=>'U', 'Û'=>'U',
+        'Ü'=>'U', 'Ý'=>'Y', 'Þ'=>'B', 'ß'=>'Ss', 'à'=>'a', 'á'=>'a', 'â'=>'a', 'ã'=>'a', 'ä'=>'a', 'å'=>'a',
+        'æ'=>'a', 'ç'=>'c', 'è'=>'e', 'é'=>'e', 'ê'=>'e', 'ë'=>'e', 'ì'=>'i', 'í'=>'i', 'î'=>'i', 'ï'=>'i',
+        'ð'=>'o', 'ñ'=>'n', 'ò'=>'o', 'ó'=>'o', 'ô'=>'o', 'õ'=>'o', 'ö'=>'o', 'ø'=>'o', 'ù'=>'u', 'ú'=>'u',
+        'û'=>'u', 'ý'=>'y', 'þ'=>'b', 'ÿ'=>'y'
+    ];
+    return strtr($str, $unwanted_array);
 }
 
 /**
@@ -205,11 +265,24 @@ function pesquisarVenues($params) {
 	/*** Leverages the Google Maps API to generate a lat/lng pair for a given address ***/
 	// Se ll estiver vazio ou não for coordenadas válidas, tenta geocodificar
 	if (!empty($params["ll"]) && (!preg_match('/^(\-?\d+(\.\d+)?),\s*(\-?\d+(\.\d+)?)$/', $params["ll"]))) {
-		$coordinates = $foursquare -> GeoLocate($params["ll"]);
+		// Remove acentos do endereço para melhor compatibilidade com Google Maps API
+		$endereco = stripAccents($params["ll"]);
+		$coordinates = $foursquare -> GeoLocate($endereco);
+		
 		// Verifica se geocodificação foi bem-sucedida antes de acessar array
 		if ($coordinates == null || !isset($coordinates["latitude"]) || !isset($coordinates["longitude"])) {
 			$pbar->hide();
-			echo ERRO01;
+			// Verifica se é porque a API Key não está configurada ou porque falhou a geocodificação
+			$mapsConfig = include __DIR__ . '/includes/google_maps_config.php';
+			$hasGeocodingKey = isset($mapsConfig['google_maps_geocoding_key']) && 
+			                    $mapsConfig['google_maps_geocoding_key'] !== null &&
+			                    $mapsConfig['google_maps_geocoding_key'] !== 'YOUR_GOOGLE_MAPS_API_KEY';
+			
+			if (!$hasGeocodingKey) {
+				echo ERRO01; // API Key não configurada
+			} else {
+				echo ERRO03; // Geocodificação falhou (local não encontrado ou API indisponível)
+			}
 			exit;
 		}
 		$params["ll"] = $coordinates["latitude"] . "," . $coordinates["longitude"];
