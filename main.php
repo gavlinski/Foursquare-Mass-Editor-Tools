@@ -191,8 +191,74 @@ function removeLocalCache($key) {
 <?php dojo_theme('tundra'); ?>
 <link rel="stylesheet" type="text/css" href="estilo.css?v=<?php echo time(); ?>">
 <link rel="stylesheet" type="text/css" href="includes/session-status-bar-variants.css?v=<?php echo time(); ?>">
+<style>
+/* Loading Overlay - Inline para carregamento imediato */
+#app-loading-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    z-index: 99999;
+    opacity: 1;
+    transition: opacity 0.5s ease-out;
+}
+
+#app-loading-overlay.fade-out {
+    opacity: 0;
+    pointer-events: none;
+}
+
+.loading-spinner {
+    width: 60px;
+    height: 60px;
+    border: 4px solid rgba(255, 255, 255, 0.3);
+    border-top-color: #fff;
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+.loading-text {
+    color: white;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    font-size: 18px;
+    font-weight: 500;
+    margin-top: 20px;
+    text-align: center;
+}
+
+.loading-subtext {
+    color: rgba(255, 255, 255, 0.8);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    font-size: 14px;
+    margin-top: 8px;
+}
+
+/* Oculta o conteúdo principal até o Dojo terminar */
+body.loading #intro,
+body.loading #options,
+body.loading #links {
+    visibility: hidden;
+}
+</style>
 </head>
-<body class="tundra">
+<body class="tundra loading">
+
+<!-- Loading Overlay -->
+<div id="app-loading-overlay">
+    <div class="loading-spinner"></div>
+    <div class="loading-text">Carregando Elio Tools</div>
+    <div class="loading-subtext">Preparando interface...</div>
+</div>
 
 <?php include 'includes/session-status-bar.php'; ?>
 
@@ -755,5 +821,85 @@ Analytics"></a></div></noscript>
 <!-- End of Statcounter Code -->
 
 <!-- End of StatCounter Code for Default Guide -->
+
+<script>
+// Gerenciamento do Loading Overlay
+(function() {
+    'use strict';
+    
+    var overlayRemoved = false;
+    var loadingStartTime = Date.now();
+    
+    function removeLoadingOverlay() {
+        if (overlayRemoved) return;
+        overlayRemoved = true;
+        
+        var loadTime = Date.now() - loadingStartTime;
+        console.log('✅ Dojo carregado em ' + loadTime + 'ms');
+        
+        var overlay = document.getElementById('app-loading-overlay');
+        var body = document.body;
+        
+        if (overlay) {
+            // Fade out suave
+            overlay.classList.add('fade-out');
+            
+            // Remove após animação
+            setTimeout(function() {
+                if (overlay.parentNode) {
+                    overlay.parentNode.removeChild(overlay);
+                }
+                body.classList.remove('loading');
+                console.log('🎨 Interface pronta');
+            }, 500);
+        } else {
+            body.classList.remove('loading');
+        }
+    }
+    
+    // Método 1: Dojo ready (preferencial)
+    function waitForDojo() {
+        if (typeof dojo !== 'undefined' && dojo.ready) {
+            dojo.ready(function() {
+                // Aguarda parsing completo dos widgets
+                setTimeout(removeLoadingOverlay, 100);
+            });
+        } else if (typeof require !== 'undefined') {
+            require(['dojo/ready', 'dojo/parser'], function(ready, parser) {
+                ready(function() {
+                    setTimeout(removeLoadingOverlay, 100);
+                });
+            });
+        } else {
+            // Retry se Dojo ainda não carregou
+            setTimeout(waitForDojo, 50);
+        }
+    }
+    
+    // Método 2: Fallback com timeout (segurança)
+    var fallbackTimeout = setTimeout(function() {
+        console.warn('⚠️ Timeout: Removendo overlay após 30 segundos');
+        removeLoadingOverlay();
+    }, 30000);
+    
+    // Método 3: window.onload como backup adicional
+    window.addEventListener('load', function() {
+        setTimeout(function() {
+            if (!overlayRemoved) {
+                console.log('📦 window.onload: Removendo overlay');
+                removeLoadingOverlay();
+            }
+        }, 500);
+    });
+    
+    // Inicia detecção do Dojo
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', waitForDojo);
+    } else {
+        waitForDojo();
+    }
+})();
+</script>
+
 </body>
 </html>

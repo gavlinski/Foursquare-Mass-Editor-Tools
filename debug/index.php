@@ -301,6 +301,13 @@
                     <p>Verifica se as imagens do ProgressBar carregam corretamente. Mostra configuração atual do sistema (local ou CDN), testa carregamento das imagens e valida CSS dinâmico.</p>
                 </div>
             </a>
+            
+            <a href="test_loading_overlay.html" onclick="sessionStorage.setItem('debugIndexScrollPos', window.scrollY || document.documentElement.scrollTop);">
+                <div class="card">
+                    <h2><span class="tag tag-ui">UI</span> Loading Overlay - Teste Standalone</h2>
+                    <p>Testa o sistema de loading overlay implementado para prevenir FOUC (Flash of Unstyled Content). Simula carregamento em diferentes velocidades e oferece controles interativos para validar animações, fade out e timeouts.</p>
+                </div>
+            </a>
         </div>
 
         <!-- APIs Foursquare -->

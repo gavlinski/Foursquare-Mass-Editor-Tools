@@ -57,13 +57,104 @@ include_once 'includes/asset_helper.php';
 <?php dojo_theme('tundra'); ?>
 <link rel="stylesheet" type="text/css" href="estilo.css?v=<?php echo time(); ?>">
 <link rel="stylesheet" type="text/css" href="includes/session-status-bar-variants.css?v=<?php echo time(); ?>">
+<style>
+/* Loading Overlay - Inline para carregamento imediato */
+#app-loading-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    z-index: 99999;
+    opacity: 1;
+    transition: opacity 0.5s ease-out;
+}
+
+#app-loading-overlay.fade-out {
+    opacity: 0;
+    pointer-events: none;
+}
+
+.loading-spinner {
+    width: 60px;
+    height: 60px;
+    border: 4px solid rgba(255, 255, 255, 0.3);
+    border-top-color: #fff;
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+.loading-text {
+    color: white;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    font-size: 18px;
+    font-weight: 500;
+    margin-top: 20px;
+    text-align: center;
+}
+
+.loading-subtext {
+    color: rgba(255, 255, 255, 0.8);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    font-size: 14px;
+    margin-top: 8px;
+}
+
+.loading-progress {
+    width: 200px;
+    height: 4px;
+    background: rgba(255, 255, 255, 0.3);
+    border-radius: 2px;
+    margin-top: 16px;
+    overflow: hidden;
+}
+
+.loading-progress-bar {
+    height: 100%;
+    background: white;
+    width: 0%;
+    animation: progress 2s ease-in-out infinite;
+}
+
+@keyframes progress {
+    0% { width: 0%; }
+    50% { width: 70%; }
+    100% { width: 100%; }
+}
+
+/* Oculta o conteúdo principal até o Dojo terminar */
+body.loading header,
+body.loading article,
+body.loading #listContainer {
+    visibility: hidden;
+}
+</style>
 <?php dojo_script(['parseOnLoad' => true]); ?>
 <?php script_versioned('js/session-manager.js'); ?>
 <script src="js/google-maps-config.php?v=5.0.1" defer></script>
 <?php script_versioned('js/google-maps.js', ['defer' => 'defer']); ?>
 <?php script_versioned('js/4sq.js', ['defer' => 'defer']); ?>
 </head>
-<body class="tundra">
+<body class="tundra loading">
+
+<!-- Loading Overlay -->
+<div id="app-loading-overlay">
+    <div class="loading-spinner"></div>
+    <div class="loading-text">Carregando Editor</div>
+    <div class="loading-subtext">Preparando <?php echo count($file); ?> locais...</div>
+    <div class="loading-progress">
+        <div class="loading-progress-bar"></div>
+    </div>
+</div>
 
 <?php include 'includes/session-status-bar.php'; ?>
 
@@ -384,6 +475,49 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     
     waitForSessionManager();
+    
+    // Remove loading overlay após Dojo e venue data carregados
+    function removeLoadingOverlay() {
+        var overlay = document.getElementById('app-loading-overlay');
+        var body = document.body;
+        
+        if (overlay && !overlay.classList.contains('fade-out')) {
+            console.log('✅ Editor pronto - removendo overlay');
+            overlay.classList.add('fade-out');
+            
+            setTimeout(function() {
+                if (overlay.parentNode) {
+                    overlay.parentNode.removeChild(overlay);
+                }
+                body.classList.remove('loading');
+                console.log('🎨 Interface de edição pronta');
+            }, 500);
+        }
+    }
+    
+    // Aguarda Dojo + carregamento inicial dos venues
+    if (typeof dojo !== 'undefined' && dojo.ready) {
+        dojo.ready(function() {
+            // Aguarda carregamento dos dados dos venues (função do 4sq.js)
+            var checkInterval = setInterval(function() {
+                // Verifica se os dados foram carregados (ao menos o primeiro venue)
+                var firstVenueForm = document.querySelector('form[name="form1"]');
+                if (firstVenueForm) {
+                    clearInterval(checkInterval);
+                    setTimeout(removeLoadingOverlay, 200);
+                }
+            }, 100);
+            
+            // Fallback: remove após 15 segundos mesmo sem dados
+            setTimeout(function() {
+                clearInterval(checkInterval);
+                removeLoadingOverlay();
+            }, 15000);
+        });
+    } else {
+        // Fallback se Dojo não disponível
+        setTimeout(removeLoadingOverlay, 10000);
+    }
     
     // Google Maps v3.32+ gerencia redimensionamento automaticamente
     // CSS resize: both permite redimensionar a div e o mapa se ajusta sozinho

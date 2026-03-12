@@ -1,0 +1,406 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<title>Loading Overlay - Teste Standalone</title>
+<style>
+/* Reset básico */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    background: #f5f5f5;
+    padding: 20px;
+}
+
+/* Loading Overlay - Código Exato de main.php */
+#app-loading-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    z-index: 99999;
+    opacity: 1;
+    transition: opacity 0.5s ease-out;
+}
+
+#app-loading-overlay.fade-out {
+    opacity: 0;
+    pointer-events: none;
+}
+
+.loading-spinner {
+    width: 60px;
+    height: 60px;
+    border: 4px solid rgba(255, 255, 255, 0.3);
+    border-top-color: #fff;
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+.loading-text {
+    color: white;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    font-size: 18px;
+    font-weight: 500;
+    margin-top: 20px;
+    text-align: center;
+}
+
+.loading-subtext {
+    color: rgba(255, 255, 255, 0.8);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    font-size: 14px;
+    margin-top: 8px;
+}
+
+.loading-progress {
+    width: 200px;
+    height: 4px;
+    background: rgba(255, 255, 255, 0.3);
+    border-radius: 2px;
+    margin-top: 16px;
+    overflow: hidden;
+}
+
+.loading-progress-bar {
+    height: 100%;
+    background: white;
+    width: 0%;
+    animation: progress 2s ease-in-out infinite;
+}
+
+@keyframes progress {
+    0% { width: 0%; }
+    50% { width: 70%; }
+    100% { width: 100%; }
+}
+
+/* Conteúdo de teste */
+body.loading .content {
+    visibility: hidden;
+}
+
+.content {
+    max-width: 800px;
+    margin: 40px auto;
+    background: white;
+    padding: 30px;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+h1 {
+    color: #333;
+    margin-bottom: 20px;
+}
+
+.controls {
+    margin: 30px 0;
+    padding: 20px;
+    background: #f9f9f9;
+    border-radius: 4px;
+}
+
+button {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border: none;
+    padding: 12px 24px;
+    border-radius: 6px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    margin-right: 10px;
+    margin-bottom: 10px;
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+}
+
+button:active {
+    transform: translateY(0);
+}
+
+.log {
+    background: #1e1e1e;
+    color: #d4d4d4;
+    padding: 15px;
+    border-radius: 4px;
+    font-family: 'Monaco', 'Menlo', monospace;
+    font-size: 12px;
+    max-height: 300px;
+    overflow-y: auto;
+    margin-top: 20px;
+}
+
+.log-entry {
+    margin: 5px 0;
+    line-height: 1.5;
+}
+
+.log-entry.success { color: #4ec9b0; }
+.log-entry.warning { color: #ce9178; }
+.log-entry.error { color: #f48771; }
+.log-entry.info { color: #569cd6; }
+
+.stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 15px;
+    margin-top: 20px;
+}
+
+.stat-card {
+    background: white;
+    padding: 15px;
+    border-radius: 6px;
+    border: 2px solid #e0e0e0;
+    text-align: center;
+}
+
+.stat-value {
+    font-size: 24px;
+    font-weight: bold;
+    color: #667eea;
+}
+
+.stat-label {
+    font-size: 12px;
+    color: #666;
+    margin-top: 5px;
+}
+</style>
+</head>
+<body class="loading">
+
+<!-- Loading Overlay -->
+<div id="app-loading-overlay">
+    <div class="loading-spinner"></div>
+    <div class="loading-text">Carregando Teste</div>
+    <div class="loading-subtext">Simulando carregamento...</div>
+    <div class="loading-progress">
+        <div class="loading-progress-bar"></div>
+    </div>
+</div>
+
+<!-- Conteúdo Principal -->
+<div class="content">
+    <h1>🧪 Loading Overlay - Teste Standalone</h1>
+    
+    <p>Este arquivo permite testar o loading overlay isoladamente, sem depender do Dojo ou sistema completo.</p>
+    
+    <div class="controls">
+        <h3 style="margin-bottom: 20px;">Controles de Teste</h3>
+        <button onclick="testLoadingOverlay()">🔄 Recarregar Overlay</button>
+        <button onclick="testSlowLoading()">🐌 Simular Slow 3G (3s)</button>
+        <button onclick="testNormalLoading()">⚡ Simular Normal (1s)</button>
+        <button onclick="testTimeout()">⏱️ Simular Timeout (30s)</button>
+        <button onclick="clearLog()">🧹 Limpar Log</button>
+    </div>
+    
+    <div class="stats">
+        <div class="stat-card">
+            <div class="stat-value" id="loadCount">0</div>
+            <div class="stat-label">Carregamentos</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-value" id="avgTime">0ms</div>
+            <div class="stat-label">Tempo Médio</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-value" id="lastTime">0ms</div>
+            <div class="stat-label">Último Tempo</div>
+        </div>
+    </div>
+    
+    <div class="log" id="log">
+        <div class="log-entry info">Console de testes inicializado...</div>
+    </div>
+    
+    <footer style="text-align: center; padding: 30px 0 2px; margin-top: 40px; border-top: 2px solid #e0e0e0; background: white;">
+        <a href="index.php" 
+           style="display: inline-flex; align-items: center; gap: 10px; padding: 12px 24px; 
+                  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
+                  color: white; text-decoration: none; border-radius: 8px; 
+                  font-weight: 600; transition: transform 0.2s, box-shadow 0.2s; 
+                  box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M19 12H5M12 19l-7-7 7-7"/>
+            </svg>
+            Voltar para Debug
+        </a>
+    </footer>
+</div>
+
+<script>
+// Estatísticas
+let stats = {
+    loadCount: 0,
+    totalTime: 0,
+    lastTime: 0
+};
+
+// Sistema de Log
+function log(message, type = 'info') {
+    const logDiv = document.getElementById('log');
+    const entry = document.createElement('div');
+    entry.className = `log-entry ${type}`;
+    const timestamp = new Date().toLocaleTimeString('pt-BR');
+    entry.textContent = `[${timestamp}] ${message}`;
+    logDiv.appendChild(entry);
+    logDiv.scrollTop = logDiv.scrollHeight;
+    console.log(message);
+}
+
+function clearLog() {
+    document.getElementById('log').innerHTML = '<div class="log-entry info">Console limpo...</div>';
+}
+
+function updateStats() {
+    document.getElementById('loadCount').textContent = stats.loadCount;
+    document.getElementById('avgTime').textContent = 
+        stats.loadCount > 0 ? Math.round(stats.totalTime / stats.loadCount) + 'ms' : '0ms';
+    document.getElementById('lastTime').textContent = stats.lastTime + 'ms';
+}
+
+// Gerenciamento do Loading Overlay
+let overlayRemoved = false;
+let loadingStartTime = Date.now();
+
+function removeLoadingOverlay() {
+    if (overlayRemoved) return;
+    overlayRemoved = true;
+    
+    const loadTime = Date.now() - loadingStartTime;
+    stats.loadCount++;
+    stats.totalTime += loadTime;
+    stats.lastTime = loadTime;
+    updateStats();
+    
+    log(`✅ Overlay removido em ${loadTime}ms`, 'success');
+    
+    const overlay = document.getElementById('app-loading-overlay');
+    const body = document.body;
+    
+    if (overlay) {
+        overlay.classList.add('fade-out');
+        
+        setTimeout(function() {
+            if (overlay.parentNode) {
+                overlay.style.display = 'none';
+            }
+            body.classList.remove('loading');
+            log('🎨 Interface pronta', 'success');
+        }, 500);
+    } else {
+        body.classList.remove('loading');
+    }
+}
+
+function showLoadingOverlay() {
+    overlayRemoved = false;
+    loadingStartTime = Date.now();
+    
+    const overlay = document.getElementById('app-loading-overlay');
+    const body = document.body;
+    
+    if (overlay) {
+        overlay.style.display = 'flex';
+        overlay.classList.remove('fade-out');
+        body.classList.add('loading');
+        log('🔄 Overlay exibido', 'info');
+    }
+}
+
+// Testes
+function testLoadingOverlay() {
+    log('🧪 Iniciando teste de recarregamento...', 'info');
+    showLoadingOverlay();
+    
+    setTimeout(function() {
+        removeLoadingOverlay();
+    }, 1000);
+}
+
+function testSlowLoading() {
+    log('🐌 Simulando Slow 3G (3 segundos)...', 'warning');
+    showLoadingOverlay();
+    
+    setTimeout(function() {
+        log('📦 Recursos carregados (simulado)', 'info');
+        removeLoadingOverlay();
+    }, 3000);
+}
+
+function testNormalLoading() {
+    log('⚡ Simulando carregamento normal (1 segundo)...', 'info');
+    showLoadingOverlay();
+    
+    setTimeout(function() {
+        log('📦 Recursos carregados (simulado)', 'info');
+        removeLoadingOverlay();
+    }, 1000);
+}
+
+function testTimeout() {
+    log('⏱️ Simulando timeout de 30 segundos...', 'warning');
+    showLoadingOverlay();
+    
+    let countdown = 30;
+    const intervalId = setInterval(function() {
+        countdown--;
+        log(`⏳ Timeout em ${countdown}s...`, 'warning');
+        
+        if (countdown === 0) {
+            clearInterval(intervalId);
+            log('⚠️ Timeout atingido - removendo overlay', 'error');
+            removeLoadingOverlay();
+        }
+    }, 1000);
+}
+
+// Inicialização automática
+document.addEventListener('DOMContentLoaded', function() {
+    log('📄 DOM carregado', 'info');
+    log('🔧 Iniciando carregamento simulado...', 'info');
+    
+    // Simula carregamento inicial
+    setTimeout(function() {
+        log('✅ Carregamento inicial completo', 'success');
+        removeLoadingOverlay();
+    }, 2000);
+});
+
+// Fallback de segurança
+window.addEventListener('load', function() {
+    log('📦 window.onload disparado', 'info');
+    
+    setTimeout(function() {
+        if (!overlayRemoved) {
+            log('⚠️ Fallback: Removendo overlay via window.onload', 'warning');
+            removeLoadingOverlay();
+        }
+    }, 500);
+});
+</script>
+
+</body>
+</html>
