@@ -7,7 +7,7 @@ class SessionManager
     private array $defaultOptions = [
         'cookie_secure' => false, // Will be set based on HTTPS
         'cookie_httponly' => true,
-        'cookie_samesite' => 'Strict',
+        'cookie_samesite' => 'Lax', // Lax permite OAuth redirects (cross-site GET)
         'use_strict_mode' => true,
         'cookie_lifetime' => 0,
         'gc_maxlifetime' => 1440,
@@ -85,7 +85,7 @@ class SessionManager
             'domain' => '',
             'secure' => $this->isHttps() && !$isDevEnvironment, // Não forçar HTTPS em dev
             'httponly' => false, // Permitir acesso JavaScript ao oauth_token
-            'samesite' => $isDevEnvironment ? 'Lax' : 'Strict' // Mais flexível em dev
+            'samesite' => 'Lax' // Lax permite OAuth redirects (cross-site GET) em dev e prod
         ];
         
         error_log("SessionManager: Setting cookie '$name' with options: " . json_encode($options));
