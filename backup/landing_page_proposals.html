@@ -1,0 +1,951 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Landing Page Proposals - Foursquare Mass Editor Tools</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: #f5f5f5;
+            padding: 20px;
+        }
+
+        .nav {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+
+        .nav h1 {
+            font-size: 24px;
+            margin-bottom: 10px;
+            color: #333;
+        }
+
+        .nav p {
+            color: #666;
+            margin-bottom: 20px;
+        }
+
+        .nav button {
+            margin: 0 10px;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .nav button.active {
+            background: #5851db;
+            color: white;
+        }
+
+        .nav button:not(.active) {
+            background: #e0e0e0;
+            color: #666;
+        }
+
+        .nav button:hover:not(.active) {
+            background: #d0d0d0;
+        }
+
+        .proposal-container {
+            display: none;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .proposal-container.active {
+            display: block;
+        }
+
+        .proposal-info {
+            padding: 20px;
+            background: #f9f9f9;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        .proposal-info h2 {
+            font-size: 18px;
+            color: #333;
+            margin-bottom: 8px;
+        }
+
+        .proposal-info p {
+            color: #666;
+            font-size: 14px;
+            line-height: 1.6;
+        }
+
+        /* PROPOSTA 1: MINIMALISTA */
+        .proposal-1 {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 40px 20px;
+        }
+
+        .proposal-1 .container {
+            max-width: 500px;
+            text-align: center;
+            color: white;
+        }
+
+        .proposal-1 h1 {
+            font-size: 48px;
+            font-weight: 700;
+            margin-bottom: 16px;
+            letter-spacing: -1px;
+        }
+
+        .proposal-1 .tagline {
+            font-size: 20px;
+            font-weight: 300;
+            margin-bottom: 40px;
+            opacity: 0.9;
+        }
+
+        .proposal-1 .description {
+            font-size: 16px;
+            line-height: 1.6;
+            margin-bottom: 40px;
+            opacity: 0.85;
+        }
+
+        .proposal-1 .cta-button {
+            display: inline-block;
+            padding: 18px 48px;
+            background: white;
+            color: #667eea;
+            text-decoration: none;
+            border-radius: 50px;
+            font-weight: 600;
+            font-size: 16px;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+
+        .proposal-1 .cta-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0,0,0,0.3);
+        }
+
+        .proposal-1 .footer-links {
+            margin-top: 40px;
+            font-size: 14px;
+            opacity: 0.7;
+        }
+
+        .proposal-1 .footer-links a {
+            color: white;
+            text-decoration: none;
+            margin: 0 12px;
+            transition: opacity 0.3s ease;
+        }
+
+        .proposal-1 .footer-links a:hover {
+            opacity: 1;
+            text-decoration: underline;
+        }
+
+        /* PROPOSTA 2: PROFISSIONAL */
+        .proposal-2 {
+            min-height: 100vh;
+            background: #f8f9fa;
+            padding: 60px 20px;
+        }
+
+        .proposal-2 .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            padding: 60px;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+        }
+
+        .proposal-2 .logo {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .proposal-2 h1 {
+            font-size: 42px;
+            color: #2c3e50;
+            text-align: center;
+            margin-bottom: 12px;
+        }
+
+        .proposal-2 .subtitle {
+            font-size: 20px;
+            color: #7f8c8d;
+            text-align: center;
+            margin-bottom: 40px;
+            font-weight: 400;
+        }
+
+        .proposal-2 .cta-primary {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 50px;
+        }
+
+        .proposal-2 .cta-button {
+            display: inline-flex;
+            align-items: center;
+            gap: 12px;
+            padding: 16px 40px;
+            background: #5851db;
+            color: white;
+            text-decoration: none;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 16px;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 8px rgba(88, 81, 219, 0.3);
+        }
+
+        .proposal-2 .cta-button:hover {
+            background: #4a43c4;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(88, 81, 219, 0.4);
+        }
+
+        .proposal-2 .features {
+            margin-bottom: 40px;
+        }
+
+        .proposal-2 .features h3 {
+            font-size: 18px;
+            color: #2c3e50;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .proposal-2 .feature-list {
+            list-style: none;
+            padding: 0;
+        }
+
+        .proposal-2 .feature-list li {
+            padding: 12px 0;
+            padding-left: 32px;
+            position: relative;
+            color: #555;
+            line-height: 1.6;
+        }
+
+        .proposal-2 .feature-list li:before {
+            content: "✓";
+            position: absolute;
+            left: 0;
+            color: #5851db;
+            font-weight: bold;
+            font-size: 18px;
+        }
+
+        .proposal-2 .disclaimer {
+            font-size: 13px;
+            color: #95a5a6;
+            line-height: 1.6;
+            text-align: center;
+            padding-top: 30px;
+            border-top: 1px solid #ecf0f1;
+        }
+
+        .proposal-2 .footer-links {
+            text-align: center;
+            margin-top: 30px;
+        }
+
+        .proposal-2 .footer-links a {
+            color: #5851db;
+            text-decoration: none;
+            margin: 0 15px;
+            font-size: 14px;
+            transition: color 0.3s ease;
+        }
+
+        .proposal-2 .footer-links a:hover {
+            color: #4a43c4;
+            text-decoration: underline;
+        }
+
+        /* PROPOSTA 3: MODERNA */
+        .proposal-3 {
+            min-height: 100vh;
+            background: #0f0f1e;
+            color: white;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .proposal-3:before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: 
+                radial-gradient(circle at 20% 30%, rgba(102, 126, 234, 0.15) 0%, transparent 50%),
+                radial-gradient(circle at 80% 70%, rgba(118, 75, 162, 0.15) 0%, transparent 50%);
+            pointer-events: none;
+        }
+
+        .proposal-3 .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 80px 40px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .proposal-3 .header {
+            text-align: center;
+            margin-bottom: 60px;
+        }
+
+        .proposal-3 .brand {
+            font-size: 16px;
+            font-weight: 600;
+            color: #667eea;
+            margin-bottom: 20px;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+        }
+
+        .proposal-3 h1 {
+            font-size: 56px;
+            font-weight: 800;
+            margin-bottom: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #a991ff 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .proposal-3 .tagline {
+            font-size: 22px;
+            color: #a0a0b0;
+            margin-bottom: 40px;
+            font-weight: 300;
+        }
+
+        .proposal-3 .description {
+            font-size: 17px;
+            line-height: 1.8;
+            color: #b0b0c0;
+            max-width: 700px;
+            margin: 0 auto 50px;
+        }
+
+        .proposal-3 .cta-section {
+            text-align: center;
+            margin-bottom: 60px;
+        }
+
+        .proposal-3 .cta-button {
+            display: inline-block;
+            padding: 18px 50px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            text-decoration: none;
+            border-radius: 50px;
+            font-weight: 600;
+            font-size: 16px;
+            transition: all 0.3s ease;
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .proposal-3 .cta-button:before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: rgba(255,255,255,0.1);
+            transition: left 0.5s ease;
+        }
+
+        .proposal-3 .cta-button:hover:before {
+            left: 100%;
+        }
+
+        .proposal-3 .cta-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 35px rgba(102, 126, 234, 0.4);
+        }
+
+        .proposal-3 .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 30px;
+            margin-bottom: 60px;
+        }
+
+        .proposal-3 .feature-card {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 12px;
+            padding: 30px;
+            transition: all 0.3s ease;
+        }
+
+        .proposal-3 .feature-card:hover {
+            background: rgba(255, 255, 255, 0.05);
+            border-color: rgba(102, 126, 234, 0.3);
+            transform: translateY(-5px);
+        }
+
+        .proposal-3 .feature-icon {
+            font-size: 32px;
+            margin-bottom: 15px;
+        }
+
+        .proposal-3 .feature-card h3 {
+            font-size: 18px;
+            margin-bottom: 10px;
+            color: #e0e0f0;
+        }
+
+        .proposal-3 .feature-card p {
+            font-size: 14px;
+            color: #a0a0b0;
+            line-height: 1.6;
+        }
+
+        .proposal-3 .footer {
+            text-align: center;
+            padding-top: 40px;
+            border-top: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        .proposal-3 .footer-links a {
+            color: #a0a0b0;
+            text-decoration: none;
+            margin: 0 15px;
+            font-size: 14px;
+            transition: color 0.3s ease;
+        }
+
+        .proposal-3 .footer-links a:hover {
+            color: #667eea;
+        }
+
+        .proposal-3 .disclaimer {
+            font-size: 13px;
+            color: #707080;
+            line-height: 1.6;
+            margin-top: 30px;
+            max-width: 700px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        /* PROPOSTA 4: ELIO TOOLS */
+        .proposal-4 {
+            min-height: 100vh;
+            background: #0f0f1e;
+            color: white;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .proposal-4:before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: 
+                radial-gradient(circle at 20% 30%, rgba(102, 126, 234, 0.15) 0%, transparent 50%),
+                radial-gradient(circle at 80% 70%, rgba(118, 75, 162, 0.15) 0%, transparent 50%);
+            pointer-events: none;
+        }
+
+        .proposal-4 .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 80px 40px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .proposal-4 .header {
+            text-align: center;
+            margin-bottom: 60px;
+        }
+
+        .proposal-4 .brand {
+            font-size: 16px;
+            font-weight: 600;
+            color: #667eea;
+            margin-bottom: 20px;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+        }
+
+        .proposal-4 h1 {
+            font-size: 56px;
+            font-weight: 800;
+            margin-bottom: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #a991ff 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .proposal-4 .tagline {
+            font-size: 22px;
+            color: #a0a0b0;
+            margin-bottom: 40px;
+            font-weight: 300;
+        }
+
+        .proposal-4 .description {
+            font-size: 17px;
+            line-height: 1.8;
+            color: #b0b0c0;
+            max-width: 700px;
+            margin: 0 auto 50px;
+        }
+
+        .proposal-4 .cta-section {
+            text-align: center;
+            margin-bottom: 60px;
+        }
+
+        .proposal-4 .cta-button {
+            display: inline-block;
+            padding: 18px 50px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            text-decoration: none;
+            border-radius: 50px;
+            font-weight: 600;
+            font-size: 16px;
+            transition: all 0.3s ease;
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .proposal-4 .cta-button:before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: rgba(255,255,255,0.1);
+            transition: left 0.5s ease;
+        }
+
+        .proposal-4 .cta-button:hover:before {
+            left: 100%;
+        }
+
+        .proposal-4 .cta-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 35px rgba(102, 126, 234, 0.4);
+        }
+
+        .proposal-4 .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 30px;
+            margin-bottom: 60px;
+        }
+
+        .proposal-4 .feature-card {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 12px;
+            padding: 30px;
+            transition: all 0.3s ease;
+        }
+
+        .proposal-4 .feature-card:hover {
+            background: rgba(255, 255, 255, 0.05);
+            border-color: rgba(102, 126, 234, 0.3);
+            transform: translateY(-5px);
+        }
+
+        .proposal-4 .feature-icon {
+            width: 48px;
+            height: 48px;
+            margin-bottom: 15px;
+            color: #667eea;
+        }
+
+        .proposal-4 .feature-card h3 {
+            font-size: 18px;
+            margin-bottom: 10px;
+            color: #e0e0f0;
+        }
+
+        .proposal-4 .feature-card p {
+            font-size: 14px;
+            color: #a0a0b0;
+            line-height: 1.6;
+        }
+
+        .proposal-4 .footer {
+            text-align: center;
+            padding-top: 40px;
+            border-top: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        .proposal-4 .footer-links {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+
+        .proposal-4 .footer-links a {
+            color: #a0a0b0;
+            text-decoration: none;
+            font-size: 14px;
+            transition: color 0.3s ease;
+        }
+
+        .proposal-4 .footer-links a:hover {
+            color: #667eea;
+        }
+
+        .proposal-4 .disclaimer {
+            font-size: 13px;
+            color: #707080;
+            line-height: 1.6;
+            margin-top: 30px;
+            margin-bottom: 30px;
+            max-width: 700px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        @media (max-width: 768px) {
+            .proposal-1 h1 { font-size: 36px; }
+            .proposal-2 h1 { font-size: 32px; }
+            .proposal-3 h1 { font-size: 40px; }
+            .proposal-4 h1 { font-size: 40px; }
+            .proposal-2 .container { padding: 40px 30px; }
+            .proposal-3 .container { padding: 60px 20px; }
+            .proposal-4 .container { padding: 60px 20px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="nav">
+        <h1>🎨 Propostas de Landing Page</h1>
+        <p>Escolha entre as 4 propostas abaixo para visualizar o design completo</p>
+        <div>
+            <button onclick="showProposal(1)" class="active" id="btn1">Proposta 1: Minimalista</button>
+            <button onclick="showProposal(2)" id="btn2">Proposta 2: Profissional</button>
+            <button onclick="showProposal(3)" id="btn3">Proposta 3: Moderna</button>
+            <button onclick="showProposal(4)" id="btn4">Proposta 4: Elio Tools (Recomendada)</button>
+        </div>
+    </div>
+
+    <!-- PROPOSTA 1: MINIMALISTA -->
+    <div id="proposal1" class="proposal-container active">
+        <div class="proposal-info">
+            <h2>Proposta 1: Minimalista</h2>
+            <p><strong>Características:</strong> Design ultra-limpo com gradiente suave, foco total no call-to-action. 
+            Inspirado nas diretrizes da marca ("simple, scalable system"). Ideal para usuários que querem ir direto ao ponto.</p>
+        </div>
+        <div class="proposal-1">
+            <div class="container">
+                <h1>4SQMET</h1>
+                <div class="tagline">Foursquare Mass Editor Tools</div>
+                <div class="description">
+                    Ferramenta profissional para edição em massa de venues no Foursquare. 
+                    Criada para superusuários que precisam de eficiência e controle total.
+                </div>
+                <a href="#" class="cta-button" onclick="alert('Este é um botão de demonstração. Na versão final, este link será: <?php echo $foursquare->AuthenticationLink($config->get(\'redirect_uri\')); ?>'); return false;">
+                    Conectar com Foursquare
+                </a>
+                <div class="footer-links">
+                    <a href="https://foursquare.com/developer/" target="_blank">Developer</a>
+                    <a href="https://foursquare.com/legal/privacy-center/" target="_blank">Privacy</a>
+                    <a href="https://github.com/gavlinski/Foursquare-Mass-Editor-Tools" target="_blank">GitHub</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- PROPOSTA 2: PROFISSIONAL -->
+    <div id="proposal2" class="proposal-container">
+        <div class="proposal-info">
+            <h2>Proposta 2: Profissional</h2>
+            <p><strong>Características:</strong> Layout estruturado similar ao Foursweep, com lista de funcionalidades destacadas. 
+            Transmite credibilidade e profissionalismo. Ideal para demonstrar todas as capacidades da ferramenta.</p>
+        </div>
+        <div class="proposal-2">
+            <div class="container">
+                <div class="logo">
+                    <h1>4SQMET</h1>
+                    <div class="subtitle">Foursquare Mass Editor Tools</div>
+                </div>
+
+                <div class="cta-primary">
+                    <a href="#" class="cta-button" onclick="alert('Este é um botão de demonstração'); return false;">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4M10 17l5-5-5-5M13.8 12H3"/>
+                        </svg>
+                        Autenticar com Foursquare
+                    </a>
+                </div>
+
+                <div class="features">
+                    <h3>Uma ferramenta poderosa para edição profissional de venues</h3>
+                    <ul class="feature-list">
+                        <li>Edite múltiplos venues simultaneamente com eficiência</li>
+                        <li>Importe dados via CSV ou URLs de busca do Foursquare</li>
+                        <li>Interface intuitiva com validação em tempo real</li>
+                        <li>Busca avançada por coordenadas geográficas</li>
+                        <li>Integração completa com Google Maps para visualização</li>
+                        <li>Controle de alterações com histórico detalhado</li>
+                        <li>Sistema de flags para venues problemáticos</li>
+                        <li>Suporte a edição de categorias, contatos e redes sociais</li>
+                    </ul>
+                </div>
+
+                <div class="disclaimer">
+                    Esta ferramenta conecta-se à sua conta Foursquare utilizando OAuth2. 
+                    Coletamos apenas as informações necessárias para operação (nome de usuário e localização aproximada). 
+                    Todas as edições são realizadas diretamente via API oficial do Foursquare.
+                </div>
+
+                <div class="footer-links">
+                    <a href="https://foursquare.com/developer/" target="_blank">Developer Docs</a>
+                    <a href="https://foursquare.com/legal/privacy-center/" target="_blank">Privacy Policy</a>
+                    <a href="https://github.com/gavlinski/Foursquare-Mass-Editor-Tools" target="_blank">GitHub Repository</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- PROPOSTA 3: MODERNA -->
+    <div id="proposal3" class="proposal-container">
+        <div class="proposal-info">
+            <h2>Proposta 3: Moderna</h2>
+            <p><strong>Características:</strong> Design dark mode com gradientes sutis e cards animados. 
+            Visual contemporâneo que transmite "authority and swagger" conforme as diretrizes da marca. 
+            Ideal para uma experiência moderna e sofisticada.</p>
+        </div>
+        <div class="proposal-3">
+            <div class="container">
+                <div class="header">
+                    <div class="brand">Foursquare Power Tool</div>
+                    <h1>4SQMET</h1>
+                    <div class="tagline">Human movement made visible</div>
+                    <div class="description">
+                        A ferramenta definitiva para edição profissional em massa de venues no Foursquare. 
+                        Criada para superusuários que exigem eficiência, precisão e controle total sobre suas edições.
+                    </div>
+                </div>
+
+                <div class="cta-section">
+                    <a href="#" class="cta-button" onclick="alert('Este é um botão de demonstração'); return false;">
+                        Conectar com Foursquare
+                    </a>
+                </div>
+
+                <div class="features-grid">
+                    <div class="feature-card">
+                        <div class="feature-icon">⚡</div>
+                        <h3>Edição em Massa</h3>
+                        <p>Edite centenas de venues simultaneamente com validação em tempo real e controle de alterações.</p>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-icon">📍</div>
+                        <h3>Busca Geográfica</h3>
+                        <p>Busca avançada por coordenadas com integração completa ao Google Maps.</p>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-icon">📊</div>
+                        <h3>Importação de Dados</h3>
+                        <p>Suporte para importação via CSV, URLs de busca ou páginas web do Foursquare.</p>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-icon">🎯</div>
+                        <h3>Sistema de Flags</h3>
+                        <p>Identifique e sinalize venues problemáticos rapidamente para revisão posterior.</p>
+                    </div>
+                </div>
+
+                <div class="footer">
+                    <div class="disclaimer">
+                        Esta ferramenta conecta-se à sua conta Foursquare através de OAuth2 seguro. 
+                        Respeitamos sua privacidade e coletamos apenas o mínimo necessário para operação. 
+                        Todas as operações utilizam a API oficial do Foursquare.
+                    </div>
+                    <div class="footer-links">
+                        <a href="https://foursquare.com/developer/" target="_blank">Developer</a>
+                        <a href="https://foursquare.com/legal/privacy-center/" target="_blank">Privacy Center</a>
+                        <a href="https://github.com/gavlinski/Foursquare-Mass-Editor-Tools" target="_blank">GitHub</a>
+                        <a href="https://foursquare.com/company/brand/" target="_blank">Brand Guidelines</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- PROPOSTA 4: ELIO TOOLS -->
+    <div id="proposal4" class="proposal-container">
+        <div class="proposal-info">
+            <h2>Proposta 4: Elio Tools (Recomendada)</h2>
+            <p><strong>Características:</strong> Baseada na Proposta 3, com nome "Elio Tools" (mais popular entre usuários), 
+            ícones SVG profissionais, texto focado em placemakers, e links importantes incluindo API Status.</p>
+        </div>
+        <div class="proposal-4">
+            <div class="container">
+                <div class="header">
+                    <div class="brand">Foursquare Mass Editor Tools</div>
+                    <h1>Elio Tools</h1>
+                    <div class="tagline">Ferramenta de Edição de MúltiplosLocais</div>
+                    <div class="description">
+                        Ferramenta para edição em massa de locais no Foursquare®. Criada para placemakers 
+                        para facilitar a visualização, importação, edição e sinalização de dados de múltiplos locais.
+                    </div>
+                </div>
+
+                <div class="cta-section">
+                    <a href="#" class="cta-button" onclick="alert('Este é um botão de demonstração'); return false;">
+                        Conectar com Foursquare
+                    </a>
+                </div>
+
+                <div class="features-grid">
+                    <div class="feature-card">
+                        <svg class="feature-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                            <circle cx="9" cy="7" r="4"></circle>
+                            <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+                            <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+                        </svg>
+                        <h3>Visualização</h3>
+                        <p>Interface intuitiva para visualizar e gerenciar dados de múltiplos locais simultaneamente.</p>
+                    </div>
+                    <div class="feature-card">
+                        <svg class="feature-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                            <polyline points="17 8 12 3 7 8"></polyline>
+                            <line x1="12" y1="3" x2="12" y2="15"></line>
+                        </svg>
+                        <h3>Importação</h3>
+                        <p>Carregue dados de locais via CSV, IDs ou URLs, páginas web ou integração com <a href="https://www.foursweep.com" target="_blank" style="color: #667eea; text-decoration: none; border-bottom: 1px solid rgba(102, 126, 234, 0.3); transition: border-color 0.3s ease;" onmouseover="this.style.borderBottomColor='#667eea'" onmouseout="this.style.borderBottomColor='rgba(102, 126, 234, 0.3)'">4sweep</a>.</p>
+                    </div>
+                    <div class="feature-card">
+                        <svg class="feature-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                            <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                        </svg>
+                        <h3>Edição</h3>
+                        <p>Edite os dados de vários campos validando todas as informações antes de salvar as alterações.</p>
+                    </div>
+                    <div class="feature-card">
+                        <svg class="feature-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"></path>
+                            <line x1="4" y1="22" x2="4" y2="15"></line>
+                        </svg>
+                        <h3>Sinalização</h3>
+                        <p>Identifique e sinalize rapidamente locais fechados ou duplicados para revisão posterior.</p>
+                    </div>
+                    <div class="feature-card">
+                        <svg class="feature-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <circle cx="11" cy="11" r="8"></circle>
+                            <path d="M21 21l-4.35-4.35"></path>
+                            <circle cx="11" cy="11" r="3"></circle>
+                        </svg>
+                        <h3>Busca Geográfica</h3>
+                        <p>Busca avançada por coordenadas ou nomes com raio personalizável e filtros de categoria.</p>
+                    </div>
+                    <div class="feature-card">
+                        <svg class="feature-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
+                            <circle cx="12" cy="10" r="3"></circle>
+                        </svg>
+                        <h3>Google Maps</h3>
+                        <p>Integração completa com Google Maps para visualização e edição das coordenadas dos locais.</p>
+                    </div>
+                </div>
+
+                <div class="footer">
+                    <div class="disclaimer">
+                        Esta ferramenta conecta-se à sua conta Foursquare através de OAuth2 seguro. 
+                        Respeitamos sua privacidade e coletamos apenas o mínimo necessário para operação. 
+                        Todas as operações utilizam a API oficial do Foursquare.
+                    </div>
+                    <div class="footer-links">
+                        <a href="https://foursquare.com/developer/" target="_blank">Developer Docs</a>
+                        <a href="https://foursquare.com/legal/privacy-center/" target="_blank">Privacy Policy</a>
+                        <a href="https://status.foursquare.com/" target="_blank">API Status</a>
+                        <a href="https://github.com/gavlinski/Foursquare-Mass-Editor-Tools" target="_blank">GitHub Repository</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function showProposal(num) {
+            // Hide all proposals
+            document.querySelectorAll('.proposal-container').forEach(el => {
+                el.classList.remove('active');
+            });
+            
+            // Remove active class from all buttons
+            document.querySelectorAll('.nav button').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            
+            // Show selected proposal
+            document.getElementById('proposal' + num).classList.add('active');
+            document.getElementById('btn' + num).classList.add('active');
+            
+            // Scroll to top
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+    </script>
+
+    <footer style="background: white; padding: 30px; margin-top: 20px; border-radius: 8px; text-align: center; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+        <a href="index.php" 
+           onclick="sessionStorage.setItem('debugIndexScrollPos', window.scrollY || document.documentElement.scrollTop);"
+           style="display: inline-flex; align-items: center; gap: 10px; padding: 12px 24px; 
+                  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
+                  color: white; text-decoration: none; border-radius: 8px; 
+                  font-weight: 600; transition: transform 0.2s, box-shadow 0.2s; 
+                  box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M19 12H5M12 19l-7-7 7-7"/>
+            </svg>
+            Voltar para Debug
+        </a>
+    </footer>
+</body>
+</html>

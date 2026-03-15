@@ -308,6 +308,13 @@
                     <p>Testa o sistema de loading overlay implementado para prevenir FOUC (Flash of Unstyled Content). Simula carregamento em diferentes velocidades e oferece controles interativos para validar animações, fade out e timeouts.</p>
                 </div>
             </a>
+            
+            <a href="test_landing_theme.html" onclick="sessionStorage.setItem('debugIndexScrollPos', window.scrollY || document.documentElement.scrollTop);">
+                <div class="card">
+                    <h2><span class="tag tag-ui">UI</span> Landing Page - Theme Switcher</h2>
+                    <p>Testador interativo de temas claro/escuro da landing page. Permite alternar manualmente entre os temas e visualizar o comportamento responsivo em tempo real. Ideal para validar a harmonia visual com o tema Tundra da aplicação.</p>
+                </div>
+            </a>
         </div>
 
         <!-- APIs Foursquare -->
