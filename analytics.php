@@ -86,8 +86,8 @@ function anonymizeIP(string $ip): string {
  * Detecta informações do navegador
  */
 function detectBrowser(string $userAgent): array {
-    $browser = 'Unknown';
-    $os = 'Unknown';
+    $browser = 'Outros';
+    $os = 'Outros';
     
     // Detectar navegador
     if (preg_match('/Firefox\/([\d.]+)/', $userAgent, $m)) {
@@ -157,7 +157,9 @@ function sanitizeUrl(string $url): string {
             'secret',         // Secret
             'password',       // Password
             'pwd',            // Password abbreviation
-            'pass'            // Password alternative
+            'pass',           // Password alternative
+            'logout',         // Logout flag (não é sensível mas não agrega na métrica)
+            'error'           // Erros de fluxo não devem fragmentar a URL
         ];
         
         // Remove parâmetros sensíveis
