@@ -160,7 +160,20 @@ if [ "$HTTPS_LOCAL" = "200" ] || [ "$HTTPS_LOCAL" = "302" ]; then
         print_warning "HTTPS funciona localmente mas não externamente"
         print_info "Possíveis causas:"
         echo "  • Firewall bloqueando porta 443"
-        echo "  • Apache ouvindo em 127.0na configuração ativa:"
+        echo "  • Apache ouvindo em 127.0.0.1:443 ao invés de 0.0.0.0:443"
+        echo "  • Problema com Docker port mapping"
+    fi
+else
+    print_error "HTTPS local também não funciona (status: ${HTTPS_LOCAL})"
+    print_info "Apache pode não estar configurado corretamente para HTTPS"
+fi
+
+#############################################
+# 8. Verificar Arquivos de Configuração
+#############################################
+print_header "8️⃣ Configuração Apache (VirtualHost :443)"
+
+print_info "Verificando VirtualHost :443 na configuração ativa:"
 VHOST_443=$(docker exec 4sqmet grep -A 3 "VirtualHost \*:443" /etc/apache2/sites-enabled/000-default.conf 2>/dev/null | head -5)
 if [ -n "$VHOST_443" ]; then
     echo "$VHOST_443"
@@ -171,19 +184,6 @@ fi
 
 print_info "Verificando caminhos dos certificados SSL:"
 docker exec 4sqmet grep "SSLCertificate" /etc/apache2/sites-enabled/000-default.conf 2>/dev/null | head -2
-# 8. Verificar Arquivos de Configuração
-#############################################
-print_header "8️⃣ Configuração Apache (VirtualHost :443)"
-
-print_info "Verificando VirtualHost :443 em apache-config.conf:"
-if docker exec 4sqmet grep -A 5 "VirtualHost \*:443" /var/www/html/apache-config.conf 2>/dev/null; then
-    print_success "VirtualHost :443 encontrado"
-else
-    print_error "VirtualHost :443 NÃO encontrado em apache-config.conf!"
-fi
-
-print_info "Verificando caminhos dos certificados:"
-docker exec 4sqmet grep "SSLCertificate" /var/www/html/apache-config.conf 2>/dev/null | head -3
 
 #############################################
 # 9. Resumo e Recomendações
