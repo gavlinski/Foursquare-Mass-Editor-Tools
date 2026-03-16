@@ -15,9 +15,6 @@
  * @license    GPLv3 <http://www.gnu.org/licenses/gpl.txt
  */
 
-// Analytics interno (privacy-friendly)
-require_once __DIR__ . '/analytics.php';
-
 if (!isset($_SESSION))
 	session_start();
 if (!isset($_SESSION["oauth_token"])) {
