@@ -62,7 +62,25 @@ print_info "Processos escutando na porta 443 (host):"
 netstat -tlnp | grep :443 || echo "Nenhum processo na porta 443 (host)"
 
 print_info "Processos escutando na porta 443 (dentro do container):"
-docker exec 4sqmet netstat -tlnp | grep :443 || echo "❌ Apache não está escutando na porta 443"
+# Tentar ss primeiro (mais comum), depois netstat
+if docker exec 4sqmet which ss >/dev/null 2>&1; then
+    APACHE_LISTEN=$(docker exec 4sqmet ss -tlnp 2>/dev/null | grep :443 || echo "")
+elif docker exec 4sqmet which netstat >/dev/null 2>&1; then
+    APACHE_LISTEN=$(docker exec 4sqmet netstat -tlnp 2>/dev/null | grep :443 || echo "")
+else
+    APACHE_LISTEN="N/A"
+fi
+
+if [ -n "$APACHE_LISTEN" ] && [ "$APACHE_LISTEN" != "N/A" ]; then
+    echo "$APACHE_LISTEN"
+else
+    # Apache pode estar escutando mas comando não disponível - verificar com outro método
+    if docker exec 4sqmet apachectl -S 2>&1 | grep -q ":443"; then
+        print_success "Apache configurado para porta 443 (VirtualHost ativo)"
+    else
+        print_warning "Não foi possível verificar (ss/netstat não disponível)"
+    fi
+fi
 
 #############################################
 # 3. Verificar Configuração Apache
@@ -103,17 +121,30 @@ fi
 #############################################
 # 5. Logs do Container
 #############################################
-print_header "5️⃣ Logs do Container (últimas 30 linhas)"
+print_header "5️⃣ Logs do Container (últimas 10 linhas)"
 
-docker logs --tail 30 4sqmet 2>&1
+docker logs --tail 10 4sqmet 2>&1
 
 #############################################
 # 6. Logs de Erro do Apache
 #############################################
 print_header "6️⃣ Logs de Erro do Apache"
 
-print_info "Últimos erros do Apache:"
-docker exec 4sqmet tail -20 /var/log/apache2/error.log 2>/dev/null || print_warning "Log de erro não encontrado"
+print_info "Verificando logs de erro do Apache..."
+# Usar timeout para evitar travamento e limitar a 5 linhas
+ERROR_LOG=$(timeout 3 docker exec 4sqmet sh -c 'if [ -f /var/log/apache2/error.log ]; then tail -5 /var/log/apache2/error.log; fi' 2>/dev/null)
+
+if [ -n "$ERROR_LOG" ]; then
+    # Mostrar apenas erros críticos (não avisos)
+    CRITICAL_ERRORS=$(echo "$ERROR_LOG" | grep -i "error\|fatal\|critical" || echo "")
+    if [ -n "$CRITICAL_ERRORS" ]; then
+        echo "$CRITICAL_ERRORS"
+    else
+        print_success "Nenhum erro crítico encontrado"
+    fi
+else
+    print_success "Nenhum erro registrado ou log não disponível"
+fi
 
 #############################################
 # 7. Teste HTTPS Local (dentro do container)
@@ -129,15 +160,17 @@ if [ "$HTTPS_LOCAL" = "200" ] || [ "$HTTPS_LOCAL" = "302" ]; then
         print_warning "HTTPS funciona localmente mas não externamente"
         print_info "Possíveis causas:"
         echo "  • Firewall bloqueando porta 443"
-        echo "  • Apache ouvindo em 127.0.0.1:443 ao invés de 0.0.0.0:443"
-        echo "  • Problema com Docker port mapping"
-    fi
+        echo "  • Apache ouvindo em 127.0na configuração ativa:"
+VHOST_443=$(docker exec 4sqmet grep -A 3 "VirtualHost \*:443" /etc/apache2/sites-enabled/000-default.conf 2>/dev/null | head -5)
+if [ -n "$VHOST_443" ]; then
+    echo "$VHOST_443"
+    print_success "VirtualHost :443 encontrado e ativo"
 else
-    print_error "HTTPS local também não funciona (status: ${HTTPS_LOCAL})"
-    print_info "Apache pode não estar configurado corretamente para HTTPS"
+    print_error "VirtualHost :443 NÃO encontrado!"
 fi
 
-#############################################
+print_info "Verificando caminhos dos certificados SSL:"
+docker exec 4sqmet grep "SSLCertificate" /etc/apache2/sites-enabled/000-default.conf 2>/dev/null | head -2
 # 8. Verificar Arquivos de Configuração
 #############################################
 print_header "8️⃣ Configuração Apache (VirtualHost :443)"
