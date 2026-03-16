@@ -282,7 +282,8 @@ ENVEOF
         -p 80:80 \
         -p 443:443 \
         --env-file .env \
-        -v \$(pwd)/ssl:/etc/ssl/4sqmet:ro \
+        -v /var/www/4sqmet:/var/www/html \
+        -v /etc/letsencrypt:/etc/letsencrypt:ro \
         4sqmet:latest >/dev/null
     
     echo "⏳ Aguardando container inicializar..."
