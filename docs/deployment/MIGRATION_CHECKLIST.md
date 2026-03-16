@@ -230,7 +230,7 @@ FOURSQUARE_CLIENT_SECRET:
   # Seu Client Secret (48 caracteres)
   
 FOURSQUARE_REDIRECT_URI:
-  # Valor: https://4sq.eliotools.site/4sqmet/index.php
+  # Valor: https://4sq.eliotools.site/index.php
 ```
 
 **C. Google Maps API (2 secrets):**
@@ -309,16 +309,33 @@ sudo nano /etc/hosts
 
 ### 5.2 Atualizar DNS no Namecheap
 
+Configuração DNS Atual
+```
+HOST RECORDS:
+1. A Record    | @   → 206.189.180.222  (TTL: 5 min)
+2. CNAME Record| 4sq → eliotools.site   (TTL: 5 min)  ⚠️
+3. CNAME Record| www → eliotools.site   (TTL: 5 min)
+```
+
 ```
 1. Namecheap Dashboard → Domain List
 2. eliotools.site → Manage
 3. Advanced DNS → Host Records
-4. Editar A Record:
+4. Deletar: CNAME Record | 4sq → eliotools.site
+5. Criar A Record:
    - Type: A Record
    - Host: 4sq (ou @ para root domain)
    - Value: ${DROPLET_IP}
    - TTL: Automatic (ou 300 para 5 minutos)
-5. Save All Changes
+6. Save All Changes
+```
+
+Resultado Final
+```
+HOST RECORDS:
+1. A Record    | @   → 206.189.180.222  (TTL: 5 min)
+2. A Record    | 4sq → 134.209.163.143  (TTL: 5 min)  ✅ NOVO
+3. CNAME Record| www → eliotools.site   (TTL: 5 min)
 ```
 
 - [ ] DNS atualizado para novo IP
@@ -337,12 +354,12 @@ nslookup 4sq.eliotools.site
 # Deve mostrar: ${DROPLET_IP}
 ```
 
-- [ ] DNS propagado (retorna novo IP)
+- [x] DNS propagado (retorna novo IP)
 
 ### 5.4 Testar URL Pública
 
 ```bash
-curl -I http://4sq.eliotools.site/4sqmet/
+curl -I https://4sq.eliotools.site/
 # Deve retornar: HTTP/1.1 200 OK
 ```
 
@@ -440,7 +457,7 @@ Meta: Rating A ou A+
 
 ### 7.1 Testes Completos em HTTPS
 
-Acessar: `https://4sq.eliotools.site/4sqmet/`
+Acessar: `https://4sq.eliotools.site/`
 
 **Checklist de Validação:**
 - [ ] ✅ HTTPS funcionando (cadeado verde)
