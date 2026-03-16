@@ -17,6 +17,9 @@
 
 declare(strict_types=1);
 
+// Analytics interno (privacy-friendly)
+require_once __DIR__ . '/analytics.php';
+
 // Carrega o autoloader do Composer
 require_once __DIR__ . '/vendor/autoload.php';
 
@@ -533,7 +536,7 @@ if (window.location.hash === '#_=_') {
         </div>
         <div class="footer-links">
             <a href="https://foursquare.com/developer/" target="_blank">Developer Docs</a>
-            <a href="https://foursquare.com/legal/privacy-center/" target="_blank">Privacy Policy</a>
+            <a href="privacy.php">Privacy Policy</a>
             <a href="https://status.foursquare.com/" target="_blank">API Status</a>
             <a href="https://github.com/gavlinski/Foursquare-Mass-Editor-Tools" target="_blank">GitHub Repository</a>
         </div>

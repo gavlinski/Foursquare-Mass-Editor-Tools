@@ -22,6 +22,9 @@ header('Cache-Control: no-store, no-cache, must-revalidate, max-age=0');
 header('Cache-Control: post-check=0, pre-check=0', false);
 header('Pragma: no-cache');
 
+// Analytics interno (privacy-friendly)
+require_once __DIR__ . '/analytics.php';
+
 // Autoloader
 require_once __DIR__ . '/vendor/autoload.php';
 
@@ -802,25 +805,11 @@ if ((isset($_COOKIE['name'])) && (strlen($_COOKIE['name']) > 0))
 		<div class="social">
 			<a href="https://x.com/gavlinski" style="margin-right: 3px"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 1227" fill="#000000" aria-hidden="true" width="12" height="16"><path d="M714.163 519.284 1160.89 0h-105.86L667.137 450.887 357.328 0H0l468.492 681.821L0 1226.37h105.866l409.625-476.152 327.181 476.152H1200L714.137 519.284h.026ZM569.165 687.828l-47.468-67.894-377.686-540.24h162.604l304.797 435.991 47.468 67.894 396.2 566.721H892.476L569.165 687.854v-.026Z"></path></svg><a href="https://x.com/gavlinski" style="margin-top: 0.5px">@gavlinski</a>
 		</div>
+		<div class="social" style="margin-top: 10px;">
+			<a href="analytics-dashboard.php" style="margin-right: 3px">📊</a> <a href="analytics-dashboard.php">Analytics Dashboard</a>
+		</div>
 	</div>
 </footer>
-<!-- Start of StatCounter Code for Default Guide -->
-<script type="text/javascript">
-var sc_project=7288306;
-var sc_invisible=1;
-var sc_security="a38fdf67";
-</script>
-<script type="text/javascript"
-src="https://www.statcounter.com/counter/counter.js"
-async></script>
-<noscript><div class="statcounter"><a title="Web Analytics"
-href="https://statcounter.com/" target="_blank"><img
-class="statcounter"
-src="//c.statcounter.com/7288306/0/a38fdf67/1/" alt="Web
-Analytics"></a></div></noscript>
-<!-- End of Statcounter Code -->
-
-<!-- End of StatCounter Code for Default Guide -->
 
 <script>
 // Gerenciamento do Loading Overlay

@@ -28,6 +28,9 @@ declare(strict_types=1);
 
 // Headers anti-cache para desenvolvimento
 header('Cache-Control: no-cache, no-store, must-revalidate');
+
+// Analytics interno (privacy-friendly)
+require_once __DIR__ . '/analytics.php';
 header('Pragma: no-cache');
 header('Expires: 0');
 

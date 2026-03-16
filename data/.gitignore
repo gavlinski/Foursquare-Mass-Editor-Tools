@@ -1,0 +1,6 @@
+# Analytics Database
+analytics.db
+analytics.db-*
+*.db-journal
+*.db-shm
+*.db-wal
