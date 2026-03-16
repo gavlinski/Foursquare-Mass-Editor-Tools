@@ -121,6 +121,60 @@ function detectBrowser(string $userAgent): array {
 }
 
 /**
+ * Sanitiza URL removendo parâmetros sensíveis e normalizando o caminho
+ */
+function sanitizeUrl(string $url): string {
+    // Parse URL
+    $parsed = parse_url($url);
+    $path = $parsed['path'] ?? '/';
+    
+    // Remove prefixo de diretório base (ex: /4sqmet/main.php → /main.php)
+    $scriptName = $_SERVER['SCRIPT_NAME'] ?? '';
+    $basePath = dirname($scriptName);
+    if ($basePath !== '/' && $basePath !== '.' && strpos($path, $basePath) === 0) {
+        $path = substr($path, strlen($basePath));
+        if ($path === '' || $path === false) {
+            $path = '/';
+        }
+        // Garante que começa com /
+        if ($path[0] !== '/') {
+            $path = '/' . $path;
+        }
+    }
+    
+    // Se há query string, filtra parâmetros sensíveis
+    if (isset($parsed['query']) && $parsed['query'] !== '') {
+        parse_str($parsed['query'], $params);
+        
+        // Lista de parâmetros sensíveis que não devem ser gravados
+        $sensitiveParams = [
+            'code',           // OAuth code
+            'oauth_token',    // OAuth token
+            'access_token',   // Access token
+            'token',          // Generic token
+            'auth',           // Auth parameter
+            'key',            // API key
+            'secret',         // Secret
+            'password',       // Password
+            'pwd',            // Password abbreviation
+            'pass'            // Password alternative
+        ];
+        
+        // Remove parâmetros sensíveis
+        foreach ($sensitiveParams as $param) {
+            unset($params[$param]);
+        }
+        
+        // Reconstrói query string sem parâmetros sensíveis
+        if (!empty($params)) {
+            $path .= '?' . http_build_query($params);
+        }
+    }
+    
+    return $path;
+}
+
+/**
  * Registra pageview
  */
 function trackPageview(): void {
@@ -130,7 +184,8 @@ function trackPageview(): void {
     }
     
     // Coleta dados
-    $pageUrl = $_SERVER['REQUEST_URI'] ?? '/';
+    $rawUrl = $_SERVER['REQUEST_URI'] ?? '/';
+    $pageUrl = sanitizeUrl($rawUrl);
     $pageTitle = ''; // Pode ser preenchido via JavaScript se necessário
     $referrer = $_SERVER['HTTP_REFERER'] ?? '';
     $userAgent = $_SERVER['HTTP_USER_AGENT'] ?? '';
