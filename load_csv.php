@@ -21,6 +21,9 @@ if (!isset($_SESSION["oauth_token"])) {
 	header('Location: index.php');
 }
 
+// Analytics interno (privacy-friendly)
+require_once __DIR__ . '/analytics.php';
+
 // Inclui helper de assets
 require_once __DIR__ . '/includes/asset_helper.php';
 ?>
