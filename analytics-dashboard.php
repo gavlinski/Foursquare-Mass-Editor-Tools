@@ -58,7 +58,15 @@ function getAnalyticsDB(): ?PDO {
 
 // Coleta estatísticas
 $pdo = getAnalyticsDB();
-$stats = [];
+$stats = [
+    'total_pageviews' => 0,
+    'unique_visitors' => 0,
+    'top_pages' => [],
+    'top_referrers' => [],
+    'browsers' => [],
+    'operating_systems' => [],
+    'daily_views' => []
+];
 
 if ($pdo) {
     try {
@@ -70,12 +78,12 @@ if ($pdo) {
         // Total de pageviews
         $stmt = $pdo->prepare('SELECT COUNT(*) as total FROM pageviews WHERE timestamp >= ?');
         $stmt->execute([$cutoffTime]);
-        $stats['total_pageviews'] = $stmt->fetchColumn();
+        $stats['total_pageviews'] = (int)($stmt->fetchColumn() ?: 0);
         
         // Visitantes únicos
         $stmt = $pdo->prepare('SELECT COUNT(DISTINCT user_hash) as unique FROM pageviews WHERE timestamp >= ?');
         $stmt->execute([$cutoffTime]);
-        $stats['unique_visitors'] = $stmt->fetchColumn();
+        $stats['unique_visitors'] = (int)($stmt->fetchColumn() ?: 0);
         
         // Páginas mais visitadas
         $stmt = $pdo->prepare('
