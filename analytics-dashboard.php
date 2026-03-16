@@ -78,12 +78,14 @@ if ($pdo) {
         // Total de pageviews
         $stmt = $pdo->prepare('SELECT COUNT(*) as total FROM pageviews WHERE timestamp >= ?');
         $stmt->execute([$cutoffTime]);
-        $stats['total_pageviews'] = (int)($stmt->fetchColumn() ?: 0);
+        $result = $stmt->fetch(PDO::FETCH_ASSOC);
+        $stats['total_pageviews'] = (int)($result['total'] ?? 0);
         
         // Visitantes únicos
-        $stmt = $pdo->prepare('SELECT COUNT(DISTINCT user_hash) as unique FROM pageviews WHERE timestamp >= ?');
+        $stmt = $pdo->prepare('SELECT COUNT(DISTINCT user_hash) as unique_visitors FROM pageviews WHERE timestamp >= ?');
         $stmt->execute([$cutoffTime]);
-        $stats['unique_visitors'] = (int)($stmt->fetchColumn() ?: 0);
+        $result = $stmt->fetch(PDO::FETCH_ASSOC);
+        $stats['unique_visitors'] = (int)($result['unique_visitors'] ?? 0);
         
         // Páginas mais visitadas
         $stmt = $pdo->prepare('
@@ -387,7 +389,7 @@ table tr:hover {
 <body>
 <div class="container">
     <div class="header">
-        <h1>📊 Analytics Dashboard</h1>
+        <h1><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: middle; margin-right: 8px;"><line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line></svg>Analytics Dashboard</h1>
         <div style="display: flex; gap: 15px; align-items: center;">
             <div class="period-selector">
                 <label for="period" style="color: var(--text-secondary); font-size: 14px;">Período:</label>
