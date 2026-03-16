@@ -1,7 +1,7 @@
 #!/bin/bash
 
 #############################################
-# Setup SSL Let's Encrypt - Produ\u00e7\u00e3o
+# Setup SSL Let's Encrypt - Produção
 # Projeto: Foursquare Mass Editor Tools v3
 #############################################
 
@@ -38,7 +38,7 @@ print_info() {
     echo -e "${BLUE}ℹ️  $1${NC}"
 }
 
-# Verificar se \u00e9 root
+# Verificar se é root
 if [ "$EUID" -ne 0 ]; then 
     print_error "Este script deve ser executado como root"
     echo "Use: sudo bash setup-ssl-production.sh"
@@ -47,55 +47,55 @@ fi
 
 print_header "🔐 Setup SSL Let's Encrypt - Produção"
 
-# Par\u00e2metros
+# Parâmetros
 DOMAIN="${1:-4sq.eliotools.site}"
 EMAIL="${2}"
 WEBROOT_PATH="/var/www/4sqmet"
 
-# Valida\u00e7\u00f5es
+# Validações
 if [ -z "$EMAIL" ]; then
-    print_warning "Email n\u00e3o fornecido. Ser\u00e1 solicitado."
-    read -p "📧 Digite seu email para notifica\u00e7\u00f5es SSL: " EMAIL
+    print_warning "Email não fornecido. Será solicitado."
+    read -p "📧 Digite seu email para notificações SSL: " EMAIL
     
     if [ -z "$EMAIL" ]; then
-        print_error "Email \u00e9 obrigat\u00f3rio para Let's Encrypt"
+        print_error "Email é obrigatório para Let's Encrypt"
         exit 1
     fi
 fi
 
-echo -e "\n${CYAN}Par\u00e2metros:${NC}"
-echo "  • Dom\u00ednio: ${DOMAIN}"
+echo -e "\n${CYAN}Parâmetros:${NC}"
+echo "  • Domínio: ${DOMAIN}"
 echo "  • Email: ${EMAIL}"
 echo "  • Webroot: ${WEBROOT_PATH}"
 echo ""
 read -p "Continuar com esses valores? (y/n) " -n 1 -r
 echo
 if [[ ! $REPLY =~ ^[Yy]$ ]]; then
-    print_warning "Setup cancelado pelo usu\u00e1rio"
+    print_warning "Setup cancelado pelo usuário"
     exit 0
 fi
 
 #############################################
-# Verificar Pr\u00e9-requisitos
+# Verificar Pré-requisitos
 #############################################
-print_header "📋 Verificando Pr\u00e9-requisitos"
+print_header "📋 Verificando Pré-requisitos"
 
 # 1. Verificar DNS
-print_info "Verificando resolu\u00e7\u00e3o DNS para ${DOMAIN}..."
+print_info "Verificando resolução DNS para ${DOMAIN}..."
 DOMAIN_IP=$(dig +short ${DOMAIN} | tail -1)
 SERVER_IP=$(curl -s ifconfig.me)
 
 if [ -z "$DOMAIN_IP" ]; then
-    print_error "Dom\u00ednio ${DOMAIN} n\u00e3o resolve para nenhum IP"
+    print_error "Domínio ${DOMAIN} não resolve para nenhum IP"
     echo "Configure o DNS antes de continuar."
     exit 1
 fi
 
 if [ "$DOMAIN_IP" != "$SERVER_IP" ]; then
-    print_warning "Dom\u00ednio aponta para: ${DOMAIN_IP}"
+    print_warning "Domínio aponta para: ${DOMAIN_IP}"
     print_warning "Servidor IP atual: ${SERVER_IP}"
     echo ""
-    echo "O DNS n\u00e3o aponta para este servidor. Certbot poder\u00e1 falhar."
+    echo "O DNS não aponta para este servidor. Certbot poderá falhar."
     read -p "Continuar mesmo assim? (y/n) " -n 1 -r
     echo
     if [[ ! $REPLY =~ ^[Yy]$ ]]; then
@@ -105,12 +105,12 @@ else
     print_success "DNS configurado corretamente: ${DOMAIN} → ${SERVER_IP}"
 fi
 
-# 2. Verificar porta 80 acess\u00edvel
+# 2. Verificar porta 80 acessível
 print_info "Verificando porta 80 (HTTP)..."
 if netstat -tuln | grep -q ':80 '; then
-    print_success "Porta 80 est\u00e1 em uso (Apache/Docker rodando)"
+    print_success "Porta 80 está em uso (Apache/Docker rodando)"
 else
-    print_warning "Porta 80 n\u00e3o est\u00e1 em uso. Apache pode n\u00e3o estar rodando."
+    print_warning "Porta 80 não está em uso. Apache pode não estar rodando."
 fi
 
 # 3. Verificar firewall
@@ -119,7 +119,7 @@ if ufw status | grep -q 'Status: active'; then
     if ufw status | grep -q '80/tcp'; then
         print_success "Firewall: Porta 80 aberta"
     else
-        print_warning "Firewall ativo mas porta 80 n\u00e3o est\u00e1 aberta"
+        print_warning "Firewall ativo mas porta 80 não está aberta"
         print_info "Abrindo porta 80..."
         ufw allow 80/tcp
     fi
@@ -131,7 +131,7 @@ if ufw status | grep -q 'Status: active'; then
         ufw allow 443/tcp
     fi
 else
-    print_info "Firewall n\u00e3o est\u00e1 ativo"
+    print_info "Firewall não está ativo"
 fi
 
 #############################################
@@ -140,7 +140,7 @@ fi
 print_header "📦 Instalando Certbot"
 
 if command -v certbot &> /dev/null; then
-    print_success "Certbot j\u00e1 instalado: $(certbot --version | head -1)"
+    print_success "Certbot já instalado: $(certbot --version | head -1)"
 else
     print_info "Instalando Certbot..."
     apt update -qq
@@ -153,14 +153,14 @@ fi
 #############################################
 print_header "🐳 Preparando Container Docker"
 
-print_info "Verificando se container est\u00e1 rodando..."
+print_info "Verificando se container está rodando..."
 if docker ps | grep -q 4sqmet; then
-    print_warning "Container 4sqmet est\u00e1 rodando. Ser\u00e1 parado temporariamente."
+    print_warning "Container 4sqmet está rodando. Será parado temporariamente."
     docker stop 4sqmet
     print_success "Container parado"
     CONTAINER_WAS_RUNNING=true
 else
-    print_info "Container n\u00e3o est\u00e1 rodando"
+    print_info "Container não está rodando"
     CONTAINER_WAS_RUNNING=false
 fi
 
@@ -171,8 +171,8 @@ print_header "🔐 Obtendo Certificado SSL"
 
 print_info "Solicitando certificado para ${DOMAIN}..."
 echo ""
-echo -e "${YELLOW}⚠️  O Certbot ir\u00e1 validar o dom\u00ednio via HTTP (porta 80).${NC}"
-echo -e "${YELLOW}   Certifique-se de que o DNS est\u00e1 apontando corretamente.${NC}"
+echo -e "${YELLOW}⚠️  O Certbot irá validar o domínio via HTTP (porta 80).${NC}"
+echo -e "${YELLOW}   Certifique-se de que o DNS está apontando corretamente.${NC}"
 echo ""
 
 certbot certonly \
@@ -185,10 +185,10 @@ certbot certonly \
     --non-interactive || {
         print_error "Falha ao obter certificado SSL"
         echo ""
-        echo "Poss\u00edveis causas:"
-        echo "  • DNS n\u00e3o aponta para este servidor"
+        echo "Possíveis causas:"
+        echo "  • DNS não aponta para este servidor"
         echo "  • Porta 80 bloqueada por firewall"
-        echo "  • Rate limit do Let's Encrypt (5 cert/semana por dom\u00ednio)"
+        echo "  • Rate limit do Let's Encrypt (5 cert/semana por domínio)"
         echo ""
         echo "Para testar sem obter certificado real, use:"
         echo "  certbot certonly --standalone --dry-run -d ${DOMAIN}"
@@ -204,8 +204,8 @@ if [ -f "${CERT_PATH}/fullchain.pem" ] && [ -f "${CERT_PATH}/privkey.pem" ]; the
     echo "  • Cert: ${CERT_PATH}/fullchain.pem"
     echo "  • Key:  ${CERT_PATH}/privkey.pem"
     
-    # Exibir informa\u00e7\u00f5es do certificado
-    print_info "Informa\u00e7\u00f5es do certificado:"
+    # Exibir informações do certificado
+    print_info "Informações do certificado:"
     openssl x509 -in "${CERT_PATH}/fullchain.pem" -noout -dates
 else
     print_error "Certificados n\u00e3o encontrados em ${CERT_PATH}"
@@ -213,84 +213,110 @@ else
 fi
 
 #############################################
-# Criar Symlink para Docker
+# Criar Symlinks para Apache (dentro do Docker)
 #############################################
-print_header "🔗 Configurando Certificados para Docker"
+print_header "🔗 Configurando Certificados para Apache"
 
-SSL_LINK_PATH="/var/www/4sqmet/ssl/production"
+# Path que o Apache espera dentro do container
+SSL_DIR="/etc/ssl/4sqmet"
 
-print_info "Criando symlink: ${SSL_LINK_PATH} → ${CERT_PATH}"
-mkdir -p /var/www/4sqmet/ssl
-ln -sf "${CERT_PATH}" "${SSL_LINK_PATH}"
+print_info "Criando diretório de certificados: ${SSL_DIR}"
+mkdir -p "${SSL_DIR}"
 
-if [ -L "${SSL_LINK_PATH}" ]; then
-    print_success "Symlink criado com sucesso"
-    ls -lh "${SSL_LINK_PATH}"
+print_info "Criando symlinks dos certificados..."
+ln -sf "${CERT_PATH}/fullchain.pem" "${SSL_DIR}/fullchain.pem"
+ln -sf "${CERT_PATH}/privkey.pem" "${SSL_DIR}/privkey.pem"
+ln -sf "${CERT_PATH}/chain.pem" "${SSL_DIR}/chain.pem"
+
+if [ -L "${SSL_DIR}/fullchain.pem" ] && [ -L "${SSL_DIR}/privkey.pem" ]; then
+    print_success "Symlinks criados com sucesso"
+    ls -lh "${SSL_DIR}/"
 else
-    print_error "Falha ao criar symlink"
+    print_error "Falha ao criar symlinks"
     exit 1
 fi
 
-#############################################
-# Atualizar Apache Config (se necess\u00e1rio)
-#############################################
-print_header "⚙️  Verificando Configura\u00e7\u00e3o Apache"
+# Também criar backup path (por compatibilidade)
+SSL_BACKUP_PATH="/var/www/4sqmet/ssl/production"
+print_info "Criando symlink de backup: ${SSL_BACKUP_PATH}"
+mkdir -p /var/www/4sqmet/ssl
+ln -sf "${CERT_PATH}" "${SSL_BACKUP_PATH}"
 
+#############################################
+# Atualizar Apache Config (se necessário)
+#############################################
+print_header "⚙️  Habilitando Configuração HTTPS no Apache"
+
+APACHE_CONFIG_PROD="/var/www/4sqmet/apache-config-production.conf"
 APACHE_CONFIG="/var/www/4sqmet/apache-config.conf"
 
-if [ -f "$APACHE_CONFIG" ]; then
-    print_info "Verificando caminhos dos certificados em apache-config.conf..."
+if [ -f "$APACHE_CONFIG_PROD" ]; then
+    print_info "Verificando configuração Apache de produção..."
     
-    if grep -q "SSLCertificateFile" "$APACHE_CONFIG"; then
-        print_success "Configura\u00e7\u00e3o SSL j\u00e1 presente em Apache"
+    # Verificar se HTTPS está comentado (desabilitado)
+    if grep -q "^# <VirtualHost \*:443>" "$APACHE_CONFIG_PROD"; then
+        print_warning "HTTPS está comentado no apache-config-production.conf"
+        print_info "Removendo comentários da seção HTTPS..."
         
-        # Verificar se aponta para o local correto
-        if grep -q "/etc/ssl/4sqmet/fullchain.pem" "$APACHE_CONFIG"; then
-            print_success "Caminhos dos certificados est\u00e3o corretos"
-        else
-            print_warning "Caminhos podem precisar de ajuste manual"
-        fi
+        # Descomentar todas as linhas entre # <VirtualHost *:443> e # </VirtualHost>
+        # Usando sed para remover '#' no início de linhas da seção VirtualHost :443
+        sed -i.bak '/^# <VirtualHost \*:443>/,/^# <\/VirtualHost>/ s/^# //' "$APACHE_CONFIG_PROD"
+        
+        print_success "Seção HTTPS habilitada em apache-config-production.conf"
     else
-        print_warning "Configura\u00e7\u00e3o SSL n\u00e3o encontrada em apache-config.conf"
-        echo "Adicione manualmente as linhas de SSL no VirtualHost :443"
+        print_success "Configuração HTTPS já está habilitada"
     fi
+    
+    # Verificar se caminhos dos certificados estão corretos
+    if grep -q "/etc/ssl/4sqmet/fullchain.pem" "$APACHE_CONFIG_PROD"; then
+        print_success "Caminhos dos certificados estão corretos"
+    else
+        print_warning "Caminhos dos certificados podem precisar de ajuste manual"
+        print_info "Esperado: /etc/ssl/4sqmet/fullchain.pem e /etc/ssl/4sqmet/privkey.pem"
+    fi
+    
+    # Copiar configuração de produção para a configuração ativa
+    print_info "Ativando configuração de produção..."
+    cp "$APACHE_CONFIG_PROD" "$APACHE_CONFIG"
+    print_success "apache-config.conf atualizado com configuração de produção"
 else
-    print_warning "Arquivo apache-config.conf n\u00e3o encontrado"
+    print_warning "Arquivo apache-config-production.conf não encontrado"
+    echo "Verifique se a configuração SSL está presente em apache-config.conf"
 fi
 
 #############################################
 # Configurar Auto-Renewal
 #############################################
-print_header "🔄 Configurando Renova\u00e7\u00e3o Autom\u00e1tica"
+print_header "🔄 Configurando Renovação Automática"
 
 # Habilitar timer do certbot
 systemctl enable certbot.timer
 systemctl start certbot.timer
 
-print_success "Timer de renova\u00e7\u00e3o habilitado"
+print_success "Timer de renovação habilitado"
 systemctl status certbot.timer --no-pager | grep -E "(Active|Trigger)"
 
-# Criar hook de renova\u00e7\u00e3o para reiniciar container
+# Criar hook de renovação para reiniciar container
 RENEWAL_HOOK="/etc/letsencrypt/renewal-hooks/deploy/restart-docker.sh"
 mkdir -p /etc/letsencrypt/renewal-hooks/deploy
 
 cat > "$RENEWAL_HOOK" <<'EOF'
 #!/bin/bash
-# Hook executado ap\u00f3s renova\u00e7\u00e3o bem-sucedida do certificado
+# Hook executado após renovação bem-sucedida do certificado
 echo "🔄 Certificado renovado. Reiniciando container Docker..."
-docker restart 4sqmet 2>/dev/null || echo "Container n\u00e3o estava rodando"
+docker restart 4sqmet 2>/dev/null || echo "Container não estava rodando"
 echo "✅ Container reiniciado"
 EOF
 
 chmod +x "$RENEWAL_HOOK"
-print_success "Hook de renova\u00e7\u00e3o criado: ${RENEWAL_HOOK}"
+print_success "Hook de renovação criado: ${RENEWAL_HOOK}"
 
-# Testar renova\u00e7\u00e3o (dry-run)
-print_info "Testando processo de renova\u00e7\u00e3o (dry-run)..."
+# Testar renovação (dry-run)
+print_info "Testando processo de renovação (dry-run)..."
 if certbot renew --dry-run --quiet; then
-    print_success "Teste de renova\u00e7\u00e3o passou!"
+    print_success "Teste de renovação passou!"
 else
-    print_warning "Teste de renova\u00e7\u00e3o falhou. Verificar logs."
+    print_warning "Teste de renovação falhou. Verificar logs."
 fi
 
 #############################################
@@ -311,13 +337,17 @@ if [ "$CONTAINER_WAS_RUNNING" = true ]; then
     if docker ps | grep -q 4sqmet; then
         print_success "Container reiniciado com sucesso!"
         docker ps --filter name=4sqmet --format "table {{.Names}}\t{{.Status}}\t{{.Ports}}"
+        
+        # Recarregar Apache dentro do container para ler nova configuração
+        print_info "Recarregando Apache com configuração HTTPS..."
+        docker exec 4sqmet apachectl graceful || docker exec 4sqmet apache2ctl graceful || print_warning "Tentativa de reload Apache falhou (pode não ser necessário)"
     else
         print_error "Falha ao reiniciar container. Verificar logs:"
         docker logs --tail 50 4sqmet
         exit 1
     fi
 else
-    print_info "Container n\u00e3o estava rodando anteriormente. Iniciando..."
+    print_info "Container não estava rodando anteriormente. Iniciando..."
     cd /var/www/4sqmet
     
     docker start 4sqmet 2>/dev/null || {
@@ -328,7 +358,8 @@ else
             -p 80:80 \
             -p 443:443 \
             -v $(pwd):/var/www/html \
-            -v "${CERT_PATH}:/etc/ssl/4sqmet:ro" \
+            -v "/etc/ssl/4sqmet:/etc/ssl/4sqmet:ro" \
+            -v "${CERT_PATH}:/etc/letsencrypt/live/${DOMAIN}:ro" \
             4sqmet:latest
     }
     
@@ -336,6 +367,10 @@ else
     
     if docker ps | grep -q 4sqmet; then
         print_success "Container iniciado com sucesso!"
+        
+        # Recarregar Apache dentro do container para ler nova configuração
+        print_info "Recarregando Apache com configuração HTTPS..."
+        docker exec 4sqmet apachectl graceful || docker exec 4sqmet apache2ctl graceful || print_warning "Tentativa de reload Apache falhou (pode não ser necessário)"
     else
         print_error "Falha ao iniciar container"
         exit 1
@@ -361,29 +396,30 @@ print_info "HTTPS Status: ${HTTPS_STATUS}"
 if [ "$HTTPS_STATUS" = "200" ] || [ "$HTTPS_STATUS" = "302" ]; then
     print_success "HTTPS funcionando!"
 else
-    print_warning "HTTPS pode n\u00e3o estar funcionando corretamente (status: ${HTTPS_STATUS})"
+    print_warning "HTTPS pode não estar funcionando corretamente (status: ${HTTPS_STATUS})"
 fi
 
 # Verificar certificado
 print_info "Verificando validade do certificado..."
 if echo | openssl s_client -connect ${DOMAIN}:443 -servername ${DOMAIN} 2>/dev/null | grep -q "Verify return code: 0"; then
-    print_success "Certificado SSL v\u00e1lido!"
+    print_success "Certificado SSL válido!"
 else
-    print_warning "Certificado pode ter problemas de valida\u00e7\u00e3o"
+    print_warning "Certificado pode ter problemas de validação"
 fi
 
 #############################################
-# FINALIZA\u00c7\u00c3O
+# FINALIZAÇÃO
 #############################################
-print_header "🎉 Setup SSL Conclu\u00eddo!"
+print_header "🎉 Setup SSL Concluído!"
 
 echo -e "\n${GREEN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
 echo -e "${GREEN}✅ HTTPS configurado com sucesso!${NC}"
 echo -e "${GREEN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
 echo ""
 echo "📊 Resumo:"
-echo "   • Dom\u00ednio: ${DOMAIN}"
+echo "   • Domínio: ${DOMAIN}"
 echo "   • Certificado: ${CERT_PATH}"
+echo "   • Symlinks Apache: ${SSL_DIR}/"
 echo "   • Validade: 90 dias (renova automaticamente a cada 60 dias)"
 echo "   • Container: 4sqmet (rodando)"
 echo ""
@@ -399,7 +435,7 @@ echo "🔄 Gerenciar Certificados:"
 echo "   • Listar: certbot certificates"
 echo "   • Renovar: certbot renew"
 echo "   • Status auto-renewal: systemctl status certbot.timer"
-echo "   • Pr\u00f3xima renova\u00e7\u00e3o: systemctl list-timers certbot.timer"
+echo "   • Próxima renovação: systemctl list-timers certbot.timer"
 echo ""
 echo "📝 Logs:"
 echo "   • Certbot: /var/log/letsencrypt/"
@@ -407,22 +443,26 @@ echo "   • Container: docker logs 4sqmet"
 echo ""
 echo -e "${GREEN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}\n"
 
-# Salvar informa\u00e7\u00f5es
+# Salvar informações
 cat > /root/4sqmet-ssl-info.txt <<EOF
 ================================================
 Foursquare Mass Editor Tools - SSL Info
 ================================================
 
 Data Setup: $(date)
-Dom\u00ednio: ${DOMAIN}
+Domínio: ${DOMAIN}
 Email: ${EMAIL}
 
 Certificados:
-- Localiza\u00e7\u00e3o: ${CERT_PATH}
-- Symlink Docker: ${SSL_LINK_PATH}
+- Localização: ${CERT_PATH}
+- Symlinks Apache: ${SSL_DIR}/
+  - fullchain.pem → ${CERT_PATH}/fullchain.pem
+  - privkey.pem → ${CERT_PATH}/privkey.pem
+  - chain.pem → ${CERT_PATH}/chain.pem
+- Backup: ${SSL_BACKUP_PATH} → ${CERT_PATH}
 - Validade: $(openssl x509 -in "${CERT_PATH}/fullchain.pem" -noout -enddate)
 
-Renova\u00e7\u00e3o:
+Renovação:
 - Auto-renewal: Habilitado (certbot.timer)
 - Frequência: A cada 60 dias
 - Hook: ${RENEWAL_HOOK}
@@ -435,6 +475,10 @@ URLs:
 - HTTPS: https://${DOMAIN}/
 - HTTP:  http://${DOMAIN}/ (redireciona para HTTPS)
 - SSL Labs: https://www.ssllabs.com/ssltest/analyze.html?d=${DOMAIN}
+
+Configuração Apache:
+- Config ativo: /var/www/4sqmet/apache-config.conf
+- Config produção: /var/www/4sqmet/apache-config-production.conf
 
 ================================================
 EOF
