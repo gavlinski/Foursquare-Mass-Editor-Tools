@@ -57,8 +57,12 @@ RUN composer install --no-dev --optimize-autoloader --no-interaction
 # Define permissões corretas
 RUN chown -R www-data:www-data /var/www/html
 
+# Copia e configura entrypoint (cria symlinks SSL antes de iniciar Apache)
+COPY docker-entrypoint.sh /usr/local/bin/
+RUN chmod +x /usr/local/bin/docker-entrypoint.sh
+
 # Expondo as portas HTTP e HTTPS
 EXPOSE 80 443
 
-# Comando padrão
-CMD ["apache2-foreground"]
+# Comando padrão - entrypoint cria symlinks SSL e inicia Apache
+ENTRYPOINT ["/usr/local/bin/docker-entrypoint.sh"]

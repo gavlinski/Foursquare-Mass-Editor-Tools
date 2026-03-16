@@ -286,22 +286,8 @@ ENVEOF
         -v /etc/letsencrypt:/etc/letsencrypt:ro \
         4sqmet:latest >/dev/null
     
-    echo "⏳ Aguardando container inicializar..."
-    sleep 5
-    
-    # Criar symlinks SSL dentro do container (necessário para Apache)
-    echo "🔗 Criando symlinks de certificados SSL..."
-    docker exec 4sqmet mkdir -p /etc/ssl/4sqmet
-    docker exec 4sqmet ln -sf /etc/letsencrypt/live/4sq.eliotools.site/fullchain.pem /etc/ssl/4sqmet/fullchain.pem
-    docker exec 4sqmet ln -sf /etc/letsencrypt/live/4sq.eliotools.site/privkey.pem /etc/ssl/4sqmet/privkey.pem
-    docker exec 4sqmet ln -sf /etc/letsencrypt/live/4sq.eliotools.site/chain.pem /etc/ssl/4sqmet/chain.pem
-    echo "✅ Symlinks SSL criados"
-    
-    # Recarregar Apache para ler certificados
-    echo "🔄 Recarregando Apache..."
-    docker exec 4sqmet apachectl graceful 2>/dev/null || echo "⚠️  Apache reload warning (pode ser normal)"
-    
-    sleep 3
+    echo "⏳ Aguardando container e Apache inicializarem..."
+    sleep 10
     
     if docker ps | grep -q 4sqmet; then
         echo "✅ Container 4sqmet está rodando"
