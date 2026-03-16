@@ -207,13 +207,45 @@ jobs:
       - name: 🔍 Health check
         run: |
           echo "🔍 Checking site health..."
-          HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" http://4sq.eliotools.site)
-          echo "HTTP Status: ${HTTP_CODE}"
+          echo "⏳ Aguardando Apache inicializar (15 segundos)..."
+          sleep 15
+          
+          # Testar HTTPS com retry
+          MAX_RETRIES=3
+          RETRY_COUNT=0
+          
+          while [ $RETRY_COUNT -lt $MAX_RETRIES ]; do
+            echo "🔄 Tentativa $((RETRY_COUNT + 1))/$MAX_RETRIES..."
+            
+            HTTPS_CODE=$(curl -s -o /dev/null -w "%{http_code}" --max-time 10 https://4sq.eliotools.site/ || echo "000")
+            echo "   HTTPS Status: ${HTTPS_CODE}"
+            
+            if [ "$HTTPS_CODE" = "200" ] || [ "$HTTPS_CODE" = "302" ]; then
+              echo "✅ Site is healthy (HTTPS working)!"
+              exit 0
+            fi
+            
+            RETRY_COUNT=$((RETRY_COUNT + 1))
+            if [ $RETRY_COUNT -lt $MAX_RETRIES ]; then
+              echo "   ⏳ Aguardando 10 segundos antes de tentar novamente..."
+              sleep 10
+            fi
+          done
+          
+          # Se chegou aqui, falhou todas as tentativas
+          echo "❌ Site health check failed after $MAX_RETRIES attempts"
+          echo "📊 Diagnóstico:"
+          echo "   - Tentando HTTP como fallback..."
+          HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" --max-time 10 http://4sq.eliotools.site/ || echo "000")
+          echo "   - HTTP Status: ${HTTP_CODE}"
           
           if [ "$HTTP_CODE" = "200" ] || [ "$HTTP_CODE" = "302" ]; then
-            echo "✅ Site is healthy!"
+            echo "⚠️  HTTP funciona mas HTTPS falhou - verificar certificados SSL"
+            exit 1
           else
-            echo "❌ Site health check failed with HTTP ${HTTP_CODE}"
+            echo "❌ HTTP e HTTPS falharam - container pode não estar respondendo"
+            echo "🔧 Execute manualmente no servidor:"
+            echo "   ssh root@4sq.eliotools.site 'docker logs --tail 50 4sqmet'"
             exit 1
           fi
       

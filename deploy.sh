@@ -289,6 +289,20 @@ ENVEOF
     echo "⏳ Aguardando container inicializar..."
     sleep 5
     
+    # Criar symlinks SSL dentro do container (necessário para Apache)
+    echo "🔗 Criando symlinks de certificados SSL..."
+    docker exec 4sqmet mkdir -p /etc/ssl/4sqmet
+    docker exec 4sqmet ln -sf /etc/letsencrypt/live/4sq.eliotools.site/fullchain.pem /etc/ssl/4sqmet/fullchain.pem
+    docker exec 4sqmet ln -sf /etc/letsencrypt/live/4sq.eliotools.site/privkey.pem /etc/ssl/4sqmet/privkey.pem
+    docker exec 4sqmet ln -sf /etc/letsencrypt/live/4sq.eliotools.site/chain.pem /etc/ssl/4sqmet/chain.pem
+    echo "✅ Symlinks SSL criados"
+    
+    # Recarregar Apache para ler certificados
+    echo "🔄 Recarregando Apache..."
+    docker exec 4sqmet apachectl graceful 2>/dev/null || echo "⚠️  Apache reload warning (pode ser normal)"
+    
+    sleep 3
+    
     if docker ps | grep -q 4sqmet; then
         echo "✅ Container 4sqmet está rodando"
         docker ps --filter name=4sqmet --format "   {{.Names}}: {{.Status}}"
@@ -317,13 +331,27 @@ echo -e "${GREEN}✅ Deploy remoto concluído${NC}"
 echo -e "\n${BLUE}━━━ Verificação final ━━━${NC}"
 echo -e "${YELLOW}🔍 Testando conectividade...${NC}"
 
-HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" "http://${PRODUCTION_SERVER}" || echo "000")
+# Aguardar mais tempo para Apache inicializar completamente
+sleep 5
 
-if [ "$HTTP_CODE" = "200" ] || [ "$HTTP_CODE" = "302" ]; then
-    echo -e "${GREEN}✅ Site está respondendo (HTTP ${HTTP_CODE})${NC}"
+# Testar HTTPS (produção)
+HTTPS_CODE=$(curl -s -o /dev/null -w "%{http_code}" --max-time 10 "https://${PRODUCTION_SERVER}/" || echo "000")
+
+if [ "$HTTPS_CODE" = "200" ] || [ "$HTTPS_CODE" = "302" ]; then
+    echo -e "${GREEN}✅ Site está respondendo via HTTPS (HTTP ${HTTPS_CODE})${NC}"
+elif [ "$HTTPS_CODE" = "000" ]; then
+    # Fallback: testar HTTP
+    HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" --max-time 10 "http://${PRODUCTION_SERVER}/" || echo "000")
+    if [ "$HTTP_CODE" = "200" ] || [ "$HTTP_CODE" = "302" ]; then
+        echo -e "${YELLOW}⚠️  Site responde via HTTP mas HTTPS falhou${NC}"
+        echo -e "${YELLOW}   Verifique certificados SSL${NC}"
+    else
+        echo -e "${RED}⚠️  Site não está respondendo (HTTPS: ${HTTPS_CODE}, HTTP: ${HTTP_CODE})${NC}"
+        echo -e "${YELLOW}   Container pode estar inicializando. Aguarde 1-2 minutos e teste:${NC}"
+        echo -e "${CYAN}   curl -I https://${PRODUCTION_SERVER}/${NC}"
+    fi
 else
-    echo -e "${RED}⚠️  Site retornou HTTP ${HTTP_CODE}${NC}"
-    echo -e "${YELLOW}Verifique os logs do Apache e considere fazer rollback.${NC}"
+    echo -e "${YELLOW}⚠️  Site retornou código inesperado: ${HTTPS_CODE}${NC}"
 fi
 
 # Resumo final
