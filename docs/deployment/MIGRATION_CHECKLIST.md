@@ -305,7 +305,7 @@ sudo nano /etc/hosts
 # Salvar: Ctrl+O, Enter, Ctrl+X
 ```
 
-- [ ] Override DNS removido
+- [x] Override DNS removido
 
 ### 5.2 Atualizar DNS no Namecheap
 
@@ -338,8 +338,8 @@ HOST RECORDS:
 3. CNAME Record| www → eliotools.site   (TTL: 5 min)
 ```
 
-- [ ] DNS atualizado para novo IP
-- [ ] TTL configurado (recomendado: 300 para facilitar testes)
+- [x] DNS atualizado para novo IP
+- [x] TTL configurado (recomendado: 300 para facilitar testes)
 
 ### 5.3 Verificar Propagação DNS
 
@@ -363,7 +363,7 @@ curl -I https://4sq.eliotools.site/
 # Deve retornar: HTTP/1.1 200 OK
 ```
 
-- [ ] URL pública funcionando
+- [x] URL pública funcionando
 
 ---
 
@@ -402,9 +402,9 @@ bash /tmp/setup-ssl-production.sh 4sq.eliotools.site seu-email@example.com
 
 **Tempo estimado**: 3-5 minutos
 
-- [ ] Script executado com sucesso
-- [ ] Certificado SSL obtido
-- [ ] Container reiniciado com HTTPS
+- [x] Script executado com sucesso
+- [x] Certificado SSL obtido
+- [x] Container reiniciado com HTTPS
 
 > **💡 Nota**: O script para o container automaticamente para liberar a porta 80 durante o challenge do Let's Encrypt, depois reinicia com SSL configurado.
 
@@ -422,14 +422,14 @@ systemctl status certbot.timer
 cat /root/4sqmet-ssl-info.txt
 ```
 
-- [ ] Certificado válido listado
-- [ ] Auto-renewal ativo
+- [x] Certificado válido listado
+- [x] Auto-renewal ativo
 
 ### 6.3 Testar HTTPS
 
 ```bash
 # No seu Mac
-curl -I https://4sq.eliotools.site/4sqmet/
+curl -I https://4sq.eliotools.site/
 # Deve retornar: HTTP/1.1 200 OK
 
 # Verificar certificado
@@ -437,9 +437,9 @@ openssl s_client -connect 4sq.eliotools.site:443 -servername 4sq.eliotools.site 
 # Deve retornar: Verify return code: 0 (ok)
 ```
 
-- [ ] HTTPS funcionando
-- [ ] Certificado válido
-- [ ] HTTP redireciona para HTTPS (301)
+- [x] HTTPS funcionando
+- [x] Certificado válido
+- [x] HTTP redireciona para HTTPS (301)
 
 ### 6.4 Auditoria SSL (Opcional)
 
@@ -448,8 +448,8 @@ Teste SSL Labs: https://www.ssllabs.com/ssltest/analyze.html?d=4sq.eliotools.sit
 Meta: Rating A ou A+
 ```
 
-- [ ] SSL Labs testado (opcional)
-- [ ] Rating satisfatório (opcional)
+- [x] SSL Labs testado (opcional)
+- [x] Rating satisfatório (opcional)
 
 ---
 
@@ -460,33 +460,76 @@ Meta: Rating A ou A+
 Acessar: `https://4sq.eliotools.site/`
 
 **Checklist de Validação:**
-- [ ] ✅ HTTPS funcionando (cadeado verde)
-- [ ] ✅ Login OAuth Foursquare
-- [ ] ✅ Busca de venues
-- [ ] ✅ Upload CSV
-- [ ] ✅ Edição em massa
-- [ ] ✅ Google Maps renderiza
-- [ ] ✅ Salvar alterações
-- [ ] ✅ Session persiste
-- [ ] ✅ Cookies Secure funcionando
-- [ ] ✅ Performance adequada
+- [x] ✅ HTTPS funcionando (cadeado verde)
+- [x] ✅ Login OAuth Foursquare
+- [x] ✅ Busca de venues
+- [x] ✅ Upload CSV
+- [x] ✅ Edição em massa
+- [x] ✅ Google Maps renderiza
+- [x] ✅ Salvar alterações
+- [x] ✅ Session persiste
+- [x] ✅ Cookies Secure funcionando
+- [x] ✅ Performance adequada
 
 ### 7.2 Configurar Monitoramento
 
 ```bash
-# DigitalOcean Console
-Droplets → 4sqmet-prod-v3 → Monitoring
+# DigitalOcean Console → Monitoring → Resource Alerts
+# https://cloud.digitalocean.com/monitors/resource-alerts
 
-# Criar alertas:
-1. CPU > 80% por 5 min → Warning
-2. CPU > 95% por 5 min → Critical
-3. Memory > 85% por 5 min → Warning
-4. Memory > 95% por 5 min → Critical
-5. Disk > 80% → Warning
+# Alertas configurados (1 vCPU / 1GB RAM):
+1. CPU Utilization     > 80%  por 10 min → Warning   ✅ criado
+2. CPU Utilization     > 95%  por 5  min → Critical
+3. Memory Utilization  > 75%  por 10 min → Warning   ✅ criado
+4. Memory Utilization  > 90%  por 5  min → Critical
+5. Disk Utilization    > 85%  por 5  min → Warning   ✅ criado
+6. 5 Min Load Average  > 1    por 10 min → Warning
+   (valor absoluto, não %. Inteiros apenas. 1 vCPU sobrecarregado quando > 1)
+7. 5 Min Load Average  > 2    por 5  min → Critical
 ```
 
-- [ ] Alertas configurados
-- [ ] Email de notificação validado
+- [x] Alertas de Resource configurados (CPU, Memória, Disco, Load Average)
+- [x] Email de notificação validado
+
+### 7.2.1 Configurar Uptime Check
+
+```
+DigitalOcean Console → Monitoring → Uptime → Create Uptime Check
+https://cloud.digitalocean.com/monitors/uptime/checks/new
+
+Configuração:
+- Type: HTTPS
+- Endpoint: https://4sq.eliotools.site/
+- Regions: Asia East ✅  USA East ✅  USA West ✅  Europe ✅  (todas)
+- Name: 4sqmet-prod-https
+
+Após criar → "..." → Create Alert (criar 3 alertas separados):
+
+Alerta 1 - Latency (lentidão):
+  - Type: Latency
+  - Threshold: 3000ms  (1000ms padrão é muito agressivo para esta app)
+  - Period: 5 min
+  - Notification: Email
+
+Alerta 2 - Downtime (o mais importante):
+  - Type: Downtime
+  - Threshold: 2 min
+  - Notification: Email
+
+Alerta 3 - SSL Cert Expire:
+  - Type: SSL Cert Expire
+  - Threshold: 14 days  (Let's Encrypt renova aos 30 dias; 14 = falha na renovação)
+  - Notification: Email
+```
+
+> Complementa os Resource Alerts: monitora se a aplicação responde do ponto de
+> vista do usuário (externo). Um container crashado não afeta métricas de CPU/RAM,
+> mas o Uptime Check detecta imediatamente.
+
+- [x] Uptime Check criado
+- [x] Alerta Downtime configurado (2min)
+- [x] Alerta Latency configurado (3000ms / 5min)
+- [x] Alerta SSL Cert Expire configurado (14 dias)
 
 ### 7.3 Criar Backup Manual
 
@@ -503,7 +546,7 @@ tar -czf /var/backups/4sqmet/manual_backup_$(date +%Y%m%d_%H%M%S).tar.gz \
 ls -lh /var/backups/4sqmet/
 ```
 
-- [ ] Backup manual criado
+- [x] Backup manual criado
 
 ---
 
@@ -590,18 +633,18 @@ docker run -d --name 4sqmet --restart unless-stopped -p 80:80 -p 443:443 -v $(pw
 
 ## ✅ Checklist Final
 
-- [ ] Droplet criado (NYC3, Docker Ubuntu 22.04, 1GB)
-- [ ] SSH Key configurada
-- [ ] Setup automatizado executado
-- [ ] Container Docker rodando
-- [ ] Testes via IP bem-sucedidos
-- [ ] GitHub Actions configurado
-- [ ] DNS migrado para novo IP
-- [ ] SSL Let's Encrypt configurado
-- [ ] HTTPS funcionando
-- [ ] Todos os fluxos validados em HTTPS
-- [ ] Monitoramento configurado
-- [ ] Backups criados
+- [x] Droplet criado (NYC3, Docker Ubuntu 22.04, 1GB)
+- [x] SSH Key configurada
+- [x] Setup automatizado executado
+- [x] Container Docker rodando
+- [x] Testes via IP bem-sucedidos
+- [x] GitHub Actions configurado
+- [x] DNS migrado para novo IP
+- [x] SSL Let's Encrypt configurado
+- [x] HTTPS funcionando
+- [x] Todos os fluxos validados em HTTPS
+- [x] Monitoramento configurado
+- [x] Backups criados
 - [ ] Droplet antigo desligado (após 7 dias)
 - [ ] Documentação atualizada
 
