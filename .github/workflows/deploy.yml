@@ -29,9 +29,9 @@ concurrency:
 env:
   PHP_VERSION: '8.1'
   NODE_VERSION: '18'
-  DEPLOY_HOST: '134.209.163.143'
+  DEPLOY_HOST: ${{ vars.DEPLOY_HOST }}
   PRODUCTION_DOMAIN: '4sq.eliotools.site'
-  PRODUCTION_URL: 'https://4sq.eliotools.site'
+  PRODUCTION_URL: ${{ secrets.APP_URL }}
 
 jobs:
   # ============================================================
@@ -193,7 +193,7 @@ jobs:
           GOOGLE_MAPS_API_KEY: ${{ secrets.GOOGLE_MAPS_API_KEY }}
           GOOGLE_MAPS_MAP_ID: ${{ secrets.GOOGLE_MAPS_MAP_ID }}
           GOOGLE_MAPS_GEOCODING_KEY: ${{ secrets.GOOGLE_MAPS_GEOCODING_KEY }}
-          APP_URL: ${{ secrets.APP_URL }}
+          APP_URL: ${{ env.PRODUCTION_URL }}
         run: |
           echo "🚀 Deploying branch: ${DEPLOY_BRANCH}"
           
