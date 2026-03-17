@@ -550,7 +550,114 @@ git push origin refactor-ia
 # - Restart Apache
 ```
 
-## 📊 Venue Editing Workflow
+## � CI/CD Configuration & Variable Management
+
+### Secrets vs Repository Variables
+The workflow centralizes configuration for maximum security and maintainability:
+
+**Secrets** (sensitive - encrypted):
+- `DEPLOY_SSH_KEY` - SSH private key (uses `ssh-agent` action)
+- `DEPLOY_USER` - SSH user (usually `root`)
+- `FOURSQUARE_CLIENT_KEY`, `FOURSQUARE_CLIENT_SECRET`, `FOURSQUARE_REDIRECT_URI` - API credentials
+- `GOOGLE_MAPS_API_KEY`, `GOOGLE_MAPS_MAP_ID`, `GOOGLE_MAPS_GEOCODING_KEY` - Maps credentials
+- `APP_URL` - Application URL derived from `PRODUCTION_URL` in workflow
+
+**Repository Variables** (non-sensitive - visible):
+- `DEPLOY_HOST` - Server IP (e.g., `134.209.163.143`) - can be IP or domain
+
+### Configuration Centralization Pattern
+```yaml
+env:
+  DEPLOY_HOST: ${{ vars.DEPLOY_HOST }}        # From Repository Variable
+  PRODUCTION_URL: ${{ secrets.APP_URL }}      # From Secret
+  PRODUCTION_DOMAIN: '4sq.eliotools.site'     # Fallback domain only
+
+jobs:
+  deploy:
+    steps:
+      - name: Deploy
+        env:
+          DEPLOY_HOST: ${{ env.DEPLOY_HOST }}  # Reuse from workflow env
+          APP_URL: ${{ env.PRODUCTION_URL }}   # Alias to avoid duplication
+```
+
+**Benefits:**
+1. No duplicate values stored in multiple places
+2. Single source of truth for each config item
+3. Automatic propagation of changes
+4. Clear separation: vars = config, secrets = credentials
+
+## 🛡️ Security Hardening Practices
+
+### Application-Level Filtering
+The application filters malicious traffic at multiple layers:
+
+**`analytics.php` - Incoming request filtering:**
+```php
+// 1. Bot/Scanner UA detection
+function isIgnoredUserAgent(string $ua): bool {
+    return preg_match('/googlebot|bingbot|curl|wget/i', $ua);
+}
+
+// 2. Suspicious request patterns
+function isSuspiciousRequest(string $path, string $query): bool {
+    return preg_match('/_ignition|xdebug|pearcmd|invokefunction|\.\.%2f/i', $path.$query);
+}
+
+// 3. Tracked path whitelist
+const TRACKED_PATHS = ['/', '/main.php', '/index.php', /* ... */];
+
+// 4. Only GET/HEAD methods
+if (!in_array($_SERVER['REQUEST_METHOD'], ['GET', 'HEAD'])) {
+    return;
+}
+```
+
+**`migrate_analytics_data.php` - Historical cleanup:**
+- Same filtering logic retroactively applied
+- Removes noisy bot/scanner entries
+- Uses same whitelist and suspicious detection
+
+### Apache Edge Blocking
+Rewrite rules in both `apache-config.conf` and `apache-config-production.conf`:
+
+```apache
+# Block common exploit patterns
+RewriteRule "(_ignition|xdebug|pearcmd|invokefunction)" - [F,L]
+
+# Block path traversal variations
+RewriteRule "\.\./|\.\.%2f" - [F,L]
+
+# Returns HTTP 403 Forbidden for blocked requests
+```
+
+**Deployment persistence:**
+- Rules synchronized in both vhosts
+- Must be reapplied after server restart
+- Covered in `deploy.sh` pre-check and `docker-entrypoint.sh`
+
+### Server Safety Mechanisms
+**`deploy.sh` - Dirty state handling:**
+```bash
+# Pre-deploy checks
+git status --porcelain > /tmp/pre_sync_status.txt
+git diff > /tmp/pre_sync_diff.txt
+git diff --cached > /tmp/pre_sync_staged.txt
+
+# Automatic stash before pull
+git stash push -m "pre-sync-backup-$(date +%s)"
+
+# Prevents deploy failure due to uncommitted changes
+```
+
+**`docker-entrypoint.sh` - Persistent configuration:**
+```bash
+# Suppress Apache AH00558 warning (ServerName required)
+SERVER_NAME=$(printf '%s\n' "$APP_URL" | sed 's#^[a-zA-Z]*://\([^/:]*\).*#\1#')
+# Write to Apache config with global ServerName directive
+```
+
+## �📊 Venue Editing Workflow
 
 ### Process Flow
 1. **Import**: CSV upload (`load_csv.php`) or coordinate search (`search.php`)

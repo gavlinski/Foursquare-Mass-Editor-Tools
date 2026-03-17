@@ -310,10 +310,7 @@ a:hover {
     <div class="header">
         <div class="brand">Política de Privacidade</div>
         <h1>Como Protegemos Seus Dados</h1>
-        <div class="last-updated">Última atualização: 15 de março de 2026</div>
-    </div>
-
-    <div class="content">
+            <div class="last-updated">Última atualização: 17 de março de 2026</div>
         <div class="intro">
             <p><strong>Compromisso com sua privacidade:</strong> O Foursquare Mass Editor Tools ("Elio Tools") respeita sua privacidade e está comprometido em proteger seus dados pessoais. Esta política explica de forma transparente como coletamos, usamos, armazenamos e protegemos suas informações.</p>
         </div>
@@ -362,7 +359,7 @@ a:hover {
             <h3>2.4 Analytics Interno (Privacy-Friendly)</h3>
             <p>Para entender como a aplicação é utilizada e melhorar a experiência do usuário, coletamos métricas básicas de uso através de um sistema de analytics próprio, hospedado no nosso servidor:</p>
             <ul>
-                <li><strong>Páginas visitadas:</strong> URLs das páginas acessadas</li>
+                <li><strong>Páginas visitadas:</strong> URLs das páginas acessadas (sem query strings)</li>
                 <li><strong>Identificador anônimo:</strong> hash criptográfico (SHA-256) do seu IP, alterado diariamente (não permite identificação pessoal)</li>
                 <li><strong>Origem do acesso:</strong> de qual site você veio (referrer)</li>
                 <li><strong>Informações técnicas:</strong> navegador, sistema operacional, idioma do navegador</li>
@@ -373,9 +370,11 @@ a:hover {
                 <ul style="margin-top: 10px;">
                     <li><strong>Sem cookies de tracking:</strong> não utilizamos cookies para analytics</li>
                     <li><strong>IP anonimizado:</strong> seu IP real nunca é armazenado, apenas um hash irreversível</li>
+                    <li><strong>Query strings removidas:</strong> URLs são sanitizadas para remover dados potencialmente sensíveis</li>
                     <li><strong>Self-hosted:</strong> todos os dados ficam no nosso servidor, não compartilhados com terceiros</li>
                     <li><strong>Retenção limitada:</strong> dados são automaticamente excluídos após 90 dias</li>
                     <li><strong>Não bloqueado:</strong> ao contrário de ferramentas de terceiros, não é bloqueado por adblockers</li>
+                    <li><strong>Filtro de bots:</strong> scanners, ferramentas de teste e bots maliciosos são automaticamente filtrados</li>
                     <li><strong>Transparente:</strong> você pode visualizar as estatísticas agregadas no dashboard de analytics</li>
                 </ul>
             </div>

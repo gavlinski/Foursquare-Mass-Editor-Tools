@@ -15,7 +15,6 @@ Configure os seguintes secrets no GitHub:
 | **Deploy SSH** | | |
 | `DEPLOY_SSH_KEY` | Chave SSH privada para acesso ao servidor | `-----BEGIN OPENSSH PRIVATE KEY-----...` |
 | `DEPLOY_USER` | Usuário SSH do servidor de produção | `root` |
-| `DEPLOY_HOST` | IP ou domínio do servidor | `4sq.eliotools.site` ou IP |
 | **Foursquare API** | | |
 | `FOURSQUARE_CLIENT_KEY` | Client ID da aplicação Foursquare | `AKR40GT...` (50 chars) |
 | `FOURSQUARE_CLIENT_SECRET` | Client Secret da aplicação | `WGUZCMW...` (48 chars) |
@@ -26,7 +25,25 @@ Configure os seguintes secrets no GitHub:
 | **Application Config** | | |
 | `APP_URL` | URL principal da aplicação | `https://4sq.eliotools.site` |
 
-**Total:** 10 secrets
+**Total:** 9 secrets
+
+## 🔧 Repository Variables
+
+Configure as seguintes variáveis (não-sensíveis) no GitHub:
+
+### Acessar: `Settings` → `Secrets and variables` → `Actions` → `Variables` → `New repository variable`
+
+| Variable Name | Descrição | Exemplo/Valor |
+|---------------|-----------|---------------|
+| `DEPLOY_HOST` | IP ou domínio do servidor de produção | `134.209.163.143` ou `4sq.eliotools.site` |
+
+**Vantagens de usar Repository Variables:**
+- ✅ **Não são sensíveis**: IP/domínio não precisa ser secreto
+- ✅ **Mais eficiente**: Menos itens na seção Secrets
+- ✅ **Clara separação de concerns**: Secrets = credenciais, Variables = config
+- ✅ **Auditoria**: Histórico de mudanças visível
+
+**Total:** 1 variable
 
 ### Por que usar secrets para credenciais?
 
@@ -71,17 +88,23 @@ chmod 600 ~/.ssh/authorized_keys
 Settings → Secrets and variables → Actions → New repository secret
 ```
 
-**A. Deploy SSH (3 secrets):**
+**A. Deploy SSH (2 secrets):**
 ```
 Nome: DEPLOY_SSH_KEY
 Valor: [Cole o conteúdo completo de ~/.ssh/4sqmet_deploy]
 
 Nome: DEPLOY_USER  
 Valor: root
-
-Nome: DEPLOY_HOST
-Valor: 4sq.eliotools.site (ou IP do droplet)
 ```
+
+**A.1 Deploy Host (1 Repository Variable):**
+```
+Nome: DEPLOY_HOST
+Valor: 134.209.163.143 (ou seu IP/domínio)
+Tipo: Regular string (NÃO é secret)
+```
+
+Configuração em: `Settings → Secrets and variables → Actions → Variables`
 
 **B. Foursquare API (3 secrets):**
 ```
@@ -121,16 +144,18 @@ Após configurar, verifique no GitHub:
 Settings → Secrets and variables → Actions
 ```
 
-Deve listar **10 secrets**:
+**Secrets** - Deve listar **9 secrets**:
 - ✅ DEPLOY_SSH_KEY (536 bytes~)
 - ✅ DEPLOY_USER (4 bytes)
-- ✅ DEPLOY_HOST (22 bytes~)
 - ✅ FOURSQUARE_CLIENT_KEY (50 bytes)
 - ✅ FOURSQUARE_CLIENT_SECRET (48 bytes)
 - ✅ FOURSQUARE_REDIRECT_URI (50 bytes~)
 - ✅ GOOGLE_MAPS_API_KEY (39 bytes)
 - ✅ GOOGLE_MAPS_MAP_ID (24 bytes)
 - ✅ APP_URL (30 bytes~)
+
+**Variables** - Deve listar **1 variable**:
+- ✅ DEPLOY_HOST (IP ou domínio do servidor)
 
 ## 🚀 Workflows Disponíveis
 
@@ -337,14 +362,17 @@ journalctl -u apache2 -f
 
 - [ ] Gerar par de chaves SSH
 - [ ] Adicionar chave pública ao servidor
-- [ ] Configurar `DEPLOY_SSH_KEY` no GitHub
-- [ ] Configurar `DEPLOY_USER` no GitHub
+- [ ] Configurar `DEPLOY_SSH_KEY` no GitHub (Secrets)
+- [ ] Configurar `DEPLOY_USER` no GitHub (Secrets)
+- [ ] Configurar `DEPLOY_HOST` no GitHub (Repository Variables - NÃO Secrets)
 - [ ] Verificar módulos Apache habilitados (`mod_deflate`, `mod_expires`)
 - [ ] Testar workflow manualmente
 - [ ] Verificar health check após deploy
 - [ ] Configurar badge no README.md
+- [ ] Remover secret `DEPLOY_HOST` antigo se existir
 
 ---
 
-**Última atualização**: 22 de Fevereiro de 2026  
-**Versão do Pipeline**: 1.0.0
+**Última atualização**: 17 de Março de 2026  
+**Versão do Pipeline**: 1.1.0  
+**Mudanças**: Centralização de config em vars (DEPLOY_HOST) + secrets (APP_URL)
