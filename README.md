@@ -1,10 +1,10 @@
 # Foursquare Mass Editor Tools (Elio Tools)
 
-**Version 3.0.0** - Modernized with PHP 8.1 and Enhanced Architecture
+**Version 3.1.0** - Analytics Dashboard, Dojo CDN & Production Docker
 
 A comprehensive collection of **Superuser Tools** for Foursquare venues mass/bulk editing and searching, powered by the Foursquare API v2. This project has been **completely modernized** with a hybrid architecture combining modern PHP 8.1 features with legacy compatibility.
 
-## 🚀 Version 3.0.0 Highlights
+## 🚀 Version 3.1.0 Highlights
 
 - ✅ **Fully Migrated** from PHP 5.4 to PHP 8.1
 - ✅ **PSR-4 Autoloading** with Composer
@@ -31,7 +31,7 @@ A comprehensive collection of **Superuser Tools** for Foursquare venues mass/bul
 - 📍 Google Maps integration with location markers
 - 🔍 Advanced search using Foursquare API
 
-### Modern Features (v3.0.0)
+### Modern Features (v3.1.0)
 - 🔐 **OAuth2 Authentication** with automatic token refresh
 - 📊 **Session Status Bar** with real-time monitoring
 - 🧹 **Cache Management** with automatic cleanup
@@ -210,6 +210,25 @@ Contributions are always welcome! Please:
 
 ## 📝 Changelog
 
+### Version 3.1.0 (2026-03-16)
+
+**Analytics Dashboard:**
+- Privacy-friendly self-hosted analytics (no external services)
+- Dashboard with unique visitors, page views, and top pages
+- Data migration script for legacy analytics cleanup
+
+**Infrastructure & Deployment:**
+- Production migration to new Docker Droplet (NYC3, Ubuntu 22.04)
+- Let's Encrypt SSL with automatic renewal
+- DigitalOcean Monitoring: Resource Alerts + Uptime Check
+- Dojo Toolkit migrated to CDN strategy with local fallback
+- Git tags realigned with SemVer (4SQMET-03_xx_xx series)
+
+**Build System:**
+- Loading overlay to prevent FOUC during Dojo initialization
+- Geocoding API server-side support
+- GitHub Copilot agent skills and instructions
+
 ### Version 3.0.1 (2026-02-18)
 
 **Session Management Improvements:**
@@ -246,8 +265,8 @@ Contributions are always welcome! Please:
 - Filtered error listeners to show only session-related errors
 - Improved error messages and user feedback
 
-### Version 3.0.0 (2025)
-- Initial modernization release with PHP 8.1 migration
+### Version 3.0.0 (2025-07)
+- Initial modernization release with PHP 8.1 migration (tag: 4SQMET-03_00_00)
 - PSR-4 autoloading implementation
 - Docker containerization
 - Modern session management system

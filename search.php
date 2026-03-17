@@ -9,7 +9,7 @@
  * @package    Foursquare-Mass-Editor-Tools
  * @author     Elio Gavlinski <gavlinski@gmail.com>
  * @copyright  Copyleft (c) 2012-2026
- * @version    3.0.0
+ * @version    3.1.0
  * @link       https://github.com/gavlinski/Foursquare-Mass-Editor-Tools/blob/master/search.php
  * @since      File available since Release 1.5
  * @license    GPLv3 <http://www.gnu.org/licenses/gpl.txt
@@ -32,7 +32,7 @@ require_once __DIR__ . '/includes/asset_helper.php';
 <meta http-equiv="cache-control" content="no-cache">
 <meta http-equiv="pragma" content="no-cache">
 <?php
-define("VERSION", "Venues Searcher 3.0.0");
+define("VERSION", "Venues Searcher 3.1.0");
 
 // Captura tag <link> e CSS dinâmico do ProgressBar
 ob_start();

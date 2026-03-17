@@ -49,7 +49,7 @@ services:
     
     labels:
       - "com.4sqmet.app=foursquare-mass-editor"
-      - "com.4sqmet.version=3.0.0"
+      - "com.4sqmet.version=3.1.0"
       - "com.4sqmet.environment=production"
     
     networks:
