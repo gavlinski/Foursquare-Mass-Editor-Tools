@@ -550,7 +550,7 @@ git push origin refactor-ia
 # - Restart Apache
 ```
 
-## � CI/CD Configuration & Variable Management
+## 🔐 CI/CD Configuration & Variable Management
 
 ### Secrets vs Repository Variables
 The workflow centralizes configuration for maximum security and maintainability:
@@ -657,7 +657,7 @@ SERVER_NAME=$(printf '%s\n' "$APP_URL" | sed 's#^[a-zA-Z]*://\([^/:]*\).*#\1#')
 # Write to Apache config with global ServerName directive
 ```
 
-## �📊 Venue Editing Workflow
+## 📊 Venue Editing Workflow
 
 ### Process Flow
 1. **Import**: CSV upload (`load_csv.php`) or coordinate search (`search.php`)
