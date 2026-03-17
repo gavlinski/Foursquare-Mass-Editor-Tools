@@ -22,6 +22,9 @@ header('Cache-Control: no-store, no-cache, must-revalidate, max-age=0');
 header('Cache-Control: post-check=0, pre-check=0', false);
 header('Pragma: no-cache');
 
+// Analytics interno (privacy-friendly)
+require_once __DIR__ . '/analytics.php';
+
 // Autoloader
 require_once __DIR__ . '/vendor/autoload.php';
 
@@ -804,23 +807,6 @@ if ((isset($_COOKIE['name'])) && (strlen($_COOKIE['name']) > 0))
 		</div>
 	</div>
 </footer>
-<!-- Start of StatCounter Code for Default Guide -->
-<script type="text/javascript">
-var sc_project=7288306;
-var sc_invisible=1;
-var sc_security="a38fdf67";
-</script>
-<script type="text/javascript"
-src="https://www.statcounter.com/counter/counter.js"
-async></script>
-<noscript><div class="statcounter"><a title="Web Analytics"
-href="https://statcounter.com/" target="_blank"><img
-class="statcounter"
-src="//c.statcounter.com/7288306/0/a38fdf67/1/" alt="Web
-Analytics"></a></div></noscript>
-<!-- End of Statcounter Code -->
-
-<!-- End of StatCounter Code for Default Guide -->
 
 <script>
 // Gerenciamento do Loading Overlay

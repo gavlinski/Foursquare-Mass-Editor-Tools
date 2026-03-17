@@ -93,6 +93,7 @@
         .tag-maps { background: #e8f5e9; color: #388e3c; }
         .tag-ui { background: #fff3e0; color: #f57c00; }
         .tag-api { background: #fce4ec; color: #c2185b; }
+        .tag-analytics { background: #e8eaf6; color: #3949ab; }
         .tag-util { background: #e0f2f1; color: #00796b; }
         .tag-test { background: #f3e5f5; color: #8e24aa; }
         .tag-help { background: #e1f5fe; color: #0277bd; }
@@ -172,6 +173,21 @@
                 <div class="card">
                     <h2><span class="tag tag-util">UTIL</span> Limpeza de Cache</h2>
                     <p>Interface para limpar cache do navegador, cookies e sessões. Remove dados antigos armazenados e resolve problemas de autenticação.</p>
+                </div>
+            </a>
+        </div>
+
+        <!-- Analytics -->
+        <div class="category">
+            <h3 class="category-title">
+                <span class="category-icon">📊</span>
+                Analytics e Monitoramento
+            </h3>
+
+            <a href="../analytics-dashboard.php" onclick="sessionStorage.setItem('debugIndexScrollPos', window.scrollY || document.documentElement.scrollTop);">
+                <div class="card">
+                    <h2><span class="tag tag-analytics">ANALYTICS</span> Dashboard de Métricas</h2>
+                    <p>Painel de analytics interno privacy-friendly. Uso recomendado para administradores e troubleshooting, sem exposição no fluxo principal da aplicação.</p>
                 </div>
             </a>
         </div>

@@ -20,6 +20,9 @@ header('Cache-Control: no-cache, no-store, must-revalidate');
 header('Pragma: no-cache');
 header('Expires: 0');
 
+// Analytics interno (privacy-friendly)
+require_once __DIR__ . '/analytics.php';
+
 if (!isset($_SESSION))
 	session_start();
 if (isset($_SESSION["oauth_token"])) {

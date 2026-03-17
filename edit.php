@@ -22,6 +22,9 @@ header('Cache-Control: no-cache, no-store, must-revalidate');
 header('Pragma: no-cache');
 header('Expires: 0');
 
+// Analytics interno (privacy-friendly)
+require_once __DIR__ . '/analytics.php';
+
 // Autoloader
 require_once __DIR__ . '/vendor/autoload.php';
 
