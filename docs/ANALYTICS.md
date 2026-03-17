@@ -60,6 +60,19 @@ Essas páginas intermediárias não são rastreadas para evitar ruído e duplica
 
 Esse filtro evita que health checks, testes de certificado e probes automatizados distorçam o dashboard.
 
+### Bloqueio na Camada Apache (Edge)
+Além do filtro no PHP, probes comuns são bloqueados no Apache com resposta `403`:
+- `_ignition/execute-solution`, `nonexistentroute`
+- payloads em query string como `XDEBUG_SESSION_START`, `pearcmd`, `allow_url_include`, `auto_prepend_file`, `invokefunction`, `call_user_func_array`, path traversal, etc.
+
+Arquivos versionados:
+- `apache-config-production.conf`
+- `apache-config.conf`
+
+Persistência e automação:
+- O `Dockerfile` copia os arquivos `apache-config*.conf` para `/etc/apache2/sites-available/000-default.conf` durante o build.
+- O fluxo de deploy (`deploy.sh` e CI/CD) faz rebuild da imagem Docker, então as regras persistem entre recriações do container.
+
 ### Dashboard
 Acesse `analytics-dashboard.php` (requer autenticação) para visualizar:
 
