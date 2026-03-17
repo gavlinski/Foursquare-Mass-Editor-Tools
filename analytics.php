@@ -167,10 +167,52 @@ function isIgnoredUserAgent(string $userAgent): bool {
 }
 
 /**
+ * Verifica se a URL contém padrões de varredura/exploração
+ */
+function isSuspiciousRequest(string $rawUrl): bool {
+    $normalizedRaw = strtolower($rawUrl);
+    $normalizedDecoded = strtolower(urldecode($rawUrl));
+
+    $suspiciousMarkers = [
+        '_ignition/execute-solution',
+        'nonexistentroute',
+        'xdebug_session_start',
+        'allow_url_include',
+        'auto_prepend_file',
+        'php://input',
+        'php%3a%2f%2finput',
+        'pearcmd',
+        'config-create',
+        'invokefunction',
+        'call_user_func_array',
+        '../',
+        '..%2f',
+        '%2e%2e%2f'
+    ];
+
+    foreach ($suspiciousMarkers as $marker) {
+        if (strpos($normalizedRaw, $marker) !== false || strpos($normalizedDecoded, $marker) !== false) {
+            return true;
+        }
+    }
+
+    return false;
+}
+
+/**
  * Verifica se a pageview deve ser ignorada
  */
-function shouldIgnorePageview(string $pageUrl, string $userAgent): bool {
+function shouldIgnorePageview(string $rawUrl, string $pageUrl, string $userAgent): bool {
+    $method = $_SERVER['REQUEST_METHOD'] ?? 'GET';
+    if (!in_array($method, ['GET', 'HEAD'], true)) {
+        return true;
+    }
+
     if (isIgnoredUserAgent($userAgent)) {
+        return true;
+    }
+
+    if (isSuspiciousRequest($rawUrl)) {
         return true;
     }
 
@@ -204,36 +246,7 @@ function sanitizeUrl(string $url): string {
         }
     }
     
-    // Se há query string, filtra parâmetros sensíveis
-    if (isset($parsed['query']) && $parsed['query'] !== '') {
-        parse_str($parsed['query'], $params);
-        
-        // Lista de parâmetros sensíveis que não devem ser gravados
-        $sensitiveParams = [
-            'code',           // OAuth code
-            'oauth_token',    // OAuth token
-            'access_token',   // Access token
-            'token',          // Generic token
-            'auth',           // Auth parameter
-            'key',            // API key
-            'secret',         // Secret
-            'password',       // Password
-            'pwd',            // Password abbreviation
-            'pass',           // Password alternative
-            'logout',         // Logout flag (não é sensível mas não agrega na métrica)
-            'error'           // Erros de fluxo não devem fragmentar a URL
-        ];
-        
-        // Remove parâmetros sensíveis
-        foreach ($sensitiveParams as $param) {
-            unset($params[$param]);
-        }
-        
-        // Reconstrói query string sem parâmetros sensíveis
-        if (!empty($params)) {
-            $path .= '?' . http_build_query($params);
-        }
-    }
+    // Não persiste query string para evitar ruído, fragmentação e payloads de varredura.
     
     return $path;
 }
@@ -255,7 +268,7 @@ function trackPageview(): void {
     $userAgent = $_SERVER['HTTP_USER_AGENT'] ?? '';
     $language = $_SERVER['HTTP_ACCEPT_LANGUAGE'] ?? '';
 
-    if (shouldIgnorePageview($pageUrl, $userAgent)) {
+    if (shouldIgnorePageview($rawUrl, $pageUrl, $userAgent)) {
         return;
     }
     

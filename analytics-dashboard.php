@@ -136,7 +136,7 @@ if ($pdo) {
         // Pageviews por dia (últimos 30 dias)
         $stmt = $pdo->prepare('
             SELECT 
-                date(timestamp, "unixepoch") as day,
+                date(timestamp, "unixepoch", "localtime") as day,
                 COUNT(*) as views
             FROM pageviews 
             WHERE timestamp >= ?

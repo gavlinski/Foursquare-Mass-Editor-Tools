@@ -40,36 +40,7 @@ function sanitizeUrlStandalone(string $url, string $baseDir = '/4sqmet'): string
         }
     }
     
-    // Se há query string, filtra parâmetros sensíveis
-    if (isset($parsed['query']) && $parsed['query'] !== '') {
-        parse_str($parsed['query'], $params);
-        
-        // Lista de parâmetros sensíveis que não devem ser gravados
-        $sensitiveParams = [
-            'code',           // OAuth code
-            'oauth_token',    // OAuth token
-            'access_token',   // Access token
-            'token',          // Generic token
-            'auth',           // Auth parameter
-            'key',            // API key
-            'secret',         // Secret
-            'password',       // Password
-            'pwd',            // Password abbreviation
-            'pass',           // Password alternative
-            'logout',         // Logout flag (não é sensível mas desnecessário)
-            'error'           // Error parameter (não precisa trackear)
-        ];
-        
-        // Remove parâmetros sensíveis
-        foreach ($sensitiveParams as $param) {
-            unset($params[$param]);
-        }
-        
-        // Reconstrói query string sem parâmetros sensíveis
-        if (!empty($params)) {
-            $path .= '?' . http_build_query($params);
-        }
-    }
+    // Não persiste query string no histórico para reduzir ruído.
     
     return $path;
 }
@@ -105,8 +76,42 @@ function isIgnoredUserAgentStandalone(string $userAgent): bool {
     return false;
 }
 
-function shouldDeleteRecord(string $pageUrl, string $userAgent): bool {
+function isSuspiciousUrlStandalone(string $url): bool {
+    $normalizedRaw = strtolower($url);
+    $normalizedDecoded = strtolower(urldecode($url));
+
+    $suspiciousMarkers = [
+        '_ignition/execute-solution',
+        'nonexistentroute',
+        'xdebug_session_start',
+        'allow_url_include',
+        'auto_prepend_file',
+        'php://input',
+        'php%3a%2f%2finput',
+        'pearcmd',
+        'config-create',
+        'invokefunction',
+        'call_user_func_array',
+        '../',
+        '..%2f',
+        '%2e%2e%2f'
+    ];
+
+    foreach ($suspiciousMarkers as $marker) {
+        if (strpos($normalizedRaw, $marker) !== false || strpos($normalizedDecoded, $marker) !== false) {
+            return true;
+        }
+    }
+
+    return false;
+}
+
+function shouldDeleteRecord(string $originalUrl, string $pageUrl, string $userAgent): bool {
     if (isIgnoredUserAgentStandalone($userAgent)) {
+        return true;
+    }
+
+    if (isSuspiciousUrlStandalone($originalUrl)) {
         return true;
     }
 
@@ -160,7 +165,7 @@ try {
         // Aplica sanitização
         $newUrl = sanitizeUrlStandalone($oldUrl);
         
-        if (shouldDeleteRecord($newUrl, $userAgent)) {
+        if (shouldDeleteRecord($oldUrl, $newUrl, $userAgent)) {
             $stmt = $pdo->prepare('DELETE FROM pageviews WHERE id = ?');
             $stmt->execute([$record['id']]);
             $deleted++;
