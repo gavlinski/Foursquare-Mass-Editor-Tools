@@ -296,20 +296,53 @@ systemctl start certbot.timer
 print_success "Timer de renovação habilitado"
 systemctl status certbot.timer --no-pager | grep -E "(Active|Trigger)"
 
-# Criar hook de renovação para reiniciar container
-RENEWAL_HOOK="/etc/letsencrypt/renewal-hooks/deploy/restart-docker.sh"
-mkdir -p /etc/letsencrypt/renewal-hooks/deploy
+# Criar hooks de renovação para gerenciar o container Docker
+# (certbot standalone precisa da porta 80 livre — o Docker-proxy a ocupa)
+HOOKS_SRC="/var/www/4sqmet/scripts/certbot-hooks"
+HOOKS_DEST="/etc/letsencrypt/renewal-hooks"
+mkdir -p "${HOOKS_DEST}/pre" "${HOOKS_DEST}/deploy" "${HOOKS_DEST}/post"
 
-cat > "$RENEWAL_HOOK" <<'EOF'
+if [ -d "$HOOKS_SRC" ]; then
+    # Copiar hooks versionados do repositório
+    for dir in pre deploy post; do
+        for script in "${HOOKS_SRC}/${dir}/"*.sh; do
+            [ -f "$script" ] || continue
+            cp "$script" "${HOOKS_DEST}/${dir}/"
+            chmod +x "${HOOKS_DEST}/${dir}/$(basename "$script")"
+        done
+    done
+    print_success "Hooks de renovação instalados de scripts/certbot-hooks/"
+else
+    # Fallback: criar inline (caso o repo não esteja disponível)
+    print_warning "scripts/certbot-hooks/ não encontrado, criando hooks inline..."
+
+    cat > "${HOOKS_DEST}/pre/01-stop-docker.sh" <<'HOOKEOF'
 #!/bin/bash
-# Hook executado após renovação bem-sucedida do certificado
+echo "⏸️  Parando container Docker para renovação SSL..."
+docker stop 4sqmet
+echo "✅ Container parado"
+HOOKEOF
+    chmod +x "${HOOKS_DEST}/pre/01-stop-docker.sh"
+
+    cat > "${HOOKS_DEST}/deploy/restart-docker.sh" <<'HOOKEOF'
+#!/bin/bash
 echo "🔄 Certificado renovado. Reiniciando container Docker..."
 docker restart 4sqmet 2>/dev/null || echo "Container não estava rodando"
 echo "✅ Container reiniciado"
-EOF
+HOOKEOF
+    chmod +x "${HOOKS_DEST}/deploy/restart-docker.sh"
 
-chmod +x "$RENEWAL_HOOK"
-print_success "Hook de renovação criado: ${RENEWAL_HOOK}"
+    cat > "${HOOKS_DEST}/post/01-start-docker.sh" <<'HOOKEOF'
+#!/bin/bash
+echo "▶️  Iniciando container Docker após renovação SSL..."
+docker start 4sqmet 2>/dev/null || true
+echo "✅ Container iniciado"
+HOOKEOF
+    chmod +x "${HOOKS_DEST}/post/01-start-docker.sh"
+fi
+
+print_success "Hooks configurados em ${HOOKS_DEST}:"
+ls -la "${HOOKS_DEST}/pre/" "${HOOKS_DEST}/deploy/" "${HOOKS_DEST}/post/"
 
 # Testar renovação (dry-run)
 print_info "Testando processo de renovação (dry-run)..."
