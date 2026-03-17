@@ -190,6 +190,113 @@ O `do-agent` é seguro e não invasivo:
 
 ---
 
+## Parte 5 — Renovação Automática do SSL (Let's Encrypt + Docker)
+
+### Problema: certbot standalone vs Docker
+
+O certbot está configurado com `authenticator = standalone`, que precisa **bindar a porta 80** para o ACME HTTP-01 challenge. Como o Docker-proxy já ocupa as portas 80 e 443, a renovação falharia sem os hooks corretos:
+
+```
+LISTEN  docker-proxy  0.0.0.0:80   ← certbot standalone precisa dessa porta
+LISTEN  docker-proxy  0.0.0.0:443
+```
+
+Sem a configuração abaixo, o certificado expiraria silenciosamente em **13/06/2026**.
+
+### Solução: Pre/Post Hooks
+
+Foram criados três hooks que gerenciam o ciclo de renovação automaticamente:
+
+| Hook | Arquivo | Ação |
+|---|---|---|
+| **pre** | `/etc/letsencrypt/renewal-hooks/pre/01-stop-docker.sh` | Para o container antes do ACME challenge |
+| **deploy** | `/etc/letsencrypt/renewal-hooks/deploy/restart-docker.sh` | Reinicia o container após renovação **bem-sucedida** |
+| **post** | `/etc/letsencrypt/renewal-hooks/post/01-start-docker.sh` | Garante que o container esteja rodando após qualquer tentativa |
+
+### Sequência de Execução
+
+```
+pre   → docker stop 4sqmet           # Libera porta 80
+          ↓
+certbot standalone (porta 80 livre) → obtém novo certificado
+          ↓
+deploy → docker restart 4sqmet       # Só executa se renovação OK
+          ↓
+post  → docker start 4sqmet || true  # Safety: garante que container sobe
+```
+
+Se a renovação **falhar** (ex: Let's Encrypt indisponível):
+- O deploy-hook não é executado
+- O post-hook ainda executa: container é reiniciado automaticamente
+- A próxima tentativa automática ocorre no dia seguinte (cron debian)
+
+### Downtime esperado durante renovação
+
+~**90 a 120 segundos** de indisponibilidade planeada a cada ~90 dias:
+- `docker stop`: ~10s
+- ACME challenge: ~30-60s
+- `docker restart` + healthcheck: ~40-50s
+
+> **Renovação prevista**: ~14 de maio de 2026 (30 dias antes de 13/06/2026)  
+> O DO Uptime Alert de SSL Cert Expire (14 dias) também notificará caso a renovação não ocorra.
+
+### Validar a configuração (janela de manutenção)
+
+```bash
+# Testa o fluxo completo SEM emitir certificado real (usa staging LE)
+# ⚠️ CAUSA DOWNTIME DE ~90s — executar em horário de baixo tráfego
+certbot renew --dry-run
+
+# Verifica todos os hooks sem executar renovação
+certbot renew --dry-run --pre-hook "echo 'pre ok'" 2>&1 | tail -5
+```
+
+---
+
+## Parte 6 — Análise de Incidentes
+
+### Evento 2026-03-17 12:07–12:23 UTC (8 alertas DO)
+
+**Resumo**: Recebidos 8 alertas de downtime durante a madrugada (horário BRT). Investigação completa revelou a causa e origem.
+
+#### O que aconteceu
+
+Os 8 alertas representam **1 único evento** visto por 4 regiões independentes:
+
+| Tipo | Horário UTC | Regiões |
+|---|---|---|
+| Site down | 12:07 (eu_west, us_west), 12:08 (se_asia), 12:11 (us_east) | 4 regiões |
+| Site back up | 12:19 (us_east), 12:21 (eu_west), 12:22 (us_west), 12:23 (se_asia) | 4 regiões |
+
+Duração total: **~12 a 16 minutos**.
+
+#### Causa raiz: Evento de rede DigitalOcean
+
+Todas as causas server-side foram eliminadas:
+
+| Hipótese investigada | Resultado |
+|---|---|
+| Deploy SSH (CI/CD ou manual) | ❌ Nenhum login SSH entre 12:00–13:57 UTC (`auth.log`) |
+| Certbot renewal | ❌ Rodou às 06:41 e 18:54 UTC — ambos "cert not due for renewal" |
+| OOM killer (kernel) | ❌ Nenhum evento em `dmesg` |
+| Docker restart automático | ❌ `RestartCount = 0`, container nunca foi auto-reiniciado |
+| Reinicialização do servidor | ❌ Reboot foi às 00:57 UTC (5h antes do incidente) |
+| Daemon Docker caiu | ❌ `journalctl -u docker` vazio para a janela 12:00–12:25 |
+
+**Evidência chave**: O `sshd` continuou processando tentativas de brute-force SSH sem interrupção durante toda a janela do incidente — o servidor estava **completamente operacional**. Isso indica uma perturbação de rede na infraestrutura do DigitalOcean (roteamento temporariamente impactado para este droplet específico).
+
+#### Comportamento esperado do sistema de monitoramento
+
+Os tempos de recuperação escalonados entre regiões (12:19 → 12:21 → 12:22 → 12:23) são **normais**: cada região do DO tem seu próprio schedule de probes e detecta a recuperação no próximo probe após o serviço voltar.
+
+#### Conclusão
+
+- ✅ **Sistema de alertas funcionou corretamente** — 8 alertas para 1 evento em 4 regiões
+- ✅ **Aplicação recuperou automaticamente** (sem intervenção manual necessária para o incidente de 12:07)
+- ℹ️ Incidentes de rede esporádicos são normais em ambientes single-droplet cloud
+
+---
+
 ## Links Úteis
 
 - [Instalar o Metrics Agent](https://docs.digitalocean.com/products/monitoring/how-to/install-metrics-agent/)
@@ -197,3 +304,4 @@ O `do-agent` é seguro e não invasivo:
 - [Desinstalar o Metrics Agent](https://docs.digitalocean.com/products/monitoring/how-to/uninstall-metrics-agent/)
 - [Painel de Monitoramento](https://cloud.digitalocean.com/monitoring)
 - [Painel de Alertas](https://cloud.digitalocean.com/monitors/resource-alerts)
+- [Status DigitalOcean](https://status.digitalocean.com)
