@@ -174,6 +174,32 @@ Calcula tempo decorrido desde a build:
 
 ## 🛠️ Cenários de Build
 
+### Proteção Contra Working Tree Sujo em Produção
+
+O `deploy.sh` agora trata preventivamente o caso em que o checkout do servidor contém alterações locais não versionadas.
+
+Durante a etapa remota de deploy, se houver `git status --short` não vazio:
+
+- o status é salvo em `/var/backups/4sqmet/pre_git_sync_<timestamp>/git-status.txt`
+- o diff textual é salvo em `/var/backups/4sqmet/pre_git_sync_<timestamp>/git-diff.patch`
+- os arquivos não rastreados são listados em `/var/backups/4sqmet/pre_git_sync_<timestamp>/untracked-files.txt`
+- as mudanças locais são preservadas em `git stash` com nome `pre-deploy-sync-<timestamp>`
+
+Isso evita que o `git pull` falhe no CI/CD ou no deploy manual por causa de alterações locais residuais no servidor.
+
+### ServerName Global do Apache
+
+O container agora escreve um arquivo `servername.conf` no startup via `docker-entrypoint.sh` e habilita essa configuração automaticamente.
+
+Prioridade usada para definir o valor:
+
+- `APACHE_SERVER_NAME`, se definido
+- host do certificado encontrado em `/etc/letsencrypt/live`
+- host derivado de `APP_URL`
+- fallback `localhost`
+
+Isso elimina o alerta `AH00558: Could not reliably determine the server's fully qualified domain name` sem depender de alteração manual dentro do container.
+
 ### 1️⃣ Desenvolvimento - Mudanças Pequenas
 
 **Quando usar:** Ajustes de CSS, pequenas correções em PHP, testes rápidos.

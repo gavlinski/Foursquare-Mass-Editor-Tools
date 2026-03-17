@@ -3,6 +3,8 @@ set -e
 
 echo "🚀 Iniciando Foursquare Mass Editor Tools..."
 
+SERVER_NAME="${APACHE_SERVER_NAME:-}"
+
 # Em produção, certificados SSL vêm via volume mount do Let's Encrypt
 # Criar symlinks para o Apache encontrá-los no caminho esperado
 if [ -d "/etc/letsencrypt/live" ]; then
@@ -13,6 +15,9 @@ if [ -d "/etc/letsencrypt/live" ]; then
     
     if [ -n "$CERT_DIR" ]; then
         echo "   Certificado encontrado: $CERT_DIR"
+        if [ -z "$SERVER_NAME" ]; then
+            SERVER_NAME="$CERT_DIR"
+        fi
         
         # Criar diretório de destino
         mkdir -p /etc/ssl/4sqmet
@@ -31,6 +36,21 @@ if [ -d "/etc/letsencrypt/live" ]; then
 else
     echo "ℹ️  Ambiente de desenvolvimento - usando certificados locais"
 fi
+
+if [ -z "$SERVER_NAME" ] && [ -n "$APP_URL" ]; then
+    SERVER_NAME=$(printf '%s\n' "$APP_URL" | sed -E 's#^[a-zA-Z]+://([^/:]+).*#\1#')
+fi
+
+if [ -z "$SERVER_NAME" ]; then
+    SERVER_NAME="localhost"
+fi
+
+cat > /etc/apache2/conf-available/servername.conf <<EOF
+ServerName ${SERVER_NAME}
+EOF
+
+a2enconf servername >/dev/null 2>&1 || true
+echo "ℹ️  ServerName global configurado: ${SERVER_NAME}"
 
 echo "🌐 Iniciando Apache..."
 
