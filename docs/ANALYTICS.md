@@ -10,6 +10,7 @@ Sistema de analytics próprio, self-hosted, totalmente aderente à LGPD/GDPR.
 - **Self-hosted**: Todos os dados no próprio servidor
 - **Zero terceiros**: Nenhum dado compartilhado externamente
 - **Não bloqueado**: Não é bloqueado por adblockers (domínio próprio)
+- **Ruído filtrado**: Monitoração técnica, scanners e probes conhecidos são ignorados
 
 ### 📈 Métricas Coletadas
 - Pageviews (URLs acessadas)
@@ -49,6 +50,15 @@ require_once __DIR__ . '/analytics.php';
 - `search.php` - Página intermediária de busca
 
 Essas páginas intermediárias não são rastreadas para evitar ruído e duplicação de métricas.
+
+### Tráfego Ignorado
+- DigitalOcean Uptime Probe
+- SSL Labs / Qualys SSL test
+- Scanners conhecidos (`curl`, `Go-http-client`, Odin, Palo Alto/Cortex Xpanse)
+- User-Agents vazios
+- Requisições para rotas fora da whitelist de páginas monitoradas
+
+Esse filtro evita que health checks, testes de certificado e probes automatizados distorçam o dashboard.
 
 ### Dashboard
 Acesse `analytics-dashboard.php` (requer autenticação) para visualizar:
@@ -150,6 +160,15 @@ ls -la data/analytics.db
 ```
 
 Observação: se o ambiente roda Docker com bind mount de `/var/www/html`, as permissões do host prevalecem. Por isso este passo é importante para evitar falha silenciosa de escrita no SQLite.
+
+### Limpeza de Ruído Histórico
+Se o banco já tiver sido poluído por probes, health checks ou testes de certificado, execute:
+
+```bash
+php migrate_analytics_data.php
+```
+
+O script reaplica a sanitização de URLs e remove registros que hoje seriam ignorados pelo coletor.
 
 ### Desabilitar Analytics
 Para desabilitar temporariamente:

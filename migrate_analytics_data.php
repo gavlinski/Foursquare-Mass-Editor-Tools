@@ -12,6 +12,16 @@
 
 declare(strict_types=1);
 
+const ANALYTICS_TRACKED_PATHS = [
+    '/',
+    '/index.php',
+    '/main.php',
+    '/edit.php',
+    '/edit_csv.php',
+    '/flag_csv.php',
+    '/privacy.php'
+];
+
 // Função sanitizeUrl standalone (não depende de $_SERVER no contexto CLI)
 function sanitizeUrlStandalone(string $url, string $baseDir = '/4sqmet'): string {
     // Parse URL
@@ -64,6 +74,50 @@ function sanitizeUrlStandalone(string $url, string $baseDir = '/4sqmet'): string
     return $path;
 }
 
+function isTrackedPagePathStandalone(string $path): bool {
+    return in_array($path, ANALYTICS_TRACKED_PATHS, true);
+}
+
+function isIgnoredUserAgentStandalone(string $userAgent): bool {
+    $userAgent = trim($userAgent);
+    if ($userAgent === '') {
+        return true;
+    }
+
+    $ignoredSignatures = [
+        'DigitalOcean Uptime Probe',
+        'Qualys',
+        'SSL Labs',
+        'ssllabs',
+        'Go-http-client/',
+        'curl/',
+        'compatible; Odin;',
+        'Palo Alto Networks',
+        'Cortex-Xpanse'
+    ];
+
+    foreach ($ignoredSignatures as $signature) {
+        if (stripos($userAgent, $signature) !== false) {
+            return true;
+        }
+    }
+
+    return false;
+}
+
+function shouldDeleteRecord(string $pageUrl, string $userAgent): bool {
+    if (isIgnoredUserAgentStandalone($userAgent)) {
+        return true;
+    }
+
+    $path = parse_url($pageUrl, PHP_URL_PATH);
+    if (!is_string($path) || $path === '') {
+        $path = '/';
+    }
+
+    return !isTrackedPagePathStandalone($path);
+}
+
 define('ANALYTICS_DB_PATH', __DIR__ . '/data/analytics.db');
 
 echo "🔧 Migrando dados do analytics...\n\n";
@@ -83,7 +137,7 @@ try {
     
     // 2. Busca TODOS os registros
     echo "🔍 Processando registros...\n";
-    $stmt = $pdo->query('SELECT id, page_url FROM pageviews');
+    $stmt = $pdo->query('SELECT id, page_url, user_agent FROM pageviews');
     $records = $stmt->fetchAll(PDO::FETCH_ASSOC);
     
     $updated = 0;
@@ -92,6 +146,7 @@ try {
     
     foreach ($records as $record) {
         $oldUrl = $record['page_url'];
+        $userAgent = $record['user_agent'] ?? '';
         
         // Remove backslash inválido
         if ($oldUrl === '\\') {
@@ -105,7 +160,12 @@ try {
         // Aplica sanitização
         $newUrl = sanitizeUrlStandalone($oldUrl);
         
-        if ($newUrl !== $oldUrl) {
+        if (shouldDeleteRecord($newUrl, $userAgent)) {
+            $stmt = $pdo->prepare('DELETE FROM pageviews WHERE id = ?');
+            $stmt->execute([$record['id']]);
+            $deleted++;
+            echo "  ❌ Removido registro de ruído: {$oldUrl} (ID: {$record['id']})\n";
+        } elseif ($newUrl !== $oldUrl) {
             $stmt = $pdo->prepare('UPDATE pageviews SET page_url = ? WHERE id = ?');
             $stmt->execute([$newUrl, $record['id']]);
             $updated++;

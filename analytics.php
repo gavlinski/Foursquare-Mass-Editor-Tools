@@ -24,6 +24,15 @@ if (php_sapi_name() === 'cli') {
 define('ANALYTICS_DB_PATH', __DIR__ . '/data/analytics.db');
 define('ANALYTICS_ENABLED', true);
 define('ANALYTICS_RETENTION_DAYS', 90); // Manter dados por 90 dias
+define('ANALYTICS_TRACKED_PATHS', [
+    '/',
+    '/index.php',
+    '/main.php',
+    '/edit.php',
+    '/edit_csv.php',
+    '/flag_csv.php',
+    '/privacy.php'
+]);
 
 // Verifica se analytics está habilitado
 if (!ANALYTICS_ENABLED) {
@@ -90,34 +99,87 @@ function detectBrowser(string $userAgent): array {
     $os = 'Outros';
     
     // Detectar navegador
-    if (preg_match('/Firefox\/([\d.]+)/', $userAgent, $m)) {
-        $browser = 'Firefox';
-    } elseif (preg_match('/Chrome\/([\d.]+)/', $userAgent, $m)) {
-        $browser = 'Chrome';
-    } elseif (preg_match('/Safari\/([\d.]+)/', $userAgent, $m) && !preg_match('/Chrome/', $userAgent)) {
-        $browser = 'Safari';
-    } elseif (preg_match('/Edge\/([\d.]+)/', $userAgent, $m)) {
+    if (preg_match('/Edg\/([\d.]+)/', $userAgent, $m)) {
         $browser = 'Edge';
-    } elseif (preg_match('/Edg\/([\d.]+)/', $userAgent, $m)) {
+    } elseif (preg_match('/Edge\/([\d.]+)/', $userAgent, $m)) {
         $browser = 'Edge';
     } elseif (preg_match('/OPR\/([\d.]+)/', $userAgent, $m)) {
         $browser = 'Opera';
+    } elseif (preg_match('/Firefox\/([\d.]+)/', $userAgent, $m)) {
+        $browser = 'Firefox';
+    } elseif (preg_match('/Chrome\/([\d.]+)/', $userAgent, $m)) {
+        $browser = 'Chrome';
+    } elseif (preg_match('/Safari\/([\d.]+)/', $userAgent, $m) && !preg_match('/Chrome|Chromium|Edg|OPR/', $userAgent)) {
+        $browser = 'Safari';
     }
     
     // Detectar sistema operacional
-    if (preg_match('/Windows NT/', $userAgent)) {
+    if (preg_match('/Android/', $userAgent)) {
+        $os = 'Android';
+    } elseif (preg_match('/iPhone|iPad|iPod/', $userAgent)) {
+        $os = 'iOS';
+    } elseif (preg_match('/Windows NT/', $userAgent)) {
         $os = 'Windows';
     } elseif (preg_match('/Mac OS X/', $userAgent)) {
         $os = 'macOS';
     } elseif (preg_match('/Linux/', $userAgent)) {
         $os = 'Linux';
-    } elseif (preg_match('/Android/', $userAgent)) {
-        $os = 'Android';
-    } elseif (preg_match('/iPhone|iPad|iPod/', $userAgent)) {
-        $os = 'iOS';
     }
     
     return ['browser' => $browser, 'os' => $os];
+}
+
+/**
+ * Verifica se a rota atual deve ser rastreada
+ */
+function isTrackedPagePath(string $path): bool {
+    return in_array($path, ANALYTICS_TRACKED_PATHS, true);
+}
+
+/**
+ * Verifica se o user-agent representa tráfego automatizado/ruído operacional
+ */
+function isIgnoredUserAgent(string $userAgent): bool {
+    $userAgent = trim($userAgent);
+    if ($userAgent === '') {
+        return true;
+    }
+
+    $ignoredSignatures = [
+        'DigitalOcean Uptime Probe',
+        'Qualys',
+        'SSL Labs',
+        'ssllabs',
+        'Go-http-client/',
+        'curl/',
+        'compatible; Odin;',
+        'Palo Alto Networks',
+        'Cortex-Xpanse'
+    ];
+
+    foreach ($ignoredSignatures as $signature) {
+        if (stripos($userAgent, $signature) !== false) {
+            return true;
+        }
+    }
+
+    return false;
+}
+
+/**
+ * Verifica se a pageview deve ser ignorada
+ */
+function shouldIgnorePageview(string $pageUrl, string $userAgent): bool {
+    if (isIgnoredUserAgent($userAgent)) {
+        return true;
+    }
+
+    $path = parse_url($pageUrl, PHP_URL_PATH);
+    if (!is_string($path) || $path === '') {
+        $path = '/';
+    }
+
+    return !isTrackedPagePath($path);
 }
 
 /**
@@ -192,6 +254,10 @@ function trackPageview(): void {
     $referrer = $_SERVER['HTTP_REFERER'] ?? '';
     $userAgent = $_SERVER['HTTP_USER_AGENT'] ?? '';
     $language = $_SERVER['HTTP_ACCEPT_LANGUAGE'] ?? '';
+
+    if (shouldIgnorePageview($pageUrl, $userAgent)) {
+        return;
+    }
     
     // Anonimiza IP
     $ip = $_SERVER['REMOTE_ADDR'] ?? 'unknown';
