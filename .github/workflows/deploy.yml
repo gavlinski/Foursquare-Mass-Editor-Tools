@@ -12,10 +12,26 @@ on:
       - refactor-ia
       - main
   workflow_dispatch:      # Permite trigger manual via UI do GitHub
+    inputs:
+      action:
+        description: 'Ação a executar manualmente'
+        required: true
+        type: choice
+        default: deploy
+        options:
+          - deploy
+          - rollback
+
+concurrency:
+  group: cicd-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 env:
   PHP_VERSION: '8.1'
   NODE_VERSION: '18'
+  DEPLOY_HOST: '134.209.163.143'
+  PRODUCTION_DOMAIN: '4sq.eliotools.site'
+  PRODUCTION_URL: 'https://4sq.eliotools.site'
 
 jobs:
   # ============================================================
@@ -24,6 +40,7 @@ jobs:
   lint:
     name: 🔍 Lint & Validation
     runs-on: ubuntu-latest
+    if: github.event_name != 'workflow_dispatch' || github.event.inputs.action == 'deploy'
     
     steps:
       - name: 📥 Checkout code
@@ -52,6 +69,7 @@ jobs:
     name: 🧪 Tests
     runs-on: ubuntu-latest
     needs: lint
+    if: github.event_name != 'workflow_dispatch' || github.event.inputs.action == 'deploy'
     
     steps:
       - name: 📥 Checkout code
@@ -85,6 +103,7 @@ jobs:
     name: 🔨 Build & Minify
     runs-on: ubuntu-latest
     needs: [lint, test]
+    if: github.event_name != 'workflow_dispatch' || github.event.inputs.action == 'deploy'
     
     steps:
       - name: 📥 Checkout code
@@ -99,7 +118,7 @@ jobs:
           cache: 'npm'
       
       - name: 📦 Install npm dependencies
-        run: npm install
+        run: npm ci
       
       - name: 🔧 Build and minify JavaScript
         run: bash build.sh
@@ -133,10 +152,12 @@ jobs:
     name: 🚀 Deploy to Production
     runs-on: ubuntu-latest
     needs: build
-    if: github.event_name == 'push' && (github.ref == 'refs/heads/refactor-ia' || github.ref == 'refs/heads/main')
+    if: |
+      (github.event_name == 'push' && (github.ref == 'refs/heads/refactor-ia' || github.ref == 'refs/heads/main')) ||
+      (github.event_name == 'workflow_dispatch' && github.event.inputs.action == 'deploy')
     environment:
       name: production
-      url: http://4sq.eliotools.site
+      url: ${{ env.PRODUCTION_URL }}
     
     steps:
       - name: 📥 Checkout code
@@ -158,13 +179,12 @@ jobs:
       - name: 📝 Add server to known_hosts
         run: |
           mkdir -p ~/.ssh
-          # Usa IP direto até migração DNS (novo Droplet)
-          ssh-keyscan -H 134.209.163.143 >> ~/.ssh/known_hosts
+          ssh-keyscan -H ${{ env.DEPLOY_HOST }} >> ~/.ssh/known_hosts
       
       - name: 🚀 Deploy to server
         env:
           DEPLOY_USER: ${{ secrets.DEPLOY_USER }}
-          DEPLOY_HOST: 134.209.163.143  # IP direto do novo Droplet
+          DEPLOY_HOST: ${{ env.DEPLOY_HOST }}
           DEPLOY_BRANCH: ${{ github.ref_name }}
           # Application secrets (para atualizar .env no servidor)
           FOURSQUARE_CLIENT_KEY: ${{ secrets.FOURSQUARE_CLIENT_KEY }}
@@ -217,7 +237,7 @@ jobs:
           while [ $RETRY_COUNT -lt $MAX_RETRIES ]; do
             echo "🔄 Tentativa $((RETRY_COUNT + 1))/$MAX_RETRIES..."
             
-            HTTPS_CODE=$(curl -s -o /dev/null -w "%{http_code}" --max-time 10 https://4sq.eliotools.site/ || echo "000")
+            HTTPS_CODE=$(curl -s -o /dev/null -w "%{http_code}" --max-time 10 ${{ env.PRODUCTION_URL }}/ || echo "000")
             echo "   HTTPS Status: ${HTTPS_CODE}"
             
             if [ "$HTTPS_CODE" = "200" ] || [ "$HTTPS_CODE" = "302" ]; then
@@ -236,7 +256,7 @@ jobs:
           echo "❌ Site health check failed after $MAX_RETRIES attempts"
           echo "📊 Diagnóstico:"
           echo "   - Tentando HTTP como fallback..."
-          HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" --max-time 10 http://4sq.eliotools.site/ || echo "000")
+          HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" --max-time 10 http://${{ env.PRODUCTION_DOMAIN }}/ || echo "000")
           echo "   - HTTP Status: ${HTTP_CODE}"
           
           if [ "$HTTP_CODE" = "200" ] || [ "$HTTP_CODE" = "302" ]; then
@@ -253,7 +273,7 @@ jobs:
         run: |
           echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
           echo "✅ Deployment completed successfully!"
-          echo "🌐 URL: http://4sq.eliotools.site"
+          echo "🌐 URL: ${{ env.PRODUCTION_URL }}"
           echo "📋 Branch: ${{ github.ref_name }}"
           echo "📝 Commit: ${{ github.sha }}"
           echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
@@ -264,8 +284,8 @@ jobs:
   release:
     name: 📦 Create GitHub Release
     runs-on: ubuntu-latest
-    needs: deploy
-    if: startsWith(github.ref, 'refs/tags/v')
+    needs: build
+    if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')
     permissions:
       contents: write
     
@@ -313,7 +333,7 @@ jobs:
   rollback:
     name: ⏪ Rollback Deployment
     runs-on: ubuntu-latest
-    if: github.event_name == 'workflow_dispatch'
+    if: github.event_name == 'workflow_dispatch' && github.event.inputs.action == 'rollback'
     environment:
       name: production
     
@@ -322,15 +342,20 @@ jobs:
         uses: webfactory/ssh-agent@v0.9.1
         with:
           ssh-private-key: ${{ secrets.DEPLOY_SSH_KEY }}
+
+      - name: 📝 Add server to known_hosts
+        run: |
+          mkdir -p ~/.ssh
+          ssh-keyscan -H ${{ env.DEPLOY_HOST }} >> ~/.ssh/known_hosts
       
       - name: ⏪ Execute rollback
         env:
           DEPLOY_USER: ${{ secrets.DEPLOY_USER }}
         run: |
-          ssh ${DEPLOY_USER}@4sq.eliotools.site << 'EOF'
+          ssh ${DEPLOY_USER}@${{ env.DEPLOY_HOST }} << 'EOF'
             set -e
             BACKUP_DIR="/var/backups/4sqmet"
-            PRODUCTION_PATH="/var/www/html"
+            PRODUCTION_PATH="/var/www/4sqmet"
             
             # Pega o backup mais recente
             LATEST_BACKUP=$(ls -t ${BACKUP_DIR}/backup_*.tar.gz | head -n1)
@@ -339,7 +364,21 @@ jobs:
               echo "⏪ Restoring from: ${LATEST_BACKUP}"
               cd ${PRODUCTION_PATH}
               tar -xzf ${LATEST_BACKUP}
-              systemctl restart apache2
+
+              if docker ps --format '{{.Names}}' | grep -q '^4sqmet$'; then
+                docker restart 4sqmet
+              else
+                docker run -d \
+                  --name 4sqmet \
+                  --restart unless-stopped \
+                  -p 80:80 \
+                  -p 443:443 \
+                  --env-file .env \
+                  -v /var/www/4sqmet:/var/www/html \
+                  -v /etc/letsencrypt:/etc/letsencrypt:ro \
+                  4sqmet:latest >/dev/null
+              fi
+
               echo "✅ Rollback completed!"
             else
               echo "❌ No backup found!"
