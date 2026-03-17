@@ -39,8 +39,16 @@ require_once __DIR__ . '/analytics.php';
 - `index.php` - Landing page
 - `main.php` - Página principal
 - `edit.php` - Editor de venues
-- `load.php` - Carregador de dados
-- `search.php` - Busca de venues
+- `edit_csv.php` - Edição em lote via CSV
+- `flag_csv.php` - Sinalização em lote via CSV
+- `privacy.php` - Política de privacidade
+
+### Páginas Não Monitoradas (Intermediárias)
+- `load.php` - Página intermediária de carregamento
+- `load_csv.php` - Página intermediária de carregamento CSV
+- `search.php` - Página intermediária de busca
+
+Essas páginas intermediárias não são rastreadas para evitar ruído e duplicação de métricas.
 
 ### Dashboard
 Acesse `analytics-dashboard.php` (requer autenticação) para visualizar:
@@ -122,6 +130,26 @@ define('ANALYTICS_DB_PATH', __DIR__ . '/data/analytics.db');
 define('ANALYTICS_ENABLED', true);
 define('ANALYTICS_RETENTION_DAYS', 90);
 ```
+
+### Publicação em Produção (Merge + Deploy)
+O sistema cria automaticamente o banco e tabela no primeiro acesso, sem migration obrigatória.
+
+Checklist recomendado após merge:
+
+```bash
+# 1) Garantir diretório de dados
+mkdir -p data
+
+# 2) Garantir permissão de escrita para o Apache/PHP
+chown -R www-data:www-data data
+chmod 755 data
+
+# 3) (Opcional) validar escrita com um acesso à aplicação
+# 4) (Opcional) validar arquivo criado
+ls -la data/analytics.db
+```
+
+Observação: se o ambiente roda Docker com bind mount de `/var/www/html`, as permissões do host prevalecem. Por isso este passo é importante para evitar falha silenciosa de escrita no SQLite.
 
 ### Desabilitar Analytics
 Para desabilitar temporariamente:
