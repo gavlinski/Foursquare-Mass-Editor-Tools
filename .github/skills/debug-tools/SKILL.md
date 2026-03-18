@@ -76,13 +76,13 @@ Carregue esta skill quando:
 #### Session Testing
 ```bash
 # Criar sessão de teste
-curl "http://localhost/debug/session_test_manager.php?action=create"
+curl -k "https://localhost/debug/session_test_manager.php?action=create"
 
 # Validar sessão
-curl "http://localhost/debug/debug_session.php?mode=validate"
+curl -k "https://localhost/debug/debug_session.php?mode=validate"
 
 # Destruir sessão
-curl "http://localhost/debug/session_test_manager.php?action=destroy"
+curl -k "https://localhost/debug/session_test_manager.php?action=destroy"
 ```
 
 #### CSS Testing
@@ -322,19 +322,19 @@ switch($action) {
 ### Debug OAuth flow
 ```bash
 # 1. Criar sessão de teste
-curl "http://localhost/debug/session_test_manager.php?action=create"
+curl -k "https://localhost/debug/session_test_manager.php?action=create"
 
 # 2. Verificar dados
-curl "http://localhost/debug/debug_session.php?mode=validate"
+curl -k "https://localhost/debug/debug_session.php?mode=validate"
 
 # 3. Testar protected page
-curl -b cookies.txt http://localhost/main.php
+curl -k -b cookies.txt https://localhost/4sqmet/main.php
 ```
 
 ### Test Google Maps integration
 ```bash
 # 1. Abrir em browser
-http://localhost/debug/test_integration_markers.html
+https://localhost/debug/test_integration_markers.html
 
 # 2. Verificar console para erros de API key
 # 3. Testar clicks, drags, custom markers
@@ -408,7 +408,7 @@ var_dump($_SESSION);
 ?>
 
 // ✅ CORRETO - Usar ferramenta existente
-curl http://localhost/debug/debug_session.php?mode=dump
+curl -k https://localhost/debug/debug_session.php?mode=dump
 ```
 
 ### ALWAYS add footer navigation

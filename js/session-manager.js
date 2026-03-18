@@ -29,6 +29,7 @@ class SessionManager {
         this.userData = null;
         this.serverInstanceId = null;
         this.restartDetected = false;
+        this.restartInterceptionBound = false;
         
         // Calcula delay inicial baseado em quanto tempo a página está carregada
         // Se a página acabou de carregar (< 2s), aguarda mais tempo para sessão se estabelecer
@@ -83,6 +84,125 @@ class SessionManager {
                 this.updateStatus('Conectado', 'success');
             }, duration);
         }
+    }
+
+    ensureDialogRoot() {
+        let root = document.getElementById('session-manager-dialog-root');
+
+        if (root) {
+            return root;
+        }
+
+        root = document.createElement('div');
+        root.id = 'session-manager-dialog-root';
+        root.innerHTML = [
+            '<div id="session-manager-dialog-backdrop" style="position: fixed; inset: 0; background: rgba(15, 23, 42, 0.55); z-index: 2147483646; display: none; align-items: center; justify-content: center; padding: 16px;">',
+            '<div id="session-manager-dialog" role="dialog" aria-modal="true" aria-labelledby="session-manager-dialog-title" style="width: min(520px, 100%); background: #ffffff; color: #1f2937; border-radius: 14px; box-shadow: 0 24px 80px rgba(15, 23, 42, 0.35); overflow: hidden;">',
+            '<div style="padding: 18px 20px 10px; border-bottom: 1px solid #e5e7eb;">',
+            '<h3 id="session-manager-dialog-title" style="margin: 0; font-size: 18px; line-height: 1.3;"></h3>',
+            '</div>',
+            '<div id="session-manager-dialog-message" style="padding: 16px 20px; font-size: 14px; line-height: 1.6; white-space: pre-line;"></div>',
+            '<div style="padding: 14px 20px 20px; display: flex; justify-content: flex-end; gap: 10px; flex-wrap: wrap;">',
+            '<button type="button" id="session-manager-dialog-cancel" style="display: none; border: 1px solid #cbd5e1; background: #ffffff; color: #334155; border-radius: 10px; padding: 10px 14px; font: inherit; cursor: pointer;">Cancelar</button>',
+            '<button type="button" id="session-manager-dialog-confirm" style="border: 0; background: #2563eb; color: #ffffff; border-radius: 10px; padding: 10px 14px; font: inherit; cursor: pointer;">OK</button>',
+            '</div>',
+            '</div>',
+            '</div>'
+        ].join('');
+
+        document.body.appendChild(root);
+
+        return root;
+    }
+
+    showDialog({
+        title,
+        message,
+        confirmText = 'OK',
+        cancelText = '',
+        confirmVariant = 'primary',
+        dismissible = false
+    }) {
+        const root = this.ensureDialogRoot();
+        const backdrop = root.querySelector('#session-manager-dialog-backdrop');
+        const titleElement = root.querySelector('#session-manager-dialog-title');
+        const messageElement = root.querySelector('#session-manager-dialog-message');
+        const confirmButton = root.querySelector('#session-manager-dialog-confirm');
+        const cancelButton = root.querySelector('#session-manager-dialog-cancel');
+
+        titleElement.textContent = title;
+        messageElement.textContent = message;
+        confirmButton.textContent = confirmText;
+        cancelButton.textContent = cancelText;
+        cancelButton.style.display = cancelText ? 'inline-flex' : 'none';
+
+        const confirmStyles = {
+            primary: { background: '#2563eb', color: '#ffffff' },
+            danger: { background: '#dc2626', color: '#ffffff' },
+            warning: { background: '#d97706', color: '#ffffff' }
+        };
+        const currentStyle = confirmStyles[confirmVariant] || confirmStyles.primary;
+        confirmButton.style.background = currentStyle.background;
+        confirmButton.style.color = currentStyle.color;
+
+        backdrop.style.display = 'flex';
+
+        return new Promise((resolve) => {
+            const cleanup = () => {
+                backdrop.style.display = 'none';
+                confirmButton.removeEventListener('click', handleConfirm);
+                cancelButton.removeEventListener('click', handleCancel);
+                backdrop.removeEventListener('click', handleBackdropClick);
+                document.removeEventListener('keydown', handleKeydown);
+            };
+
+            const handleConfirm = () => {
+                cleanup();
+                resolve(true);
+            };
+
+            const handleCancel = () => {
+                cleanup();
+                resolve(false);
+            };
+
+            const handleBackdropClick = (event) => {
+                if (dismissible && event.target === backdrop) {
+                    handleCancel();
+                }
+            };
+
+            const handleKeydown = (event) => {
+                if (event.key === 'Escape' && cancelText) {
+                    handleCancel();
+                }
+            };
+
+            confirmButton.addEventListener('click', handleConfirm, { once: true });
+            cancelButton.addEventListener('click', handleCancel, { once: true });
+            backdrop.addEventListener('click', handleBackdropClick);
+            document.addEventListener('keydown', handleKeydown);
+
+            setTimeout(() => confirmButton.focus(), 0);
+        });
+    }
+
+    async showInfoDialog(title, message, confirmText = 'OK') {
+        await this.showDialog({
+            title,
+            message,
+            confirmText,
+            dismissible: true
+        });
+    }
+
+    async handleCriticalSessionFailure(message, options = {}) {
+        const title = options.title || 'Sessão indisponível';
+        const redirectUrl = options.redirectUrl || 'index.php';
+
+        this.updateStatus(message, 'error');
+        await this.showInfoDialog(title, message, 'Ir para login');
+        window.location.href = redirectUrl;
     }
 
     async checkSessionStatus(manual = false) {
@@ -181,10 +301,10 @@ class SessionManager {
                 this.updateStatus('Erro de sessão', 'error');
                 
                 if (manual) {
-                    alert('❌ Erro ao verificar sessão.\n\nTente fazer login novamente.');
-                    setTimeout(() => {
-                        window.location.href = 'index.php';
-                    }, 1000);
+                    await this.handleCriticalSessionFailure(
+                        'Erro ao verificar a sessão. Faça login novamente.',
+                        { title: 'Erro de sessão', redirectUrl: 'index.php' }
+                    );
                 }
                 
                 return false;
@@ -213,7 +333,11 @@ class SessionManager {
                 }
                 
                 if (manual) {
-                    alert('⚠️ Sem conexão com o servidor.\n\nVerifique sua conexão de rede.');
+                    await this.showInfoDialog(
+                        'Sem conexão',
+                        'Não foi possível falar com o servidor. Verifique sua conexão e tente novamente.',
+                        'Fechar'
+                    );
                 }
             } else {
                 // Erro desconhecido
@@ -273,12 +397,14 @@ class SessionManager {
         });
     }
 
-    showTokenExpiredDialog() {
-        const clearCacheChoice = confirm(
-            '🔒 Sua sessão expirou.\n\n' +
-            'Isso pode ser causado por dados antigos armazenados no cache.\n\n' +
-            'Clique "OK" para limpar o cache e tentar novamente, ou "Cancelar" para ir direto ao login.'
-        );
+    async showTokenExpiredDialog() {
+        const clearCacheChoice = await this.showDialog({
+            title: 'Sessão expirada',
+            message: 'Sua sessão expirou.\n\nIsso pode ser causado por dados antigos armazenados no cache.\n\nDeseja limpar o cache e tentar novamente?',
+            confirmText: 'Limpar cache',
+            cancelText: 'Ir para login',
+            confirmVariant: 'warning'
+        });
         
         if (clearCacheChoice) {
             // Tenta limpar cache primeiro
@@ -359,7 +485,7 @@ class SessionManager {
         
         const info = infoSections.join('\n\n');
         
-        alert(`ℹ️ Informações do Sistema\n\n${info}`);
+        await this.showInfoDialog('Informações do sistema', info, 'Fechar');
     }
 
     getSystemInfo() {
@@ -396,28 +522,31 @@ class SessionManager {
         return 'Unknown';
     }
 
-    logout() {
-        const confirmLogout = confirm('🚪 Tem certeza que deseja fazer logout?');
+    async logout() {
+        const confirmLogout = await this.showDialog({
+            title: 'Confirmar logout',
+            message: 'Tem certeza que deseja encerrar a sessão agora?',
+            confirmText: 'Sair',
+            cancelText: 'Cancelar',
+            confirmVariant: 'danger'
+        });
+
         if (confirmLogout) {
-            window.location.href = 'index.php?logout=1';
+            this.performLogout();
         }
     }
 
-    showServerRestartWarning() {
+    async showServerRestartWarning() {
         // Mostra aviso visual persistente
         this.updateStatus('⚠️ Servidor reiniciado - recarregue a página!', 'warning');
-        
-        // Mostra dialog modal amigável
-        const message = [
-            '⚠️ Servidor Reiniciado',
-            '',
-            'O servidor foi reiniciado.',
-            'Por favor, recarregue a página para evitar perda de dados.',
-            '',
-            'Recarregar agora?'
-        ].join('\n');
-        
-        const shouldReload = confirm(message);
+
+        const shouldReload = await this.showDialog({
+            title: 'Servidor reiniciado',
+            message: 'O servidor foi reiniciado.\n\nRecarregue a página agora para evitar perda de dados.',
+            confirmText: 'Recarregar agora',
+            cancelText: 'Continuar mesmo assim',
+            confirmVariant: 'warning'
+        });
         
         if (shouldReload) {
             window.location.reload();
@@ -432,18 +561,29 @@ class SessionManager {
     }
 
     addRestartInterceptionListeners() {
+        if (this.restartInterceptionBound) {
+            return;
+        }
+
+        this.restartInterceptionBound = true;
+
         // Intercepta submits de formulários
         document.addEventListener('submit', (e) => {
             if (this.restartDetected) {
                 e.preventDefault();
-                const confirmAction = confirm(
-                    '⚠️ ATENÇÃO: Servidor foi reiniciado!\n\n' +
-                    'Continuar sem recarregar a página pode causar perda de dados.\n\n' +
-                    'Deseja recarregar agora?'
-                );
-                if (confirmAction) {
-                    window.location.reload();
-                }
+                e.stopImmediatePropagation();
+
+                this.showDialog({
+                    title: 'Servidor reiniciado',
+                    message: 'Continuar sem recarregar a página pode causar perda de dados.\n\nDeseja recarregar agora?',
+                    confirmText: 'Recarregar agora',
+                    cancelText: 'Continuar sem recarregar',
+                    confirmVariant: 'warning'
+                }).then((confirmAction) => {
+                    if (confirmAction) {
+                        window.location.reload();
+                    }
+                });
             }
         }, true);
 
@@ -455,15 +595,20 @@ class SessionManager {
                 
                 // Verifica se não é um botão de reload
                 if (!target.classList.contains('reload-safe')) {
-                    const confirmAction = confirm(
-                        '⚠️ Servidor reiniciado!\n\n' +
-                        'Recarregue a página antes de executar ações.\n\n' +
-                        'Recarregar agora?'
-                    );
-                    if (confirmAction) {
-                        e.preventDefault();
-                        window.location.reload();
-                    }
+                    e.preventDefault();
+                    e.stopImmediatePropagation();
+
+                    this.showDialog({
+                        title: 'Servidor reiniciado',
+                        message: 'Recarregue a página antes de executar novas ações.\n\nDeseja recarregar agora?',
+                        confirmText: 'Recarregar agora',
+                        cancelText: 'Fechar',
+                        confirmVariant: 'warning'
+                    }).then((confirmAction) => {
+                        if (confirmAction) {
+                            window.location.reload();
+                        }
+                    });
                 }
             }
         }, true);
@@ -592,7 +737,7 @@ class SessionManager {
         }
     }
 
-    logout() {
+    performLogout() {
         debugLog('👋 SessionManager: Iniciando logout...');
         
         // Sinaliza logout para outras abas

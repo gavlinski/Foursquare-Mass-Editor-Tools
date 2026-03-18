@@ -237,7 +237,7 @@ LIMIT 10;
 
 ## 📚 Referências
 
-- [LGPD - Lei nº 13.709/2018](http://www.planalto.gov.br/ccivil_03/_ato2015-2018/2018/lei/l13709.htm)
+- [LGPD - Lei nº 13.709/2018](https://www.planalto.gov.br/ccivil_03/_ato2015-2018/2018/lei/l13709.htm)
 - [GDPR - Regulamento UE 2016/679](https://gdpr-info.eu/)
 - [Privacy by Design - Ann Cavoukian](https://www.ipc.on.ca/wp-content/uploads/resources/7foundationalprinciples.pdf)
 

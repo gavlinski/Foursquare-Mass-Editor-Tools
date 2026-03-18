@@ -79,7 +79,7 @@ a2enmod deflate expires headers rewrite
 systemctl restart apache2
 
 # Testar Gzip
-curl -I http://4sq.eliotools.site | grep -i "content-encoding"
+curl -I https://4sq.eliotools.site | grep -i "content-encoding"
 # Deve retornar: content-encoding: gzip
 ```
 

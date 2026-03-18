@@ -2,16 +2,24 @@
 
 namespace ElioTools\Security;
 
+use ElioTools\Config\AppConfig;
+
 class SessionManager
 {
+    private AppConfig $config;
+
     private array $defaultOptions = [
-        'cookie_secure' => false, // Will be set based on HTTPS
-        'cookie_httponly' => true,
-        'cookie_samesite' => 'Lax', // Lax permite OAuth redirects (cross-site GET)
         'use_strict_mode' => true,
+        'use_only_cookies' => true,
+        'cookie_path' => '/',
         'cookie_lifetime' => 0,
         'gc_maxlifetime' => 1440,
     ];
+
+    public function __construct(?AppConfig $config = null)
+    {
+        $this->config = $config ?? new AppConfig();
+    }
 
     public function start(array $options = []): void
     {
@@ -24,12 +32,20 @@ class SessionManager
             ob_start();
         }
 
-        $options = array_merge($this->defaultOptions, $options);
-        
-        // Define secure cookie apenas se estiver em HTTPS
-        $options['cookie_secure'] = $this->isHttps();
+        $options = array_merge(
+            $this->defaultOptions,
+            [
+                'cookie_secure' => $this->shouldUseSecureCookies((bool) $this->config->get('session_secure', true)),
+                'cookie_httponly' => (bool) $this->config->get('session_httponly', true),
+                'cookie_samesite' => $this->normalizeSameSite((string) $this->config->get('cookie_samesite', 'Lax')),
+                'gc_maxlifetime' => (int) $this->config->get('session_lifetime', 1440),
+            ],
+            $options
+        );
 
         session_start($options);
+
+        $this->restoreTokenFromCookie();
         
         // Regenera ID da sessão para prevenir session fixation
         if (!isset($_SESSION['regenerated'])) {
@@ -41,8 +57,8 @@ class SessionManager
     public function destroy(): void
     {
         if (session_status() === PHP_SESSION_ACTIVE) {
-            session_destroy();
             session_unset();
+            session_destroy();
         }
     }
 
@@ -66,7 +82,31 @@ class SessionManager
         unset($_SESSION[$key]);
     }
 
-    public function setCookie(string $name, string $value, int $expires = 0): void
+    public function getAccessToken(): ?string
+    {
+        $token = $this->get('oauth_token');
+
+        if ($this->isValidTokenValue($token)) {
+            return (string) $token;
+        }
+
+        return $this->restoreTokenFromCookie();
+    }
+
+    public function restoreTokenFromCookie(string $sessionKey = 'oauth_token', string $cookieName = 'oauth_token'): ?string
+    {
+        $token = $_COOKIE[$cookieName] ?? null;
+
+        if (!$this->isValidTokenValue($token)) {
+            return null;
+        }
+
+        $_SESSION[$sessionKey] = $token;
+
+        return (string) $token;
+    }
+
+    public function setCookie(string $name, string $value, int $expires = 0, array $overrides = []): void
     {
         // Verifica se headers já foram enviados
         if (headers_sent()) {
@@ -74,22 +114,22 @@ class SessionManager
             return;
         }
 
-        // Configurações mais flexíveis para desenvolvimento
-        $isDevEnvironment = ($_SERVER['HTTP_HOST'] ?? '') === 'localhost' || 
-                           strpos($_SERVER['HTTP_HOST'] ?? '', '127.0.0.1') !== false ||
-                           strpos($_SERVER['HTTP_HOST'] ?? '', 'localhost') !== false;
-
-        $options = [
-            'expires' => $expires ?: time() + 60*60*24*15,
-            'path' => '/',
-            'domain' => '',
-            'secure' => $this->isHttps() && !$isDevEnvironment, // Não forçar HTTPS em dev
-            'httponly' => false, // Permitir acesso JavaScript ao oauth_token
-            'samesite' => 'Lax' // Lax permite OAuth redirects (cross-site GET) em dev e prod
-        ];
+        $options = array_merge($this->getCookieOptions($expires), $overrides);
         
         error_log("SessionManager: Setting cookie '$name' with options: " . json_encode($options));
         setcookie($name, $value, $options);
+
+        if (($options['expires'] ?? 0) < time()) {
+            unset($_COOKIE[$name]);
+            return;
+        }
+
+        $_COOKIE[$name] = $value;
+    }
+
+    public function expireCookie(string $name, array $overrides = []): void
+    {
+        $this->setCookie($name, '', time() - 3600, $overrides);
     }
 
     private function isHttps(): bool
@@ -97,5 +137,34 @@ class SessionManager
         return (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ||
                $_SERVER['SERVER_PORT'] == 443 ||
                (!empty($_SERVER['HTTP_X_FORWARDED_PROTO']) && $_SERVER['HTTP_X_FORWARDED_PROTO'] === 'https');
+    }
+
+    private function shouldUseSecureCookies(bool $preferSecure): bool
+    {
+        return $preferSecure ? $this->isHttps() : false;
+    }
+
+    private function getCookieOptions(int $expires = 0): array
+    {
+        return [
+            'expires' => $expires ?: time() + (60 * 60 * 24 * 15),
+            'path' => '/',
+            'domain' => '',
+            'secure' => $this->shouldUseSecureCookies((bool) $this->config->get('cookie_secure', true)),
+            'httponly' => false,
+            'samesite' => $this->normalizeSameSite((string) $this->config->get('cookie_samesite', 'Lax')),
+        ];
+    }
+
+    private function normalizeSameSite(string $value): string
+    {
+        $normalized = ucfirst(strtolower(trim($value)));
+
+        return in_array($normalized, ['Lax', 'Strict', 'None'], true) ? $normalized : 'Lax';
+    }
+
+    private function isValidTokenValue(mixed $token): bool
+    {
+        return is_string($token) && $token !== '' && $token !== '0' && $token !== 'undefined' && $token !== 'null';
     }
 }

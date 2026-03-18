@@ -41,7 +41,7 @@ services:
       - COOKIE_SAMESITE=${COOKIE_SAMESITE:-Strict}
     
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost/4sqmet/"]
+      test: ["CMD", "curl", "-kf", "https://localhost/4sqmet/"]
       interval: 30s
       timeout: 10s
       retries: 3

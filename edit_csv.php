@@ -57,7 +57,7 @@ include_once 'includes/asset_helper.php';
 	<h2>Editar locais</h2>
 </header>
 <article>
-	<p>Antes de salvar suas propostas de altera&ccedil;&otilde;es, n&atilde;o deixe de ler nosso <a id="guia" href="javascript:showDialogGuia();">guia de estilo</a> e as <a id="regras" href="https://pt.foursquare.com/info/houserules" target="_blank">regras da casa</a>.</p>
+	<p>Antes de salvar suas propostas de altera&ccedil;&otilde;es, n&atilde;o deixe de ler nosso <a id="guia" href="javascript:showDialogGuia();">guia de estilo</a> e as <a id="regras" href="https://support.foursquare.com/hc/en-us/articles/14884050907164-House-Rules" target="_blank">regras da casa</a>.</p>
 </article>
 <article>
 <div id="listContainer">

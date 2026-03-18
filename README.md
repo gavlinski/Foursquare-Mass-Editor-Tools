@@ -115,7 +115,7 @@ Required variables in `.env`:
 # Foursquare API
 FOURSQUARE_CLIENT_KEY="your_client_id"
 FOURSQUARE_CLIENT_SECRET="your_client_secret"  
-FOURSQUARE_REDIRECT_URI="http://localhost/4sqmet/index.php"
+FOURSQUARE_REDIRECT_URI="https://localhost/4sqmet/index.php"
 
 # Google Maps API
 GOOGLE_MAPS_API_KEY="your_google_maps_key"
@@ -166,13 +166,13 @@ The interface is primarily in **Brazilian Portuguese**. For English users:
 ### Debug Tools
 ```bash
 # Create test session
-curl http://localhost/create_test_session.php
+curl -k https://localhost/create_test_session.php
 
 # Check session status  
-curl http://localhost/session_status.php
+curl -k https://localhost/session_status.php
 
 # Clear cache
-curl -X POST http://localhost/clear_cache.php
+curl -k -X POST https://localhost/clear_cache.php
 ```
 
 ### Testing Interface
@@ -294,16 +294,16 @@ The project includes consolidated testing tools for development:
 
 ```bash
 # Access debug interface
-open http://localhost/debug/test_session_debug.html
+open https://localhost/debug/test_session_debug.html
 
 # Test session creation via API
-curl "http://localhost/debug/session_test_manager.php?action=create"
+curl -k "https://localhost/debug/session_test_manager.php?action=create"
 
 # Validate current session
-curl "http://localhost/debug/debug_session.php?mode=validate"
+curl -k "https://localhost/debug/debug_session.php?mode=validate"
 
 # Get full debug info
-curl "http://localhost/debug/debug_session.php?mode=debug"
+curl -k "https://localhost/debug/debug_session.php?mode=debug"
 ```
 
 ### Migration Status

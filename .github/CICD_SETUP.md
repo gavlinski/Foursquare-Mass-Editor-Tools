@@ -257,7 +257,7 @@ git push origin v3.1.0
 │     └─ Restart Apache                                    │
 │                                                          │
 │  5. Health Check                                         │
-│     └─ curl http://4sq.eliotools.site                   │
+│     └─ curl https://4sq.eliotools.site                   │
 │                                                          │
 └─────────────────────────────────────────────────────────┘
 ```
@@ -319,7 +319,7 @@ systemctl status apache2
 ### Verificar deploy:
 
 ```bash
-curl -I http://4sq.eliotools.site
+curl -I https://4sq.eliotools.site
 ```
 
 ## 🐛 Troubleshooting

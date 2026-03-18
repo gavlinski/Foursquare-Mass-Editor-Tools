@@ -38,8 +38,47 @@ var relatorio = [];
 
 // Inicializa variáveis que dependem de módulos Dojo
 dojo.ready(function() {
-	oauth_token = dojo.cookie("oauth_token");
+	oauth_token = getOauthToken();
 });
+
+function getOauthToken() {
+	if (oauth_token && oauth_token !== "undefined" && oauth_token !== "null")
+		return oauth_token;
+
+	if (window.appBootstrap && window.appBootstrap.oauthToken) {
+		oauth_token = window.appBootstrap.oauthToken;
+		return oauth_token;
+	}
+
+	var cookieToken = dojo.cookie("oauth_token");
+	if (cookieToken && cookieToken !== "undefined" && cookieToken !== "null") {
+		oauth_token = cookieToken;
+		return oauth_token;
+	}
+
+	return "";
+}
+
+function handleMissingOauthToken(contexto) {
+	var mensagem = "Sessão indisponível para " + contexto + ". Faça login novamente.";
+	debugLog("⚠️ " + mensagem);
+
+	if (window.sessionStatusBarAPI)
+		window.sessionStatusBarAPI.updateStatus(mensagem, "error", false);
+
+	if (window.sessionManager && typeof window.sessionManager.handleCriticalSessionFailure === "function") {
+		window.sessionManager.handleCriticalSessionFailure(mensagem, {
+			title: "Sessão indisponível",
+			redirectUrl: "index.php"
+		});
+	} else {
+		setTimeout(function() {
+			window.location.href = "index.php";
+		}, 800);
+	}
+
+	return false;
+}
 
 var categorias = [];
 var store = {};
@@ -1315,6 +1354,10 @@ function treeOnClick(item) {
 function carregarDadosVenues() {
 	var venue;
 	var linhas = document.forms.length;
+	var token = getOauthToken();
+
+	if (!token)
+		return handleMissingOauthToken("carregar os locais");
 	
 	//if (localStorage && localStorage.getItem('venues'))
 		//json = JSON.parse(localStorage.getItem('venues'));
@@ -1323,7 +1366,7 @@ function carregarDadosVenues() {
 		modo = DADOS_COMPLETOS;
 		for (i = 0; i < linhas; i++) {
 			venue = document.forms[i]["venue"].value;
-			xmlhttpRequest("GET", "https://api.foursquare.com/v2/venues/" + venue + "?oauth_token=" + oauth_token + "&v=" + DATA_VERSIONAMENTO, "load", null, i);
+			xmlhttpRequest("GET", "https://api.foursquare.com/v2/venues/" + venue + "?oauth_token=" + token + "&v=" + DATA_VERSIONAMENTO, "load", null, i);
 			dojo.byId("result" + i).innerHTML = "<img src='img/loading.gif' alt='Recuperando dados...'>";
 		}
 		var d = new Date();
@@ -1526,6 +1569,11 @@ function recarregarDadosVenues(excluirIndice) {
  * @param {number} [excluirIndice] - Índice da venue a ser excluída do recarregamento (opcional)
  */
 function executarRecarregamento(excluirIndice) {
+	var token = getOauthToken();
+
+	if (!token)
+		return handleMissingOauthToken("recarregar os locais");
+
 	// Determina quais venues recarregar
 	var venuesParaRecarregar = [];
 	var checkboxesSelecionados = dojo.query("input[name=selecao]:checked");
@@ -1626,7 +1674,7 @@ function executarRecarregamento(excluirIndice) {
 		document.forms[venueIndex].setAttribute('data-reloading', 'true');
 		
 		// Faz requisição à API
-		xmlhttpRequest("GET", "https://api.foursquare.com/v2/venues/" + venue + "?oauth_token=" + oauth_token + "&v=" + DATA_VERSIONAMENTO, "reload", null, venueIndex);
+		xmlhttpRequest("GET", "https://api.foursquare.com/v2/venues/" + venue + "?oauth_token=" + token + "&v=" + DATA_VERSIONAMENTO, "reload", null, venueIndex);
 	});
 	
 	// Monitora conclusão do reload (a atualização de progresso é feita via xmlhttpRequest callback)
@@ -1686,6 +1734,11 @@ function executarRecarregamento(excluirIndice) {
 }
 
 function salvarVenues() {
+	var token = getOauthToken();
+
+	if (!token)
+		return handleMissingOauthToken("salvar as alterações");
+
 	totalEditadas = 0;
 	totalParaSalvar = linhasEditadas.length;
 	totalProgresso = 0;
@@ -1699,7 +1752,7 @@ function salvarVenues() {
 	debugInfo("Enviando dados...");
 	for (l = 0; l < totalParaSalvar; l++) {
 		i = linhasEditadas[l];
-		dados = "oauth_token=" + oauth_token;
+		dados = "oauth_token=" + token;
 		var length = document.forms[i].elements.length;
 		for (j = columnsStartIndex; j < length; j++) {
 			elementName = document.forms[i].elements[j].name;
@@ -1805,6 +1858,11 @@ function salvarVenues() {
 }
 
 function sinalizarVenues(problema) {
+	var token = getOauthToken();
+
+	if (!token)
+		return handleMissingOauthToken("sinalizar os locais");
+
 	//dojo.query("input[name=selecao]:checked").forEach("console.log(dijit.byId(item.id).value)");
 	linhasSelecionadas = dojo.query("input[name=selecao]:checked");
 	totalSinalizadas = 0;
@@ -1844,7 +1902,7 @@ function sinalizarVenues(problema) {
 			var venue, dados, acao, comentario;
 			var i = linhas[l].value;
 			venue = document.forms[i]["venue"].value;
-			dados = "oauth_token=" + oauth_token;
+			dados = "oauth_token=" + token;
 			if (problema == "home_remove") {
 				dados += "&removeCategoryIds=" + CATEGORIA_HOME;
 				acao = "proposeedit";
@@ -1886,8 +1944,13 @@ function selecionarTodas(valor) {
 }
 
 function carregarListaCategorias() {
+	var token = getOauthToken();
+
+	if (!token)
+		return handleMissingOauthToken("carregar as categorias");
+
 	debugInfo("Recuperando dados das categorias...");
-	xmlhttpRequest("GET", "https://api.foursquare.com/v2/venues/categories" + "?oauth_token=" + oauth_token + "&v=" + DATA_VERSIONAMENTO, "load", null, null);
+	xmlhttpRequest("GET", "https://api.foursquare.com/v2/venues/categories" + "?oauth_token=" + token + "&v=" + DATA_VERSIONAMENTO, "load", null, null);
 }
 
 var STR_PAD_LEFT = 1;
@@ -2384,7 +2447,7 @@ dojo.addOnLoad(function inicializar() {
 	 * 5. Opening a new window with a data URL containing the venue IDs as a comma-separated list
 	 * 
 	 * The generated URL format is:
-	 * http://4sq.eliotools.site/load.php?venues=[venue_id1,venue_id2,...]
+	 * https://4sq.eliotools.site/load.php?venues=[venue_id1,venue_id2,...]
 	 * 
 	 * @type {dijit.MenuItem}
 	 * @property {string} label - Display text "URL direta" (Direct URL)
@@ -2450,7 +2513,7 @@ window.onbeforeunload = function() {
 
 function showDialogGuia() {
 	// set the content of the dialog:
-	dlg_guia.attr("content", "<ul style='width: 415px; padding-left: 18px; margin-top: -10px'><li><p>Use sempre a ortografia, acentua&ccedil;&atilde;o e as letras mai&uacute;sculas e min&uacute;sculas corretas.</p></li><li><p>Em redes ou venues com v&aacute;rios locais, n&atilde;o &eacute; preciso adicionar um sufixo de local. Portanto, pode deixar &quot;Subway&quot; ou &quot;Loja Americanas&quot; (em vez de &quot;Subway - Ponta Verde&quot; ou &quot;Lojas Americanas - Iguatemi&quot;).</p></li><li><p>Os nomes das venues devem respeitar o grafia original do lugar sem abrevia&ccedil;&otilde;es (principalmente nomes de empresas).</p></li><li><p>Sempre use abrevia&ccedil;&otilde;es nos endere&ccedil;os: &quot;Av.&quot; em vez de &quot;Avenida&quot;, &quot;R.&quot; em vez de &quot;Rua&quot;, etc., observando as <a href='http://www.buscacep.correios.com.br' target='_blank'>diretrizes postais locais</a>.</p></li><li><p>O preenchimento da Rua transversal &eacute; opcional no Brasil.</p></li><li>Na Rua transversal tamb&eacute;m podem ser inclu&iacute;dos:<ul style='padding-left: 18px; margin-top: 4px'><li>Complemento, ponto de refer&ecirc;ncia ou via de acesso (quando relevante)</li><li>Bloco, piso, loja ou setor (para subvenues)</li><li>Regi&atilde;o Administrativa (RA) considerada bairro do Distrito Federal</li></ul></li><li><p>Os nomes de Estados devem ser abreviados: &quot;RJ&quot; em vez de &quot;Rio de Janeiro&quot;.</p></li><li><p>Em caso de d&uacute;vida sobre a cria&ccedil;&atilde;o e edi&ccedil;&atilde;o de venues no Foursquare&reg;, consulte nossas <a href='https://pt.foursquare.com/info/houserules' target='_blank'>regras da casa</a> e as <a href='http://support.foursquare.com/forums/191151-venue-help' target='_blank'>perguntas frequentes sobre venues</a>.</p></li></ul>");
+	dlg_guia.attr("content", "<ul style='width: 415px; padding-left: 18px; margin-top: -10px'><li><p>Use sempre a ortografia, acentua&ccedil;&atilde;o e as letras mai&uacute;sculas e min&uacute;sculas corretas.</p></li><li><p>Em redes ou franquias, n&atilde;o &eacute; preciso adicionar um sufixo de local. Portanto, pode deixar &quot;Subway&quot; ou &quot;Loja Americanas&quot; (em vez de &quot;Subway - Ponta Verde&quot; ou &quot;Lojas Americanas - Iguatemi&quot;).</p></li><li><p>Os nomes dos locais devem respeitar a grafia original da marca sem abrevia&ccedil;&otilde;es (principalmente nomes de empresas).</p></li><li><p>Sempre use abrevia&ccedil;&otilde;es nos endere&ccedil;os: &quot;Av.&quot; em vez de &quot;Avenida&quot;, &quot;R.&quot; em vez de &quot;Rua&quot;, etc., observando as <a href='http://www.buscacep.correios.com.br' target='_blank'>diretrizes postais locais</a>.</p></li><li><p>O preenchimento da Rua transversal &eacute; opcional no Brasil.</p></li><li>Na Rua transversal tamb&eacute;m podem ser inclu&iacute;dos:<ul style='padding-left: 18px; margin-top: 4px'><li>Complemento, ponto de refer&ecirc;ncia ou via de acesso (quando relevante)</li><li>Bloco, piso, loja ou setor (para sublocais)</li><li>Regi&atilde;o Administrativa (RA) considerada bairro do Distrito Federal</li></ul></li><li><p>Os nomes de Estados devem ser abreviados: &quot;RJ&quot; em vez de &quot;Rio de Janeiro&quot;.</p></li><li><p>Em caso de d&uacute;vida sobre a cria&ccedil;&atilde;o e edi&ccedil;&atilde;o de locais no Foursquare&reg;, consulte as <a href='https://pt.foursquare.com/info/houserules' target='_blank'>regras da casa</a> e as <a href='https://support.foursquare.com/hc/en-us/sections/21181966510620-General-Swarm-Q-A' target='_blank'>perguntas frequentes sobre o Swarm</a>.</p></li></ul>");
 	dlg_guia.show();
 	dlg_guia.attr("style", "width: 455px;");
 }
@@ -2701,11 +2764,8 @@ function showDialogExportUrls() {
  * Detecta automaticamente ambiente (localhost vs produção)
  */
 function showDialogExportDirectUrl() {
-	// Detecta o ambiente (localhost vs produção)
-	var host = window.location.hostname === 'localhost' ? 'localhost' : '4sq.eliotools.site';
-	var protocol = window.location.hostname === 'localhost' ? window.location.protocol : 'http:';
-	var port = window.location.hostname === 'localhost' && window.location.port ? ':' + window.location.port : '';
-	var baseUrl = protocol + '//' + host + port;
+	var basePath = window.location.pathname.replace(/\/[^/]*$/, '');
+	var baseUrl = window.location.origin + basePath;
 	
 	// Extrai IDs dos venues
 	var arq = txt.slice(0);

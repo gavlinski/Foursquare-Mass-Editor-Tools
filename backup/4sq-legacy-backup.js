@@ -15,7 +15,7 @@
 function carregarMapaLegado() {
 	var script = document.createElement("script");
 	script.type = "text/javascript";
-	script.src = "http://maps.googleapis.com/maps/api/js?key=YOUR_GOOGLE_MAPS_API_KEY&callback=inicializarMapa";
+	script.src = "https://maps.googleapis.com/maps/api/js?key=YOUR_GOOGLE_MAPS_API_KEY&callback=inicializarMapa";
 	document.body.appendChild(script);
 }
 

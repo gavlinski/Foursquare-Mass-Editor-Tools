@@ -37,16 +37,17 @@ require_once __DIR__ . '/vendor/autoload.php';
 // Inclui helper de assets
 require_once __DIR__ . '/includes/asset_helper.php';
 
+use ElioTools\Security\SessionManager;
+
 // Inicialização da sessão
-if (!isset($_SESSION)) {
-    session_start();
-}
+$sessionManager = new SessionManager();
+$sessionManager->start();
 
 if (isset($_GET["venues"])) {
-    $_SESSION["venues"] = $_GET["venues"];
+    $sessionManager->set('venues', (string) $_GET['venues']);
 }
 
-if (!isset($_SESSION["oauth_token"])) {
+if (!$sessionManager->getAccessToken()) {
     header('Location: index.php');
     exit();
 }

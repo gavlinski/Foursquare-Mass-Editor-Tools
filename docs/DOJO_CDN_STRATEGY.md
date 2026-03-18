@@ -16,7 +16,7 @@ Durante o planejamento do processo de CI/CD e deploy em produção, identificamo
 
 ```
 dojo.js:1 Failed to load resource: the server responded with a status of 404 (Not Found)
-main.php:1 Refused to execute script from 'http://4sq.eliotools.site/js/dojo/dojo.js' 
+main.php:1 Refused to execute script from 'https://4sq.eliotools.site/js/dojo/dojo.js' 
   because its MIME type ('text/html') is not executable
 ```
 
@@ -196,7 +196,7 @@ js/dojox/
 1. **Com arquivos locais:**
    ```bash
    # Arquivos existem em js/dojo/
-   open http://localhost/4sqmet/
+   open https://localhost/4sqmet/
    # ✅ Deve carregar: /js/dojo/dojo.js (local)
    ```
 
@@ -204,7 +204,7 @@ js/dojox/
    ```bash
    # Temporariamente mover pastas
    mv js/dojo js/dojo.bak
-   open http://localhost/4sqmet/
+   open https://localhost/4sqmet/
    # ✅ Deve carregar: https://ajax.googleapis.com/.../dojo.js (CDN)
    ```
 
@@ -212,7 +212,7 @@ js/dojox/
 
 ```bash
 # Após deploy
-curl -I http://4sq.eliotools.site/
+curl -I https://4sq.eliotools.site/
 # Verificar no browser DevTools → Network:
 # ✅ dojo.js carregado de: ajax.googleapis.com
 # ✅ Status: 200 OK (ou 304 Not Modified se cached)

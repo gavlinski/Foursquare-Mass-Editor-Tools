@@ -45,13 +45,11 @@ use ElioTools\Config\AppConfig;
 use ElioTools\Security\SessionManager;
 
 try {
-    // Inicializa sessão nativa primeiro
-    if (session_status() !== PHP_SESSION_ACTIVE) {
-        session_start();
-    }
+    $sessionManager = new SessionManager();
+    $sessionManager->start();
     
     // Verifica se existe token
-    $token = $_SESSION['oauth_token'] ?? $_COOKIE['oauth_token'] ?? null;
+    $token = $sessionManager->getAccessToken();
     
     // Debug log detalhado para diagnosticar problemas
     error_log("session_status.php: Session token = " . var_export($_SESSION['oauth_token'] ?? 'NOT_SET', true));
@@ -87,8 +85,9 @@ try {
         $fullName = trim($firstName . ' ' . $lastName);
         
         if ($fullName) {
-            setcookie("name", rawurlencode($fullName), time() + 60*60*24, "/");
+            $sessionManager->setCookie('name', rawurlencode($fullName), time() + (60 * 60 * 24));
         }
+        $sessionManager->setCookie('oauth_token', $token, time() + (60 * 60 * 24 * 15));
         
         echo json_encode([
             'status' => 'valid',
@@ -162,13 +161,14 @@ try {
             $user = $userData['response']['user'];
             
             // Atualiza informações na sessão
-            $_SESSION['user_data'] = $user;
+            $sessionManager->set('user_data', $user);
             $firstName = $user['firstName'] ?? '';
             $lastName = $user['lastName'] ?? '';
             $fullName = trim($firstName . ' ' . $lastName);
             if ($fullName) {
-                setcookie("name", rawurlencode($fullName), time() + 60*60*24, "/");
+                $sessionManager->setCookie('name', rawurlencode($fullName), time() + (60 * 60 * 24));
             }
+            $sessionManager->setCookie('oauth_token', $token, time() + (60 * 60 * 24 * 15));
             
             echo json_encode([
                 'status' => 'valid',
@@ -193,9 +193,9 @@ try {
         }
     } catch (Exception $e) {
         // Token inválido ou expirado - limpa dados locais
-        session_destroy();
-        setcookie("oauth_token", "", time() - 3600, "/");
-        setcookie("name", "", time() - 3600, "/");
+        $sessionManager->destroy();
+        $sessionManager->expireCookie('oauth_token');
+        $sessionManager->expireCookie('name');
         
         echo json_encode([
             'status' => 'expired',

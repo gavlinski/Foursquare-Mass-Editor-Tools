@@ -97,7 +97,7 @@ Abra: `https://localhost/debug/test_dojo_cdn.php`
 Console mostrará:
 ```javascript
 🔍 Diagnóstico Dojo CDN
-dojo.baseUrl: "http://localhost/js/dojo/"     // Local
+dojo.baseUrl: "https://localhost/js/dojo/"     // Local
 // OU
 dojo.baseUrl: "https://ajax.googleapis.com/ajax/libs/dojo/1.8.14/"  // CDN
 ```

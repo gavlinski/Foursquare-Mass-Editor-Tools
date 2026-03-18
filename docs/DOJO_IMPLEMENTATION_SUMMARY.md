@@ -153,7 +153,7 @@ open https://localhost/debug/test_progressbar.php
 
 # DevTools Console:
 console.log(dojo.baseUrl);
-// Local:  "http://localhost/js/dojo/"
+// Local:  "https://localhost/js/dojo/"
 // CDN:    "https://ajax.googleapis.com/ajax/libs/dojo/1.8.14/"
 ```
 

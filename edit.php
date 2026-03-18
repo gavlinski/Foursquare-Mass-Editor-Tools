@@ -28,16 +28,18 @@ require_once __DIR__ . '/analytics.php';
 // Autoloader
 require_once __DIR__ . '/vendor/autoload.php';
 
-if (!isset($_SESSION)) {
-    session_start();
-}
+use ElioTools\Security\SessionManager;
 
-if ((isset($_SESSION["oauth_token"])) && ($_SESSION["file"] != null)) {
-    $file = $_SESSION["file"];
-    $venuesIds = $_SESSION["venuesIds"];
-    $campos = $_SESSION["campos"];
-    if (isset($_SESSION["venues"])) {
-        unset($_SESSION["venues"]);
+$sessionManager = new SessionManager();
+$sessionManager->start();
+$oauthToken = $sessionManager->getAccessToken();
+
+if ($oauthToken && ($sessionManager->get('file') != null)) {
+    $file = $sessionManager->get('file');
+    $venuesIds = $sessionManager->get('venuesIds');
+    $campos = $sessionManager->get('campos');
+    if ($sessionManager->has('venues')) {
+        $sessionManager->remove('venues');
     }
 } else {
     header('Location: index.php');
@@ -143,6 +145,10 @@ body.loading #listContainer {
 </style>
 <?php dojo_script(['parseOnLoad' => true]); ?>
 <?php script_versioned('js/session-manager.js'); ?>
+<script>
+window.appBootstrap = window.appBootstrap || {};
+window.appBootstrap.oauthToken = <?php echo json_encode($oauthToken, JSON_UNESCAPED_SLASHES); ?>;
+</script>
 <script src="js/google-maps-config.php?v=5.0.1" defer></script>
 <?php script_versioned('js/google-maps.js', ['defer' => 'defer']); ?>
 <?php script_versioned('js/4sq.js', ['defer' => 'defer']); ?>
@@ -166,7 +172,7 @@ body.loading #listContainer {
 </header>
 
 <article>
-	<p>Antes de salvar suas propostas de altera&ccedil;&otilde;es, certifique-se de ler nosso <a id="guia" href="javascript:showDialogGuia()">guia de estilo</a> e as <a id="regras" href="https://pt.foursquare.com/info/houserules" target="_blank">regras da casa</a>.</p>
+	<p>Antes de salvar suas propostas de altera&ccedil;&otilde;es, certifique-se de ler nosso <a id="guia" href="javascript:showDialogGuia()">guia de estilo</a> e as <a id="regras" href="https://support.foursquare.com/hc/en-us/articles/14884050907164-House-Rules" target="_blank">regras da casa</a>.</p>
 </article>
 <article>
 	<div id="mapa"></div>

@@ -143,7 +143,7 @@ docker ps
 docker logs -f 4sqmet
 
 # Testar HTTP
-curl -I http://localhost/4sqmet/
+curl -Ik http://localhost/4sqmet/
 
 # Pode retornar erro 500 ou falha de OAuth - é esperado!
 # As credenciais reais serão injetadas no primeiro deploy
@@ -246,7 +246,7 @@ GOOGLE_MAPS_MAP_ID:
 **D. Application Config (1 secret):**
 ```yaml
 APP_URL:
-  # Valor: https://4sq.eliotools.site
+  # Valor: http://4sq.eliotools.site
 ```
 
 **E. Total:**
@@ -359,7 +359,7 @@ nslookup 4sq.eliotools.site
 ### 5.4 Testar URL Pública
 
 ```bash
-curl -I https://4sq.eliotools.site/
+curl -I http://4sq.eliotools.site/
 # Deve retornar: HTTP/1.1 200 OK
 ```
 

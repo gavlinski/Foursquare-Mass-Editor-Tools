@@ -44,13 +44,13 @@ if ($format === 'json' || strpos($acceptHeader, 'application/json') !== false) {
 #### Usage Examples
 ```bash
 # Browser ou curl normal → HTML
-http://localhost/version.php
+https://localhost/version.php
 
 # Com query parameter → JSON
-curl http://localhost/version.php?format=json
+curl -k https://localhost/version.php?format=json
 
 # Com Accept header → JSON
-curl -H "Accept: application/json" http://localhost/version.php
+curl -k -H "Accept: application/json" https://localhost/version.php
 
 # JavaScript fetch → JSON
 fetch('version.php', {
@@ -302,7 +302,7 @@ $newField = $buildInfo['new_field'] ?? 'default';
 ### Testar endpoint JSON
 ```bash
 # Via curl
-curl -H "Accept: application/json" http://localhost/version.php | jq
+curl -k -H "Accept: application/json" https://localhost/version.php | jq
 
 # Via JavaScript console
 fetch('version.php', {
@@ -320,10 +320,10 @@ fetch('version.php', {
 **Diagnóstico**:
 ```bash
 # Testar o que está retornando
-curl http://localhost/version.php
+curl -k https://localhost/version.php
 # Se retorna HTML (tags <html>), confirma problema
 
-curl -H "Accept: application/json" http://localhost/version.php
+curl -k -H "Accept: application/json" https://localhost/version.php
 # Deve retornar JSON
 ```
 

@@ -254,7 +254,7 @@ console.error('❌ Erro na autenticação:', error);
 - [ ] **API REST moderna**: Substituição gradual da API v2 do Foursquare por endpoints internos RESTful
 - [ ] **PWA com Service Workers**: Implementação de funcionalidades offline e cache inteligente
 - [ ] **Testes automatizados**: Cobertura completa com PHPUnit (backend) e Jest (frontend)
-- [ ] **CI/CD com GitHub Actions**: 🎯 **PRIORITÁRIO** - Pipeline automatizado de deploy e testes (Próximo milestone)
+- [x] **CI/CD com GitHub Actions**: 🎯 **PRIORITÁRIO** - Pipeline automatizado de deploy e testes (Próximo milestone)
 
 #### UX/UI e Performance
 
@@ -526,7 +526,7 @@ gh workflow run deploy.yml --ref refactor-ia
 
 #### 🎯 **Status de Produção**
 
-**URL**: http://4sq.eliotools.site  
+**URL**: https://4sq.eliotools.site  
 **Servidor**: Digital Ocean Droplet  
 **Branch**: refactor-ia → main (após testes)  
 **Deploy**: Automatizado via GitHub Actions  
@@ -611,16 +611,16 @@ Acesse `debug/test_session_debug.html` para:
 1. **Antes de modificar código**:
    ```bash
    # Verificar estado atual
-   curl "http://localhost/debug/debug_session.php?mode=debug"
+   curl -k "https://localhost/debug/debug_session.php?mode=debug"
    ```
 
 2. **Após mudanças no sistema de sessão**:
    ```bash
    # Criar sessão de teste
-   curl "http://localhost/debug/session_test_manager.php?action=create"
+   curl -k "https://localhost/debug/session_test_manager.php?action=create"
    
    # Validar funcionamento
-   curl "http://localhost/debug/debug_session.php?mode=validate"
+   curl -k "https://localhost/debug/debug_session.php?mode=validate"
    ```
 
 3. **Teste de integração Google Maps**:

@@ -238,7 +238,7 @@ docker run -d \
 docker logs -f 4sqmet
 
 # Testar
-curl http://<NOVO_IP>/4sqmet/
+curl -k https://<NOVO_IP>/4sqmet/
 ```
 
 **1.5 Configurar HTTPS:**

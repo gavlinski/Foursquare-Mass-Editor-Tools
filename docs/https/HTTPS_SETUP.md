@@ -122,7 +122,6 @@ Strict-Transport-Security: max-age=31536000; includeSubDomains
 ### URLs de Acesso
 
 - **HTTPS**: https://localhost/4sqmet/ (primário)
-- **HTTP**: http://localhost/4sqmet/ (redireciona para HTTPS)
 - **Debug**: https://localhost/4sqmet/debug/
 
 ### Estrutura de Arquivos
@@ -368,7 +367,7 @@ apache2ctl configtest
 Header always set Strict-Transport-Security "max-age=31536000; includeSubDomains"
 ```
 
-**O que faz**: Força navegador a sempre usar HTTPS, mesmo se usuário digitar `http://`
+**O que faz**: Força navegador a sempre usar HTTPS, mesmo se o usuário digitar uma URL sem HTTPS
 
 ### Cookies Secure
 

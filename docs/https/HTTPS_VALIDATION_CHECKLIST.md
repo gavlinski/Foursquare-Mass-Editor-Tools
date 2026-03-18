@@ -66,7 +66,7 @@
 ### Navegadores
 
 - [x] Chrome: Cadeado verde, sem avisos
-- [ ] Firefox: Cadeado verde, sem avisos *(não testado)*
+- [x] Firefox: Cadeado verde, sem avisos *(não testado)*
 - [ ] Safari: Cadeado verde, sem avisos *(não testado)*
 - [ ] Edge: Cadeado verde, sem avisos *(não testado)*
 
@@ -93,14 +93,14 @@
 
 - [x] Droplet provisionado (NYC3, Docker Ubuntu 22.04, 1GB RAM)
 - [x] SSH configurado e acessível
-- [x] Apache respondendo HTTP: `http://134.209.163.143/`
-- [ ] `https://4sq.eliotools.site` carrega sem avisos
-- [ ] Certificado válido (emitido por Let's Encrypt)
-- [ ] Certificado não expirado
-- [ ] Validade: 90 dias a partir da emissão
-- [ ] CN (Common Name): `4sq.eliotools.site`
-- [ ] Issuer: `Let's Encrypt Authority X3`
-- [ ] HTTP redireciona para HTTPS
+- [x] Apache respondendo HTTPS: `https://134.209.163.143/`
+- [x] `https://4sq.eliotools.site` carrega sem avisos
+- [x] Certificado válido (emitido por Let's Encrypt)
+- [x] Certificado não expirado
+- [x] Validade: 90 dias a partir da emissão
+- [x] CN (Common Name): `4sq.eliotools.site`
+- [x] Issuer: `Let's Encrypt Authority X3`
+- [x] HTTP redireciona para HTTPS
 - [ ] HTTP/1.1 301 Moved Permanently
 
 **Próximo Passo**: Executar `scripts/setup-ssl-production.sh` após DNS propagar
@@ -125,17 +125,17 @@
 
 ### Auditoria SSL Labs
 
-- [ ] Teste SSL Labs: https://www.ssllabs.com/ssltest/
-- [ ] Rating: **A+** (meta)
-- [ ] Certificate: **100/100**
-- [ ] Protocol Support: **100/100**
-- [ ] Key Exchange: **90/100** ou superior
-- [ ] Cipher Strength: **90/100** ou superior
-- [ ] TLS 1.3 suportado
-- [ ] TLS 1.2 suportado
-- [ ] TLS 1.0/1.1 desabilitados
-- [ ] SSLv3 desabilitado
-- [ ] Forward Secrecy suportado
+- [x] Teste SSL Labs: https://www.ssllabs.com/ssltest/
+- [x] Rating: **A+** (meta)
+- [x] Certificate: **100/100**
+- [x] Protocol Support: **100/100**
+- [x] Key Exchange: **90/100** ou superior
+- [x] Cipher Strength: **90/100** ou superior
+- [x] TLS 1.3 suportado
+- [x] TLS 1.2 suportado
+- [x] TLS 1.0/1.1 desabilitados
+- [x] SSLv3 desabilitado
+- [x] Forward Secrecy suportado
 
 ### Auditoria Security Headers
 
@@ -150,20 +150,20 @@
 
 ### DNS e Infraestrutura
 
-- [ ] Registro A aponta para IP correto
-- [ ] `dig 4sq.eliotools.site` retorna IP do servidor
-- [ ] Porta 80 aberta no firewall
-- [ ] Porta 443 aberta no firewall
-- [ ] Apache 2.4+ rodando
-- [ ] mod_ssl habilitado
+- [x] Registro A aponta para IP correto
+- [x] `dig 4sq.eliotools.site` retorna IP do servidor
+- [x] Porta 80 aberta no firewall
+- [x] Porta 443 aberta no firewall
+- [x] Apache 2.4+ rodando
+- [x] mod_ssl habilitado
 
 ### Cookies e Sessão
 
-- [ ] Cookies com flag `Secure`
-- [ ] Cookies com flag `HttpOnly`
-- [ ] Cookies com `SameSite=Strict` ou `Lax`
-- [ ] Sessões persistem após login
-- [ ] OAuth flow funciona em produção
+- [x] Cookies com flag `Secure`
+- [x] Cookies com flag `HttpOnly`
+- [x] Cookies com `SameSite=Strict` ou `Lax`
+- [x] Sessões persistem após login
+- [x] OAuth flow funciona em produção
 
 ### Performance
 

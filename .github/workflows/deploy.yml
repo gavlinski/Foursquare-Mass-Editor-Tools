@@ -255,12 +255,12 @@ jobs:
           # Se chegou aqui, falhou todas as tentativas
           echo "❌ Site health check failed after $MAX_RETRIES attempts"
           echo "📊 Diagnóstico:"
-          echo "   - Tentando HTTP como fallback..."
-          HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" --max-time 10 http://${{ env.PRODUCTION_DOMAIN }}/ || echo "000")
-          echo "   - HTTP Status: ${HTTP_CODE}"
+          echo "   - Tentando HTTPS novamente para diagnóstico..."
+          HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" --max-time 10 https://${{ env.PRODUCTION_DOMAIN }}/ || echo "000")
+          echo "   - HTTPS Status: ${HTTP_CODE}"
           
           if [ "$HTTP_CODE" = "200" ] || [ "$HTTP_CODE" = "302" ]; then
-            echo "⚠️  HTTP funciona mas HTTPS falhou - verificar certificados SSL"
+            echo "⚠️  HTTPS responde parcialmente, mas o health check principal falhou - verificar certificados SSL ou headers"
             exit 1
           else
             echo "❌ HTTP e HTTPS falharam - container pode não estar respondendo"

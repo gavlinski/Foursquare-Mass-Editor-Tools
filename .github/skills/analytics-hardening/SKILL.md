@@ -302,15 +302,15 @@ RewriteRule "\.\./|\.\.%2f" - [F,L]
 
 ```bash
 # Test bot filtering
-curl -A "Googlebot" http://localhost/main.php
+curl -A "Googlebot" https://localhost/index.php
 # Should NOT appear in analytics
 
 # Test suspicious pattern
-curl http://localhost/main.php?_ignition=1
+curl -k https://localhost/index.php?_ignition=1
 # Should be blocked by Apache + PHP
 
 # Test legitimate request
-curl http://localhost/main.php
+curl -k https://localhost/index.php
 # SHOULD appear in analytics
 ```
 
@@ -371,7 +371,7 @@ tail -100 /var/log/apache2/access.log | grep suspicious_pattern
 return preg_match('/...existing|new_pattern.../i', $path.$query);
 
 // 3. Test
-curl http://localhost/main.php?new_pattern=1
+curl -k https://localhost/index.php?new_pattern=1
 
 // 4. Run cleanup if needed
 php migrate_analytics_data.php

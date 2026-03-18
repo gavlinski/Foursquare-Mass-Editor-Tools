@@ -32,10 +32,10 @@ Carregue esta skill quando:
    https://foursquare.com/oauth2/authenticate
    ?client_id=XXX
    &response_type=code
-   &redirect_uri=http://localhost/
+   &redirect_uri=https://localhost/4sqmet/index.php
 4. Usuário autoriza
 5. Foursquare redireciona:
-   http://localhost/?code=AUTH_CODE
+   https://localhost/4sqmet/index.php?code=AUTH_CODE
 6. index.php troca code por access_token:
    POST /oauth2/access_token
 7. Salva em $_SESSION['oauth_token']

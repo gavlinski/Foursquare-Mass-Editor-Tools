@@ -76,8 +76,8 @@ open debug/test_loading_overlay.html
 
 # Ou via servidor local
 cd /Users/elio/Projetos/Foursquare-Mass-Editor-Tools
-php -S localhost:8000
-# Navegar para: http://localhost:8000/debug/test_loading_overlay.html
+php -S localhost
+# Navegar para: https://localhost/debug/test_loading_overlay.html
 ```
 
 ### Cenários de Teste

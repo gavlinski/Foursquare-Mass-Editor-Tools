@@ -43,7 +43,7 @@ js/4sq.js                            # 🔗 Sincronização com Google Maps mode
 
 ```javascript
 // ❌ Antes (carregamento síncrono, problemas de performance)
-script.src = "http://maps.googleapis.com/maps/api/js?key=KEY&callback=init";
+script.src = "https://maps.googleapis.com/maps/api/js?key=KEY&callback=init";
 
 // ✅ Agora (Dynamic Library Import + async)
 await google.maps.importLibrary("maps");

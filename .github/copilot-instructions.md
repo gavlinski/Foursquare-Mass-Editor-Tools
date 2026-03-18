@@ -45,10 +45,10 @@ docker logs foursquare-mass-editor
 
 ```bash
 # Test session
-curl "http://localhost/debug/session_test_manager.php?action=create"
+curl -k "https://localhost/debug/session_test_manager.php?action=create"
 
 # Validate session
-curl "http://localhost/debug/debug_session.php?mode=validate"
+curl -k "https://localhost/debug/debug_session.php?mode=validate"
 ```
 
 ## 📝 Coding Conventions & Critical Patterns
@@ -345,10 +345,10 @@ if ($format === 'json' || strpos($acceptHeader, 'application/json') !== false) {
 https://localhost/version.php
 
 # JSON (with Accept header)
-curl -H "Accept: application/json" https://localhost/version.php
+curl -k -H "Accept: application/json" https://localhost/version.php
 
 # JSON (with query parameter)
-curl https://localhost/version.php?format=json
+curl -k https://localhost/version.php?format=json
 ```
 
 ### System Info Modal (Session Manager)
@@ -757,10 +757,10 @@ if ($format === 'json' || strpos($acceptHeader, 'application/json') !== false) {
 https://localhost/version.php
 
 # JSON (with Accept header)
-curl -H "Accept: application/json" https://localhost/version.php
+curl -k -H "Accept: application/json" https://localhost/version.php
 
 # JSON (with query parameter)
-curl https://localhost/version.php?format=json
+curl -k https://localhost/version.php?format=json
 ```
 
 ### System Info Modal (Session Manager)

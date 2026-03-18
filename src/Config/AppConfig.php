@@ -28,6 +28,12 @@ class AppConfig
             'app_env' => $_ENV['APP_ENV'] ?? 'production',
             'app_debug' => filter_var($_ENV['APP_DEBUG'] ?? false, FILTER_VALIDATE_BOOLEAN),
             'app_url' => $_ENV['APP_URL'] ?? 'https://localhost/4sqmet',
+            'session_lifetime' => $this->getEnvInt('SESSION_LIFETIME', 1440),
+            'session_secure' => $this->getEnvBool('SESSION_SECURE', true),
+            'session_httponly' => $this->getEnvBool('SESSION_HTTPONLY', true),
+            'cookie_secure' => $this->getEnvBool('COOKIE_SECURE', true),
+            'cookie_httponly' => $this->getEnvBool('COOKIE_HTTPONLY', true),
+            'cookie_samesite' => $this->normalizeSameSite($_ENV['COOKIE_SAMESITE'] ?? 'Lax'),
         ];
     }
 
@@ -39,5 +45,38 @@ class AppConfig
     public function all(): array
     {
         return $this->config;
+    }
+
+    private function getEnvBool(string $key, bool $default): bool
+    {
+        $value = $_ENV[$key] ?? getenv($key);
+
+        if ($value === false || $value === null || $value === '') {
+            return $default;
+        }
+
+        $parsed = filter_var($value, FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE);
+
+        return $parsed ?? $default;
+    }
+
+    private function getEnvInt(string $key, int $default): int
+    {
+        $value = $_ENV[$key] ?? getenv($key);
+
+        if ($value === false || $value === null || $value === '') {
+            return $default;
+        }
+
+        $parsed = filter_var($value, FILTER_VALIDATE_INT);
+
+        return $parsed === false ? $default : $parsed;
+    }
+
+    private function normalizeSameSite(string $value): string
+    {
+        $normalized = ucfirst(strtolower(trim($value)));
+
+        return in_array($normalized, ['Lax', 'Strict', 'None'], true) ? $normalized : 'Lax';
     }
 }

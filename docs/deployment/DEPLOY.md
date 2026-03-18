@@ -70,7 +70,7 @@ docker run -d --name 4sqmet \
 
 # Verificar
 docker logs -f 4sqmet
-curl http://<NOVO_IP>/4sqmet/
+curl -k https://<NOVO_IP>/4sqmet/
 ```
 
 ### 4. Configurar HTTPS
