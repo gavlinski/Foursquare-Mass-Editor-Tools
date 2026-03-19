@@ -2058,10 +2058,14 @@ dojo.addOnLoad(function inicializar() {
 		// Usa o SessionManager moderno
 		window.sessionManager.checkSessionStatus(false).then(isValid => {
 			if (!isValid) {
-				console.warn("🔒 Sessão expirada - redirecionando para login");
-				if (window.confirm('Sessão expirada. Por favor, autentique-se novamente no Foursquare®.')) {
-					window.location.href = 'index.php';
+				const tokenFallback = getOauthToken();
+				if (tokenFallback) {
+					debugLog("⚠️ SessionStatus retornou inválido, mas token válido foi encontrado. Continuando inicialização.");
+					initializeApplication();
+					return;
 				}
+
+				handleMissingOauthToken("inicializar o editor");
 				return;
 			}
 			// Continua com a inicialização normal
@@ -2072,12 +2076,10 @@ dojo.addOnLoad(function inicializar() {
 		debugLog("🔄 Usando validação legacy de token");
 		
 		// Verifica se o token existe via cookie
-		const legacyToken = dojo.cookie("oauth_token");
+		const legacyToken = getOauthToken();
 		if (!legacyToken || legacyToken === "undefined" || legacyToken === "null") {
 			console.warn("🔒 Token legacy não encontrado ou inválido");
-			if (window.confirm('Sessão expirada. Por favor, autentique-se novamente no Foursquare®.')) {
-				window.location.href = 'index.php';
-			}
+			handleMissingOauthToken("inicializar o editor");
 			return;
 		}
 		
