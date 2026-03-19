@@ -48,6 +48,12 @@ if (isset($_GET["venues"])) {
 }
 
 if (!$sessionManager->getAccessToken()) {
+    $venuesForRedirect = (string) $sessionManager->get('venues', '');
+    if ($venuesForRedirect !== '') {
+        header('Location: index.php?venues=' . rawurlencode($venuesForRedirect));
+        exit();
+    }
+
     header('Location: index.php');
     exit();
 }

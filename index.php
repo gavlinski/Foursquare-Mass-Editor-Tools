@@ -32,10 +32,86 @@ require_once __DIR__ . '/includes/asset_helper.php';
 use ElioTools\Config\AppConfig;
 use ElioTools\Security\SessionManager;
 
+/**
+ * Normaliza lista de venues recebida por query/state.
+ */
+function normalizeVenuesParam(?string $raw): ?string
+{
+    if (!is_string($raw)) {
+        return null;
+    }
+
+    $decoded = trim(rawurldecode($raw));
+    if ($decoded === '') {
+        return null;
+    }
+
+    // Limite defensivo para evitar payloads excessivos via query string.
+    return substr($decoded, 0, 12000);
+}
+
+function encodeOauthState(array $payload): string
+{
+    $json = json_encode($payload, JSON_UNESCAPED_SLASHES);
+    if ($json === false) {
+        return '';
+    }
+
+    return rtrim(strtr(base64_encode($json), '+/', '-_'), '=');
+}
+
+function decodeOauthState(?string $rawState): array
+{
+    if (!is_string($rawState) || $rawState === '') {
+        return [];
+    }
+
+    $normalized = strtr($rawState, '-_', '+/');
+    $padding = strlen($normalized) % 4;
+    if ($padding > 0) {
+        $normalized .= str_repeat('=', 4 - $padding);
+    }
+
+    $decoded = base64_decode($normalized, true);
+    if ($decoded === false) {
+        return [];
+    }
+
+    $data = json_decode($decoded, true);
+
+    return is_array($data) ? $data : [];
+}
+
 // Inicializa configurações
 $config = new AppConfig();
-$sessionManager = new SessionManager();
-$sessionManager->start();
+$sessionManager = new SessionManager($config);
+
+// Em callbacks OAuth cross-site, Firefox pode omitir cookies Lax/Strict.
+$sessionStartOptions = [];
+if (isset($_GET['code'])) {
+    $isHttpsRequest = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off')
+        || ((int)($_SERVER['SERVER_PORT'] ?? 0) === 443)
+        || (!empty($_SERVER['HTTP_X_FORWARDED_PROTO']) && $_SERVER['HTTP_X_FORWARDED_PROTO'] === 'https');
+
+    // SameSite=None requer Secure; em localhost/http isso quebra o cookie de sessão.
+    $sessionStartOptions['cookie_samesite'] = $isHttpsRequest ? 'None' : 'Lax';
+}
+$sessionManager->start($sessionStartOptions);
+
+// Preserva venues da URL direta para pós-login (4sweep/direct URL).
+$pendingVenues = normalizeVenuesParam($_GET['venues'] ?? null);
+if ($pendingVenues !== null) {
+    $sessionManager->set('venues', $pendingVenues);
+}
+
+// Fallback do state OAuth para recuperar venues quando necessário.
+if ($pendingVenues === null && isset($_GET['state'])) {
+    $oauthState = decodeOauthState((string) $_GET['state']);
+    $stateVenues = normalizeVenuesParam($oauthState['venues'] ?? null);
+    if ($stateVenues !== null) {
+        $sessionManager->set('venues', $stateVenues);
+    }
+}
 
 // Proteção contra loop de redirecionamento
 $redirectCount = $sessionManager->get('redirect_count') ?? 0;
@@ -91,33 +167,8 @@ if (isset($_GET['error']) && $_GET['error'] === 'auth_failed') {
 }
 
 // Validação e obtenção do token
-$token = null;
-if (!isset($_GET['error']) && isset($_COOKIE['oauth_token']) && $_COOKIE['oauth_token'] !== "0" && !isset($_GET['code'])) {
-    // Tem cookie mas não tem code - pode ser um loop
-    // Tenta validar token existente
-    $existingToken = filter_var($_COOKIE['oauth_token'], FILTER_SANITIZE_FULL_SPECIAL_CHARS);
-    $foursquare->SetAccessToken($existingToken);
-    try {
-        $testResponse = $foursquare->GetPrivate("users/self");
-        $testData = json_decode($testResponse, true);
-        if (isset($testData['response']['user'])) {
-            // Token válido - usar
-            $token = $existingToken;
-            error_log("index.php: Token do cookie validado com sucesso");
-        } else {
-            // Token inválido - limpar e pedir novo login
-            error_log("index.php: Token do cookie inválido - limpando");
-            $sessionManager->setCookie("oauth_token", "", time() - 3600);
-            unset($_COOKIE['oauth_token']);
-            $token = null;
-        }
-    } catch (Exception $e) {
-        error_log("index.php: Erro ao validar token: " . $e->getMessage());
-        $sessionManager->setCookie("oauth_token", "", time() - 3600);
-        unset($_COOKIE['oauth_token']);
-        $token = null;
-    }
-} elseif (isset($_GET['code'])) {
+$token = $sessionManager->getAccessToken();
+if (isset($_GET['code'])) {
     $code = filter_var($_GET['code'], FILTER_SANITIZE_FULL_SPECIAL_CHARS);
     if ($code) {
         try {
@@ -136,7 +187,6 @@ if ($token) {
     error_log("index.php: Session ID antes de salvar = " . session_id());
     
     $sessionManager->set("oauth_token", $token);
-    $sessionManager->setCookie("oauth_token", $token);
     
     error_log("index.php: Token salvo na sessão e cookie");
     error_log("index.php: Verificação - Session oauth_token = " . ($sessionManager->get('oauth_token') ? 'EXISTS' : 'NULL'));
@@ -151,15 +201,8 @@ if ($token) {
         
         // Returns profile information for a given user
         $u = $userData['response']['user'] ?? null;
-        if ($u && isset($u['firstName'], $u['lastName'])) {
-            $name = htmlspecialchars($u['firstName'] . " " . $u['lastName']);
-            $sessionManager->setCookie("name", rawurlencode($name), time() + 60*60*24);
-        }
-        
-        if (isset($u['checkins']['items'][0]['venue']['location'])) {
-            $location = $u['checkins']['items'][0]['venue']['location'];
-            $coordinates = $location['lat'] . "," . $location['lng'];
-            $sessionManager->setCookie("coordinates", $coordinates, time() + 60*60*24);
+        if ($u) {
+            $sessionManager->set('user_data', $u);
         }
     } catch (Exception $e) {
         error_log("Erro ao processar resposta da API: " . $e->getMessage());
@@ -468,7 +511,17 @@ if (window.location.hash === '#_=_') {
     </div>
 
     <div class="cta-section">
-        <a href="<?php echo $foursquare->AuthenticationLink($config->get('redirect_uri')); ?>" class="cta-button">
+        <?php
+            $authLink = $foursquare->AuthenticationLink($config->get('redirect_uri'));
+            $venuesForState = normalizeVenuesParam((string) $sessionManager->get('venues', ''));
+            if ($venuesForState !== null) {
+                $stateValue = encodeOauthState(['venues' => $venuesForState]);
+                if ($stateValue !== '') {
+                    $authLink .= '&state=' . rawurlencode($stateValue);
+                }
+            }
+        ?>
+        <a href="<?php echo htmlspecialchars($authLink, ENT_QUOTES, 'UTF-8'); ?>" class="cta-button">
             Conectar com Foursquare
         </a>
     </div>
