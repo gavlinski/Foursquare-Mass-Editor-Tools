@@ -65,15 +65,36 @@ includes/
 
 ## 🚀 Quick Start
 
-### Using Docker (Recommended)
-The easiest way to run the project. The `./dev.sh` script handles everything: dependencies (Composer & Dojo Toolkit), Docker build, and execution.
+Two development environment options are available. Both can coexist — but **never run them simultaneously** (port conflict on 80/443).
+
+### 🆕 VS Code Dev Container (Recommended)
+
+Opens the project **inside** the Docker container. PHP IntelliSense, npm, and Apache are pre-configured.
+Requires VS Code + **Dev Containers** extension + OrbStack or Docker Desktop.
 
 ```bash
 # Clone the repository
 git clone https://github.com/gavlinski/Foursquare-Mass-Editor-Tools.git
 cd Foursquare-Mass-Editor-Tools
 
-# Start development environment (Builds, Installs & Runs)
+# Open in VS Code and run:
+# Cmd+Shift+P → "Dev Containers: Reopen in Container"
+```
+
+After setup: `https://localhost/4sqmet/` — edits reflect in the browser immediately.
+
+> 📖 **Full guide**: [docs/DEV_CONTAINER.md](docs/DEV_CONTAINER.md) — step-by-step setup, OrbStack vs Docker Desktop, available scripts, and troubleshooting.
+
+### External Docker (`./dev.sh`)
+
+Manages the container from the host machine terminal.
+
+```bash
+# Clone the repository
+git clone https://github.com/gavlinski/Foursquare-Mass-Editor-Tools.git
+cd Foursquare-Mass-Editor-Tools
+
+# Start container (build + install + run)
 ./dev.sh run
 
 # Access the application

@@ -25,6 +25,22 @@ Root files:     # Legacy procedural code (functional)
 ## 🛠 Critical Workflows
 
 ### Development Environment
+
+Two supported workflows — **never run both simultaneously** (port conflict on 80/443):
+
+#### VS Code Dev Container (recommended for IDE users)
+Open the project in VS Code and select **"Reopen in Container"** when prompted.
+```bash
+# Inside the Dev Container terminal
+./scripts/dev-internal.sh status   # Check Apache + port status
+./scripts/dev-internal.sh reload   # Reload after config changes
+./scripts/dev-internal.sh logs     # Tail Apache error log
+./scripts/dev-internal.sh build    # Run build.sh (minify JS)
+```
+App available at `https://localhost/4sqmet/` on standard ports (OrbStack).
+See `docs/DEV_CONTAINER.md` for full setup guide.
+
+#### External Docker (./dev.sh)
 ```bash
 # Start development (builds + installs + runs)
 ./dev.sh run
@@ -140,6 +156,12 @@ dojo.addOnLoad(function inicializar() {
 - **`includes/app_credentials.php`**: API keys (reads from `.env`)
 - **`includes/google_maps_config.php`**: Google Maps configuration
 - **`.env`**: Environment variables (never commit)
+
+### Dev Container
+- **`.devcontainer/devcontainer.json`**: Dev Container config (appPort, postCreateCommand, features)
+- **`scripts/devcontainer-setup.sh`**: Runs on container create/rebuild (postCreateCommand)
+- **`scripts/dev-internal.sh`**: Apache management inside the container (replaces dev.sh)
+- **`docs/DEV_CONTAINER.md`**: Full setup and troubleshooting guide
 
 ### Modern Classes (PSR-4)
 - **`src/Config/AppConfig.php`**: Centralized app configuration

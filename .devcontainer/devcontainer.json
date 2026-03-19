@@ -1,0 +1,75 @@
+// For format details, see https://aka.ms/devcontainer.json. For config options, see the
+// README at: https://github.com/devcontainers/templates/tree/main/src/docker-existing-dockerfile
+{
+	"name": "PHP 8.1 Apache Dev Environment",
+	"build": {
+		// Sets the run context to one level up instead of the .devcontainer folder.
+		"context": "..",
+		// Update the 'dockerFile' property if you aren't using the standard 'Dockerfile' filename.
+		"dockerfile": "../Dockerfile",
+		// Garante Apache com config de desenvolvimento (/4sqmet/) + SSL certs copiados
+		"args": {
+			"BUILD_ENV": "development"
+		}
+	},
+	"features": {
+		"ghcr.io/devcontainers/features/node:1": {
+			"version": "18"
+		}
+	},
+
+	// ──────────────────────────────────────────────────────────────────────────
+	// CONFIGURAÇÃO DE PORTAS — escolha conforme seu runtime Docker
+	// ──────────────────────────────────────────────────────────────────────────
+
+	// OrbStack (macOS) — mapeamento fixo: https://localhost/4sqmet/ na porta padrão
+	// OrbStack gerencia portas privilegiadas (80/443) via extensão de rede.
+	"appPort": ["80:80", "443:443"],
+
+	// Docker Desktop (macOS/Windows/Linux) — descomente e comente o appPort acima
+	// Docker Desktop não mapeia portas privilegiadas diretamente; o VS Code usa
+	// um túnel SSH com porta aleatória. onAutoForward abre o browser na URL correta.
+	// "forwardPorts": [80, 443],
+
+	// Labels para a aba PORTS do VS Code (válido para ambas configurações)
+	"portsAttributes": {
+		"443": {
+			"protocol": "https",
+			"label": "App HTTPS (4sqmet)"
+			// Docker Desktop: adicione a linha abaixo para abrir o browser automaticamente
+			// "onAutoForward": "openBrowserOnce"
+		},
+		"80": {
+			"label": "App HTTP → HTTPS"
+		}
+	},
+
+	// Variável de ambiente para scripts detectarem que estão dentro do DevContainer
+	"containerEnv": {
+		"DEVCONTAINER": "true"
+	},
+
+	// Cria symlink /var/www/html → workspace (VS Code mantém path padrão /workspaces/...)
+	// Edições nos arquivos refletem no Apache imediatamente sem rebuild
+	"postCreateCommand": "rm -rf /var/www/html && ln -s ${containerWorkspaceFolder} /var/www/html && bash scripts/devcontainer-setup.sh",
+
+	// Preserva o entrypoint original (docker-entrypoint.sh → apache2-foreground)
+	// Sem isso, o VS Code sobrescreve PID 1 e Apache nunca inicia
+	"overrideCommand": false,
+
+	// Garante Apache rodando em cada reinício do container (segurança extra)
+	"postStartCommand": "service apache2 status > /dev/null 2>&1 || apache2ctl start",
+
+	// Configure tool-specific properties.
+	"customizations": {
+		"vscode": {
+			"extensions": [
+				"bmewburn.vscode-intelephense-client",
+				"eamodio.gitlens"
+			]
+		}
+	},
+
+	// Uncomment to connect as an existing user other than the container default. More info: https://aka.ms/dev-containers-non-root.
+	"remoteUser": "root"
+}

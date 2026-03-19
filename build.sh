@@ -104,11 +104,11 @@ for FILE in "${FILES[@]}"; do
             MINIFIED_SIZE=$(wc -c < "$OUTPUT" | tr -d ' ')
             
             # Calcula redução percentual
-            REDUCTION=$(echo "scale=1; 100 - ($MINIFIED_SIZE * 100 / $ORIGINAL_SIZE)" | bc)
+            REDUCTION=$(awk "BEGIN {printf \"%.1f\", 100 - ($MINIFIED_SIZE * 100 / $ORIGINAL_SIZE)}")
             
             # Formata tamanhos
-            ORIGINAL_KB=$(echo "scale=1; $ORIGINAL_SIZE / 1024" | bc)
-            MINIFIED_KB=$(echo "scale=1; $MINIFIED_SIZE / 1024" | bc)
+            ORIGINAL_KB=$(awk "BEGIN {printf \"%.1f\", $ORIGINAL_SIZE / 1024}")
+            MINIFIED_KB=$(awk "BEGIN {printf \"%.1f\", $MINIFIED_SIZE / 1024}")
             
             echo -e "${GREEN}   ✅ ${FILE}.min.js criado${NC}"
             echo -e "      Original: ${ORIGINAL_KB}KB → Minificado: ${MINIFIED_KB}KB (${REDUCTION}% redução)"
@@ -147,10 +147,10 @@ if [ $SUCCESS -gt 0 ]; then
         fi
     done
     
-    TOTAL_REDUCTION=$(echo "scale=1; 100 - ($TOTAL_MINIFIED * 100 / $TOTAL_ORIGINAL)" | bc)
-    TOTAL_ORIGINAL_KB=$(echo "scale=1; $TOTAL_ORIGINAL / 1024" | bc)
-    TOTAL_MINIFIED_KB=$(echo "scale=1; $TOTAL_MINIFIED / 1024" | bc)
-    SAVED_KB=$(echo "scale=1; ($TOTAL_ORIGINAL - $TOTAL_MINIFIED) / 1024" | bc)
+    TOTAL_REDUCTION=$(awk "BEGIN {printf \"%.1f\", 100 - ($TOTAL_MINIFIED * 100 / $TOTAL_ORIGINAL)}")
+    TOTAL_ORIGINAL_KB=$(awk "BEGIN {printf \"%.1f\", $TOTAL_ORIGINAL / 1024}")
+    TOTAL_MINIFIED_KB=$(awk "BEGIN {printf \"%.1f\", $TOTAL_MINIFIED / 1024}")
+    SAVED_KB=$(awk "BEGIN {printf \"%.1f\", ($TOTAL_ORIGINAL - $TOTAL_MINIFIED) / 1024}")
     
     echo -e "${BLUE}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
     echo -e "${GREEN}📊 Estatísticas Totais:${NC}"
