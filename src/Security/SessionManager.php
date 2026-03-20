@@ -37,7 +37,7 @@ class SessionManager
             [
                 'cookie_secure' => $this->shouldUseSecureCookies((bool) $this->config->get('session_secure', true)),
                 'cookie_httponly' => (bool) $this->config->get('session_httponly', true),
-                'cookie_samesite' => $this->normalizeSameSite((string) $this->config->get('cookie_samesite', 'Lax')),
+                'cookie_samesite' => $this->normalizeCookieSameSite((string) $this->config->get('cookie_samesite', 'Lax')),
                 'gc_maxlifetime' => (int) $this->config->get('session_lifetime', 1440),
             ],
             $options
@@ -127,6 +127,50 @@ class SessionManager
         $_COOKIE[$name] = $value;
     }
 
+    public function expireCookieEverywhere(string $name): void
+    {
+        if (headers_sent()) {
+            error_log("Warning: Cannot expire cookie '$name' variants - headers already sent");
+            return;
+        }
+
+        $host = (string) ($_SERVER['HTTP_HOST'] ?? '');
+        $host = preg_replace('/:\\d+$/', '', $host) ?? $host;
+
+        $domains = array_values(array_filter(array_unique([
+            '',
+            $host,
+            $host !== '' ? '.' . $host : '',
+        ]), static fn ($value): bool => $value !== null));
+
+        foreach ($domains as $domain) {
+            $base = [
+                'expires' => time() - 3600,
+                'path' => '/',
+                'httponly' => false,
+            ];
+
+            if ($domain !== '') {
+                $base['domain'] = $domain;
+            }
+
+            // Expira múltiplas variantes para remover cookies legados com atributos diferentes.
+            $variants = [
+                array_merge($base, ['secure' => false, 'samesite' => 'Lax']),
+                array_merge($base, ['secure' => true, 'samesite' => 'Lax']),
+                array_merge($base, ['secure' => false, 'samesite' => 'Strict']),
+                array_merge($base, ['secure' => true, 'samesite' => 'Strict']),
+                array_merge($base, ['secure' => true, 'samesite' => 'None']),
+            ];
+
+            foreach ($variants as $options) {
+                setcookie($name, '', $options);
+            }
+        }
+
+        unset($_COOKIE[$name]);
+    }
+
     public function expireCookie(string $name, array $overrides = []): void
     {
         $this->setCookie($name, '', time() - 3600, $overrides);
@@ -146,14 +190,15 @@ class SessionManager
 
     private function getCookieOptions(int $expires = 0): array
     {
-        return [
+        $options = [
             'expires' => $expires ?: time() + (60 * 60 * 24 * 15),
             'path' => '/',
-            'domain' => '',
             'secure' => $this->shouldUseSecureCookies((bool) $this->config->get('cookie_secure', true)),
             'httponly' => false,
-            'samesite' => $this->normalizeSameSite((string) $this->config->get('cookie_samesite', 'Lax')),
+            'samesite' => $this->normalizeCookieSameSite((string) $this->config->get('cookie_samesite', 'Lax')),
         ];
+
+        return $options;
     }
 
     private function normalizeSameSite(string $value): string
@@ -161,6 +206,14 @@ class SessionManager
         $normalized = ucfirst(strtolower(trim($value)));
 
         return in_array($normalized, ['Lax', 'Strict', 'None'], true) ? $normalized : 'Lax';
+    }
+
+    private function normalizeCookieSameSite(string $value): string
+    {
+        $normalized = $this->normalizeSameSite($value);
+
+        // Strict quebra o fluxo 4sweep -> app (top-level cross-site), causando re-login no Chrome moderno.
+        return $normalized === 'Strict' ? 'Lax' : $normalized;
     }
 
     private function isValidTokenValue(mixed $token): bool

@@ -118,7 +118,7 @@ $redirectCount = $sessionManager->get('redirect_count') ?? 0;
 if ($redirectCount > 10) {
     error_log("LOOP DETECTADO! Limpando sessão e cookies...");
     $sessionManager->destroy();
-    $sessionManager->setCookie("oauth_token", "", time() - 3600);
+    $sessionManager->expireCookieEverywhere('oauth_token');
     unset($_COOKIE['oauth_token']);
     $sessionManager->remove('redirect_count');
     $redirectCount = 0;
@@ -142,9 +142,9 @@ if (isset($_GET['logout'])) {
     }
 
     // Limpa cookies da aplicação
-    $sessionManager->setCookie("oauth_token", "", time() - 3600);
-    $sessionManager->setCookie("name", "", time() - 3600);
-    $sessionManager->setCookie("coordinates", "", time() - 3600);
+    $sessionManager->expireCookieEverywhere('oauth_token');
+    $sessionManager->expireCookieEverywhere('name');
+    $sessionManager->expireCookieEverywhere('coordinates');
     
     // Força limpeza da superglobal para o restante da execução
     unset($_COOKIE['oauth_token']);
@@ -158,9 +158,9 @@ if (isset($_GET['logout'])) {
 // Verifica se houve erro de autenticação (evita loop de redirecionamento)
 if (isset($_GET['error']) && $_GET['error'] === 'auth_failed') {
     $sessionManager->destroy();
-    $sessionManager->setCookie("oauth_token", "", time() - 3600);
-    $sessionManager->setCookie("name", "", time() - 3600);
-    $sessionManager->setCookie("coordinates", "", time() - 3600);
+    $sessionManager->expireCookieEverywhere('oauth_token');
+    $sessionManager->expireCookieEverywhere('name');
+    $sessionManager->expireCookieEverywhere('coordinates');
     // Remove o cookie da superglobal para não ser pego na lógica abaixo
     unset($_COOKIE['oauth_token']);
     $token = null; // Força token como null para mostrar tela de login

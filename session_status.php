@@ -194,8 +194,8 @@ try {
     } catch (Exception $e) {
         // Token inválido ou expirado - limpa dados locais
         $sessionManager->destroy();
-        $sessionManager->expireCookie('oauth_token');
-        $sessionManager->expireCookie('name');
+        $sessionManager->expireCookieEverywhere('oauth_token');
+        $sessionManager->expireCookieEverywhere('name');
         
         echo json_encode([
             'status' => 'expired',
