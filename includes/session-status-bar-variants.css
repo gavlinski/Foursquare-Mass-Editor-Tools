@@ -46,6 +46,24 @@
     margin-right: 2px;
 }
 
+/* iOS Safari/Brave pode aplicar text inflation diferente entre linhas. */
+@supports (-webkit-touch-callout: none) {
+    #session-status-bar,
+    #session-status-bar * {
+        -webkit-text-size-adjust: 100%;
+        text-size-adjust: 100%;
+    }
+
+    #session-status-bar.variant-v8 .v8-status-row,
+    #session-status-bar.variant-v8 .v8-user-row,
+    #session-status-bar.variant-v8 .v8-user-row strong,
+    #session-status-bar.variant-v8 .v8-user-row span,
+    #session-status-bar.variant-v8 .v8-user-row a {
+        font-size: 12px !important;
+        line-height: 1.2;
+    }
+}
+
 /* Session timer - isolado em container para evitar movimento */
 .session-timer-container {
     display: inline;

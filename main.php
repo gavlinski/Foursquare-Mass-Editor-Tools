@@ -35,6 +35,7 @@ use ElioTools\Security\SessionManager;
 use ElioTools\Config\AppConfig;
 
 $VERSAO = "3.1.0";
+$isPostLoginNavigation = false;
 
 // Carrega o autoloader do Composer se disponível
 if (file_exists(__DIR__ . '/vendor/autoload.php')) {
@@ -99,6 +100,12 @@ if (!$oauth_token) {
     header('Location: index.php');
     exit;
 }
+
+// No fluxo pós-login (index.php -> main.php), evita alerta de restart desnecessário.
+$httpReferer = $_SERVER['HTTP_REFERER'] ?? '';
+if (preg_match('~/index\.php(?:\?|$)~i', $httpReferer) === 1) {
+	$isPostLoginNavigation = true;
+}
 ?>
 <?php include_once 'includes/asset_helper.php'; ?>
 <!doctype html>
@@ -106,6 +113,9 @@ if (!$oauth_token) {
 <head>
 <title>Elio Tools</title>
 <meta charset="utf-8">
+<script>
+	window.__FMET_SUPPRESS_RESTART_WARNING_ONCE__ = <?php echo $isPostLoginNavigation ? 'true' : 'false'; ?>;
+</script>
 <?php dojo_script(['parseOnLoad' => true]); ?>
 <?php script_versioned('js/session-manager.js'); ?>
 <?php script_versioned('js/main.js'); ?>

@@ -30,6 +30,18 @@ class SessionManager {
         this.serverInstanceId = null;
         this.restartDetected = false;
         this.restartInterceptionBound = false;
+
+        // Suprime um único aviso de restart após navegação pós-login (index.php -> main.php).
+        try {
+            const suppressFromServer = window.__FMET_SUPPRESS_RESTART_WARNING_ONCE__ === true;
+            const suppressFromReferrer = /\/index\.php(?:[?#]|$)/i.test(document.referrer || '');
+
+            if (suppressFromServer || suppressFromReferrer) {
+                sessionStorage.setItem('fmet:suppress-restart-warning-once', '1');
+            }
+        } catch (error) {
+            console.warn('⚠️ SessionManager: Não foi possível configurar supressão de aviso de restart:', error);
+        }
         
         // Calcula delay inicial baseado em quanto tempo a página está carregada
         // Se a página acabou de carregar (< 2s), aguarda mais tempo para sessão se estabelecer
@@ -234,10 +246,17 @@ class SessionManager {
                     const storedInstanceId = localStorage.getItem('server_instance_id');
                     
                     if (storedInstanceId && storedInstanceId !== data.server_instance_id) {
-                        // Servidor foi reiniciado!
-                        console.warn('⚠️ Restart do servidor detectado!');
-                        this.restartDetected = true;
-                        this.showServerRestartWarning();
+                        const suppressRestartWarningOnce = sessionStorage.getItem('fmet:suppress-restart-warning-once') === '1';
+
+                        if (suppressRestartWarningOnce) {
+                            sessionStorage.removeItem('fmet:suppress-restart-warning-once');
+                            console.info('ℹ️ Aviso de restart suprimido no primeiro carregamento pós-login');
+                        } else {
+                            // Servidor foi reiniciado!
+                            console.warn('⚠️ Restart do servidor detectado!');
+                            this.restartDetected = true;
+                            this.showServerRestartWarning();
+                        }
                     }
                     
                     // Atualiza o ID armazenado
@@ -589,27 +608,36 @@ class SessionManager {
 
         // Intercepta cliques em botões de ação
         document.addEventListener('click', (e) => {
-            const target = e.target;
-            if (this.restartDetected && 
-                (target.tagName === 'BUTTON' || target.classList.contains('action-button'))) {
-                
-                // Verifica se não é um botão de reload
-                if (!target.classList.contains('reload-safe')) {
-                    e.preventDefault();
-                    e.stopImmediatePropagation();
+            if (!this.restartDetected || !(e.target instanceof Element)) {
+                return;
+            }
 
-                    this.showDialog({
-                        title: 'Servidor reiniciado',
-                        message: 'Recarregue a página antes de executar novas ações.\n\nDeseja recarregar agora?',
-                        confirmText: 'Recarregar agora',
-                        cancelText: 'Fechar',
-                        confirmVariant: 'warning'
-                    }).then((confirmAction) => {
-                        if (confirmAction) {
-                            window.location.reload();
-                        }
-                    });
-                }
+            const actionButton = e.target.closest('button, .action-button');
+            if (!actionButton) {
+                return;
+            }
+
+            // Permite interação normal com os botões da própria modal.
+            if (actionButton.closest('#session-manager-dialog-backdrop')) {
+                return;
+            }
+
+            // Verifica se não é um botão de reload seguro
+            if (!actionButton.classList.contains('reload-safe')) {
+                e.preventDefault();
+                e.stopImmediatePropagation();
+
+                this.showDialog({
+                    title: 'Servidor reiniciado',
+                    message: 'Recarregue a página antes de executar novas ações.\n\nDeseja recarregar agora?',
+                    confirmText: 'Recarregar agora',
+                    cancelText: 'Fechar',
+                    confirmVariant: 'warning'
+                }).then((confirmAction) => {
+                    if (confirmAction) {
+                        window.location.reload();
+                    }
+                });
             }
         }, true);
     }
