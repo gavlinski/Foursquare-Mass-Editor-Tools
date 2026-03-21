@@ -203,6 +203,32 @@ if ($token) {
         $u = $userData['response']['user'] ?? null;
         if ($u) {
             $sessionManager->set('user_data', $u);
+
+            // Restaura preenchimento automático do campo "Local" no primeiro acesso.
+            $coordinates = null;
+
+            if (isset($u['checkins']['items'][0]['venue']['location']['lat'], $u['checkins']['items'][0]['venue']['location']['lng'])) {
+                $coordinates = (string) $u['checkins']['items'][0]['venue']['location']['lat'] . ','
+                    . (string) $u['checkins']['items'][0]['venue']['location']['lng'];
+            } else {
+                // Fallback: alguns payloads de users/self não incluem itens de check-in.
+                try {
+                    $recentCheckinResponse = $foursquare->GetPrivate('users/self/checkins?limit=1');
+                    $recentCheckinData = json_decode($recentCheckinResponse, true);
+                    $recentLocation = $recentCheckinData['response']['checkins']['items'][0]['venue']['location'] ?? null;
+
+                    if (is_array($recentLocation)
+                        && isset($recentLocation['lat'], $recentLocation['lng'])) {
+                        $coordinates = (string) $recentLocation['lat'] . ',' . (string) $recentLocation['lng'];
+                    }
+                } catch (Exception $innerException) {
+                    error_log('index.php: Falha ao buscar último check-in: ' . $innerException->getMessage());
+                }
+            }
+
+            if (is_string($coordinates) && $coordinates !== '') {
+                $sessionManager->setCookie('coordinates', $coordinates, time() + (60 * 60 * 24));
+            }
         }
     } catch (Exception $e) {
         error_log("Erro ao processar resposta da API: " . $e->getMessage());

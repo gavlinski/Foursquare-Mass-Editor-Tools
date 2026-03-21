@@ -169,6 +169,29 @@ try {
                 $sessionManager->setCookie('name', rawurlencode($fullName), time() + (60 * 60 * 24));
             }
             $sessionManager->setCookie('oauth_token', $token, time() + (60 * 60 * 24 * 15));
+
+            $coordinates = null;
+            if (isset($user['checkins']['items'][0]['venue']['location']['lat'], $user['checkins']['items'][0]['venue']['location']['lng'])) {
+                $coordinates = (string) $user['checkins']['items'][0]['venue']['location']['lat'] . ','
+                    . (string) $user['checkins']['items'][0]['venue']['location']['lng'];
+            } else {
+                try {
+                    $recentCheckinResponse = $foursquare->GetPrivate('users/self/checkins?limit=1');
+                    $recentCheckinData = json_decode($recentCheckinResponse, true);
+                    $recentLocation = $recentCheckinData['response']['checkins']['items'][0]['venue']['location'] ?? null;
+
+                    if (is_array($recentLocation)
+                        && isset($recentLocation['lat'], $recentLocation['lng'])) {
+                        $coordinates = (string) $recentLocation['lat'] . ',' . (string) $recentLocation['lng'];
+                    }
+                } catch (Exception $innerException) {
+                    error_log('session_status.php: Falha ao buscar último check-in: ' . $innerException->getMessage());
+                }
+            }
+
+            if (is_string($coordinates) && $coordinates !== '') {
+                $sessionManager->setCookie('coordinates', $coordinates, time() + (60 * 60 * 24));
+            }
             
             echo json_encode([
                 'status' => 'valid',
