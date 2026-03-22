@@ -256,7 +256,7 @@ SESSION_HTTPONLY=true
 # Cookie Settings
 COOKIE_SECURE=true
 COOKIE_HTTPONLY=true
-COOKIE_SAMESITE=Strict
+COOKIE_SAMESITE=Lax
 ENVEOF
         echo "✅ .env atualizado com secrets do GitHub Actions"
     else

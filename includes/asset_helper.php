@@ -9,20 +9,21 @@
  * IMPORTANTE: Configuração do Dojo Toolkit
  * 
  * PRODUÇÃO (eliotools.site):
- *   - SEMPRE usa CDN do Google (ajax.googleapis.com)
+ *   - Prioriza CDN do Google (ajax.googleapis.com)
+ *   - Usa fallback automático para unpkg.com quando necessário
  *   - Ignora DOJO_SOURCE do .env
  *   - Garante performance e cache global
  * 
  * DESENVOLVIMENTO (localhost):
  *   - Respeita variável DOJO_SOURCE do arquivo .env:
  *     • DOJO_SOURCE=local  → Usa arquivos locais (js/dojo/, js/dijit/, js/dojox/)
- *     • DOJO_SOURCE=cdn    → Usa CDN do Google
+ *     • DOJO_SOURCE=cdn    → Usa CDN (Google com fallback unpkg)
  *   - Configure via: ./dev.sh config
  *   - Fallback automático para CDN se arquivos locais não existirem
  * 
  * USO 100% CONSISTENTE:
  *   - Se configurado para local: TODOS os recursos vêm de arquivos locais
- *   - Se configurado para CDN: TODOS os recursos vêm do Google CDN
+ *   - Se configurado para CDN: usa Google e fallback unpkg para resiliência
  *   - CSS do ProgressBar gerado dinamicamente para manter consistência
  * 
  * @package ElioTools
@@ -40,13 +41,15 @@
  * - Em PRODUÇÃO: SEMPRE CDN (performance, cache global, HTTP/2)
  * - Em DESENVOLVIMENTO: Configurável via DOJO_SOURCE no .env
  *   • local: Arquivos locais (js/dojo/, js/dijit/, js/dojox/)
- *   • cdn: Google CDN (padrão)
+ *   • cdn: Google CDN (padrão, com fallback unpkg)
  * - Arquivos locais NÃO estão no Git (3000+ arquivos, 15MB)
  * - Use ./dev.sh config para escolher a fonte
  */
 define('DOJO_VERSION', '1.8.14');
 define('DOJO_CDN_BASE', 'https://ajax.googleapis.com/ajax/libs/dojo/' . DOJO_VERSION);
-define('DOJO_FALLBACK_CDN_BASE', 'https://cdnjs.cloudflare.com/ajax/libs/dojo/' . DOJO_VERSION);
+define('DOJO_FALLBACK_CDN_BASE', 'https://unpkg.com/dojo@' . DOJO_VERSION);
+define('DOJO_FALLBACK_DIJIT_BASE', 'https://unpkg.com/dijit@' . DOJO_VERSION);
+define('DOJO_FALLBACK_DOJOX_BASE', 'https://unpkg.com/dojox@' . DOJO_VERSION);
 define('DOJO_APP_LOCALE', 'pt-br');
 
 // Paths locais (usados apenas se DOJO_SOURCE=local em desenvolvimento)
@@ -277,14 +280,18 @@ function dojo_script($djConfig = ['parseOnLoad' => true]) {
     } else {
         // CDN: configuração global fixa em pt-BR + fallback síncrono para outro CDN.
         echo sprintf(
-            '<script>(function(){function applyDojoBase(base){window.dojoConfig={ %s, baseUrl: base + "/dojo/", packages: [{name: "dojo", location: "."}, {name: "dijit", location: "../dijit"}, {name: "dojox", location: "../dojox"}] };}window.__FMET_DOJO_PRIMARY_BASE__="%s";window.__FMET_DOJO_FALLBACK_BASE__="%s";applyDojoBase(window.__FMET_DOJO_PRIMARY_BASE__);window.__FMET_APPLY_DOJO_BASE__=applyDojoBase;})();</script>' . PHP_EOL,
+            '<script>(function(){function applyDojoRoots(roots){window.dojoConfig={ %s, baseUrl: roots.dojo + "/", packages: [{name: "dojo", location: "."}, {name: "dijit", location: roots.dijit}, {name: "dojox", location: roots.dojox}] };}window.__FMET_DOJO_PRIMARY_ROOTS__={dojo:"%s/dojo",dijit:"%s/dijit",dojox:"%s/dojox"};window.__FMET_DOJO_FALLBACK_ROOTS__={dojo:"%s",dijit:"%s",dojox:"%s"};applyDojoRoots(window.__FMET_DOJO_PRIMARY_ROOTS__);window.__FMET_APPLY_DOJO_ROOTS__=applyDojoRoots;})();</script>' . PHP_EOL,
             $config_str,
             DOJO_CDN_BASE,
-            DOJO_FALLBACK_CDN_BASE
+            DOJO_CDN_BASE,
+            DOJO_CDN_BASE,
+            DOJO_FALLBACK_CDN_BASE,
+            DOJO_FALLBACK_DIJIT_BASE,
+            DOJO_FALLBACK_DOJOX_BASE
         );
         echo sprintf('<script src="%s"></script>' . PHP_EOL, $url);
         echo sprintf(
-            '<script>if(typeof window.dojo==="undefined"){console.warn("FMET: Falha ao carregar Dojo do CDN principal, tentando fallback.");window.__FMET_APPLY_DOJO_BASE__(window.__FMET_DOJO_FALLBACK_BASE__);document.write(\'<script src="%s/dojo/dojo.js"><\\/script>\');}</script>' . PHP_EOL,
+            '<script>if(typeof window.dojo==="undefined"){console.warn("FMET: Falha ao carregar Dojo do CDN principal, tentando fallback.");window.__FMET_APPLY_DOJO_ROOTS__(window.__FMET_DOJO_FALLBACK_ROOTS__);document.write(\'<script src="%s/dojo.js"><\\/script>\');}</script>' . PHP_EOL,
             DOJO_FALLBACK_CDN_BASE
         );
     }
