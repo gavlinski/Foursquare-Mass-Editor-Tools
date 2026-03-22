@@ -153,6 +153,7 @@ h1 {
     font-size: 14px;
     color: var(--text-muted);
     margin-top: 10px;
+    margin-bottom: 30px;
 }
 
 .content {
@@ -163,7 +164,7 @@ h1 {
     font-size: 18px;
     color: var(--text-secondary);
     margin-bottom: 40px;
-    padding: 25px;
+    padding: 25px 25px 15px 25px;
     background: var(--section-bg);
     border-radius: 12px;
     border: 1px solid var(--card-border);
@@ -193,6 +194,7 @@ p {
     font-size: 16px;
     color: var(--text-secondary);
     margin-bottom: 15px;
+    line-height: 1.4;
 }
 
 ul, ol {
@@ -228,7 +230,7 @@ a:hover {
     background: var(--card-bg);
     border: 1px solid var(--card-border);
     border-radius: 8px;
-    padding: 20px;
+    padding: 25px 25px 15px 25px;
     margin: 20px 0;
 }
 
@@ -236,7 +238,7 @@ a:hover {
     background: var(--section-bg);
     border: 2px solid var(--card-border);
     border-radius: 12px;
-    padding: 30px;
+    padding: 30px 30px 25px 30px;
     margin: 40px 0;
     text-align: center;
 }
@@ -615,7 +617,7 @@ a:hover {
             <a href="mailto:gavlinski@gmail.com">Contato</a>
         </div>
         <p class="footer-text">
-            © 2012-2026 Elio Gavlinski. Licenciado sob GPLv3.<br>
+            © 2012-2026 Elio Gavlinski. Licenciado sob GPLv3.<br><br>
             Esta aplicação não é afiliada, associada, autorizada, endossada por, ou de qualquer forma oficialmente conectada com Foursquare Labs, Inc.
         </p>
     </div>

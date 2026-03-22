@@ -46,6 +46,8 @@
  */
 define('DOJO_VERSION', '1.8.14');
 define('DOJO_CDN_BASE', 'https://ajax.googleapis.com/ajax/libs/dojo/' . DOJO_VERSION);
+define('DOJO_FALLBACK_CDN_BASE', 'https://cdnjs.cloudflare.com/ajax/libs/dojo/' . DOJO_VERSION);
+define('DOJO_APP_LOCALE', 'pt-br');
 
 // Paths locais (usados apenas se DOJO_SOURCE=local em desenvolvimento)
 define('DOJO_LOCAL_BASE', '/js/dojo');
@@ -251,6 +253,10 @@ function dojo_url($djConfig = []) {
 function dojo_script($djConfig = ['parseOnLoad' => true]) {
     $url = dojo_url($djConfig);
     $usingLocal = useLocalDojo();
+
+    if (!isset($djConfig['locale'])) {
+        $djConfig['locale'] = DOJO_APP_LOCALE;
+    }
     
     // Converte array para string de configuração
     $config_pairs = [];
@@ -269,13 +275,18 @@ function dojo_script($djConfig = ['parseOnLoad' => true]) {
         // Arquivos locais: configuração inline no atributo data-dojo-config
         echo sprintf('<script data-dojo-config="%s" src="%s"></script>' . PHP_EOL, $config_str, $url);
     } else {
-        // CDN: configuração global com baseUrl
+        // CDN: configuração global fixa em pt-BR + fallback síncrono para outro CDN.
         echo sprintf(
-            '<script>var dojoConfig = { %s, baseUrl: "%s/", packages: [{name: "dojo", location: "dojo"}, {name: "dijit", location: "dijit"}, {name: "dojox", location: "dojox"}] };</script>' . PHP_EOL,
+            '<script>(function(){function applyDojoBase(base){window.dojoConfig={ %s, baseUrl: base + "/dojo/", packages: [{name: "dojo", location: "."}, {name: "dijit", location: "../dijit"}, {name: "dojox", location: "../dojox"}] };}window.__FMET_DOJO_PRIMARY_BASE__="%s";window.__FMET_DOJO_FALLBACK_BASE__="%s";applyDojoBase(window.__FMET_DOJO_PRIMARY_BASE__);window.__FMET_APPLY_DOJO_BASE__=applyDojoBase;})();</script>' . PHP_EOL,
             $config_str,
-            DOJO_CDN_BASE
+            DOJO_CDN_BASE,
+            DOJO_FALLBACK_CDN_BASE
         );
         echo sprintf('<script src="%s"></script>' . PHP_EOL, $url);
+        echo sprintf(
+            '<script>if(typeof window.dojo==="undefined"){console.warn("FMET: Falha ao carregar Dojo do CDN principal, tentando fallback.");window.__FMET_APPLY_DOJO_BASE__(window.__FMET_DOJO_FALLBACK_BASE__);document.write(\'<script src="%s/dojo/dojo.js"><\\/script>\');}</script>' . PHP_EOL,
+            DOJO_FALLBACK_CDN_BASE
+        );
     }
 }
 
