@@ -224,6 +224,15 @@ $SSH_CMD "${PRODUCTION_USER}@${PRODUCTION_SERVER}" << EOF
     git fetch origin
     git checkout ${BRANCH}
     git pull origin ${BRANCH}
+
+    echo "🔎 Validando fallback local do Dojo (js/dojo, js/dijit, js/dojox)..."
+    if [ ! -f "js/dojo/dojo.js" ] || [ ! -f "js/dijit/themes/tundra/tundra.css" ] || [ ! -f "js/dojox/form/Uploader.js" ]; then
+        echo "❌ Fallback local do Dojo incompleto no servidor."
+        echo "   Esperado: js/dojo/dojo.js, js/dijit/themes/tundra/tundra.css, js/dojox/form/Uploader.js"
+        echo "   Execute scripts/setup-droplet.sh (fase Dojo) antes de continuar o deploy."
+        exit 1
+    fi
+    echo "✅ Fallback local do Dojo validado"
     
     echo "⚙️  Atualizando .env com secrets..."
     if [ -n "${FOURSQUARE_CLIENT_KEY}" ]; then

@@ -1,19 +1,99 @@
 <?php
 /**
- * Test Dojo CDN Loading
- * Diagnóstico para verificar carregamento correto do Dojo via CDN
+ * Teste Dojo (Google + fallback local)
+ * Diagnóstico para validar carregamento primário via Google CDN
+ * e fallback local em caso de falha.
  */
 require_once __DIR__ . '/../includes/asset_helper.php';
+
+function httpStatusForCandidates(array $urls): array
+{
+    foreach ($urls as $url) {
+        $context = stream_context_create([
+            'http' => [
+                'method' => 'HEAD',
+                'timeout' => 8,
+                'follow_location' => true,
+                'max_redirects' => 3,
+                'header' => "User-Agent: FMET-Dojo-Diag/1.0\r\n"
+            ],
+            'ssl' => [
+                'verify_peer' => false,
+                'verify_peer_name' => false,
+            ]
+        ]);
+
+        $headers = @get_headers($url, true, $context);
+        if ($headers !== false) {
+            $statusLine = $headers[0] ?? 'UNKNOWN';
+            if (preg_match('/\s(\d{3})\s/', (string)$statusLine, $m)) {
+                $code = (int)$m[1];
+                if ($code >= 200 && $code < 400) {
+                    return [
+                        'ok' => true,
+                        'code' => $code,
+                        'url' => $url,
+                    ];
+                }
+                $last = [
+                    'ok' => false,
+                    'code' => $code,
+                    'url' => $url,
+                ];
+            } else {
+                $last = [
+                    'ok' => false,
+                    'code' => 0,
+                    'url' => $url,
+                ];
+            }
+        } else {
+            $last = [
+                'ok' => false,
+                'code' => 0,
+                'url' => $url,
+            ];
+        }
+    }
+
+    return $last ?? [
+        'ok' => false,
+        'code' => 0,
+        'url' => '',
+    ];
+}
+
 $isLocalMode = useLocalDojo();
-$fallbackHost = parse_url(DOJO_FALLBACK_CDN_BASE, PHP_URL_HOST) ?: 'fallback';
-$fallbackProbeUrl = rtrim(DOJO_FALLBACK_CDN_BASE, '/') . '/dojo.js';
+$hasLocalAssets = function_exists('hasLocalDojoAssets') ? hasLocalDojoAssets() : false;
+$forceFallback = getenv('DOJO_FORCE_FALLBACK') ?: ($_ENV['DOJO_FORCE_FALLBACK'] ?? false);
+$googleProbeUrl = rtrim(DOJO_CDN_BASE, '/') . '/dojo/dojo.js';
+
+$googleStaticChecks = [
+    'Loader dojo.js' => [rtrim(DOJO_CDN_BASE, '/') . '/dojo/dojo.js'],
+    'dojo/parser' => [rtrim(DOJO_CDN_BASE, '/') . '/dojo/parser.js'],
+    'dojo/cookie' => [rtrim(DOJO_CDN_BASE, '/') . '/dojo/cookie.js'],
+    'dojo/data/ItemFileReadStore' => [rtrim(DOJO_CDN_BASE, '/') . '/dojo/data/ItemFileReadStore.js'],
+    'dijit/form/TextBox' => [rtrim(DOJO_CDN_BASE, '/') . '/dijit/form/TextBox.js'],
+    'dojox/form/Uploader' => [rtrim(DOJO_CDN_BASE, '/') . '/dojox/form/Uploader.js'],
+    'Tema tundra.css' => [rtrim(DOJO_CDN_BASE, '/') . '/dijit/themes/tundra/tundra.css'],
+];
+
+$googleStaticResults = [];
+$googleStaticOkCount = 0;
+foreach ($googleStaticChecks as $label => $candidates) {
+    $res = httpStatusForCandidates($candidates);
+    if ($res['ok']) {
+        $googleStaticOkCount++;
+    }
+    $googleStaticResults[$label] = $res;
+}
 ?>
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Diagnóstico Dojo CDN - Foursquare Mass Editor</title>
+    <title>Diagnóstico Dojo (Google + Local) - Foursquare Mass Editor</title>
     <?php dojo_script(['parseOnLoad' => true, 'isDebug' => true]); ?>
     <?php dojo_theme('tundra'); ?>
     <style>
@@ -31,23 +111,6 @@ $fallbackProbeUrl = rtrim(DOJO_FALLBACK_CDN_BASE, '/') . '/dojo.js';
             padding: 30px;
             border-radius: 8px;
             box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-        }
-        .back-link {
-            display: inline-flex;
-            align-items: center;
-            gap: 5px;
-            margin-bottom: 20px;
-            color: #3498db;
-            text-decoration: none;
-            font-weight: 500;
-            padding: 8px 0;
-        }
-        .back-link:hover {
-            color: #2980b9;
-        }
-        .back-link svg {
-            width: 16px;
-            height: 16px;
         }
         h1 {
             color: #2c3e50;
@@ -108,13 +171,13 @@ $fallbackProbeUrl = rtrim(DOJO_FALLBACK_CDN_BASE, '/') . '/dojo.js';
             background: #e8f0fe;
             color: #174ea6;
         }
-        .badge.fallback {
-            background: #fff3e6;
-            color: #b45309;
-        }
         .badge.local {
             background: #e8f7ef;
             color: #166534;
+        }
+        .badge.warn {
+            background: #fff3cd;
+            color: #664d03;
         }
         .badge.unknown {
             background: #f1f3f5;
@@ -131,6 +194,49 @@ $fallbackProbeUrl = rtrim(DOJO_FALLBACK_CDN_BASE, '/') . '/dojo.js';
         .probe-unknown {
             color: #475569;
             font-weight: 600;
+        }
+        .module-list {
+            margin-top: 15px;
+            border: 1px solid #dee2e6;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        .module-row {
+            display: flex;
+            justify-content: space-between;
+            gap: 16px;
+            padding: 10px 12px;
+            border-bottom: 1px solid #eef2f7;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9rem;
+            background: #fff;
+        }
+        .module-row:last-child {
+            border-bottom: 0;
+        }
+        .cdn-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+            font-size: 13px;
+        }
+        .cdn-table th,
+        .cdn-table td {
+            border-bottom: 1px solid #e5e7eb;
+            padding: 8px;
+            text-align: left;
+            vertical-align: top;
+        }
+        .cdn-table th {
+            background: #f8fafc;
+        }
+        .badge.ok {
+            background: #d4edda;
+            color: #155724;
+        }
+        .badge.fail {
+            background: #f8d7da;
+            color: #721c24;
         }
         pre {
             background: #2d3436;
@@ -166,39 +272,19 @@ $fallbackProbeUrl = rtrim(DOJO_FALLBACK_CDN_BASE, '/') . '/dojo.js';
             font-family: 'Courier New', monospace;
             color: #e74c3c;
         }
-        .nav-footer {
-            margin-top: 30px;
-            padding-top: 20px;
-            border-top: 1px solid #ecf0f1;
-            display: flex;
-            gap: 15px;
-            flex-wrap: wrap;
-        }
-        .nav-footer a {
-            color: #3498db;
-            text-decoration: none;
-            padding: 6px 12px;
-            border-radius: 4px;
-            background: #ecf0f1;
-            font-size: 0.9rem;
-        }
-        .nav-footer a:hover {
-            background: #3498db;
-            color: white;
-        }
     </style>
 </head>
 <body class="tundra">
     <div class="container">
-        <h1>🔍 Diagnóstico Dojo CDN</h1>
+        <h1>🔍 Diagnóstico Dojo (Google + fallback local)</h1>
         
         <div id="status"><?php echo $isLocalMode
-            ? '🧭 Modo local detectado: validando Dojo local e disponibilidade dos CDNs (Google/Fallback)...'
-            : '🔄 Verificando carregamento do Dojo via CDN...'; ?></div>
+            ? '🧭 Modo local detectado: validando Dojo local completo...'
+            : '🔄 Verificando Google CDN (primário) e fallback local...'; ?></div>
 
         <div class="status-grid">
             <div class="status-card">
-                <strong>CDN efetivamente carregado</strong>
+                <strong>Origem efetivamente carregada</strong>
                 <div id="cdn-used"><span class="badge unknown">Detectando...</span></div>
             </div>
             <div class="status-card">
@@ -206,25 +292,62 @@ $fallbackProbeUrl = rtrim(DOJO_FALLBACK_CDN_BASE, '/') . '/dojo.js';
                 <div id="probe-google"><span class="probe-unknown">Testando...</span></div>
             </div>
             <div class="status-card">
-                <strong>Fallback CDN (<?php echo htmlspecialchars($fallbackHost); ?>)</strong>
-                <div id="probe-fallback"><span class="probe-unknown">Testando...</span></div>
+                <strong>Fallback local (assets no servidor)</strong>
+                <div id="probe-local-assets"><span class="probe-unknown">Validando...</span></div>
             </div>
+        </div>
+
+        <div class="status-card">
+            <strong>Resultado de módulos essenciais (runtime)</strong>
+            <div id="module-summary"><span class="probe-unknown">Aguardando dojo.addOnLoad...</span></div>
+            <div class="module-list" id="module-list"></div>
+        </div>
+
+        <div class="status-card" style="margin-top: 12px;">
+            <strong>Verificação estática do Google CDN</strong>
+            <div>
+                <span class="badge <?php echo $googleStaticOkCount === count($googleStaticChecks) ? 'ok' : 'fail'; ?>">
+                    Static: <?php echo $googleStaticOkCount; ?>/<?php echo count($googleStaticChecks); ?>
+                </span>
+            </div>
+            <table class="cdn-table">
+                <thead>
+                    <tr>
+                        <th>Arquivo essencial</th>
+                        <th>Status</th>
+                        <th>URL efetiva</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <?php foreach ($googleStaticResults as $label => $res): ?>
+                        <tr>
+                            <td><?php echo htmlspecialchars($label); ?></td>
+                            <td>
+                                <span class="badge <?php echo $res['ok'] ? 'ok' : 'fail'; ?>">
+                                    <?php echo (int)$res['code'] > 0 ? (int)$res['code'] : 'ERR'; ?>
+                                </span>
+                            </td>
+                            <td><?php echo htmlspecialchars((string)$res['url']); ?></td>
+                        </tr>
+                    <?php endforeach; ?>
+                </tbody>
+            </table>
         </div>
         
         <div class="info-box">
             <h3>📋 O que este teste faz</h3>
-            <p>Verifica se o Dojo Toolkit foi carregado corretamente, identifica qual origem foi usada (Google CDN, fallback ou local) e testa disponibilidade de ambos os CDNs.</p>
+            <p>Valida o fluxo atual do projeto: Google CDN como primário e fallback local como contingência. Também testa carregamento real de módulos Dojo usados na aplicação.</p>
         </div>
         
         <h2>Informações do Sistema</h2>
         <pre><?php
             echo "isProduction(): " . (isProduction() ? 'true' : 'false') . "\n";
             echo "useLocalDojo(): " . (useLocalDojo() ? 'true' : 'false') . "\n";
+            echo "hasLocalDojoAssets(): " . ($hasLocalAssets ? 'true' : 'false') . "\n";
+            echo "DOJO_FORCE_FALLBACK: " . ($forceFallback ? 'true' : 'false') . "\n";
             echo "dojo_url(): " . dojo_url() . "\n";
             echo "DOJO_CDN_BASE: " . DOJO_CDN_BASE . "\n";
-            echo "DOJO_FALLBACK_CDN_BASE: " . DOJO_FALLBACK_CDN_BASE . "\n";
-            echo "DOJO_FALLBACK_PROBE_URL: " . $fallbackProbeUrl . "\n";
-            echo "DOJO_FALLBACK_HOST: " . (parse_url(DOJO_FALLBACK_CDN_BASE, PHP_URL_HOST) ?: 'n/a') . "\n";
+            echo "DOJO_GOOGLE_PROBE_URL: " . $googleProbeUrl . "\n";
             echo "DOCUMENT_ROOT: " . $_SERVER['DOCUMENT_ROOT'] . "\n";
             echo "HTTP_HOST: " . ($_SERVER['HTTP_HOST'] ?? 'não definido') . "\n";
         ?></pre>
@@ -233,15 +356,15 @@ $fallbackProbeUrl = rtrim(DOJO_FALLBACK_CDN_BASE, '/') . '/dojo.js';
 
         <h3>Desktop</h3>
         <ol>
-            <li>Aguarde 3-5 segundos e confirme os 3 blocos de status no topo.</li>
-            <li>Abra o DevTools e confira se há erros de carregamento no Console.</li>
-            <li>Na aba Network, filtre por <code>dojo</code> e verifique status HTTP dos arquivos.</li>
-            <li>Se falhar, recarregue uma vez e compare o resultado.</li>
+            <li>Aguarde 3-8 segundos e confira os blocos de status.</li>
+            <li>Verifique se a origem carregada foi Google ou Local.</li>
+            <li>Confirme se os módulos essenciais ficaram em OK.</li>
+            <li>No DevTools, filtre por <code>dojo</code> e confirme erros de rede/CSP.</li>
         </ol>
 
         <h3>Mobile</h3>
         <ol>
-            <li>Aguarde 3-5 segundos e confirme os 3 blocos de status no topo.</li>
+            <li>Aguarde 3-8 segundos e confirme status de origem/módulos.</li>
             <li>Faça uma captura de tela completa com os resultados visíveis.</li>
             <li>Repita em Safari e Chrome.</li>
             <li>Se falhar, recarregue uma vez e informe se o resultado mudou.</li>
@@ -251,9 +374,18 @@ $fallbackProbeUrl = rtrim(DOJO_FALLBACK_CDN_BASE, '/') . '/dojo.js';
     <script>
         var FMET_DIAG = {
             localMode: <?php echo $isLocalMode ? 'true' : 'false'; ?>,
-            primaryProbeUrl: <?php echo json_encode(rtrim(DOJO_CDN_BASE, '/') . '/dojo/dojo.js'); ?>,
-            fallbackProbeUrl: <?php echo json_encode($fallbackProbeUrl); ?>,
-            fallbackHost: <?php echo json_encode($fallbackHost); ?>
+            hasLocalAssets: <?php echo $hasLocalAssets ? 'true' : 'false'; ?>,
+            forceFallback: <?php echo $forceFallback ? 'true' : 'false'; ?>,
+            primaryProbeUrl: <?php echo json_encode($googleProbeUrl); ?>,
+            requiredModules: [
+                'dojo.cookie',
+                'dojo.parser',
+                'dojo.data.ItemFileReadStore',
+                'dijit.form.TextBox',
+                'dijit.form.Button',
+                'dijit.Dialog',
+                'dojox.form.Uploader'
+            ]
         };
 
         function detectCdnSource() {
@@ -265,16 +397,7 @@ $fallbackProbeUrl = rtrim(DOJO_FALLBACK_CDN_BASE, '/') . '/dojo.js';
             if (baseUrl.indexOf('ajax.googleapis.com') !== -1) {
                 return { label: 'Google CDN (primário)', kind: 'google' };
             }
-            if (baseUrl.indexOf('unpkg.com') !== -1) {
-                return { label: 'unpkg CDN (fallback)', kind: 'fallback' };
-            }
-            if (baseUrl.indexOf('cdn.jsdelivr.net') !== -1) {
-                return { label: 'jsDelivr CDN (fallback legado)', kind: 'fallback' };
-            }
-            if (baseUrl.indexOf('cdnjs.cloudflare.com') !== -1) {
-                return { label: 'Cloudflare CDN (fallback legado)', kind: 'fallback' };
-            }
-            if (baseUrl.indexOf('/js/dojo') !== -1 || baseUrl.indexOf('dojo/') !== -1) {
+            if (baseUrl.indexOf('/js/dojo') !== -1) {
                 return { label: 'Arquivos locais', kind: 'local' };
             }
 
@@ -304,7 +427,55 @@ $fallbackProbeUrl = rtrim(DOJO_FALLBACK_CDN_BASE, '/') . '/dojo.js';
                 });
         }
 
-        console.log('🔍 Diagnóstico Dojo CDN');
+        function renderModuleResult(moduleName, ok, details) {
+            var list = document.getElementById('module-list');
+            if (!list) return;
+
+            var row = document.createElement('div');
+            row.className = 'module-row';
+
+            var statusHtml = ok
+                ? '<span class="probe-ok">OK</span>'
+                : '<span class="probe-fail">FALHA' + (details ? ' - ' + details : '') + '</span>';
+
+            row.innerHTML = '<span>' + moduleName + '</span><span>' + statusHtml + '</span>';
+            list.appendChild(row);
+        }
+
+        function testRequiredModules() {
+            var summary = document.getElementById('module-summary');
+            if (!summary) return;
+
+            if (typeof dojo === 'undefined') {
+                summary.innerHTML = '<span class="probe-fail">Dojo não carregado, teste de módulos não executado.</span>';
+                return;
+            }
+
+            var modules = FMET_DIAG.requiredModules || [];
+            var loaded = 0;
+            var failed = 0;
+
+            modules.forEach(function(moduleName) {
+                try {
+                    dojo.require(moduleName);
+                    loaded += 1;
+                    renderModuleResult(moduleName, true, '');
+                } catch (e) {
+                    failed += 1;
+                    renderModuleResult(moduleName, false, (e && e.message) ? e.message : String(e));
+                }
+            });
+
+            dojo.addOnLoad(function() {
+                if (failed === 0) {
+                    summary.innerHTML = '<span class="probe-ok">Todos os módulos essenciais foram requisitados com sucesso (' + loaded + ').</span>';
+                } else {
+                    summary.innerHTML = '<span class="probe-fail">Falhas ao requisitar módulos: ' + failed + ' de ' + modules.length + '.</span>';
+                }
+            });
+        }
+
+        console.log('🔍 Diagnóstico Dojo (Google + local)');
         if (typeof window.dojoConfig !== 'undefined') {
             console.log('dojoConfig (global):', window.dojoConfig);
         } else if (typeof dojo !== 'undefined' && dojo && dojo.config) {
@@ -322,14 +493,34 @@ $fallbackProbeUrl = rtrim(DOJO_FALLBACK_CDN_BASE, '/') . '/dojo.js';
 
         updateCdnBadge();
         probeCdn(FMET_DIAG.primaryProbeUrl, 'probe-google');
-        probeCdn(FMET_DIAG.fallbackProbeUrl, 'probe-fallback');
+
+        var localAssetsTarget = document.getElementById('probe-local-assets');
+        if (localAssetsTarget) {
+            localAssetsTarget.innerHTML = FMET_DIAG.hasLocalAssets
+                ? '<span class="probe-ok">Completo no servidor</span>'
+                : '<span class="probe-fail">Incompleto no servidor</span>';
+        }
+
+        if (FMET_DIAG.forceFallback) {
+            var sourceTarget = document.getElementById('cdn-used');
+            if (sourceTarget) {
+                sourceTarget.innerHTML += ' <span class="badge warn">DOJO_FORCE_FALLBACK=true</span>';
+            }
+        }
+
+        if (window.__FMET_DOJO_FALLBACK_FAILED__ === true) {
+            var sourceTarget2 = document.getElementById('cdn-used');
+            if (sourceTarget2) {
+                sourceTarget2.innerHTML += ' <span class="badge warn">fallback falhou</span>';
+            }
+        }
         
         // Testa se dojo.cookie está disponível ANTES do require
         if (typeof dojo === 'undefined') {
             var fatalStatus = document.getElementById('status');
             if (fatalStatus) {
                 fatalStatus.className = 'error';
-                fatalStatus.innerHTML = '❌ <strong>Erro!</strong> Dojo não foi carregado. Verifique conectividade com os CDNs.';
+                fatalStatus.innerHTML = '❌ <strong>Erro!</strong> Dojo não foi carregado. Verifique Google CDN e fallback local.';
             }
         }
 
@@ -349,7 +540,7 @@ $fallbackProbeUrl = rtrim(DOJO_FALLBACK_CDN_BASE, '/') . '/dojo.js';
                 if (typeof dojo.cookie === 'function') {
                     status.className = 'success';
                     if (FMET_DIAG.localMode) {
-                        status.innerHTML = '✅ <strong>Sucesso!</strong> dojo.cookie carregou no modo local. Origem detectada: <strong>' + source.label + '</strong>';
+                        status.innerHTML = '✅ <strong>Sucesso!</strong> dojo.cookie carregou em modo local. Origem detectada: <strong>' + source.label + '</strong>';
                     } else {
                         status.innerHTML = '✅ <strong>Sucesso!</strong> dojo.cookie carregou corretamente. Origem detectada: <strong>' + source.label + '</strong>';
                     }
@@ -367,6 +558,8 @@ $fallbackProbeUrl = rtrim(DOJO_FALLBACK_CDN_BASE, '/') . '/dojo.js';
                     console.error('- Console (erros de carregamento)');
                     console.error('- CSP (Content-Security-Policy)');
                 }
+
+                testRequiredModules();
             }, 1000);
         }
     </script>

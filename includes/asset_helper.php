@@ -3,27 +3,27 @@
  * Asset Helper - Carrega versões minificadas em produção
  * 
  * Detecta automaticamente o ambiente e carrega a versão apropriada:
- * - Produção: .min.js (minificado) + SEMPRE CDN para Dojo/Dijit/Dojox
+ * - Produção: .min.js (minificado) + CDN Google com fallback local para Dojo/Dijit/Dojox
  * - Desenvolvimento: .js (original para debug) + Local OU CDN baseado em DOJO_SOURCE
  * 
  * IMPORTANTE: Configuração do Dojo Toolkit
  * 
  * PRODUÇÃO (eliotools.site):
  *   - Prioriza CDN do Google (ajax.googleapis.com)
- *   - Usa fallback automático para unpkg.com quando necessário
+ *   - Usa fallback automático para arquivos locais quando necessário
  *   - Ignora DOJO_SOURCE do .env
  *   - Garante performance e cache global
  * 
  * DESENVOLVIMENTO (localhost):
  *   - Respeita variável DOJO_SOURCE do arquivo .env:
  *     • DOJO_SOURCE=local  → Usa arquivos locais (js/dojo/, js/dijit/, js/dojox/)
- *     • DOJO_SOURCE=cdn    → Usa CDN (Google com fallback unpkg)
+ *     • DOJO_SOURCE=cdn    → Usa CDN (Google)
  *   - Configure via: ./dev.sh config
  *   - Fallback automático para CDN se arquivos locais não existirem
  * 
  * USO 100% CONSISTENTE:
  *   - Se configurado para local: TODOS os recursos vêm de arquivos locais
- *   - Se configurado para CDN: usa Google e fallback unpkg para resiliência
+ *   - Se configurado para CDN: usa Google
  *   - CSS do ProgressBar gerado dinamicamente para manter consistência
  * 
  * @package ElioTools
@@ -41,21 +41,55 @@
  * - Em PRODUÇÃO: SEMPRE CDN (performance, cache global, HTTP/2)
  * - Em DESENVOLVIMENTO: Configurável via DOJO_SOURCE no .env
  *   • local: Arquivos locais (js/dojo/, js/dijit/, js/dojox/)
- *   • cdn: Google CDN (padrão, com fallback unpkg)
+ *   • cdn: Google CDN (padrão)
  * - Arquivos locais NÃO estão no Git (3000+ arquivos, 15MB)
  * - Use ./dev.sh config para escolher a fonte
  */
 define('DOJO_VERSION', '1.8.14');
 define('DOJO_CDN_BASE', 'https://ajax.googleapis.com/ajax/libs/dojo/' . DOJO_VERSION);
-define('DOJO_FALLBACK_CDN_BASE', 'https://unpkg.com/dojo@' . DOJO_VERSION);
-define('DOJO_FALLBACK_DIJIT_BASE', 'https://unpkg.com/dijit@' . DOJO_VERSION);
-define('DOJO_FALLBACK_DOJOX_BASE', 'https://unpkg.com/dojox@' . DOJO_VERSION);
 define('DOJO_APP_LOCALE', 'pt-br');
 
 // Paths locais (usados apenas se DOJO_SOURCE=local em desenvolvimento)
 define('DOJO_LOCAL_BASE', '/js/dojo');
 define('DIJIT_LOCAL_BASE', '/js/dijit');
 define('DOJOX_LOCAL_BASE', '/js/dojox');
+
+/**
+ * Resolve o DOCUMENT_ROOT com fallback seguro para execução em CLI.
+ *
+ * @return string
+ */
+function getDocumentRootPath() {
+    $docRoot = $_SERVER['DOCUMENT_ROOT'] ?? '';
+    if (!empty($docRoot)) {
+        return rtrim($docRoot, '/');
+    }
+
+    return dirname(__DIR__);
+}
+
+/**
+ * Verifica se o fallback local completo do Dojo está disponível.
+ *
+ * @return bool
+ */
+function hasLocalDojoAssets() {
+    $docRoot = getDocumentRootPath();
+
+    $requiredFiles = [
+        $docRoot . DOJO_LOCAL_BASE . '/dojo.js',
+        $docRoot . DIJIT_LOCAL_BASE . '/themes/tundra/tundra.css',
+        $docRoot . DOJOX_LOCAL_BASE . '/form/Uploader.js',
+    ];
+
+    foreach ($requiredFiles as $file) {
+        if (!file_exists($file)) {
+            return false;
+        }
+    }
+
+    return true;
+}
 
 // Detecta ambiente
 function isProduction() {
@@ -111,24 +145,13 @@ function useLocalDojo() {
     
     // Se configurado para local, verifica se arquivos existem
     if ($dojoSource === 'local') {
-        // Determina DOCUMENT_ROOT de forma mais robusta
-        $docRoot = $_SERVER['DOCUMENT_ROOT'] ?? '';
-        
-        // Se DOCUMENT_ROOT está vazio (CLI), usa caminho relativo ao script
-        if (empty($docRoot)) {
-            $docRoot = dirname(__DIR__);  // Pasta raiz do projeto
-        }
-        
-        $dojoPath = $docRoot . DOJO_LOCAL_BASE . '/dojo.js';
-        $dijitPath = $docRoot . DIJIT_LOCAL_BASE . '/themes/tundra/tundra.css';
-        
-        // Só usa local se arquivos existirem
-        if (file_exists($dojoPath) && file_exists($dijitPath)) {
+        // Só usa local se arquivos essenciais existirem
+        if (hasLocalDojoAssets()) {
             return true;
         }
         
         // Fallback para CDN se arquivos não existirem
-        error_log('AVISO: DOJO_SOURCE=local mas arquivos não encontrados em: ' . $dojoPath);
+        error_log('AVISO: DOJO_SOURCE=local mas arquivos locais do Dojo não estão completos.');
         return false;
     }
     
@@ -250,12 +273,15 @@ function dojo_url($djConfig = []) {
  * Lógica:
  * - Arquivos locais: Usa data-dojo-config inline
  * - CDN: Usa dojoConfig global + baseUrl configurado
+ * - Em produção: se CDN falhar, usa fallback local quando disponível
+ * - DOJO_FORCE_FALLBACK: Força uso de fallback (para testes)
  * 
  * @param array $djConfig Configuração do djConfig
  */
 function dojo_script($djConfig = ['parseOnLoad' => true]) {
     $url = dojo_url($djConfig);
     $usingLocal = useLocalDojo();
+    $forceFallback = getenv('DOJO_FORCE_FALLBACK') ?: ($_ENV['DOJO_FORCE_FALLBACK'] ?? false);
 
     if (!isset($djConfig['locale'])) {
         $djConfig['locale'] = DOJO_APP_LOCALE;
@@ -278,22 +304,43 @@ function dojo_script($djConfig = ['parseOnLoad' => true]) {
         // Arquivos locais: configuração inline no atributo data-dojo-config
         echo sprintf('<script data-dojo-config="%s" src="%s"></script>' . PHP_EOL, $config_str, $url);
     } else {
-        // CDN: configuração global fixa em pt-BR + fallback síncrono para outro CDN.
-        echo sprintf(
-            '<script>(function(){function applyDojoRoots(roots){window.dojoConfig={ %s, baseUrl: roots.dojo + "/", packages: [{name: "dojo", location: "."}, {name: "dijit", location: roots.dijit}, {name: "dojox", location: roots.dojox}] };}window.__FMET_DOJO_PRIMARY_ROOTS__={dojo:"%s/dojo",dijit:"%s/dijit",dojox:"%s/dojox"};window.__FMET_DOJO_FALLBACK_ROOTS__={dojo:"%s",dijit:"%s",dojox:"%s"};applyDojoRoots(window.__FMET_DOJO_PRIMARY_ROOTS__);window.__FMET_APPLY_DOJO_ROOTS__=applyDojoRoots;})();</script>' . PHP_EOL,
-            $config_str,
-            DOJO_CDN_BASE,
-            DOJO_CDN_BASE,
-            DOJO_CDN_BASE,
-            DOJO_FALLBACK_CDN_BASE,
-            DOJO_FALLBACK_DIJIT_BASE,
-            DOJO_FALLBACK_DOJOX_BASE
-        );
-        echo sprintf('<script src="%s"></script>' . PHP_EOL, $url);
-        echo sprintf(
-            '<script>if(typeof window.dojo==="undefined"){console.warn("FMET: Falha ao carregar Dojo do CDN principal, tentando fallback.");window.__FMET_APPLY_DOJO_ROOTS__(window.__FMET_DOJO_FALLBACK_ROOTS__);document.write(\'<script src="%s/dojo.js"><\\/script>\');}</script>' . PHP_EOL,
-            DOJO_FALLBACK_CDN_BASE
-        );
+        $hasLocalFallback = hasLocalDojoAssets();
+        $hasLocalFallbackJs = $hasLocalFallback ? 'true' : 'false';
+
+        // Se DOJO_FORCE_FALLBACK=true, pula o CDN principal e testa fallback local diretamente.
+        if ($forceFallback && $hasLocalFallback) {
+            echo '<!-- DOJO_FORCE_FALLBACK=true: Carregando APENAS fallback local -->' . PHP_EOL;
+            echo '<script>' . PHP_EOL;
+            echo 'window.dojoConfig = {' . PHP_EOL;
+            echo '    ' . str_replace(', ', ',' . PHP_EOL . '    ', $config_str) . ',' . PHP_EOL;
+            echo '    baseUrl: "' . DOJO_LOCAL_BASE . '/",' . PHP_EOL;
+            echo '    packages: [' . PHP_EOL;
+            echo '        {name: "dojo", location: "."},' . PHP_EOL;
+            echo '        {name: "dijit", location: "' . DIJIT_LOCAL_BASE . '"},' . PHP_EOL;
+            echo '        {name: "dojox", location: "' . DOJOX_LOCAL_BASE . '"}' . PHP_EOL;
+            echo '    ]' . PHP_EOL;
+            echo '};' . PHP_EOL;
+            echo '</script>' . PHP_EOL;
+            echo sprintf('<script src="%s/dojo.js"></script>' . PHP_EOL, DOJO_LOCAL_BASE);
+            echo '<!-- Fallback local carregado diretamente (sem tentativa de primário) -->' . PHP_EOL;
+        } else {
+            if ($forceFallback && !$hasLocalFallback) {
+                echo '<!-- DOJO_FORCE_FALLBACK=true, mas fallback local indisponivel: mantendo CDN primario -->' . PHP_EOL;
+            }
+            echo sprintf(
+                '<script>(function(){function applyDojoRoots(roots){window.dojoConfig={ %s, baseUrl: roots.dojo + "/", packages: [{name: "dojo", location: "."}, {name: "dijit", location: roots.dijit}, {name: "dojox", location: roots.dojox}] };}window.__FMET_DOJO_PRIMARY_ROOTS__={dojo:"%s/dojo",dijit:"%s/dijit",dojox:"%s/dojox"};window.__FMET_DOJO_LOCAL_ROOTS__={dojo:"%s",dijit:"%s",dojox:"%s"};window.__FMET_HAS_LOCAL_DOJO_FALLBACK__=%s;applyDojoRoots(window.__FMET_DOJO_PRIMARY_ROOTS__);window.__FMET_APPLY_DOJO_ROOTS__=applyDojoRoots;})();</script>' . PHP_EOL,
+                $config_str,
+                DOJO_CDN_BASE,
+                DOJO_CDN_BASE,
+                DOJO_CDN_BASE,
+                DOJO_LOCAL_BASE,
+                DIJIT_LOCAL_BASE,
+                DOJOX_LOCAL_BASE,
+                $hasLocalFallbackJs
+            );
+            echo sprintf('<script src="%s"></script>' . PHP_EOL, $url);
+            echo '<script>if(typeof window.dojo==="undefined"){if(window.__FMET_HAS_LOCAL_DOJO_FALLBACK__){console.warn("FMET: Falha ao carregar Dojo do CDN principal, ativando fallback local.");window.__FMET_APPLY_DOJO_ROOTS__(window.__FMET_DOJO_LOCAL_ROOTS__);document.write(\'<script src="' . DOJO_LOCAL_BASE . '/dojo.js"><\\/script>\');}else{console.error("FMET: Falha no CDN principal e fallback local indisponivel.");window.__FMET_DOJO_FALLBACK_FAILED__=true;}}</script>' . PHP_EOL;
+        }
     }
 }
 
@@ -327,7 +374,19 @@ function dojo_theme_url($theme = 'tundra') {
  */
 function dojo_theme($theme = 'tundra') {
     $url = dojo_theme_url($theme);
-    echo sprintf('<link rel="stylesheet" type="text/css" href="%s">' . PHP_EOL, $url);
+    $usingLocal = useLocalDojo();
+    $hasLocalFallback = hasLocalDojoAssets();
+
+    if (!$usingLocal && $hasLocalFallback) {
+        $localThemeUrl = DIJIT_LOCAL_BASE . '/themes/' . $theme . '/' . $theme . '.css';
+        echo sprintf(
+            '<link id="fmet-dojo-theme" rel="stylesheet" type="text/css" href="%s" onerror="this.onerror=null;this.href=\'%s\';">' . PHP_EOL,
+            $url,
+            $localThemeUrl
+        );
+    } else {
+        echo sprintf('<link rel="stylesheet" type="text/css" href="%s">' . PHP_EOL, $url);
+    }
     
     // Injeta CSS dinâmico do ProgressBar
     dojo_progressbar_css($theme);
@@ -345,6 +404,11 @@ function dojo_theme_images_base($theme = 'tundra') {
     if (useLocalDojo()) {
         return DIJIT_LOCAL_BASE . '/themes/' . $theme . '/images/';
     }
+
+    if (isProduction() && hasLocalDojoAssets()) {
+        return DIJIT_LOCAL_BASE . '/themes/' . $theme . '/images/';
+    }
+
     return DOJO_CDN_BASE . '/dijit/themes/' . $theme . '/images/';
 }
 
@@ -358,9 +422,10 @@ function dojo_theme_images_base($theme = 'tundra') {
  */
 function dojo_progressbar_css($theme = 'tundra') {
     $imagesBase = dojo_theme_images_base($theme);
+    $sourceLabel = useLocalDojo() ? 'LOCAL' : ((isProduction() && hasLocalDojoAssets()) ? 'LOCAL (resiliencia em producao)' : 'CDN');
     
     echo '<style>' . PHP_EOL;
-    echo '/* ProgressBar - Imagens do Dojo (' . (useLocalDojo() ? 'LOCAL' : 'CDN') . ') */' . PHP_EOL;
+    echo '/* ProgressBar - Imagens do Dojo (' . $sourceLabel . ') */' . PHP_EOL;
     echo '.pb_bar {' . PHP_EOL;
     echo '    background: #ffffff url("' . $imagesBase . 'progressBarEmpty.png") repeat-x center center;' . PHP_EOL;
     echo '}' . PHP_EOL;

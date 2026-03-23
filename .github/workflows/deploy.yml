@@ -180,6 +180,24 @@ jobs:
         run: |
           mkdir -p ~/.ssh
           ssh-keyscan -H ${{ env.DEPLOY_HOST }} >> ~/.ssh/known_hosts
+
+      - name: 🔎 Validate Dojo local fallback on server
+        env:
+          DEPLOY_USER: ${{ secrets.DEPLOY_USER }}
+        run: |
+          ssh -o StrictHostKeyChecking=no -o BatchMode=yes ${DEPLOY_USER}@${{ env.DEPLOY_HOST }} << 'EOF'
+            set -e
+            cd /var/www/4sqmet
+
+            if [ ! -f "js/dojo/dojo.js" ] || [ ! -f "js/dijit/themes/tundra/tundra.css" ] || [ ! -f "js/dojox/form/Uploader.js" ]; then
+              echo "❌ Fallback local do Dojo incompleto no servidor"
+              echo "   Esperado: js/dojo/dojo.js, js/dijit/themes/tundra/tundra.css, js/dojox/form/Uploader.js"
+              echo "   Execute scripts/setup-droplet.sh no servidor antes do deploy"
+              exit 1
+            fi
+
+            echo "✅ Fallback local do Dojo validado no servidor"
+          EOF
       
       - name: 🚀 Deploy to server
         env:

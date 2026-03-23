@@ -37,6 +37,47 @@ print_info() {
     echo -e "${BLUE}ℹ️  $1${NC}"
 }
 
+# Baixa Dojo Toolkit completo para fallback local em produção
+download_dojo_assets() {
+    local dojo_url="https://download.dojotoolkit.org/release-1.8.14/dojo-release-1.8.14.tar.gz"
+    local tmp_dir="/tmp/dojo-setup-$$"
+
+    # Se já existe, não baixa novamente
+    if [ -f "js/dojo/dojo.js" ] && [ -f "js/dijit/themes/tundra/tundra.css" ] && [ -f "js/dojox/form/Uploader.js" ]; then
+        print_success "Dojo local já existe (js/dojo, js/dijit, js/dojox)"
+        return 0
+    fi
+
+    print_info "Baixando Dojo Toolkit completo (v1.8.14)..."
+    mkdir -p "$tmp_dir"
+
+    if ! curl -L -f -o "$tmp_dir/dojo.tar.gz" "$dojo_url"; then
+        print_error "Falha ao baixar Dojo Toolkit em $dojo_url"
+        rm -rf "$tmp_dir"
+        return 1
+    fi
+
+    print_info "Extraindo pacote Dojo..."
+    tar -xzf "$tmp_dir/dojo.tar.gz" -C "$tmp_dir"
+
+    print_info "Copiando dojo/, dijit/ e dojox/ para js/..."
+    mkdir -p js
+    rm -rf js/dojo js/dijit js/dojox
+    cp -r "$tmp_dir/dojo-release-1.8.14/dojo" js/
+    cp -r "$tmp_dir/dojo-release-1.8.14/dijit" js/
+    cp -r "$tmp_dir/dojo-release-1.8.14/dojox" js/
+
+    rm -rf "$tmp_dir"
+
+    if [ -f "js/dojo/dojo.js" ] && [ -f "js/dijit/themes/tundra/tundra.css" ] && [ -f "js/dojox/form/Uploader.js" ]; then
+        print_success "Dojo local instalado com sucesso (fallback completo)"
+        return 0
+    fi
+
+    print_error "Dojo local não foi instalado corretamente"
+    return 1
+}
+
 # Verificar se é root
 if [ "$EUID" -ne 0 ]; then 
     print_error "Este script deve ser executado como root"
@@ -53,9 +94,10 @@ echo "  2. Configurar firewall (UFW)"
 echo "  3. Instalar Certbot para SSL"
 echo "  4. Criar estrutura de diretórios"
 echo "  5. Clonar repositório do GitHub"
-echo "  6. Configurar ambiente (.env)"
-echo "  7. Build imagem Docker"
-echo "  8. Iniciar aplicação"
+echo "  6. Baixar Dojo Toolkit local (fallback completo)"
+echo "  7. Configurar ambiente (.env)"
+echo "  8. Build imagem Docker"
+echo "  9. Iniciar aplicação"
 echo ""
 read -p "Continuar? (y/n) " -n 1 -r
 echo
@@ -67,7 +109,7 @@ fi
 #############################################
 # FASE 1: Atualizar Sistema
 #############################################
-print_header "📦 Fase 1/8: Atualizando Sistema"
+print_header "📦 Fase 1/9: Atualizando Sistema"
 
 print_info "Atualizando lista de pacotes..."
 apt update -qq
@@ -128,7 +170,7 @@ fi
 #############################################
 # FASE 2: Verificar Docker
 #############################################
-print_header "🐳 Fase 2/8: Verificando Docker"
+print_header "🐳 Fase 2/9: Verificando Docker"
 
 if command -v docker &> /dev/null; then
     DOCKER_VERSION=$(docker --version | awk '{print $3}' | sed 's/,//')
@@ -164,7 +206,7 @@ print_success "Docker service habilitado"
 #############################################
 # FASE 3: Configurar Firewall
 #############################################
-print_header "🔥 Fase 3/8: Configurando Firewall (UFW)"
+print_header "🔥 Fase 3/9: Configurando Firewall (UFW)"
 
 # Desabilitar temporariamente para reconfigurar
 ufw --force disable
@@ -185,7 +227,7 @@ ufw status verbose
 #############################################
 # FASE 4: Instalar Certbot
 #############################################
-print_header "🔐 Fase 4/8: Instalando Certbot"
+print_header "🔐 Fase 4/9: Instalando Certbot"
 
 if command -v certbot &> /dev/null; then
     print_success "Certbot já instalado: $(certbot --version | head -1)"
@@ -201,7 +243,7 @@ print_success "Auto-renewal habilitado"
 #############################################
 # FASE 5: Criar Estrutura de Diretórios
 #############################################
-print_header "📁 Fase 5/8: Criando Estrutura de Diretórios"
+print_header "📁 Fase 5/9: Criando Estrutura de Diretórios"
 
 # Criar diretórios
 mkdir -p /var/www/4sqmet
@@ -220,7 +262,7 @@ ls -la /var/www/
 #############################################
 # FASE 6: Clonar Repositório
 #############################################
-print_header "🔄 Fase 6/8: Clonando Repositório"
+print_header "🔄 Fase 6/9: Clonando Repositório"
 
 cd /var/www/4sqmet
 
@@ -243,9 +285,16 @@ print_success "Repositório clonado/atualizado!"
 git log -1 --oneline
 
 #############################################
-# FASE 7: Configurar Ambiente (.env)
+# FASE 7: Baixar Dojo Local (Fallback)
 #############################################
-print_header "⚙️  Fase 7/8: Configurando Ambiente"
+print_header "📦 Fase 7/9: Baixando Dojo Local (Fallback Completo)"
+
+download_dojo_assets
+
+#############################################
+# FASE 8: Configurar Ambiente (.env)
+#############################################
+print_header "⚙️  Fase 8/9: Configurando Ambiente"
 
 if [ ! -f ".env" ]; then
     print_info "Criando arquivo .env placeholder..."
@@ -266,9 +315,9 @@ else
 fi
 
 #############################################
-# FASE 8: Build e Deploy Docker
+# FASE 9: Build e Deploy Docker
 #############################################
-print_header "🐳 Fase 8/8: Build e Deploy Docker"
+print_header "🐳 Fase 9/9: Build e Deploy Docker"
 
 print_info "Verificando conflitos de porta..."
 
