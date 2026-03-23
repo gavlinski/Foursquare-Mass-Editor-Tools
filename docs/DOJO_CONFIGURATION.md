@@ -12,7 +12,8 @@ A escolha é **100% consistente** - todos os recursos vêm da mesma fonte.
 ## 🎯 Comportamento por Ambiente
 
 ### 🏢 Produção (eliotools.site)
-- ✅ **SEMPRE usa Google CDN**
+- ✅ **Usa Google CDN como primário**
+- ✅ **Pode cair para fallback local** se o CDN falhar
 - ❌ Ignora configuração `DOJO_SOURCE`
 - 🎯 Performance otimizada
 - 🌐 Cache global compartilhado
@@ -74,6 +75,9 @@ DOJO_SOURCE=local
 
 # OU usar Google CDN (padrão)
 DOJO_SOURCE=cdn
+
+# Forçar fallback local (apenas teste)
+DOJO_FORCE_FALLBACK=false
 ```
 
 Depois reinicie o container:
@@ -101,6 +105,22 @@ dojo.baseUrl: "https://localhost/js/dojo/"     // Local
 // OU
 dojo.baseUrl: "https://ajax.googleapis.com/ajax/libs/dojo/1.8.14/"  // CDN
 ```
+
+## 🧪 Testar Fallback Local (Forçado)
+
+Use apenas para validação controlada:
+
+```bash
+# no .env
+DOJO_FORCE_FALLBACK=true
+
+# aplicar no container
+./dev.sh restart
+```
+
+Depois abra `https://localhost/debug/test_dojo_cdn.php` e valide:
+- badge `DOJO_FORCE_FALLBACK=true`
+- origem `Arquivos locais`
 
 ## 🎨 CSS do ProgressBar
 
@@ -146,6 +166,16 @@ A função `dojo_theme()` já inclui o CSS dinâmico automaticamente.
 - Requer conexão com internet
 - Depende de disponibilidade do Google
 - Dificuldade em debug profundo do Dojo
+
+## 🚀 Produção: Pré-requisito de Deploy
+
+Em produção, o deploy valida a presença dos arquivos locais de fallback antes de prosseguir:
+
+- `js/dojo/dojo.js`
+- `js/dijit/themes/tundra/tundra.css`
+- `js/dojox/form/Uploader.js`
+
+Se faltar algum deles, o pipeline/deploy falha preventivamente.
 
 ## 🧪 Testes
 
@@ -215,7 +245,7 @@ open https://localhost/debug/test_progressbar.php
 
 - **`dev.sh`**: Script de configuração e controle
 - **`includes/asset_helper.php`**: Lógica de detecção e carregamento
-- **`.env`**: Configuração do projeto (DOJO_SOURCE)
+- **`.env`**: Configuração do projeto (DOJO_SOURCE, DOJO_FORCE_FALLBACK)
 - **`.env.example`**: Template com documentação
 - **`estilo.css`**: CSS base (mantém URLs do CDN como fallback)
 
@@ -227,5 +257,5 @@ open https://localhost/debug/test_progressbar.php
 
 ---
 
-**Última Atualização:** 9 de março de 2026  
+**Última Atualização:** 22 de março de 2026  
 **Versão:** 3.0.0

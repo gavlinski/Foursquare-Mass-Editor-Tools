@@ -101,7 +101,7 @@ fetch('version.php', {
 
 ```php
 // Para checar ambiente de runtime, use:
-$is_production = $_SERVER['SERVER_NAME'] === 'tools.eliovieira.com.br';
+$is_production = $_SERVER['SERVER_NAME'] === '4sq.eliotools.site';
 $is_localhost = $_SERVER['SERVER_NAME'] === 'localhost';
 ```
 

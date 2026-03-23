@@ -145,6 +145,10 @@ GOOGLE_MAPS_MAP_ID="your_map_id"
 # App Settings
 APP_ENV="development"
 APP_DEBUG="true"
+
+# Dojo Loading Strategy
+DOJO_SOURCE="cdn"
+DOJO_FORCE_FALLBACK="false"
 ```
 
 ### Foursquare API Setup
@@ -187,21 +191,23 @@ The interface is primarily in **Brazilian Portuguese**. For English users:
 ### Debug Tools
 ```bash
 # Create test session
-curl -k https://localhost/create_test_session.php
+curl -k "https://localhost/debug/session_test_manager.php?action=create"
 
-# Check session status  
-curl -k https://localhost/session_status.php
+# Validate current session
+curl -k "https://localhost/debug/debug_session.php?mode=validate"
 
 # Clear cache
 curl -k -X POST https://localhost/clear_cache.php
 ```
 
 ### Testing Interface
-Access `test_session_debug.html` for interactive session testing.
+Access `debug/test_session_debug.html` for interactive session testing.
+
+For Dojo source/fallback diagnostics, use `debug/test_dojo_cdn.php`.
 
 ## 📝 Migration Notes
 
-This version represents a **complete modernization** while maintaining **100% backward compatibility**. See [MIGRATION.md](MIGRATION.md) for detailed migration information.
+This version represents a **hybrid modernization** while maintaining backward compatibility in core workflows. See [docs/migration/MIGRATION.md](docs/migration/MIGRATION.md) for detailed migration information.
 
 ### Breaking Changes
 - Minimum PHP version: 8.1+
@@ -242,7 +248,7 @@ Contributions are always welcome! Please:
 - Production migration to new Docker Droplet (NYC3, Ubuntu 22.04)
 - Let's Encrypt SSL with automatic renewal
 - DigitalOcean Monitoring: Resource Alerts + Uptime Check
-- Dojo Toolkit migrated to CDN strategy with local fallback
+- Dojo Toolkit migrated to Google CDN (primary) with local fallback (`js/dojo`, `js/dijit`, `js/dojox`)
 - Git tags realigned with SemVer (4SQMET-03_xx_xx series)
 
 **Build System:**

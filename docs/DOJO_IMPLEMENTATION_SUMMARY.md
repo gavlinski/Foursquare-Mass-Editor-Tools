@@ -1,201 +1,72 @@
-# ✅ Sistema de Configuração do Dojo Implementado
+# ✅ Resumo de Implementação - Dojo
 
-## 🎯 Objetivo Alcançado
+## 🎯 Resultado
 
-O sistema agora permite **escolher entre arquivos locais ou CDN** em desenvolvimento, garantindo uso **100% consistente** da opção escolhida.
+Implementação consolidada com os seguintes comportamentos:
 
-## 📊 Comportamento Implementado
+- **Produção:** Google CDN como primário + fallback local automático
+- **Desenvolvimento:** `DOJO_SOURCE=local|cdn`
+- **Teste controlado:** `DOJO_FORCE_FALLBACK=true`
 
-| Ambiente | Configuração | Arquivos Usados |
-|----------|--------------|-----------------|
-| **Produção** | Fixo | ✅ 100% CDN Google |
-| **Desenvolvimento** | Configurável | ✅ 100% Local OU 100% CDN |
+## 📊 Matriz de Comportamento
 
-## 🔧 Arquivos Modificados
+| Ambiente | Configuração | Resultado |
+|----------|--------------|-----------|
+| Produção | Fixo | Google primário, fallback local em falha |
+| Desenvolvimento | `DOJO_SOURCE=local` | Arquivos locais |
+| Desenvolvimento | `DOJO_SOURCE=cdn` | Google CDN |
+| Desenvolvimento | `DOJO_FORCE_FALLBACK=true` | Força fallback local (se disponível) |
 
-### 1. [dev.sh](../dev.sh)
-**Novas Funções:**
-- ✅ `configure_dojo_source()` - Menu interativo de escolha
-- ✅ `update_env_dojo_source()` - Salva configuração no `.env`
-- ✅ `check_dependencies()` - Pergunta na primeira execução
-- ✅ Comando `./dev.sh config` - Reconfigurar depois
+## 🔧 Arquivos de Código Atualizados
 
-**Fluxo de Uso:**
-```bash
-# Primeira execução
-./dev.sh run
-# → Pergunta: Local ou CDN?
-# → Baixa arquivos se necessário
-# → Salva em DOJO_SOURCE=local ou cdn
+- `includes/asset_helper.php`
+- `deploy.sh`
+- `.github/workflows/deploy.yml`
+- `scripts/setup-droplet.sh`
+- `debug/test_dojo_cdn.php`
+- `.env.example`
 
-# Reconfigurar
-./dev.sh config
-# → Menu interativo
+## 🚀 Deploy Hardening
 
-# Status
-./dev.sh status
-# → Mostra fonte configurada
-```
+O deploy agora valida previamente a existência do fallback local no servidor:
 
-### 2. [includes/asset_helper.php](../includes/asset_helper.php)
-**Novas Funções:**
-- ✅ `useLocalDojo()` - Detecta qual fonte usar
-- ✅ `dojo_theme_images_base()` - Retorna caminho base de imagens
-- ✅ `dojo_progressbar_css()` - Gera CSS dinâmico
+- `js/dojo/dojo.js`
+- `js/dijit/themes/tundra/tundra.css`
+- `js/dojox/form/Uploader.js`
 
-**Lógica Atualizada:**
-- ✅ `dojo_url()` - Retorna local ou CDN baseado em `DOJO_SOURCE`
-- ✅ `dojo_script()` - Configura diferentemente para local vs CDN
-- ✅ `dojo_theme_url()` - Retorna CSS do tema correto
-- ✅ `dojo_theme()` - Inclui CSS dinâmico do ProgressBar automaticamente
+Sem esses arquivos, o pipeline/deploy falha de forma preventiva.
 
-**Regras:**
-```php
-// Produção → SEMPRE CDN
-if (isProduction()) {
-    return DOJO_CDN_BASE . '/dojo/dojo.js';
-}
+## 🧪 Diagnóstico Consolidado
 
-// Desenvolvimento → Respeita DOJO_SOURCE
-$dojoSource = getenv('DOJO_SOURCE');
-if ($dojoSource === 'local' && file_exists('js/dojo/dojo.js')) {
-    return DOJO_LOCAL_BASE . '/dojo/dojo.js';  // LOCAL
-}
-return DOJO_CDN_BASE . '/dojo/dojo.js';  // CDN (fallback)
-```
+Página única para validação:
 
-### 3. [.env.example](../.env.example)
-**Nova Variável:**
-```bash
-# Dojo Toolkit Source (apenas em desenvolvimento)
-# local = Usa arquivos locais (js/dojo/, js/dijit/, js/dojox/)
-# cdn = Usa Google CDN (padrão)
-DOJO_SOURCE=cdn
-```
+- `debug/test_dojo_cdn.php`
 
-### 4. [docs/DOJO_CONFIGURATION.md](DOJO_CONFIGURATION.md)
-✅ Documentação completa do sistema:
-- Como configurar
-- Como testar
-- Troubleshooting
-- Vantagens/desvantagens de cada opção
+Ela cobre:
 
-## 🎨 CSS Dinâmico do ProgressBar
+- origem efetiva (Google/local)
+- disponibilidade do loader Google
+- presença dos assets locais
+- `dojo.require()` de módulos essenciais
+- verificação estática dos endpoints essenciais do Google CDN
 
-O **problema das imagens** foi resolvido com CSS dinâmico:
+## ✅ Checklist Final
 
-**ANTES:**
-```css
-/* estilo.css - FIXO */
-.pb_bar {
-    background: url("https://ajax.googleapis.com/.../progressBarEmpty.png");
-}
-```
-❌ Problema: Se usar arquivos locais, imagens vêm do CDN
-
-**DEPOIS:**
-```php
-// Gerado automaticamente por dojo_theme()
-<?php if (useLocalDojo()): ?>
-    <style>
-    .pb_bar { background: url("/js/dijit/.../progressBarEmpty.png"); }
-    </style>
-<?php else: ?>
-    <style>
-    .pb_bar { background: url("https://ajax.googleapis.com/.../progressBarEmpty.png"); }
-    </style>
-<?php endif; ?>
-```
-✅ Solução: CSS gerado dinamicamente com caminhos corretos
-
-## 🧪 Como Testar
-
-### 1. Teste com CDN (padrão)
-```bash
-# Se já está rodando, pare primeiro
-./dev.sh stop
-
-# Limpe configuração anterior (opcional)
-rm -f .env
-
-# Execute (usa CDN por padrão)
-./dev.sh run
-# Escolha opção 2 (CDN)
-
-# Acesse
-open https://localhost/debug/test_progressbar.php
-
-# DevTools Network → Filtrar "progressBar"
-# Deve ver: ajax.googleapis.com/...progressBarEmpty.png (200)
-```
-
-### 2. Teste com Arquivos Locais
-```bash
-# Reconfigure
-./dev.sh config
-# Escolha opção 1 (Local)
-# Aguarde download (~15MB)
-
-# Reinicie
-./dev.sh restart
-
-# Acesse
-open https://localhost/debug/test_progressbar.php
-
-# DevTools Network → Filtrar "progressBar"
-# Deve ver: localhost/js/dijit/.../progressBarEmpty.png (200)
-```
-
-### 3. Validação de Consistência
-```bash
-# Verifica se TODOS os recursos vêm da mesma fonte
-./dev.sh status
-
-# DevTools Console:
-console.log(dojo.baseUrl);
-// Local:  "https://localhost/js/dojo/"
-// CDN:    "https://ajax.googleapis.com/ajax/libs/dojo/1.8.14/"
-```
-
-## ✅ Checklist de Validação
-
-- [x] Produção sempre usa CDN (ignora DOJO_SOURCE)
-- [x] Desenvolvimento respeita DOJO_SOURCE do .env
-- [x] Configuração interativa na primeira execução
-- [x] Comando `./dev.sh config` para reconfiguração
-- [x] Download automático de arquivos locais
-- [x] Fallback para CDN se arquivos locais não existirem
-- [x] CSS do ProgressBar gerado dinamicamente
-- [x] 100% consistente (tudo local OU tudo CDN)
-- [x] Documentação completa
-- [x] Testes validados
-
-## 🚀 Próximos Passos
-
-1. **Teste o sistema:**
-   ```bash
-   ./dev.sh stop
-   ./dev.sh run
-   # Escolha CDN ou Local
-   ```
-
-2. **Verifique no navegador:**
-   - https://localhost/debug/test_dojo_cdn.php
-   - https://localhost/debug/test_progressbar.php
-   - https://localhost/search.php (faça uma busca)
-
-3. **Valide consistência:**
-   - DevTools → Network → Todas as imagens da mesma fonte
-   - DevTools → Console → Verificar dojo.baseUrl
+- [x] Removido fallback CDN legado (unpkg/jsDelivr/cdnjs)
+- [x] Produção com fallback local real
+- [x] Validação de fallback local no workflow e no deploy remoto
+- [x] CSP alinhada ao fluxo atual
+- [x] Diagnóstico consolidado em uma única página
+- [x] `.env.example` atualizado com `DOJO_FORCE_FALLBACK`
 
 ## 📚 Referências
 
-- [DOJO_CONFIGURATION.md](DOJO_CONFIGURATION.md) - Documentação completa
-- [dev.sh](../dev.sh) - Script de configuração
-- [asset_helper.php](../includes/asset_helper.php) - Lógica de carregamento
+- `docs/DOJO_CONFIGURATION.md`
+- `docs/DOJO_CDN_STRATEGY.md`
+- `includes/asset_helper.php`
 
 ---
 
-**Status:** ✅ Implementado e Testado  
-**Data:** 9 de março de 2026  
+**Status:** ✅ Implementado e validado  
+**Data:** 22 de março de 2026  
 **Versão:** 3.0.0

@@ -141,10 +141,10 @@ export SSH_KEY_PATH=~/.ssh/id_rsa
 ssh root@4sq.eliotools.site "echo 'OK'"
 ```
 
-### GitHub Secrets Required
-- `DEPLOY_SSH_KEY` - Chave privada SSH para acesso ao servidor
-- `DEPLOY_HOST` (opcional) - Override do hostname
-- `DEPLOY_USER` (opcional) - Override do usuário SSH
+### GitHub Secrets / Variables Required
+- Secret `DEPLOY_SSH_KEY` - Chave privada SSH para acesso ao servidor
+- Secret `DEPLOY_USER` - Usuário SSH do servidor
+- Repository Variable `DEPLOY_HOST` - Host/IP do servidor de deploy
 
 ## Workflow Comparison
 
@@ -244,8 +244,11 @@ git push
 # Solução: Verifica no servidor
 ssh root@4sq.eliotools.site "cd /var/www/4sqmet && git log -1"
 
-# Se necessário, força pull
-ssh root@4sq.eliotools.site "cd /var/www/4sqmet && git fetch origin && git reset --hard origin/refactor-ia"
+# Verifica divergência com o remoto (sem operação destrutiva)
+ssh root@4sq.eliotools.site "cd /var/www/4sqmet && git fetch origin && git log --oneline --decorate --graph -5 && git status --short"
+
+# Refaça deploy após garantir push do commit correto
+./deploy.sh
 ```
 
 ## Critical Patterns

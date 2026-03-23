@@ -22,9 +22,11 @@ main.php:1 Refused to execute script from 'https://4sq.eliotools.site/js/dojo/do
 
 **Causa raiz:** Arquivos Dojo estavam no `.gitignore`, portanto não foram copiados para a imagem Docker durante o build.
 
-### ✅ Solução Implementada: CDN Strategy
+### ✅ Solução Implementada: Google primário + fallback local
 
-Optamos por **não versionar** as bibliotecas Dojo localmente e usar **Google CDN** em produção.
+Optamos por **não versionar** as bibliotecas Dojo no Git e usar em produção:
+- **Google CDN como primário**
+- **Fallback local no servidor** (js/dojo, js/dijit, js/dojox), quando o CDN falhar
 
 #### Benefícios:
 
@@ -40,12 +42,16 @@ Optamos por **não versionar** as bibliotecas Dojo localmente e usar **Google CD
    - ✅ Diffs focados apenas no código do projeto
    - ✅ CI/CD mais rápido (menos arquivos para copiar)
 
-3. **Manutenção Simplificada**
+3. **Resiliência em Produção**
+   - ✅ Se o Google CDN falhar, o sistema pode carregar fallback local
+   - ✅ Pipeline e deploy bloqueiam release sem fallback local completo
+
+4. **Manutenção Simplificada**
    - ✅ Sem builds customizados do Dojo
    - ✅ Atualização de versão trivial (mudar constante)
-   - ✅ Fallback automático para local em desenvolvimento
+   - ✅ Fonte única de diagnóstico em `debug/test_dojo_cdn.php`
 
-4. **Compatibilidade**
+5. **Compatibilidade**
    - ✅ Mesmo comportamento em produção e desenvolvimento
    - ✅ Carrega apenas módulos necessários sob demanda
    - ✅ Minificação automática em produção
@@ -91,8 +97,8 @@ function isProduction() {
 ```
 
 **Resultado:**
-- **Produção** (`4sq.eliotools.site`) → Carrega de CDN
-- **Desenvolvimento** (`localhost`) → Carrega arquivos locais (se existirem)
+- **Produção** (`4sq.eliotools.site`) → Google CDN como primário + fallback local em falha
+- **Desenvolvimento** (`localhost`) → Respeita `DOJO_SOURCE` (local ou cdn)
 
 ### 3. Uso nos Arquivos PHP
 
@@ -120,7 +126,7 @@ function isProduction() {
 
 ## 🔧 Configuração
 
-### Produção (CDN)
+### Produção (Google + fallback local)
 
 **URL gerada:**
 ```html
@@ -149,7 +155,7 @@ dojo.require("dijit.form.TextBox");    // Carrega de CDN
 dojo.require("dijit.layout.BorderContainer"); // Carrega de CDN
 ```
 
-### Desenvolvimento (Local)
+### Desenvolvimento (Local ou CDN)
 
 **URL gerada:**
 ```html
@@ -157,7 +163,7 @@ dojo.require("dijit.layout.BorderContainer"); // Carrega de CDN
 <link rel="stylesheet" type="text/css" href="/js/dijit/themes/tundra/tundra.css">
 ```
 
-**Fallback:** Se arquivos locais não existirem, fallback automático para CDN.
+**Fallback em desenvolvimento:** se `DOJO_SOURCE=local` e arquivos locais estiverem incompletos, fallback para Google CDN.
 
 ---
 
@@ -173,9 +179,9 @@ js/
   ├── main.js                    # Código do projeto ✅
   ├── google-maps.js             # Código do projeto ✅
   ├── session-manager.js         # Código do projeto ✅
-  ├── dojo/                      # ❌ NÃO versionado (CDN)
-  ├── dijit/                     # ❌ NÃO versionado (CDN)
-  └── dojox/                     # ❌ NÃO versionado (CDN)
+   ├── dojo/                      # ❌ NÃO versionado (fallback local no servidor)
+   ├── dijit/                     # ❌ NÃO versionado (fallback local no servidor)
+   └── dojox/                     # ❌ NÃO versionado (fallback local no servidor)
 ```
 
 ### .gitignore
@@ -214,9 +220,11 @@ js/dojox/
 # Após deploy
 curl -I https://4sq.eliotools.site/
 # Verificar no browser DevTools → Network:
-# ✅ dojo.js carregado de: ajax.googleapis.com
-# ✅ Status: 200 OK (ou 304 Not Modified se cached)
-# ✅ Size: (from disk cache) ou (from memory cache)
+# ✅ dojo.js carregado de: ajax.googleapis.com (normal)
+# ✅ Em falha simulada, origem muda para /js/dojo
+
+# Diagnóstico consolidado
+# ✅ https://SEU_DOMINIO/debug/test_dojo_cdn.php
 ```
 
 ---
@@ -226,14 +234,20 @@ curl -I https://4sq.eliotools.site/
 ### Problema: "dojo is not defined"
 
 **Causas possíveis:**
-1. CDN bloqueado por firewall/proxy
+1. Google CDN bloqueado por firewall/proxy
 2. Configuração de CSP (Content Security Policy) muito restritiva
-3. Erro na configuração do `dojoConfig`
+3. Fallback local ausente/incompleto no servidor
+4. Erro na configuração do `dojoConfig`
 
 **Diagnóstico:**
 ```bash
 # Testar acesso ao CDN
 curl -I https://ajax.googleapis.com/ajax/libs/dojo/1.8.14/dojo/dojo.js
+
+# Verificar fallback local no servidor
+ls -l /var/www/4sqmet/js/dojo/dojo.js \
+   /var/www/4sqmet/js/dijit/themes/tundra/tundra.css \
+   /var/www/4sqmet/js/dojox/form/Uploader.js
 
 # Verificar CSP no Apache
 grep "Content-Security-Policy" apache-config*.conf
@@ -303,10 +317,6 @@ define('DOJO_VERSION', '1.8.15'); // Alterar aqui
 - Base URL: https://ajax.googleapis.com/ajax/libs/dojo/1.8.14/
 - Documentação: https://developers.google.com/speed/libraries#dojo
 
-**Alternativas de CDN:**
-- cdnjs: https://cdnjs.cloudflare.com/ajax/libs/dojo/1.8.14/
-- jsDelivr: https://cdn.jsdelivr.net/npm/dojo@1.8.14/
-
 **Dojo Toolkit:**
 - Site oficial: https://dojotoolkit.org/
 - Documentação 1.8: https://dojotoolkit.org/reference-guide/1.8/
@@ -322,10 +332,12 @@ define('DOJO_VERSION', '1.8.15'); // Alterar aqui
 | 2026-03-01 | Usar CDN em produção | Descoberto 404 em produção por arquivos no .gitignore |
 | 2026-03-01 | Criar asset_helper.php | Centralizar lógica de carregamento dev/prod |
 | 2026-03-01 | Fallback para local em dev | Permitir desenvolvimento offline |
+| 2026-03-22 | Fallback local em produção | Removidos CDNs alternativos; Google primário + fallback local |
 
 ---
 
-**Última atualização:** 1 de março de 2026  
+**Última atualização:** 22 de março de 2026  
 **Versão Dojo:** 1.8.14  
-**CDN Provider:** Google (ajax.googleapis.com)  
+**CDN primário:** Google (ajax.googleapis.com)  
+**Fallback de produção:** Local (`/js/dojo`, `/js/dijit`, `/js/dojox`)  
 **Status:** ✅ Implementado em produção

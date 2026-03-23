@@ -75,7 +75,7 @@ $_SESSION = [
     dojo.addOnLoad(function() {
         // Cria instância global
         window.sessionManager = new SessionManager({
-            checkInterval: 300000,  // 5 minutos
+            checkInterval: 120000,  // 2 minutos
             statusEndpoint: 'session_status.php',
             loginUrl: 'index.php',
             showStatusBar: true,
@@ -89,7 +89,7 @@ $_SESSION = [
 
 ### Features
 
-#### 1. Auto-check (cada 5 minutos)
+#### 1. Auto-check (cada 2 minutos)
 ```javascript
 async checkSessionStatus() {
     const response = await fetch(this.statusEndpoint, {

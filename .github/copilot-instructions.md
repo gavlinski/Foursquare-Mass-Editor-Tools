@@ -58,6 +58,7 @@ docker logs foursquare-mass-editor
 - **UI Testing**: `debug/test_session_debug.html`
 - **CSS Testing**: `debug/css_test_interface.php`
 - **Maps Integration**: `debug/test_integration_markers.html`
+- **Dojo Loader/Fallback**: `debug/test_dojo_cdn.php`
 
 ```bash
 # Test session
@@ -99,6 +100,14 @@ $foursquare->setAccessToken($token);    // ❌ ERRADO
 ### Frontend - Dojo Widgets (CRITICAL)
 
 **🚨 Dojo sanitizes external CSS - styling via .css files DOES NOT WORK**
+
+**🚨 Dojo loading strategy (current): Google CDN primary + local fallback (`js/dojo`, `js/dijit`, `js/dojox`). Legacy fallback CDNs were removed.**
+
+```bash
+# Runtime toggles for testing fallback behavior
+DOJO_SOURCE="cdn"
+DOJO_FORCE_FALLBACK="false"
+```
 
 ```php
 // ❌ NEVER - External CSS is ignored by Dojo
