@@ -69,6 +69,47 @@ function getDocumentRootPath() {
 }
 
 /**
+ * Lê uma flag booleana de ambiente com parsing seguro.
+ *
+ * Strings como "false", "0", "off" e "no" retornam false.
+ * Strings como "true", "1", "on" e "yes" retornam true.
+ *
+ * @param string $name
+ * @param bool $default
+ * @return bool
+ */
+function envBool($name, $default = false) {
+    $raw = getenv($name);
+    if ($raw === false || $raw === null || $raw === '') {
+        $raw = $_ENV[$name] ?? null;
+    }
+
+    if ($raw === null || $raw === '') {
+        return $default;
+    }
+
+    if (is_bool($raw)) {
+        return $raw;
+    }
+
+    if (is_int($raw) || is_float($raw)) {
+        return ((int)$raw) !== 0;
+    }
+
+    $normalized = strtolower(trim((string)$raw));
+
+    if (in_array($normalized, ['1', 'true', 'yes', 'on'], true)) {
+        return true;
+    }
+
+    if (in_array($normalized, ['0', 'false', 'no', 'off'], true)) {
+        return false;
+    }
+
+    return $default;
+}
+
+/**
  * Verifica se o fallback local completo do Dojo está disponível.
  *
  * @return bool
@@ -281,7 +322,7 @@ function dojo_url($djConfig = []) {
 function dojo_script($djConfig = ['parseOnLoad' => true]) {
     $url = dojo_url($djConfig);
     $usingLocal = useLocalDojo();
-    $forceFallback = getenv('DOJO_FORCE_FALLBACK') ?: ($_ENV['DOJO_FORCE_FALLBACK'] ?? false);
+    $forceFallback = envBool('DOJO_FORCE_FALLBACK', false);
 
     if (!isset($djConfig['locale'])) {
         $djConfig['locale'] = DOJO_APP_LOCALE;

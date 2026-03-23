@@ -65,7 +65,9 @@ function httpStatusForCandidates(array $urls): array
 
 $isLocalMode = useLocalDojo();
 $hasLocalAssets = function_exists('hasLocalDojoAssets') ? hasLocalDojoAssets() : false;
-$forceFallback = getenv('DOJO_FORCE_FALLBACK') ?: ($_ENV['DOJO_FORCE_FALLBACK'] ?? false);
+$forceFallback = function_exists('envBool')
+    ? envBool('DOJO_FORCE_FALLBACK', false)
+    : filter_var(getenv('DOJO_FORCE_FALLBACK') ?: ($_ENV['DOJO_FORCE_FALLBACK'] ?? false), FILTER_VALIDATE_BOOLEAN);
 $googleProbeUrl = rtrim(DOJO_CDN_BASE, '/') . '/dojo/dojo.js';
 
 $googleStaticChecks = [
