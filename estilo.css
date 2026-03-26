@@ -218,6 +218,9 @@ a:hover {
 .dijitPlaceHolder {
 	left: 2px;
 	top: 3px;
+	pointer-events: none;
+	user-select: none;
+	-webkit-user-select: none;
 }
 .tundra .dijitMenuItem td {
 	padding: 4px 4px 4px 2px !important;

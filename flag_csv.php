@@ -27,9 +27,15 @@ if (!isset($_SESSION))
 	session_start();
 if (isset($_SESSION["oauth_token"])) {
 	$oauth_token = $_SESSION["oauth_token"];
+	// Validate that file data exists in session
+	if (!isset($_SESSION["file"]) || !is_array($_SESSION["file"]) || empty($_SESSION["file"])) {
+		header('Location: main.php'); /* Redirect browser */
+		exit;
+	}
 	$file = $_SESSION["file"];
 } else {
 	header('Location: index.php'); /* Redirect browser */
+	exit;
 }
 
 include_once 'includes/asset_helper.php';

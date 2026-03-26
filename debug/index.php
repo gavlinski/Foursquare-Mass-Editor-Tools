@@ -296,6 +296,13 @@
                     <p>Ambiente isolado para validar estilos e componentes visuais da barra de status de sessão com 8 variantes diferentes.</p>
                 </div>
             </a>
+
+            <a href="test_fixedtray_buttons.php" onclick="sessionStorage.setItem('debugIndexScrollPos', window.scrollY || document.documentElement.scrollTop);">
+                <div class="card">
+                    <h2><span class="tag tag-ui">UI</span> Teste da Barra de Botões do Rodapé</h2>
+                    <p>Página dedicada para validar ícones, hierarquia visual do botão Salvar e comportamento responsivo da barra de ações da tela de edição.</p>
+                </div>
+            </a>
             
             <a href="test_visual_edited_rows.html" onclick="sessionStorage.setItem('debugIndexScrollPos', window.scrollY || document.documentElement.scrollTop);">
                 <div class="card">

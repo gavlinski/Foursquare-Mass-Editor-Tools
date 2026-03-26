@@ -251,7 +251,7 @@ function renderizarCampo(string $tipo, string $name, array $config, int $ajusteI
     
     // Usa exatamente o mesmo formato do código inline original
     return '<input type="text" dojoType="dijit.form.TextBox" name="' . htmlspecialchars($name) . '" ' .
-           'maxlength="' . $maxlength . '" value=" " placeHolder="' . $placeholder . '" ' .
+           'maxlength="' . $maxlength . '" value="" placeHolder="' . $placeholder . '" ' .
            'style="width: ' . $width . 'em; margin-left: 5px;" ' .
            'onchange="verificarAlteracao(this, ' . $indice . ')" ' .
            'data-name-ptbr="' . $namePtbr . '">' . chr(10);
@@ -384,9 +384,9 @@ foreach ($file as $f) {
 <!-- Botoes Salvar, Voltar e Mais -->
 <article>
 	<div id="fixedtray">
-		<button id="saveButton" dojoType="dijit.form.Button" type="submit" name="saveButton" onclick="javascript:showDialogComment(this.name)" style="float: left; padding-right: 3px;" disabled>Salvar</button>
-		<button id="reloadButton" dojoType="dijit.form.Button" type="button" onclick="recarregarDadosVenues()" name="reloadButton" style="float: left; padding-right: 3px;" disabled>Recarregar</button>
-		<button id="backButton" dojoType="dijit.form.Button" type="button" onclick="location.href='main.php'" name="backButton" style="float: left; padding-right: 3px;">Voltar</button>
+        <button id="saveButton" dojoType="dijit.form.Button" type="submit" name="saveButton" onclick="javascript:showDialogComment(this.name)" style="float: left; padding-right: 3px;" disabled>Salvar</button>
+        <button id="reloadButton" dojoType="dijit.form.Button" type="button" onclick="recarregarDadosVenues()" name="reloadButton" style="float: left; padding-right: 3px;" disabled>Recarregar</button>
+        <button id="backButton" dojoType="dijit.form.Button" type="button" onclick="location.href='main.php'" name="backButton" style="float: left; padding-right: 3px;">Voltar</button>
 		<div id="dropdownButtonContainer" style="float: left"></div>
 	</div>
 </article>
