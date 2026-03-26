@@ -497,7 +497,7 @@ class SessionManager {
             `🖥️ Ambiente do Cliente:`,
             `• Navegador: ${systemInfo.browser} (${systemInfo.platform})`,
             `• Resolução: ${systemInfo.screen} (Viewport: ${systemInfo.viewport})`,
-            `• Cookies: ${systemInfo.cookiesEnabled ? 'Habilitados' : 'Desabilitados'}`,
+            `• Assets: ${systemInfo.assetSource}`,
             `• Status: ${systemInfo.onlineStatus}`,
             `• Timestamp: ${systemInfo.timestamp}`
         ].join('\n'));
@@ -527,8 +527,42 @@ class SessionManager {
             screen: `${screen.width}x${screen.height}`,
             viewport: `${window.innerWidth}x${window.innerHeight}`,
             cookiesEnabled: nav.cookieEnabled,
+            assetSource: this.detectAssetSource(),
             onlineStatus: nav.onLine ? 'Online' : 'Offline'
         };
+    }
+
+    detectAssetSource() {
+        try {
+            const dojoBaseUrl = (window.dojo && window.dojo.config && window.dojo.config.baseUrl)
+                ? String(window.dojo.config.baseUrl)
+                : '';
+
+            if (dojoBaseUrl.includes('ajax.googleapis.com')) {
+                return 'Google CDN';
+            }
+
+            if (dojoBaseUrl.includes('/js/dojo')) {
+                return 'Arquivos locais';
+            }
+
+            const scriptSources = Array.from(document.querySelectorAll('script[src]'))
+                .map((script) => script.getAttribute('src') || '');
+
+            const hasGoogleDojo = scriptSources.some((src) => src.includes('ajax.googleapis.com/ajax/libs/dojo/') && src.includes('/dojo/dojo.js'));
+            if (hasGoogleDojo) {
+                return 'Google CDN';
+            }
+
+            const hasLocalDojo = scriptSources.some((src) => src.includes('/js/dojo/dojo.js'));
+            if (hasLocalDojo) {
+                return 'Arquivos locais';
+            }
+        } catch (error) {
+            debugLog('⚠️ Não foi possível detectar origem dos assets:', error);
+        }
+
+        return 'Desconhecido';
     }
 
     detectBrowser() {
