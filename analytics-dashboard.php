@@ -65,15 +65,27 @@ $stats = [
     'top_referrers' => [],
     'browsers' => [],
     'operating_systems' => [],
-    'daily_views' => []
+    'daily_views' => [],
+    'daily_views_omitted' => []
 ];
 
 if ($pdo) {
     try {
         // Período selecionado
         $period = $_GET['period'] ?? '30';
+        $allowedPeriods = [7, 30, 90];
         $periodDays = (int)$period;
-        $cutoffTime = time() - ($periodDays * 86400);
+
+        if (!in_array($periodDays, $allowedPeriods, true)) {
+            $periodDays = 30;
+            $period = '30';
+        }
+
+        // Usa o início do dia local para manter o filtro consistente com o agrupamento diário.
+        $periodModifier = sprintf('-%d days', $periodDays - 1);
+        $stmt = $pdo->prepare('SELECT CAST(strftime("%s", "now", "localtime", "start of day", ?) AS INTEGER)');
+        $stmt->execute([$periodModifier]);
+        $cutoffTime = (int)$stmt->fetchColumn();
         
         // Total de pageviews
         $stmt = $pdo->prepare('SELECT COUNT(*) as total FROM pageviews WHERE timestamp >= ?');
@@ -144,7 +156,34 @@ if ($pdo) {
             ORDER BY day ASC
         ');
         $stmt->execute([$cutoffTime]);
-        $stats['daily_views'] = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        $dailyViews = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        $dailyViewsByDay = [];
+
+        foreach ($dailyViews as $row) {
+            $dailyViewsByDay[$row['day']] = (int)$row['views'];
+        }
+
+        $stats['daily_views'] = [];
+        $startDay = new DateTimeImmutable(date('Y-m-d', $cutoffTime));
+        $today = new DateTimeImmutable(date('Y-m-d'));
+
+        for ($currentDay = $startDay; $currentDay <= $today; $currentDay = $currentDay->modify('+1 day')) {
+            $dayKey = $currentDay->format('Y-m-d');
+            $views = $dailyViewsByDay[$dayKey] ?? 0;
+            $stats['daily_views'][] = [
+                'day' => $dayKey,
+                'views' => $views,
+            ];
+
+            if ($views === 0) {
+                $stats['daily_views_omitted'][] = $dayKey;
+            }
+        }
+
+        $stats['daily_views'] = array_values(array_filter(
+            $stats['daily_views'],
+            static fn(array $day): bool => $day['views'] > 0
+        ));
         
     } catch (Exception $e) {
         error_log('Analytics query error: ' . $e->getMessage());
@@ -318,8 +357,107 @@ h1 {
 
 .chart-section h2 {
     font-size: 20px;
-    margin-bottom: 20px;
+    margin-bottom: 0;
     color: var(--text-primary);
+}
+
+.chart-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    margin-bottom: 20px;
+}
+
+.chart-note {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+}
+
+.chart-note-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    border: 1px solid var(--card-border);
+    border-radius: 999px;
+    background: transparent;
+    color: var(--text-secondary);
+    cursor: help;
+    transition: all 0.2s ease;
+}
+
+.chart-note-button:hover,
+.chart-note-button:focus-visible {
+    color: var(--text-primary);
+    border-color: var(--brand-color);
+    background: var(--card-hover-bg);
+    outline: none;
+}
+
+.chart-note-tooltip {
+    position: absolute;
+    top: calc(100% + 10px);
+    right: 0;
+    min-width: 220px;
+    padding: 10px 12px;
+    border-radius: 10px;
+    background: rgba(15, 15, 30, 0.96);
+    border: 1px solid var(--card-border);
+    color: var(--text-secondary);
+    font-size: 12px;
+    line-height: 1.5;
+    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.22);
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(-4px);
+    transition: opacity 0.2s ease, transform 0.2s ease, visibility 0.2s ease;
+    pointer-events: none;
+    z-index: 2;
+}
+
+.chart-note:hover .chart-note-tooltip,
+.chart-note:focus-within .chart-note-tooltip {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+}
+
+.chart-note-tooltip:before {
+    content: '';
+    position: absolute;
+    top: -6px;
+    right: 11px;
+    width: 10px;
+    height: 10px;
+    background: rgba(15, 15, 30, 0.96);
+    border-top: 1px solid var(--card-border);
+    border-left: 1px solid var(--card-border);
+    transform: rotate(45deg);
+}
+
+@media (prefers-color-scheme: light) {
+    .chart-note-tooltip {
+        background: rgba(255, 255, 255, 0.98);
+        color: var(--text-secondary);
+    }
+
+    .chart-note-tooltip:before {
+        background: rgba(255, 255, 255, 0.98);
+    }
+}
+
+@media (max-width: 640px) {
+    .chart-header {
+        align-items: flex-start;
+    }
+
+    .chart-note-tooltip {
+        right: -4px;
+        min-width: 200px;
+    }
 }
 
 .chart-bar {
@@ -433,7 +571,23 @@ table tr:hover {
 
     <?php if (!empty($stats['daily_views'])): ?>
     <div class="chart-section">
-        <h2><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: middle; margin-right: 8px; margin-bottom: 2px;"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"></polyline><polyline points="17 6 23 6 23 12"></polyline></svg>Pageviews por Dia</h2>
+        <div class="chart-header">
+            <h2><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: middle; margin-right: 8px; margin-bottom: 2px;"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"></polyline><polyline points="17 6 23 6 23 12"></polyline></svg>Pageviews por Dia</h2>
+        <?php if (!empty($stats['daily_views_omitted'])): ?>
+        <div class="chart-note">
+            <button type="button" class="chart-note-button" aria-label="Informações sobre dias omitidos do gráfico">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <line x1="12" y1="16" x2="12" y2="12"></line>
+                    <line x1="12" y1="8" x2="12.01" y2="8"></line>
+                </svg>
+            </button>
+            <div class="chart-note-tooltip" role="tooltip">
+                <?= count($stats['daily_views_omitted']) ?> dia(s) sem visitas foram omitido(s) deste gráfico.
+            </div>
+        </div>
+        <?php endif; ?>
+        </div>
         <?php 
         $maxViews = max(array_column($stats['daily_views'], 'views'));
         foreach ($stats['daily_views'] as $day): 
