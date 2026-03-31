@@ -11,7 +11,7 @@ declare(strict_types=1);
  * @package    Foursquare-Mass-Editor-Tools
  * @author     Elio Gavlinski <gavlinski@gmail.com>
  * @copyright  Copyleft (c) 2012-2026
- * @version    3.1.0
+ * @version    3.2.0
  * @link       https://github.com/gavlinski/Foursquare-Mass-Editor-Tools/blob/master/main.php
  * @since      File available since Release 1.5
  * @license    GPLv3 <http://www.gnu.org/licenses/gpl.txt>
@@ -34,7 +34,19 @@ require_once __DIR__ . '/FoursquareAPI.Class.php';
 use ElioTools\Security\SessionManager;
 use ElioTools\Config\AppConfig;
 
-$VERSAO = "3.1.0";
+// Lê versão dinamicamente do build-info.json (gerado a cada build/CI)
+$_versionFile = __DIR__ . '/build-info.json';
+$VERSAO = '3.2.0'; // fallback para ambiente sem build
+if (file_exists($_versionFile)) {
+    $_buildData = @json_decode(@file_get_contents($_versionFile), true);
+    if (!empty($_buildData['version'])) {
+        // Remove prefixo 'v' se presente (ex: "v3.2.0" → "3.2.0")
+        $VERSAO = ltrim($_buildData['version'], 'v');
+    }
+    unset($_buildData);
+}
+unset($_versionFile);
+
 $isPostLoginNavigation = false;
 
 // Carrega o autoloader do Composer se disponível
