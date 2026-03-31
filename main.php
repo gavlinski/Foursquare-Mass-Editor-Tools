@@ -40,8 +40,11 @@ $VERSAO = '3.2.0'; // fallback para ambiente sem build
 if (file_exists($_versionFile)) {
     $_buildData = @json_decode(@file_get_contents($_versionFile), true);
     if (!empty($_buildData['version'])) {
-        // Remove prefixo 'v' se presente (ex: "v3.2.0" → "3.2.0")
-        $VERSAO = ltrim($_buildData['version'], 'v');
+        // Extrai apenas a parte SemVer (ex: "v3.2.0-1-g590b203" → "3.2.0")
+        if (preg_match('/^v?(\d+\.\d+\.\d+)/', $_buildData['version'], $_m)) {
+            $VERSAO = $_m[1];
+        }
+        unset($_m);
     }
     unset($_buildData);
 }
