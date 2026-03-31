@@ -564,7 +564,7 @@ ls -lh /var/backups/4sqmet/
 5. Create Snapshot (aguardar ~10 min)
 ```
 
-- [ ] Snapshot criado
+- [x] Snapshot criado
 
 ### 8.2 Power Off Droplet Antigo
 
@@ -575,10 +575,10 @@ ls -lh /var/backups/4sqmet/
 4. Confirm
 ```
 
-⚠️ **NÃO deletar ainda**. Manter por 30 dias antes de deletar definitivamente.
+⚠️ **NÃO deletar ainda**. Manter por 15 dias antes de deletar definitivamente.
 
-- [ ] Droplet antigo desligado
-- [ ] Data para deletar: ________ (30 dias após power off)
+- [x] Droplet antigo desligado
+- [ ] Data para deletar: 15/04/26 (15 dias após power off)
 
 ---
 

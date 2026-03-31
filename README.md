@@ -1,10 +1,10 @@
 # Foursquare Mass Editor Tools (Elio Tools)
 
-**Version 3.1.0** - Analytics Dashboard, Dojo CDN & Production Docker
+**Version 3.2.0** - Deploy Improvements, Auth & CSV Fixes
 
 A comprehensive collection of **Superuser Tools** for Foursquare venues mass/bulk editing and searching, powered by the Foursquare API v2. This project has been **completely modernized** with a hybrid architecture combining modern PHP 8.1 features with legacy compatibility.
 
-## 🚀 Version 3.1.0 Highlights
+## 🚀 Version 3.2.0 Highlights
 
 - ✅ **Fully Migrated** from PHP 5.4 to PHP 8.1
 - ✅ **PSR-4 Autoloading** with Composer
@@ -236,6 +236,28 @@ Contributions are always welcome! Please:
 - Update documentation
 
 ## 📝 Changelog
+
+### Version 3.2.0 (2026-03-31)
+
+**Deploy & CI/CD:**
+- Improved deploy flow safety: git stash handling for dirty working tree on server
+- Apache ServerName global written at container startup (eliminates AH00558 warning)
+- CI/CD workflow refined: Dojo local fallback validation step added
+- Tag convention migrated to SemVer `v*` format for GitHub ecosystem alignment
+
+**Authentication & Security:**
+- Cookie handling hardened for reliability across sessions
+- Auth flow edge cases resolved
+
+**Data & UI:**
+- CSV: expired file handling improvements
+- Postal code field: paste support enabled
+- Local Dojo/Dijit/Dojox fallback assets included in repository
+
+**Documentation:**
+- BUILD_AND_DEPLOY.md updated with deploy scenarios, build_source field details
+- GitHub Copilot agent skills expanded (ci-cd, deploy-safety, devcontainer)
+- Dependabot configuration added for automated dependency updates
 
 ### Version 3.1.0 (2026-03-16)
 
