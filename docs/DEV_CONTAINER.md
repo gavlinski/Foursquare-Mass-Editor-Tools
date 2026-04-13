@@ -226,9 +226,12 @@ O workspace já inclui configuração inicial em `.vscode/mcp.json` para usar o 
 O servidor está configurado para:
 - Rodar em modo `headless`
 - Ignorar erro de certificado local (`--ignore-https-errors`)
-- Salvar logs/snapshots/sessão em `debug/mcp-artifacts/`
-- Reutilizar estado autenticado de `data/mcp/playwright/foursquare.storage-state.json`
+- Salvar logs/snapshots em `debug/mcp-artifacts/`
 - Usar cache persistente de browsers em `data/mcp/playwright/browsers`
+
+> ⚠️ O `--storage-state` do Playwright MCP não carrega cookies automaticamente.  
+> O agente deve injetar o `oauth_token` manualmente via `document.cookie` após navegar.  
+> Use `node /var/www/html/scripts/get-foursquare-token.js` para extrair o token salvo.
 
 ### Como ativar no VS Code
 

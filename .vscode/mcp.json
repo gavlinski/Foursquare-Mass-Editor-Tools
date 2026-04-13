@@ -18,6 +18,25 @@
         "PLAYWRIGHT_MCP_CONSOLE_LEVEL": "error",
         "PLAYWRIGHT_BROWSERS_PATH": "/var/www/html/data/mcp/playwright/browsers"
       }
+    },
+    "playwright-headed": {
+      "type": "stdio",
+      "command": "npx",
+      "args": [
+        "@playwright/mcp@latest",
+        "--cdp-endpoint", "http://host.docker.internal:9222",
+        "--cdp-header", "Host: localhost",
+        "--ignore-https-errors",
+        "--output-dir",
+        "/var/www/html/debug/mcp-artifacts",
+        "--output-mode",
+        "file",
+        "--viewport-size",
+        "1440x900"
+      ],
+      "env": {
+        "PLAYWRIGHT_MCP_CONSOLE_LEVEL": "error"
+      }
     }
   }
 }

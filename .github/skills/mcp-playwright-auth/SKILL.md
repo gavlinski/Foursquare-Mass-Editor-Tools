@@ -50,9 +50,77 @@ Sessão salva no perfil Brave            3. context.storageState() → arquivo J
 | `data/mcp/playwright/browsers/` | Chromium instalado (persistente, git-ignored) |
 | `.vscode/mcp.json` | Configuração do servidor Playwright MCP |
 
+## Modo Headed (Visual) via CDP
+
+### O que é e quando usar
+
+O servidor `playwright-headed` conecta o agente ao **Brave já aberto no host**, em vez de lançar um Chromium headless. Resultado: o usuário vê na tela do Brave **cada clique, digitação e navegação** que o agente faz.
+
+| Aspecto | `playwright` (headless) | `playwright-headed` |
+|---------|------------------------|---------------------|
+| Brave precisa estar aberto | Não | **Sim** |
+| Usuário vê as interações | Não | **Sim** |
+| Injeção manual de token | Necessária | **Não** — Brave já tem os cookies do bootstrap |
+| Disponível sem pré-requisitos | Sempre | Somente com Brave rodando |
+
+### Como funciona
+
+Quando o Brave é iniciado com `--remote-debugging-port=9222 --user-data-dir=/tmp/brave-mcp-profile` e o bootstrap já foi executado nesse perfil, o cookie `oauth_token` já está presente no browser. O agente conecta diretamente e já navega autenticado, sem injeção de cookie.
+
+```
+Host macOS (Brave headed)
+  └─ --remote-debugging-port=9222
+  └─ --user-data-dir=/tmp/brave-mcp-profile  ← já tem oauth_token
+         ↑ CDP WebSocket
+Dev Container (@playwright/mcp --cdp-endpoint)
+         ↓ ações do agente aparecem visualmente no Brave
+```
+
+### Pré-requisito: Brave com o perfil de bootstrap
+
+```bash
+# macOS host — iniciar Brave com o MESMO perfil usado no bootstrap
+/Applications/Brave\ Browser.app/Contents/MacOS/Brave\ Browser \
+  --remote-debugging-port=9222 \
+  --user-data-dir=/tmp/brave-mcp-profile
+```
+
+> ⚠️ Use **sempre** `--user-data-dir=/tmp/brave-mcp-profile` — o mesmo perfil do bootstrap.
+> Sem esse flag, o Brave abre no perfil padrão, sem os cookies capturados.
+
+### Ativar no VS Code
+
+Após iniciar o Brave:
+1. `Ctrl+Shift+P` → **MCP: Restart Server** → selecionar `playwright-headed`
+2. No Chat, habilitar as tools do servidor `playwright-headed`
+3. Navegar normalmente — o agente controlará o Brave visualmente
+
+### Configuração no mcp.json
+
+```json
+"playwright-headed": {
+  "type": "stdio",
+  "command": "npx",
+  "args": [
+    "@playwright/mcp@latest",
+    "--cdp-endpoint", "http://host.docker.internal:9222",
+    "--cdp-header", "Host: localhost",
+    "--ignore-https-errors",
+    "--output-dir", "/var/www/html/debug/mcp-artifacts",
+    "--output-mode", "file",
+    "--viewport-size", "1440x900"
+  ],
+  "env": {
+    "PLAYWRIGHT_MCP_CONSOLE_LEVEL": "error"
+  }
+}
+```
+
+> Nota: `--cdp-header "Host: localhost"` é obrigatório — sem ele o Brave rejeita a conexão com erro "Host header is not an IP address or localhost".
+
 ---
 
-## Verificar Status do Token
+
 
 Antes de qualquer uso, verificar se o token ainda é válido:
 

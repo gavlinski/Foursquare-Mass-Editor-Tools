@@ -27,11 +27,14 @@ Padronizar validações de UI/UX e debug funcional via MCP no Dev Container.
 
 ### Como funciona
 
-- O login é feito manualmente pelo usuário em browser aberto pelo Playwright codegen.
+- O login é feito manualmente pelo usuário no **Brave** (host macOS), conectado via CDP.
 - Nenhuma senha é gravada no repositório.
-- O estado autenticado é salvo em:
+- O script `mcp-foursquare-auth-bootstrap.sh` extrai os cookies via `chromium.connectOverCDP()` e salva em:
   - `data/mcp/playwright/foursquare.storage-state.json`
 - O arquivo é local, ignorado no git e salvo com permissão `600`.
+- O agente extrai o `oauth_token` via `scripts/get-foursquare-token.js` e o injeta via `document.cookie` após cada `browser_navigate`.
+
+> ⚠️ O `--storage-state` do Playwright MCP **não** carrega cookies automaticamente — a injeção via JavaScript é necessária.
 
 ### Criar sessão autenticada
 
