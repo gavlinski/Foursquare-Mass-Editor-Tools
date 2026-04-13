@@ -227,13 +227,33 @@ O servidor está configurado para:
 - Rodar em modo `headless`
 - Ignorar erro de certificado local (`--ignore-https-errors`)
 - Salvar logs/snapshots/sessão em `debug/mcp-artifacts/`
-- Usar sessão isolada para evitar poluir estado local
+- Reutilizar estado autenticado de `data/mcp/playwright/foursquare.storage-state.json`
+- Usar cache persistente de browsers em `data/mcp/playwright/browsers`
 
 ### Como ativar no VS Code
 
 1. Abra a visão de Chat
 2. Confirme trust do servidor MCP quando o VS Code solicitar
 3. No Chat, use **Configure Tools** para habilitar as tools do servidor Playwright
+
+### Preparação recomendada
+
+```bash
+# 1) Garante Chromium em cache persistente no workspace
+./scripts/mcp-playwright-prepare.sh
+
+# 2) (Opcional) Cria sessão autenticada para fluxos logados
+./scripts/mcp-foursquare-auth-bootstrap.sh
+```
+
+> Nota: em Dev Container no macOS, login visual não roda dentro do container (sem X server).
+> Use um browser Chromium-based do host (Brave/Chrome) com remote debugging para o bootstrap autenticado.
+
+```bash
+/Applications/Brave\ Browser.app/Contents/MacOS/Brave\ Browser \
+   --remote-debugging-port=9222 \
+   --user-data-dir=/tmp/brave-mcp-profile
+```
 
 ### Smoke test recomendado
 

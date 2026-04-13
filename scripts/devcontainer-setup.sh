@@ -65,6 +65,28 @@ else
     apache2ctl start 2>/dev/null || true
 fi
 
+# ── 5. MCP Playwright (cache persistente + auth state) ──────────────────────
+echo -e "\n${CYAN}🎭 Preparando diretórios do Playwright MCP...${NC}"
+mkdir -p data/mcp/playwright/browsers
+mkdir -p debug/mcp-artifacts
+chmod 700 data/mcp/playwright || true
+chmod 775 data/mcp/playwright/browsers debug/mcp-artifacts || true
+chown -R root:www-data data/mcp debug/mcp-artifacts 2>/dev/null || true
+
+echo -e "${CYAN}⬇️  Verificando Chromium para Playwright MCP...${NC}"
+export PLAYWRIGHT_BROWSERS_PATH="/var/www/html/data/mcp/playwright/browsers"
+if find "$PLAYWRIGHT_BROWSERS_PATH" -maxdepth 1 -type d -name 'chromium-*' | grep -q .; then
+    echo -e "${GREEN}✅ Chromium já disponível em cache persistente${NC}"
+else
+    echo -e "${YELLOW}⚠️  Chromium não encontrado. Instalando (primeira execução)...${NC}"
+    if npx -y playwright@latest install chromium > /tmp/mcp-playwright-install.log 2>&1; then
+        echo -e "${GREEN}✅ Chromium instalado em cache persistente${NC}"
+    else
+        echo -e "${YELLOW}⚠️  Falha ao instalar Chromium automaticamente.${NC}"
+        echo -e "${YELLOW}   Execute manualmente: ./scripts/mcp-playwright-prepare.sh${NC}"
+    fi
+fi
+
 # ── Resumo ───────────────────────────────────────────────────────────────────
 echo -e "\n${BLUE}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
 echo -e "${GREEN}🚀 DevContainer pronto!${NC}"

@@ -10,6 +10,10 @@ Padronizar validações de UI/UX e debug funcional via MCP no Dev Container.
 2. App disponível em `https://localhost/4sqmet/`
 3. Configuração MCP no workspace: `.vscode/mcp.json`
 4. Trust do servidor MCP aprovado no VS Code
+5. Chromium preparado em cache persistente:
+   - `./scripts/mcp-playwright-prepare.sh`
+6. Sessão autenticada (quando precisar fluxos logados):
+   - `./scripts/mcp-foursquare-auth-bootstrap.sh`
 
 ## Smoke Check (obrigatório)
 
@@ -18,6 +22,66 @@ Padronizar validações de UI/UX e debug funcional via MCP no Dev Container.
 3. Navegar para `https://localhost/4sqmet/debug/`
 4. Abrir Session Test Manager
 5. Capturar screenshot em cada etapa
+
+## Autenticação segura para fluxos logados
+
+### Como funciona
+
+- O login é feito manualmente pelo usuário em browser aberto pelo Playwright codegen.
+- Nenhuma senha é gravada no repositório.
+- O estado autenticado é salvo em:
+  - `data/mcp/playwright/foursquare.storage-state.json`
+- O arquivo é local, ignorado no git e salvo com permissão `600`.
+
+### Criar sessão autenticada
+
+```bash
+./scripts/mcp-foursquare-auth-bootstrap.sh
+```
+
+#### macOS + Dev Container (obrigatório para modo visual)
+
+Como o container não tem X server, o login visual precisa ocorrer no browser do host via CDP.
+
+1. Inicie o Brave no macOS com remote debugging e perfil dedicado:
+
+```bash
+/Applications/Brave\ Browser.app/Contents/MacOS/Brave\ Browser \
+   --remote-debugging-port=9222 \
+   --user-data-dir=/tmp/brave-mcp-profile
+```
+
+Alternativa com Google Chrome:
+
+```bash
+/Applications/Google\ Chrome.app/Contents/MacOS/Google\ Chrome \
+   --remote-debugging-port=9222 \
+   --user-data-dir=/tmp/chrome-mcp-profile
+```
+
+2. No terminal do Dev Container, execute:
+
+```bash
+./scripts/mcp-foursquare-auth-bootstrap.sh
+```
+
+3. Faça login manualmente no Foursquare no Chrome do host e pressione ENTER no terminal.
+
+Opcional: se necessário, altere endpoint CDP:
+
+```bash
+BROWSER_CDP_ENDPOINT="http://host.docker.internal:9222" ./scripts/mcp-foursquare-auth-bootstrap.sh
+```
+
+### Revogar sessão autenticada
+
+```bash
+./scripts/mcp-foursquare-auth-clear.sh
+```
+
+### Observação de segurança
+
+Use esse mecanismo apenas no seu ambiente local de desenvolvimento. Se suspeitar de comprometimento da sessão, remova o storage state e refaça login.
 
 ## Fluxos de regressão recomendados
 

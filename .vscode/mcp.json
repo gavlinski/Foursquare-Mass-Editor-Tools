@@ -8,16 +8,15 @@
         "--headless",
         "--ignore-https-errors",
         "--output-dir",
-        "${workspaceFolder}/debug/mcp-artifacts",
+        "/var/www/html/debug/mcp-artifacts",
         "--output-mode",
         "file",
-        "--save-session",
-        "--isolated",
         "--viewport-size",
         "1440x900"
       ],
       "env": {
-        "PLAYWRIGHT_MCP_CONSOLE_LEVEL": "error"
+        "PLAYWRIGHT_MCP_CONSOLE_LEVEL": "error",
+        "PLAYWRIGHT_BROWSERS_PATH": "/var/www/html/data/mcp/playwright/browsers"
       }
     }
   }

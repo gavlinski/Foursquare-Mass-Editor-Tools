@@ -91,3 +91,8 @@ debug/RESOLUTION_COMPLETE.md
 debug/VALIDATION_LOCAL_DOJO.md
 debug/README_VISUAL_OPTIONS.md
 /backup/scripts-sessao-*/
+
+# Artefatos MCP locais (não versionar)
+debug/mcp-artifacts/
+data/mcp/playwright/browsers/
+data/mcp/playwright/foursquare.storage-state.json
