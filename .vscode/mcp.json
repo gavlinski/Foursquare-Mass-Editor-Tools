@@ -21,18 +21,9 @@
     },
     "playwright-headed": {
       "type": "stdio",
-      "command": "npx",
+      "command": "/bin/bash",
       "args": [
-        "@playwright/mcp@latest",
-        "--cdp-endpoint", "http://host.docker.internal:9222",
-        "--cdp-header", "Host: localhost",
-        "--ignore-https-errors",
-        "--output-dir",
-        "/var/www/html/debug/mcp-artifacts",
-        "--output-mode",
-        "file",
-        "--viewport-size",
-        "1440x900"
+        "/var/www/html/scripts/mcp-headed-start.sh"
       ],
       "env": {
         "PLAYWRIGHT_MCP_CONSOLE_LEVEL": "error"
