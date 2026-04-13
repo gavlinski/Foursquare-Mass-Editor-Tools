@@ -36,7 +36,8 @@ Thumbs.db
 *.swo
 
 # Arquivos de IDE
-.vscode/
+.vscode/*
+!.vscode/mcp.json
 .idea/
 *.sublime-project
 *.sublime-workspace

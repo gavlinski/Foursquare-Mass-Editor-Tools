@@ -1,0 +1,24 @@
+{
+  "servers": {
+    "playwright": {
+      "type": "stdio",
+      "command": "npx",
+      "args": [
+        "@playwright/mcp@latest",
+        "--headless",
+        "--ignore-https-errors",
+        "--output-dir",
+        "${workspaceFolder}/debug/mcp-artifacts",
+        "--output-mode",
+        "file",
+        "--save-session",
+        "--isolated",
+        "--viewport-size",
+        "1440x900"
+      ],
+      "env": {
+        "PLAYWRIGHT_MCP_CONSOLE_LEVEL": "error"
+      }
+    }
+  }
+}

@@ -578,7 +578,7 @@ ls -lh /var/backups/4sqmet/
 ⚠️ **NÃO deletar ainda**. Manter por 15 dias antes de deletar definitivamente.
 
 - [x] Droplet antigo desligado
-- [ ] Data para deletar: 15/04/26 (15 dias após power off)
+- [x] Data para deletar: 15/04/26 (15 dias após power off, deletado em 12/04/2026)
 
 ---
 
@@ -645,7 +645,7 @@ docker run -d --name 4sqmet --restart unless-stopped -p 80:80 -p 443:443 -v $(pw
 - [x] Todos os fluxos validados em HTTPS
 - [x] Monitoramento configurado
 - [x] Backups criados
-- [ ] Droplet antigo desligado (após 7 dias)
+- [x] Droplet antigo desligado (após 7 dias)
 - [ ] Documentação atualizada
 
 ---

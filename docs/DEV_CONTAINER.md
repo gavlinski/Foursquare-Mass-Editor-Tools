@@ -11,6 +11,7 @@
 - [Setup no macOS com OrbStack](#setup-no-macos-com-orbstack)
 - [Setup com Docker Desktop](#setup-com-docker-desktop)
 - [Uso diário](#uso-diário)
+- [Playwright MCP no Dev Container](#playwright-mcp-no-dev-container)
 - [Scripts disponíveis](#scripts-disponíveis)
 - [Arquivos do DevContainer](#arquivos-do-devcontainer)
 - [Solução de problemas](#solução-de-problemas)
@@ -207,6 +208,50 @@ Use quando:
 ```
 Cmd+Shift+P → "Dev Containers: Stop Container"
 ```
+
+---
+
+## Playwright MCP no Dev Container
+
+O workspace já inclui configuração inicial em `.vscode/mcp.json` para usar o Playwright MCP dentro do próprio Dev Container.
+
+### Objetivo
+
+- Validar telas e fluxos de UX com agente (main/load/edit/debug)
+- Ajudar no debug funcional de erros de sessão/API
+- Gerar artefatos de evidência em `debug/mcp-artifacts/`
+
+### Configuração aplicada
+
+O servidor está configurado para:
+- Rodar em modo `headless`
+- Ignorar erro de certificado local (`--ignore-https-errors`)
+- Salvar logs/snapshots/sessão em `debug/mcp-artifacts/`
+- Usar sessão isolada para evitar poluir estado local
+
+### Como ativar no VS Code
+
+1. Abra a visão de Chat
+2. Confirme trust do servidor MCP quando o VS Code solicitar
+3. No Chat, use **Configure Tools** para habilitar as tools do servidor Playwright
+
+### Smoke test recomendado
+
+Use o prompt abaixo no chat do agente:
+
+```text
+Abra https://localhost/4sqmet/, valide que a página principal carregou, navegue para https://localhost/4sqmet/debug/, abra o Session Test Manager, e capture uma screenshot de cada etapa.
+```
+
+Critérios de sucesso:
+- Navegação em `https://localhost/4sqmet/` sem erro de SSL
+- Captura de screenshot/snapshot funcionando
+- Artefatos gerados em `debug/mcp-artifacts/`
+
+### Observações
+
+- Esta configuração roda no **remoto** (Dev Container), não no host macOS.
+- Para análises avançadas de performance (trace/memory/Lighthouse), planeje fase complementar com Chrome DevTools MCP após upgrade de Node no container para 20.19+.
 
 ---
 
