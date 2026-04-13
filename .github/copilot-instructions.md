@@ -1069,7 +1069,8 @@ For topic-specific deep knowledge, see `.github/skills/`:
 - **session-management**: OAuth2, session monitoring, system info modal
 - **version-info**: version.php API, build-info.json, badges
 - **debug-tools**: Debug interface, consolidated test tools
-- **mcp-playwright-auth**: Playwright MCP authentication, CDP bootstrap, token injection
+- **mcp-playwright-auth**: Playwright MCP authentication, CDP bootstrap, token injection, headless vs headed decision
+- **playwright-regression**: Regression test generation, @playwright/test setup, 4 regression flows, CI/CD integration
 
 ---
 

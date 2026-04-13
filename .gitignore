@@ -20,8 +20,12 @@ vendor/
 /tmp/
 cache/
 
-# Arquivos de testes
+# Arquivos de testes (pasta temporária com arquivos pessoais)
 test/
+# Artefatos do Playwright
+test-results/
+playwright-report/
+tests/e2e/.auth/
 
 # Arquivos de desenvolvimento
 node_modules/

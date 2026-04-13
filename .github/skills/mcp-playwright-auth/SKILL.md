@@ -50,11 +50,27 @@ Sessão salva no perfil Brave            3. context.storageState() → arquivo J
 | `data/mcp/playwright/browsers/` | Chromium instalado (persistente, git-ignored) |
 | `.vscode/mcp.json` | Configuração do servidor Playwright MCP |
 
-## Modo Headed (Visual) via CDP
+## Headless vs Headed — Quando usar cada modo
 
-### O que é e quando usar
+### Regra de decisão rápida
 
-O servidor `playwright-headed` conecta o agente ao **Brave já aberto no host**, em vez de lançar um Chromium headless. Resultado: o usuário vê na tela do Brave **cada clique, digitação e navegação** que o agente faz.
+| Situação | Modo a usar |
+|----------|-------------|
+| Debugging visual, ver o agente interagir | **`playwright-headed`** |
+| Gerar scripts de teste (observar fluxos) | **`playwright-headed`** |
+| Automação silenciosa, CI/CD | **`playwright`** (headless) |
+| Brave offline / sem acesso ao host | **`playwright`** (headless) |
+| Extração de dados, screenshots automáticos | **`playwright`** (headless) |
+
+> **O agente NÃO pode iniciar ou reiniciar servidores MCP de forma autônoma.**
+> Se o servidor `playwright-headed` não estiver ativo ou precisar ser reiniciado, o agente deve:
+> 1. Pedir ao usuário: _"Por favor reinicie o servidor MCP `playwright-headed` via Ctrl+Shift+P → MCP: Restart Server"_
+> 2. Aguardar confirmação antes de prosseguir
+> 3. Se Brave não estiver rodando, pedir que o usuário execute o comando de inicialização
+
+### Modo Headed (Visual) via CDP
+
+**O que é:** o servidor `playwright-headed` conecta o agente ao **Brave já aberto no host**, em vez de lançar um Chromium headless. O usuário vê na tela do Brave **cada clique, digitação e navegação** que o agente faz.
 
 | Aspecto | `playwright` (headless) | `playwright-headed` |
 |---------|------------------------|---------------------|
@@ -302,7 +318,7 @@ Se o arquivo `foursquare.storage-state.json` não existir ou o token estiver exp
 
 ---
 
-## Configuração mcp.json
+## Configuração mcp.json (estado atual)
 
 ```json
 {
@@ -322,13 +338,24 @@ Se o arquivo `foursquare.storage-state.json` não existir ou o token estiver exp
         "PLAYWRIGHT_MCP_CONSOLE_LEVEL": "error",
         "PLAYWRIGHT_BROWSERS_PATH": "/var/www/html/data/mcp/playwright/browsers"
       }
+    },
+    "playwright-headed": {
+      "type": "stdio",
+      "command": "/bin/bash",
+      "args": ["/var/www/html/scripts/mcp-headed-start.sh"],
+      "env": {
+        "PLAYWRIGHT_MCP_CONSOLE_LEVEL": "error"
+      }
     }
   }
 }
 ```
 
-> ⚠️ **NÃO usar `--save-session` junto com `--storage-state`** — o `--save-session` sobrescreve o storage state com uma sessão vazia ao iniciar, descartando os cookies capturados.
-> ⚠️ **Usar caminhos absolutos** — `${workspaceFolder}` não é resolvido corretamente pelo processo Node do MCP server.
+**Por que o wrapper `mcp-headed-start.sh`?**
+O Brave retorna `ws://localhost/devtools/...` (sem porta) no CDP. O MCP tentaria conectar na porta 80 (Apache). O wrapper busca essa URL via `curl`, substitui `ws://localhost/` por `ws://host.docker.internal:9222/` e passa o valor correto ao `--cdp-endpoint`.
+
+> ⚠️ **NÃO usar `--save-session` junto com `--storage-state`** — sobrescreve o storage state com sessão vazia ao iniciar.
+> ⚠️ **Usar caminhos absolutos** — `${workspaceFolder}` não é resolvido pelo processo Node do MCP server.
 
 ---
 
