@@ -32,6 +32,7 @@ env:
   DEPLOY_HOST: ${{ vars.DEPLOY_HOST }}
   PRODUCTION_DOMAIN: '4sq.eliotools.site'
   PRODUCTION_URL: ${{ secrets.APP_URL }}
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true  # Opt-in antes do forced rollout em 02/06/2026
 
 jobs:
   # ============================================================
@@ -157,7 +158,7 @@ jobs:
       (github.event_name == 'workflow_dispatch' && github.event.inputs.action == 'deploy')
     environment:
       name: production
-      url: ${{ env.PRODUCTION_URL }}
+      url: https://${{ env.PRODUCTION_DOMAIN }}/4sqmet/
     
     steps:
       - name: 📥 Checkout code
