@@ -142,9 +142,10 @@ else
     fi
 fi
 
-# Etapa 2: Testes locais (se existirem)
+# Etapa 2: Testes locais (se existirem arquivos PHP de teste)
 echo -e "\n${BLUE}━━━ Etapa 2/6: Testes locais ━━━${NC}"
-if [ -f "composer.json" ] && grep -q "phpunit" composer.json && [ -d "tests" ]; then
+PHP_TESTS_EXIST=$(find tests -name "*Test.php" -o -name "*.phpt" 2>/dev/null | head -1)
+if [ -f "composer.json" ] && grep -q "phpunit" composer.json && ( [ -f "phpunit.xml" ] || [ -n "$PHP_TESTS_EXIST" ] ); then
     echo -e "${YELLOW}🧪 Executando testes...${NC}"
     composer test || {
         echo -e "${RED}❌ Testes falharam. Deploy abortado.${NC}"
