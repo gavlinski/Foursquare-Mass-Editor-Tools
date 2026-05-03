@@ -351,23 +351,32 @@ echo -e "${YELLOW}🔍 Testando conectividade...${NC}"
 sleep 5
 
 # Testar HTTPS (produção)
-HTTPS_CODE=$(curl -s -o /dev/null -w "%{http_code}" --max-time 10 "https://${PRODUCTION_SERVER}/" || echo "000")
+HTTPS_CODE=$(curl -s -o /dev/null -w "%{http_code}" --max-time 10 "https://${PRODUCTION_SERVER}/")
+HTTPS_EXIT=$?
+if [ $HTTPS_EXIT -ne 0 ]; then
+    HTTPS_CODE="000"
+fi
 
 if [ "$HTTPS_CODE" = "200" ] || [ "$HTTPS_CODE" = "302" ]; then
     echo -e "${GREEN}✅ Site está respondendo via HTTPS (HTTP ${HTTPS_CODE})${NC}"
 elif [ "$HTTPS_CODE" = "000" ]; then
     # Fallback: testar HTTP
-    HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" --max-time 10 "http://${PRODUCTION_SERVER}/" || echo "000")
+    HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" --max-time 10 "http://${PRODUCTION_SERVER}/")
+    HTTP_EXIT=$?
+    if [ $HTTP_EXIT -ne 0 ]; then
+        HTTP_CODE="000"
+    fi
+
     if [ "$HTTP_CODE" = "200" ] || [ "$HTTP_CODE" = "302" ]; then
-        echo -e "${YELLOW}⚠️  Site responde via HTTP mas HTTPS falhou${NC}"
+        echo -e "${YELLOW}⚠️  Site responde via HTTP mas HTTPS falhou (curl exit: ${HTTPS_EXIT})${NC}"
         echo -e "${YELLOW}   Verifique certificados SSL${NC}"
     else
-        echo -e "${RED}⚠️  Site não está respondendo (HTTPS: ${HTTPS_CODE}, HTTP: ${HTTP_CODE})${NC}"
+        echo -e "${RED}⚠️  Site não está respondendo (HTTPS: ${HTTPS_CODE}/exit ${HTTPS_EXIT}, HTTP: ${HTTP_CODE}/exit ${HTTP_EXIT})${NC}"
         echo -e "${YELLOW}   Container pode estar inicializando. Aguarde 1-2 minutos e teste:${NC}"
         echo -e "${CYAN}   curl -I https://${PRODUCTION_SERVER}/${NC}"
     fi
 else
-    echo -e "${YELLOW}⚠️  Site retornou código inesperado: ${HTTPS_CODE}${NC}"
+    echo -e "${YELLOW}⚠️  Site retornou código HTTPS inesperado: ${HTTPS_CODE}${NC}"
 fi
 
 # Resumo final
