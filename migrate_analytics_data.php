@@ -55,6 +55,11 @@ function isIgnoredUserAgentStandalone(string $userAgent): bool {
         return true;
     }
 
+    // User-Agents genéricos/sintéticos sem fingerprint real de navegador.
+    if (preg_match('/^Mozilla\/5\.0(?:\s+zgrab\/0\.x)?$/i', $userAgent)) {
+        return true;
+    }
+
     $ignoredSignatures = [
         'DigitalOcean Uptime Probe',
         'Qualys',
@@ -62,6 +67,25 @@ function isIgnoredUserAgentStandalone(string $userAgent): bool {
         'ssllabs',
         'Go-http-client/',
         'curl/',
+        'python-requests/',
+        'aiohttp/',
+        'zgrab/',
+        'CensysInspect/',
+        'Shodan-Pull/',
+        'Umai-Scanner/',
+        'ModatScanner/',
+        'l9scan/',
+        'WebAnalyzer/',
+        'RootEvidence/',
+        'server-probe/',
+        'InternetMeasurement/',
+        'abuse.xmco.fr',
+        'GPTBot/',
+        'HTTP Banner Detection',
+        'fasthttp',
+        'scanner/1.0',
+        'compatible; scanner/',
+        'compatible; SecurityScanner/',
         'compatible; Odin;',
         'Palo Alto Networks',
         'Cortex-Xpanse'
