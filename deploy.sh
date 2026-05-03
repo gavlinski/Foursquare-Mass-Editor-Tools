@@ -202,22 +202,22 @@ $SSH_CMD "${PRODUCTION_USER}@${PRODUCTION_SERVER}" << EOF
     cd ${PRODUCTION_PATH}
 
     echo "🔍 Verificando estado do repositório remoto..."
-    REMOTE_STATUS=$(git status --short)
-    if [ -n "${REMOTE_STATUS}" ]; then
+    REMOTE_STATUS=\$(git status --short)
+    if [ -n "\$REMOTE_STATUS" ]; then
         echo "⚠️  Repositório remoto com mudanças locais detectadas"
-        echo "${REMOTE_STATUS}"
+        echo "\$REMOTE_STATUS"
 
         REMOTE_SYNC_DIR="${BACKUP_DIR}/pre_git_sync_${TIMESTAMP}"
-        mkdir -p "${REMOTE_SYNC_DIR}"
+        mkdir -p "\$REMOTE_SYNC_DIR"
 
-        printf "%s\n" "${REMOTE_STATUS}" > "${REMOTE_SYNC_DIR}/git-status.txt"
-        git --no-pager diff > "${REMOTE_SYNC_DIR}/git-diff.patch" || true
-        git ls-files --others --exclude-standard > "${REMOTE_SYNC_DIR}/untracked-files.txt" || true
+        printf "%s\n" "\$REMOTE_STATUS" > "\$REMOTE_SYNC_DIR/git-status.txt"
+        git --no-pager diff > "\$REMOTE_SYNC_DIR/git-diff.patch" || true
+        git ls-files --others --exclude-standard > "\$REMOTE_SYNC_DIR/untracked-files.txt" || true
 
         git stash push -u -m "pre-deploy-sync-${TIMESTAMP}" >/dev/null
 
         echo "✅ Mudanças locais preservadas antes do pull"
-        echo "   Backup textual: ${REMOTE_SYNC_DIR}"
+        echo "   Backup textual: \$REMOTE_SYNC_DIR"
         echo "   Stash: pre-deploy-sync-${TIMESTAMP}"
     fi
     
