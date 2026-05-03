@@ -28,19 +28,48 @@ Carregue esta skill quando:
 
 ```php
 function isIgnoredUserAgent(string $ua): bool {
-    return preg_match('/googlebot|bingbot|curl|wget|monitor|uptimerobot/i', $ua);
+    $ua = trim($ua);
+    if ($ua === '') {
+        return true;
+    }
+
+    // Generic/synthetic UA used by scanners
+    if (preg_match('/^Mozilla\/5\.0(?:\s+zgrab\/0\.x)?$/i', $ua)) {
+        return true;
+    }
+
+    $ignored = [
+        'DigitalOcean Uptime Probe',
+        'python-requests/',
+        'aiohttp/',
+        'zgrab/',
+        'CensysInspect/',
+        'Shodan-Pull/',
+        'Umai-Scanner/',
+        'ModatScanner/',
+        'GPTBot/'
+    ];
+
+    foreach ($ignored as $signature) {
+        if (stripos($ua, $signature) !== false) {
+            return true;
+        }
+    }
+
+    return false;
 }
 ```
 
 **Padrões detectados**:
 ```
-- googlebot/bingbot    - Search engine crawlers
-- curl/wget            - Command-line tools
-- monitor/healthcheck  - Uptime monitoring
-- pingdom/status page  - Health checks
+- DigitalOcean Uptime Probe - health checks (infra)
+- Mozilla/5.0 (exact)       - generic synthetic scanner UA
+- zgrab/Censys/Shodan        - internet-wide scanners
+- python-requests/aiohttp    - scripted probes
+- GPTBot + similares          - crawlers não úteis para métricas de uso
 ```
 
-**Impacto**: Remove ~2-5% de requisições (bots legítimos + ferramentas)
+**Impacto**: Em produção real pode remover 50%+ do tráfego quando houver ondas de scanner.
 
 ### Layer 2: Suspicious Request Pattern Detection
 
@@ -62,6 +91,22 @@ invokefunction         - Arbitrary function calling
 ```
 
 **Impacto**: Remove scanners sistemáticos e scripts de exploit
+
+### Production Reality Check (May/2026)
+
+Em 14 dias de produção, o dashboard mostrou `Outros` entre ~52% e ~72% em vários dias.
+
+Principais UAs em `Outros`:
+- `Mozilla/5.0` (genérico)
+- `Mozilla/5.0 zgrab/0.x`
+- `Mozilla/5.0 (compatible; CensysInspect/1.1; ...)`
+- `python-requests/2.x`
+- `Python/3.12 aiohttp/3.9.1`
+- `Shodan-Pull/1.0`, `Umai-Scanner`, `ModatScanner`
+
+Principal alvo: rota `/`.
+
+Conclusão: sem hardening de UA, o dashboard deixa de refletir tráfego humano.
 
 ### Layer 3: Tracked Path Whitelist
 
@@ -119,16 +164,16 @@ Usa os **mesmos filtros** de analytics.php para limpar histórico:
 ```php
 // 1. Busca registros suspeitos
 $suspiciousQuery = "
-  SELECT * FROM analytics 
+    SELECT * FROM pageviews 
   WHERE 
     user_agent LIKE '%googlebot%' OR
-    url LIKE '%_ignition%' OR
-    url LIKE '%xdebug%'
+        page_url LIKE '%_ignition%' OR
+        page_url LIKE '%xdebug%'
 ";
 
 // 2. Deleta registros match
 foreach ($suspicious as $record) {
-    if (isSuspiciousRequest($record['url'])) {
+        if (isSuspiciousRequest($record['page_url'])) {
         deleteRecord($record['id']);
     }
 }
@@ -252,8 +297,8 @@ RewriteRule "\.\./|\.\.%2f" - [F,L]
 2. **Add new patterns conservatively**
    ```php
    // Test first with count query
-   SELECT COUNT(*) FROM analytics 
-   WHERE url LIKE '%new_pattern%';
+    SELECT COUNT(*) FROM pageviews
+    WHERE page_url LIKE '%new_pattern%' OR user_agent LIKE '%new_pattern%';
    
    // Verify false positives before deleting
    ```
@@ -317,15 +362,15 @@ curl -k https://localhost/index.php
 ### Production Monitoring
 
 ```bash
-# Check Apache logs for 403s
-tail -f /var/log/apache2/access.log | grep 403
+# Logs (em container, quando access.log não está no host)
+docker logs --tail 5000 4sqmet 2>&1 | grep -E 'GET / |403|aiohttp|zgrab|Censys|Shodan'
 
-# Check analytics table for suspicious
-mysql analytics -e "
-  SELECT COUNT(*) FROM analytics 
-  WHERE url LIKE '%_ignition%'
-"
-# Should return 0 (all blocked)
+# Analytics SQLite: share de "Outros" por dia (últimos 14 dias)
+docker exec -i 4sqmet php -r '
+$db=new PDO("sqlite:/var/www/html/data/analytics.db");
+foreach($db->query("SELECT date(timestamp, \"unixepoch\", \"localtime\") day, COUNT(*) total, SUM(CASE WHEN browser=\"Outros\" THEN 1 ELSE 0 END) bo, SUM(CASE WHEN os=\"Outros\" THEN 1 ELSE 0 END) oo FROM pageviews WHERE timestamp >= strftime(\"%s\",\"now\",\"-14 days\") GROUP BY day ORDER BY day DESC") as $r){
+    echo $r["day"]."\ttotal=".$r["total"]."\tbrowser_outros=".$r["bo"]."\tos_outros=".$r["oo"]."\n";
+}'
 ```
 
 ## Troubleshooting
@@ -340,9 +385,11 @@ mysql analytics -e "
 php migrate_analytics_data.php
 
 # Verify
-SELECT COUNT(*) FROM analytics 
-WHERE user_agent LIKE '%bot%';
-# Should be 0 or very low
+docker exec -i 4sqmet php -r '
+$db=new PDO("sqlite:/var/www/html/data/analytics.db");
+$count=$db->query("SELECT COUNT(*) FROM pageviews WHERE user_agent LIKE \"%bot%\" OR browser=\"Outros\" OR os=\"Outros\"")->fetchColumn();
+echo "suspicious_or_outros=".$count."\n";
+'
 ```
 
 ### Dashboard showing wrong day
@@ -365,7 +412,7 @@ date($timestamp, 'unixepoch', 'localtime')
 **Solution**:
 ```php
 // 1. Identify pattern in logs
-tail -100 /var/log/apache2/access.log | grep suspicious_pattern
+docker logs --tail 5000 4sqmet 2>&1 | grep suspicious_pattern
 
 // 2. Add to isSuspiciousRequest()
 return preg_match('/...existing|new_pattern.../i', $path.$query);
@@ -377,8 +424,28 @@ curl -k https://localhost/index.php?new_pattern=1
 php migrate_analytics_data.php
 ```
 
+### Browser/OS chart dominated by "Outros"
+
+**Cause**: generic/synthetic UA accepted by collector (`Mozilla/5.0`, `zgrab`, `aiohttp`, etc.)
+
+**Solution**:
+```php
+// 1. Add signature to isIgnoredUserAgent()
+if (stripos($userAgent, 'zgrab/') !== false) {
+    return true;
+}
+
+// 2. Add exact generic-UA guard
+if (preg_match('/^Mozilla\/5\.0(?:\s+zgrab\/0\.x)?$/i', $userAgent)) {
+    return true;
+}
+
+// 3. Deploy + monitor 24h
+// Expect: browser/os "Outros" drop and charts reflect human sessions.
+```
+
 ---
 
-**Última atualização**: 17 de Março de 2026  
-**Versão**: 1.0.0  
+**Última atualização**: 03 de Maio de 2026  
+**Versão**: 1.1.0  
 **Referências**: `analytics.php`, `migrate_analytics_data.php`, `docs/ANALYTICS.md`
