@@ -87,6 +87,15 @@ else
     fi
 fi
 
+# Dependências de sistema do Chromium — necessárias em todo rebuild (libs do SO, não do workspace)
+echo -e "${CYAN}📦 Instalando dependências de sistema do Chromium...${NC}"
+if npx -y playwright@latest install-deps chromium > /tmp/mcp-playwright-deps.log 2>&1; then
+    echo -e "${GREEN}✅ Dependências do Chromium instaladas${NC}"
+else
+    echo -e "${YELLOW}⚠️  Falha ao instalar dependências. Testes Playwright podem não funcionar.${NC}"
+    echo -e "${YELLOW}   Execute manualmente: npx playwright install-deps chromium${NC}"
+fi
+
 # ── Resumo ───────────────────────────────────────────────────────────────────
 echo -e "\n${BLUE}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
 echo -e "${GREEN}🚀 DevContainer pronto!${NC}"
