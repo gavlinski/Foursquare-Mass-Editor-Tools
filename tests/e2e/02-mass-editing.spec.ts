@@ -32,9 +32,8 @@ test.describe('Edição em Massa', () => {
   });
 
   test('edit.php renderiza campos Dojo para ID de venue válido', async ({ page }) => {
-    // TODO: Substituir pelo ID de uma venue de teste real antes de rodar em CI
-    // Use uma venue que o usuário autenticado pode editar
-    const VENUE_ID_TESTE = process.env.TEST_VENUE_ID || '';
+    // ID de venue fixo para testes — pode ser sobrescrito por TEST_VENUE_ID no ambiente
+    const VENUE_ID_TESTE = process.env.TEST_VENUE_ID || '4ec42a0a9a522f580b42dbeb';
 
     test.skip(!VENUE_ID_TESTE, 'TEST_VENUE_ID não definido — pule este teste ou defina a variável de ambiente');
 
@@ -49,7 +48,7 @@ test.describe('Edição em Massa', () => {
   });
 
   test('edit.php - sinalização de alteração em campo', async ({ page }) => {
-    const VENUE_ID_TESTE = process.env.TEST_VENUE_ID || '';
+    const VENUE_ID_TESTE = process.env.TEST_VENUE_ID || '4ec42a0a9a522f580b42dbeb';
     test.skip(!VENUE_ID_TESTE, 'TEST_VENUE_ID não definido');
 
     await page.goto(`/4sqmet/edit.php?ids=${VENUE_ID_TESTE}&fields=name`);
@@ -58,7 +57,8 @@ test.describe('Edição em Massa', () => {
     await page.waitForLoadState('networkidle', { timeout: 20_000 });
 
     // Localizar campo de nome e modificar
-    const nameInput = page.locator('input[name*="name"], .dijitTextBox').first();
+    // Nota: .dijitTextBox é o <div> container externo do Dojo; o <input> real é .dijitInputInner
+    const nameInput = page.locator('input.dijitInputInner').first();
     await nameInput.fill('Teste MCP Playwright');
 
     // Deve aparecer alguma sinalização visual de alteração pendente
