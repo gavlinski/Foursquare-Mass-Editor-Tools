@@ -13,10 +13,13 @@ test.describe('Edição em Massa', () => {
 
   test('main.php exibe formulário de entrada de IDs/URLs', async ({ page }) => {
     await page.goto('/4sqmet/main.php');
-    // Campo de entrada de IDs ou URLs
-    await expect(page.locator('textarea, input[type=text]').first()).toBeVisible({ timeout: 10_000 });
-    // Botão Continuar
-    await expect(page.locator('button:has-text("Continuar"), input[value="Continuar"]')).toBeVisible();
+    // Campo de entrada de IDs ou URLs — Dojo SimpleTextarea com id fixo
+    // Nota: 'textarea, input[type=text]' falha pois inputs internos do Dojo (validation icons)
+    // aparecem primeiro no DOM e são hidden. Usar o ID específico do elemento.
+    await expect(page.locator('#textarea_ids')).toBeVisible({ timeout: 10_000 });
+    // Botão Continuar — Dojo converte <button dojoType="dijit.form.Button"> em <span role="button">
+    // por isso 'button:has-text()' não funciona; usar getByRole que respeita ARIA roles
+    await expect(page.getByRole('button', { name: /Continuar/i }).first()).toBeVisible();
   });
 
   test('main.php exibe checkboxes de seleção de campos', async ({ page }) => {
