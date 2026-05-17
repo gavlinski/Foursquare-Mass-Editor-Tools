@@ -8,7 +8,7 @@
     "minify": "npm run minify:js",
     "test": "playwright test",
     "test:headed": "playwright test --headed",
-    "test:report": "playwright show-report",
+    "test:report": "playwright show-report --host 0.0.0.0",
     "test:smoke": "playwright test tests/e2e/01-session-auth.spec.ts",
     "minify:js": "terser js/4sq.js -o js/4sq.min.js -c -m && terser js/4sq_csv.js -o js/4sq_csv.min.js -c -m && terser js/main.js -o js/main.min.js -c -m && terser js/session-manager.js -o js/session-manager.min.js -c -m && terser js/google-maps.js -o js/google-maps.min.js -c -m",
     "watch": "watch 'npm run build' js/"

@@ -47,6 +47,7 @@
 		},
 		"9323": {
 			"label": "Playwright HTML Report",
+			"protocol": "http",
 			"onAutoForward": "openBrowserOnce"
 		}
 	},
@@ -72,7 +73,8 @@
 		"vscode": {
 			"extensions": [
 				"bmewburn.vscode-intelephense-client",
-				"eamodio.gitlens"
+				"eamodio.gitlens",
+				"ms-playwright.playwright"
 			]
 		}
 	},
