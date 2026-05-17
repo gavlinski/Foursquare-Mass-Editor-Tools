@@ -31,6 +31,9 @@
 	// um túnel SSH com porta aleatória. onAutoForward abre o browser na URL correta.
 	// "forwardPorts": [80, 443],
 
+	// Porta do Playwright HTML Report — forwarded para o host em todos os runtimes
+	"forwardPorts": [9323],
+
 	// Labels para a aba PORTS do VS Code (válido para ambas configurações)
 	"portsAttributes": {
 		"443": {
@@ -41,6 +44,10 @@
 		},
 		"80": {
 			"label": "App HTTP → HTTPS"
+		},
+		"9323": {
+			"label": "Playwright HTML Report",
+			"onAutoForward": "openBrowserOnce"
 		}
 	},
 
