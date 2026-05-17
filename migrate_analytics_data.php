@@ -130,12 +130,44 @@ function isSuspiciousUrlStandalone(string $url): bool {
     return false;
 }
 
-function shouldDeleteRecord(string $originalUrl, string $pageUrl, string $userAgent): bool {
+function isSuspiciousReferrerStandalone(string $referrer): bool {
+    $referrer = trim($referrer);
+    if ($referrer === '') {
+        return false;
+    }
+
+    if (isSuspiciousUrlStandalone($referrer)) {
+        return true;
+    }
+
+    $normalizedRaw = strtolower($referrer);
+    $normalizedDecoded = strtolower(urldecode($referrer));
+
+    $suspiciousMarkers = [
+        '() {',
+        'content-type: text/html',
+        '/bin/cat /etc/passwd'
+    ];
+
+    foreach ($suspiciousMarkers as $marker) {
+        if (strpos($normalizedRaw, $marker) !== false || strpos($normalizedDecoded, $marker) !== false) {
+            return true;
+        }
+    }
+
+    return false;
+}
+
+function shouldDeleteRecord(string $originalUrl, string $pageUrl, string $userAgent, string $referrer): bool {
     if (isIgnoredUserAgentStandalone($userAgent)) {
         return true;
     }
 
     if (isSuspiciousUrlStandalone($originalUrl)) {
+        return true;
+    }
+
+    if (isSuspiciousReferrerStandalone($referrer)) {
         return true;
     }
 
@@ -166,7 +198,7 @@ try {
     
     // 2. Busca TODOS os registros
     echo "🔍 Processando registros...\n";
-    $stmt = $pdo->query('SELECT id, page_url, user_agent FROM pageviews');
+    $stmt = $pdo->query('SELECT id, page_url, user_agent, referrer FROM pageviews');
     $records = $stmt->fetchAll(PDO::FETCH_ASSOC);
     
     $updated = 0;
@@ -176,6 +208,7 @@ try {
     foreach ($records as $record) {
         $oldUrl = $record['page_url'];
         $userAgent = $record['user_agent'] ?? '';
+        $referrer = $record['referrer'] ?? '';
         
         // Remove backslash inválido
         if ($oldUrl === '\\') {
@@ -189,7 +222,7 @@ try {
         // Aplica sanitização
         $newUrl = sanitizeUrlStandalone($oldUrl);
         
-        if (shouldDeleteRecord($oldUrl, $newUrl, $userAgent)) {
+        if (shouldDeleteRecord($oldUrl, $newUrl, $userAgent, $referrer)) {
             $stmt = $pdo->prepare('DELETE FROM pageviews WHERE id = ?');
             $stmt->execute([$record['id']]);
             $deleted++;

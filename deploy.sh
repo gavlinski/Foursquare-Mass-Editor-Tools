@@ -21,6 +21,9 @@ PRODUCTION_PATH="/var/www/4sqmet"
 BRANCH="${DEPLOY_BRANCH:-refactor-ia}"
 BACKUP_DIR="/var/backups/4sqmet"
 TIMESTAMP=$(date +"%Y%m%d_%H%M%S")
+PRODUCTION_PUBLIC_URL="${APP_URL:-https://${PRODUCTION_SERVER}}"
+HEALTHCHECK_URL="${PRODUCTION_PUBLIC_URL%/}/"
+HTTP_HEALTHCHECK_URL="${HEALTHCHECK_URL/#https:\/\//http://}"
 
 # Detecta ambiente CI (GitHub Actions, GitLab CI, etc.)
 IS_CI_ENVIRONMENT="${CI:-false}"
@@ -331,7 +334,7 @@ ENVEOF
     
     echo "🔍 Verificando saúde do container..."
     sleep 3
-    HEALTH=\$(docker inspect --format='{{.State.Health.Status}}' 4sqmet 2>/dev/null || echo "no-healthcheck")
+    HEALTH=\$(docker inspect --format='{{if .State.Health}}{{.State.Health.Status}}{{else}}no-healthcheck{{end}}' 4sqmet 2>/dev/null || echo "inspect-error")
     if [ "\$HEALTH" = "healthy" ] || [ "\$HEALTH" = "no-healthcheck" ]; then
         echo "✅ Container saudável"
     else
@@ -351,8 +354,10 @@ echo -e "${YELLOW}🔍 Testando conectividade...${NC}"
 sleep 5
 
 # Testar HTTPS (produção)
-HTTPS_CODE=$(curl -s -o /dev/null -w "%{http_code}" --max-time 10 "https://${PRODUCTION_SERVER}/")
+set +e
+HTTPS_CODE=$(curl -s -o /dev/null -w "%{http_code}" --max-time 10 "$HEALTHCHECK_URL")
 HTTPS_EXIT=$?
+set -e
 if [ $HTTPS_EXIT -ne 0 ]; then
     HTTPS_CODE="000"
 fi
@@ -361,8 +366,10 @@ if [ "$HTTPS_CODE" = "200" ] || [ "$HTTPS_CODE" = "302" ]; then
     echo -e "${GREEN}✅ Site está respondendo via HTTPS (HTTP ${HTTPS_CODE})${NC}"
 elif [ "$HTTPS_CODE" = "000" ]; then
     # Fallback: testar HTTP
-    HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" --max-time 10 "http://${PRODUCTION_SERVER}/")
+    set +e
+    HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" --max-time 10 "$HTTP_HEALTHCHECK_URL")
     HTTP_EXIT=$?
+    set -e
     if [ $HTTP_EXIT -ne 0 ]; then
         HTTP_CODE="000"
     fi
@@ -373,7 +380,7 @@ elif [ "$HTTPS_CODE" = "000" ]; then
     else
         echo -e "${RED}⚠️  Site não está respondendo (HTTPS: ${HTTPS_CODE}/exit ${HTTPS_EXIT}, HTTP: ${HTTP_CODE}/exit ${HTTP_EXIT})${NC}"
         echo -e "${YELLOW}   Container pode estar inicializando. Aguarde 1-2 minutos e teste:${NC}"
-        echo -e "${CYAN}   curl -I https://${PRODUCTION_SERVER}/${NC}"
+        echo -e "${CYAN}   curl -I ${HEALTHCHECK_URL}${NC}"
     fi
 else
     echo -e "${YELLOW}⚠️  Site retornou código HTTPS inesperado: ${HTTPS_CODE}${NC}"
@@ -384,7 +391,7 @@ echo -e "\n${GREEN}╔═══════════════════�
 echo -e "${GREEN}║                 🎉 DEPLOY CONCLUÍDO! 🎉                    ║${NC}"
 echo -e "${GREEN}╚════════════════════════════════════════════════════════════╝${NC}"
 echo -e "\n${CYAN}📊 Informações do Deploy:${NC}"
-echo -e "   URL: ${GREEN}http://${PRODUCTION_SERVER}${NC}"
+echo -e "   URL: ${GREEN}${PRODUCTION_PUBLIC_URL}${NC}"
 echo -e "   Timestamp: ${GREEN}${TIMESTAMP}${NC}"
 echo -e "   Branch: ${GREEN}${BRANCH}${NC}"
 echo -e "   Commit: ${GREEN}$(git log -1 --pretty=format:'%h - %s')${NC}"

@@ -223,10 +223,38 @@ function isSuspiciousRequest(string $rawUrl): bool {
     return false;
 }
 
+function isSuspiciousReferrer(string $referrer): bool {
+    $referrer = trim($referrer);
+    if ($referrer === '') {
+        return false;
+    }
+
+    if (isSuspiciousRequest($referrer)) {
+        return true;
+    }
+
+    $normalizedRaw = strtolower($referrer);
+    $normalizedDecoded = strtolower(urldecode($referrer));
+
+    $suspiciousMarkers = [
+        '() {',
+        'content-type: text/html',
+        '/bin/cat /etc/passwd'
+    ];
+
+    foreach ($suspiciousMarkers as $marker) {
+        if (strpos($normalizedRaw, $marker) !== false || strpos($normalizedDecoded, $marker) !== false) {
+            return true;
+        }
+    }
+
+    return false;
+}
+
 /**
  * Verifica se a pageview deve ser ignorada
  */
-function shouldIgnorePageview(string $rawUrl, string $pageUrl, string $userAgent): bool {
+function shouldIgnorePageview(string $rawUrl, string $pageUrl, string $userAgent, string $referrer): bool {
     $method = $_SERVER['REQUEST_METHOD'] ?? 'GET';
     if (!in_array($method, ['GET', 'HEAD'], true)) {
         return true;
@@ -237,6 +265,10 @@ function shouldIgnorePageview(string $rawUrl, string $pageUrl, string $userAgent
     }
 
     if (isSuspiciousRequest($rawUrl)) {
+        return true;
+    }
+
+    if (isSuspiciousReferrer($referrer)) {
         return true;
     }
 
@@ -292,7 +324,7 @@ function trackPageview(): void {
     $userAgent = $_SERVER['HTTP_USER_AGENT'] ?? '';
     $language = $_SERVER['HTTP_ACCEPT_LANGUAGE'] ?? '';
 
-    if (shouldIgnorePageview($rawUrl, $pageUrl, $userAgent)) {
+    if (shouldIgnorePageview($rawUrl, $pageUrl, $userAgent, $referrer)) {
         return;
     }
     
