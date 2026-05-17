@@ -98,12 +98,121 @@ jobs:
         run: echo "✅ All tests passed!"
 
   # ============================================================
-  # Job 3: Build & Minify Assets
+  # Job 3: E2E Regression Tests (Playwright)
+  # ============================================================
+  e2e-tests:
+    name: 🎭 E2E Regression Tests
+    runs-on: ubuntu-latest
+    needs: lint
+    if: |
+      (github.event_name == 'push' && (github.ref == 'refs/heads/refactor-ia' || github.ref == 'refs/heads/main')) ||
+      github.event_name == 'workflow_dispatch'
+
+    steps:
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+
+      - name: 📦 Setup Node.js ${{ env.NODE_VERSION }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: 📦 Install npm dependencies
+        run: npm ci
+
+      - name: 🎭 Install Playwright Chromium + system deps
+        run: npx playwright install chromium --with-deps
+        # CI=true (definido pelo Actions) faz playwright.config.ts NÃO sobrescrever
+        # PLAYWRIGHT_BROWSERS_PATH, usando o path padrão do runner (~/.cache/ms-playwright)
+
+      - name: 🔑 Gerar certificado SSL autoassinado para container de teste
+        run: |
+          mkdir -p ssl
+          openssl req -x509 -nodes -days 1 -newkey rsa:2048 \
+            -keyout ssl/localhost-key.pem \
+            -out ssl/localhost.pem \
+            -subj "/CN=localhost" 2>/dev/null
+          echo "✅ Certificado SSL gerado"
+
+      - name: 🐳 Build e iniciar container da aplicação
+        run: |
+          docker build --build-arg BUILD_ENV=development -t foursquare-e2e .
+          docker run -d \
+            --name foursquare-e2e-app \
+            -p 80:80 -p 443:443 \
+            -e FOURSQUARE_CLIENT_KEY=${{ secrets.FOURSQUARE_CLIENT_KEY }} \
+            -e FOURSQUARE_CLIENT_SECRET=${{ secrets.FOURSQUARE_CLIENT_SECRET }} \
+            -e FOURSQUARE_REDIRECT_URI=${{ secrets.FOURSQUARE_REDIRECT_URI }} \
+            -e GOOGLE_MAPS_API_KEY=${{ secrets.GOOGLE_MAPS_API_KEY }} \
+            -e GOOGLE_MAPS_MAP_ID=${{ secrets.GOOGLE_MAPS_MAP_ID }} \
+            -e APP_URL=https://localhost \
+            foursquare-e2e
+
+      - name: ⏳ Aguardar aplicação inicializar
+        run: |
+          echo "Aguardando container inicializar..."
+          for i in $(seq 1 30); do
+            if curl -k -sf https://localhost/4sqmet/ > /dev/null 2>&1; then
+              echo "✅ Aplicação pronta!"
+              exit 0
+            fi
+            if [ $i -eq 30 ]; then
+              echo "❌ Falha ao inicializar — logs do container:"
+              docker logs foursquare-e2e-app
+              exit 1
+            fi
+            echo "  Tentativa $i/30..."
+            sleep 2
+          done
+
+      - name: 🔐 Criar storage state de autenticação Playwright
+        run: |
+          mkdir -p data/mcp/playwright
+          node -e "
+          const token = process.env.FOURSQUARE_TEST_TOKEN;
+          if (!token) { console.error('❌ Secret FOURSQUARE_TEST_TOKEN não configurada'); process.exit(1); }
+          const data = {
+            cookies: [{
+              name: 'oauth_token', value: token,
+              domain: 'localhost', path: '/',
+              expires: 9999999999,
+              httpOnly: false, secure: true, sameSite: 'Lax'
+            }],
+            origins: []
+          };
+          require('fs').writeFileSync('data/mcp/playwright/foursquare.storage-state.json', JSON.stringify(data));
+          console.log('✅ Storage state criado');
+          "
+        env:
+          FOURSQUARE_TEST_TOKEN: ${{ secrets.FOURSQUARE_TEST_TOKEN }}
+
+      - name: 🎭 Executar testes de regressão E2E
+        run: npx playwright test
+
+      - name: 📊 Upload relatório HTML do Playwright
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: playwright-report
+          path: playwright-report/
+          retention-days: 14
+
+      - name: 📸 Upload artefatos de falha
+        uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: test-results
+          path: test-results/
+          retention-days: 7
+
+  # ============================================================
+  # Job 4: Build & Minify Assets
   # ============================================================
   build:
     name: 🔨 Build & Minify
     runs-on: ubuntu-latest
-    needs: [lint, test]
+    needs: [lint, test, e2e-tests]
     if: github.event_name != 'workflow_dispatch' || github.event.inputs.action == 'deploy'
     
     steps:

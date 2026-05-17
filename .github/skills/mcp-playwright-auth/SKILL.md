@@ -372,3 +372,13 @@ Reinstalar se necessário:
 ```bash
 ./scripts/mcp-playwright-prepare.sh
 ```
+### Dependências de sistema perdidas após rebuild
+O binário do Chromium persiste no workspace, mas as libs de SO (`libglib-2.0.so.0`, `libnss3`, etc.)
+são parte da camada do container e são apagadas em cada rebuild.
+
+```bash
+PLAYWRIGHT_BROWSERS_PATH=/var/www/html/data/mcp/playwright/browsers npx playwright install-deps chromium
+```
+
+> **Fix permanente:** `scripts/devcontainer-setup.sh` executa isso automaticamente no `postCreateCommand`
+> (adicionado no commit `cad7301`). Após qualquer rebuild, as deps são reinstaladas sem intervenção manual.

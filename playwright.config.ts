@@ -8,8 +8,11 @@ import { defineConfig, devices } from '@playwright/test';
  * Auth: storageState reuses the oauth_token captured by mcp-foursquare-auth-bootstrap.sh.
  * Unlike Playwright MCP, @playwright/test DOES auto-load storageState cookies.
  */
-// Reutiliza o Chromium persistente no volume do workspace (sobrevive a rebuilds)
-process.env.PLAYWRIGHT_BROWSERS_PATH = '/var/www/html/data/mcp/playwright/browsers';
+// Dev container: reutilizar Chromium persistente no volume do workspace
+// CI (GitHub Actions): CI=true é definido automaticamente — usar path padrão do runner
+if (!process.env.CI) {
+  process.env.PLAYWRIGHT_BROWSERS_PATH = '/var/www/html/data/mcp/playwright/browsers';
+}
 
 export default defineConfig({
   testDir: './tests/e2e',

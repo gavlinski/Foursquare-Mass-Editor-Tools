@@ -147,14 +147,11 @@ npx playwright test tests/e2e/01-session-auth.spec.ts
 - `edit.php` renderiza campos Dojo (requer `TEST_VENUE_ID`)
 - Sinalização visual de campo alterado
 
-**Variável necessária para testes com venue real:**
-```bash
-# Definir ID de uma venue que pode ser editada
-export TEST_VENUE_ID="4b2d7d5cf964a520d1d724e3"
-npx playwright test tests/e2e/02-mass-editing.spec.ts
-```
+**ID de venue:** os testes usam `4ec42a0a9a522f580b42dbeb` como fallback fixo.
+Para substituir: `export TEST_VENUE_ID="outro-id"` antes de rodar.
 
-**Sem `TEST_VENUE_ID`:** os testes que dependem de `edit.php` são automaticamente skipped.
+> ⚠️ Os testes de `edit.php` fazem `fill()` no campo nome mas **não salvam** (sem submit).
+> É seguro usar uma venue real de produção.
 
 ---
 
@@ -269,26 +266,60 @@ PLAYWRIGHT_BROWSERS_PATH=/var/www/html/data/mcp/playwright/browsers npx playwrig
 
 ## Integração CI/CD
 
-Para rodar regressão no GitHub Actions, o token de auth não estará disponível.
-Opções:
+Os testes rodam no job `e2e-tests` do workflow `.github/workflows/deploy.yml`.
 
-1. **Testes de API apenas** (sem storageState) — omitir o `storageState` do config e testar apenas endpoints públicos
-2. **Token como secret** — salvar o `oauth_token` como GitHub Secret e reconstruir o storage state no CI:
-   ```yaml
-   - name: Criar storage state para testes
-     run: |
-       node -e "
-       const data = { cookies: [{ name: 'oauth_token', value: process.env.FOURSQUARE_TOKEN,
-         domain: 'localhost', path: '/', expires: 9999999999,
-         httpOnly: false, secure: true, sameSite: 'Lax' }], origins: [] };
-       require('fs').writeFileSync('data/mcp/playwright/foursquare.storage-state.json', JSON.stringify(data));
-       "
-     env:
-       FOURSQUARE_TOKEN: ${{ secrets.FOURSQUARE_TEST_TOKEN }}
-   
-   - name: Executar testes de regressão
-     run: npm test
-   ```
+### Arquitetura do job
+
+```
+GitHub Actions runner (ubuntu-latest)
+  ├─ Docker container: aplicacão PHP/Apache (porta 443)
+  └─ npx playwright test (conecta em https://localhost)
+```
+
+### Secrets necessárias
+
+| Secret | Descrição | Onde configurar |
+|--------|-----------|----------------|
+| `FOURSQUARE_TEST_TOKEN` | OAuth token para autenticacão dos testes | GitHub → Settings → Secrets and variables → Actions |
+| `FOURSQUARE_CLIENT_KEY` | Chave do app Foursquare | Já existe |
+| `FOURSQUARE_CLIENT_SECRET` | Secret do app Foursquare | Já existe |
+| `GOOGLE_MAPS_API_KEY` | API key do Maps | Já existe |
+
+### `PLAYWRIGHT_BROWSERS_PATH` em CI vs Dev Container
+
+O `playwright.config.ts` usa a seguinte lógica:
+```typescript
+// CI=true é definido automaticamente pelo GitHub Actions
+if (!process.env.CI) {
+  process.env.PLAYWRIGHT_BROWSERS_PATH = '/var/www/html/data/mcp/playwright/browsers';
+}
+// CI: usa path padrão do runner (~/.cache/ms-playwright)
+// Dev container: usa volume persistente do workspace
+```
+
+### Criar a secret `FOURSQUARE_TEST_TOKEN`
+
+```bash
+# No dev container, obter o token atual
+node /var/www/html/scripts/get-foursquare-token.js
+# Copiar o valor de "oauth_token" e adicionar como secret no GitHub
+```
+
+O job cria o storage state automaticamente a partir da secret:
+```yaml
+- name: Criar storage state de autenticacão Playwright
+  run: |
+    mkdir -p data/mcp/playwright
+    node -e "
+    const token = process.env.FOURSQUARE_TEST_TOKEN;
+    const data = { cookies: [{ name: 'oauth_token', value: token,
+      domain: 'localhost', path: '/', expires: 9999999999,
+      httpOnly: false, secure: true, sameSite: 'Lax' }], origins: [] };
+    require('fs').writeFileSync('data/mcp/playwright/foursquare.storage-state.json', JSON.stringify(data));
+    "
+  env:
+    FOURSQUARE_TEST_TOKEN: ${{ secrets.FOURSQUARE_TEST_TOKEN }}
+```
 
 ---
 
@@ -309,5 +340,18 @@ PLAYWRIGHT_BROWSERS_PATH=/var/www/html/data/mcp/playwright/browsers npx playwrig
 - Verificar se `baseURL` em `playwright.config.ts` bate com o domínio do cookie
 
 ### Testes passam localmente mas falham no CI
-- O `PLAYWRIGHT_BROWSERS_PATH` pode não estar configurado no CI
-- Adicionar `PLAYWRIGHT_BROWSERS_PATH: /root/.cache/ms-playwright` no env do workflow para usar o cache padrão do CI
+- Verificar se a secret `FOURSQUARE_TEST_TOKEN` está configurada no GitHub
+- `playwright.config.ts` não sobrescreve `PLAYWRIGHT_BROWSERS_PATH` quando `CI=true` — o runner usa o path padrão instalado por `npx playwright install chromium --with-deps`
+
+### Seletor Dojo não encontra elemento ou elemento está hidden
+Ver seção **Armadilhas Dojo** acima. Resumo:
+- `input[type=text]` → usar ID específico (`#textarea_ids`)
+- `.dijitTextBox` para fill() → usar `input.dijitInputInner`
+- `button:has-text()` → usar `getByRole('button', { name: /texto/i })`
+
+### `libglib-2.0.so.0: cannot open shared object file` após rebuild
+O binário do Chromium persiste no volume do workspace, mas as libs de SO são perdidas no rebuild.
+```bash
+PLAYWRIGHT_BROWSERS_PATH=/var/www/html/data/mcp/playwright/browsers npx playwright install-deps chromium
+```
+> Fix permanente: `scripts/devcontainer-setup.sh` já executa isso automaticamente.
