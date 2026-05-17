@@ -56,6 +56,15 @@ function getAnalyticsDB(): ?PDO {
     }
 }
 
+function getReferrerDisplayLabel(string $referrer): string {
+    $host = parse_url($referrer, PHP_URL_HOST);
+    if (is_string($host) && $host !== '') {
+        return strtolower($host);
+    }
+
+    return trim($referrer);
+}
+
 // Coleta estatísticas
 $pdo = getAnalyticsDB();
 $stats = [
@@ -117,11 +126,31 @@ if ($pdo) {
             FROM pageviews 
             WHERE timestamp >= ? AND referrer != ""
             GROUP BY referrer 
-            ORDER BY count DESC 
-            LIMIT 10
+            ORDER BY count DESC
         ');
         $stmt->execute([$cutoffTime]);
-        $stats['top_referrers'] = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        $topReferrers = [];
+        foreach ($stmt->fetchAll(PDO::FETCH_ASSOC) as $row) {
+            $label = getReferrerDisplayLabel((string) $row['referrer']);
+            if ($label === '') {
+                continue;
+            }
+
+            if (!isset($topReferrers[$label])) {
+                $topReferrers[$label] = [
+                    'referrer' => $label,
+                    'count' => 0,
+                ];
+            }
+
+            $topReferrers[$label]['count'] += (int) $row['count'];
+        }
+
+        usort($topReferrers, static function (array $left, array $right): int {
+            return $right['count'] <=> $left['count'];
+        });
+
+        $stats['top_referrers'] = array_slice($topReferrers, 0, 10);
         
         // Navegadores
         $stmt = $pdo->prepare('
@@ -641,7 +670,7 @@ table tr:hover {
             <tbody>
                 <?php foreach ($stats['top_referrers'] as $ref): ?>
                 <tr>
-                    <td><?= htmlspecialchars(parse_url($ref['referrer'], PHP_URL_HOST) ?: $ref['referrer']) ?></td>
+                    <td><?= htmlspecialchars($ref['referrer']) ?></td>
                     <td style="text-align: right;"><strong><?= $ref['count'] ?></strong></td>
                 </tr>
                 <?php endforeach; ?>
