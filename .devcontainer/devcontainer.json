@@ -24,16 +24,14 @@
 
 	// OrbStack (macOS) — mapeamento fixo: https://localhost/4sqmet/ na porta padrão
 	// OrbStack gerencia portas privilegiadas (80/443) via extensão de rede.
-	"appPort": ["80:80", "443:443"],
+	// Portas do Playwright: mapeamento Docker direto (appPort) para WebSocket funcionar
+	// sem passar pelo túnel do VS Code (forwardPorts não suporta WebSocket confiavelmente).
+	"appPort": ["80:80", "443:443", "9323:9323", "41428:41428"],
 
 	// Docker Desktop (macOS/Windows/Linux) — descomente e comente o appPort acima
 	// Docker Desktop não mapeia portas privilegiadas diretamente; o VS Code usa
 	// um túnel SSH com porta aleatória. onAutoForward abre o browser na URL correta.
 	// "forwardPorts": [80, 443],
-
-	// Porta do Playwright HTML Report — forwarded para o host em todos os runtimes
-	// Porta do Playwright UI mode (npm run test:ui) — forwarded para o host
-	"forwardPorts": [9323, 41428],
 
 	// Labels para a aba PORTS do VS Code (válido para ambas configurações)
 	"portsAttributes": {
