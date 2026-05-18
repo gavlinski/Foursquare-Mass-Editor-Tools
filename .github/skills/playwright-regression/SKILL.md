@@ -344,10 +344,45 @@ PLAYWRIGHT_BROWSERS_PATH=/var/www/html/data/mcp/playwright/browsers npx playwrig
 - `playwright.config.ts` não sobrescreve `PLAYWRIGHT_BROWSERS_PATH` quando `CI=true` — o runner usa o path padrão instalado por `npx playwright install chromium --with-deps`
 
 ### Seletor Dojo não encontra elemento ou elemento está hidden
-Ver seção **Armadilhas Dojo** acima. Resumo:
+Ver seção **Armadilhas Dojo** abaixo. Resumo:
 - `input[type=text]` → usar ID específico (`#textarea_ids`)
 - `.dijitTextBox` para fill() → usar `input.dijitInputInner`
 - `button:has-text()` → usar `getByRole('button', { name: /texto/i })`
+- `input.dijitInputInner[name="nome"]` → **NUNCA funciona**: Dojo não preserva `name` em `dijitInputInner`
+
+### `edit.php` redireciona para `index.php` / `main.php` no CI
+`edit.php` exige `$_SESSION["file"] != null`, que só é definido pelo fluxo via `load.php`.
+Navegação direta para `edit.php` falha em CI (sessão limpa). **Solução:** sempre usar o fluxo completo:
+```typescript
+// ❌ ERRO — falha em CI (sessão limpa, redirect para main.php)
+await page.goto('/4sqmet/edit.php?ids=xxx');
+
+// ✅ CORRETO — fluxo completo via load.php
+await page.goto('/4sqmet/main.php');
+await page.locator('#textarea_ids').fill(VENUE_ID);
+await page.locator('label[for="nome3"]').click();
+await page.getByRole('button', { name: /Continuar/i }).filter({ visible: true }).click();
+await page.waitForURL('**/edit.php**', { timeout: 30_000 });
+```
+
+### AccordionContainer — múltiplos botões "Continuar" (um por pane)
+`main.php` tem 5 panes de accordion, cada um com um botão Continuar.
+- ❌ `.getByRole('button', { name: /Continuar/i }).first()` → pode pegar o de um pane colapsado
+- ✅ `.getByRole('button', { name: /Continuar/i }).filter({ visible: true }).click()` → pega o do pane expandido
+
+### `input.dijitInputInner.first()` — cuidado em qual página está
+- Em **`main.php`**: o primeiro `dijitInputInner` pode ser de um pane accordion colapsado (ex.: campo `#pagina` do pane 3), resultando em timeout ou fill em campo hidden.
+- Em **`edit.php`** (via fluxo correto): o primeiro `dijitInputInner` é sempre o campo `name` (primeiro campo renderizado).
+
+### Dojo CheckBox — label click vs. direct check
+Clicar na `<label>` associada é mais confiável que `.check()` em inputs Dojo escondidos:
+```typescript
+// ✅ Confiável — usa associação label→input do browser
+await page.locator('label[for="nome3"]').click();
+
+// ⚠️ Menos confiável — Dojo pode substituir o input original
+await page.locator('#nome3').check();
+```
 
 ### `libglib-2.0.so.0: cannot open shared object file` após rebuild
 O binário do Chromium persiste no volume do workspace, mas as libs de SO são perdidas no rebuild.

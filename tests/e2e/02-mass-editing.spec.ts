@@ -37,12 +37,27 @@ test.describe('Edição em Massa', () => {
 
     test.skip(!VENUE_ID_TESTE, 'TEST_VENUE_ID não definido — pule este teste ou defina a variável de ambiente');
 
-    await page.goto(`/4sqmet/edit.php?ids=${VENUE_ID_TESTE}&fields=name,address,phone`);
-    // Campos Dojo devem estar presentes (dojoType attribute ou dijit widget)
-    await expect(page.locator('[dojoType], [data-dojo-type], .dijitTextBox')).toHaveCount(
-      await page.locator('[dojoType], [data-dojo-type], .dijitTextBox').count(),
-      { timeout: 15_000 }
-    );
+    // Fluxo correto: main.php → preencher IDs → submeter → edit.php
+    // Navegação direta para edit.php falha em CI (exige sessão estabelecida via load.php)
+    await page.goto('/4sqmet/main.php');
+    await page.waitForLoadState('networkidle', { timeout: 20_000 });
+
+    // Preencher ID de venue na textarea (id fixo, sempre visível no pane ativo do accordion)
+    await page.locator('#textarea_ids').fill(VENUE_ID_TESTE);
+
+    // Marcar checkbox "Nome" — label[for=nome3] é confiável com Dojo CheckBox
+    await page.locator('label[for="nome3"]').click();
+
+    // Submeter o formulário f_ids (action="load.php")
+    // Há múltiplos botões "Continuar" (um por pane do accordion), clicar no visível
+    await page.getByRole('button', { name: /Continuar/i }).filter({ visible: true }).click();
+
+    // load.php valida os IDs, grava sessão e executa window.location = "edit.php"
+    await page.waitForURL('**/edit.php**', { timeout: 30_000 });
+    await page.waitForLoadState('networkidle', { timeout: 30_000 });
+
+    // Verificar que estamos realmente em edit.php com campos Dojo renderizados
+    await expect(page).toHaveURL(/edit\.php/);
     const dojoCount = await page.locator('[dojoType], [data-dojo-type], .dijitTextBox').count();
     expect(dojoCount).toBeGreaterThan(0);
   });
@@ -51,21 +66,29 @@ test.describe('Edição em Massa', () => {
     const VENUE_ID_TESTE = process.env.TEST_VENUE_ID || '4ec42a0a9a522f580b42dbeb';
     test.skip(!VENUE_ID_TESTE, 'TEST_VENUE_ID não definido');
 
-    await page.goto(`/4sqmet/edit.php?ids=${VENUE_ID_TESTE}&fields=name`);
-
-    // Aguardar Dojo carregar
+    // Fluxo correto: main.php → preencher IDs → submeter → edit.php
+    // Navegação direta para edit.php falha em CI (exige sessão estabelecida via load.php)
+    await page.goto('/4sqmet/main.php');
     await page.waitForLoadState('networkidle', { timeout: 20_000 });
 
-    // Localizar campo de nome e modificar
-    // Nota: .dijitTextBox é o <div> container externo do Dojo; o <input> real é .dijitInputInner
+    // Preencher ID de venue e marcar checkbox "Nome"
+    await page.locator('#textarea_ids').fill(VENUE_ID_TESTE);
+    await page.locator('label[for="nome3"]').click();
+
+    // Submeter e aguardar redirect para edit.php
+    await page.getByRole('button', { name: /Continuar/i }).filter({ visible: true }).click();
+    await page.waitForURL('**/edit.php**', { timeout: 30_000 });
+    await page.waitForLoadState('networkidle', { timeout: 30_000 });
+
+    // Agora em edit.php — o primeiro dijitInputInner é o campo de nome
+    // Nota: Dojo NÃO preserva o atributo [name] no dijitInputInner, então não usar [name="name"]
+    // main.php tinha o problema de id="pagina" aparecer primeiro — em edit.php o primeiro é o nome
     const nameInput = page.locator('input.dijitInputInner').first();
     await nameInput.fill('Teste MCP Playwright');
 
-    // Deve aparecer alguma sinalização visual de alteração pendente
-    const alterado = page.locator('.alterado, .changed, [class*="modified"], .row-modified').first();
-    // Não forçar — apenas verificar se existe sinalização
-    const count = await alterado.count();
-    expect(count).toBeGreaterThanOrEqual(0); // Relaxado: pode não ter classe explícita
+    // Verificar sinalização de alteração pendente (verificação relaxada)
+    const count = await page.locator('.alterado, .changed, [class*="modified"], .row-modified').count();
+    expect(count).toBeGreaterThanOrEqual(0);
   });
 
 });
