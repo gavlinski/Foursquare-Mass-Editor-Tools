@@ -28,7 +28,7 @@ export default defineConfig({
     baseURL: 'https://localhost',
     ignoreHTTPSErrors: true,    // Self-signed cert in dev container
     screenshot: 'only-on-failure',
-    video: 'off',
+    video: 'retain-on-failure',  // Salva vídeo para testes que falham (útil para debug)
     trace: 'on-first-retry',
     // Auth: oauth_token cookie captured by mcp-foursquare-auth-bootstrap.sh
     // Run bootstrap first if this file doesn't exist:

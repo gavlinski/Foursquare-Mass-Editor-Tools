@@ -13,6 +13,8 @@ RUN apt-get update \
         libpng-dev \
         libxml2-dev \
         libcurl4-openssl-dev \
+        xvfb \
+        xauth \
     && docker-php-ext-install pdo pdo_mysql zip mbstring gd xml curl \
     && apt-get clean && rm -rf /var/lib/apt/lists/*
 

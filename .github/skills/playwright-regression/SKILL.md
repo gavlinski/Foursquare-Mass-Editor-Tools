@@ -64,13 +64,35 @@ npm run test:smoke
 # ou
 npx playwright test tests/e2e/01-session-auth.spec.ts
 
-# Gerar relatório HTML após a execução
+# Gerar relatório HTML após a execução (inclui vídeos de falhas)
 npm run test:report
 # ou
 npx playwright show-report
 
-# Executar com headed chromium local (debug visual — NÃO é o Brave via CDP)
+# Feedback visual em tempo real — RECOMENDADO para debug
+# Inicia web UI na porta 41428; VS Code detecta e abre no host browser
+npm run test:ui
+
+# Executar com headed chromium (browser no display virtual Xvfb)
+# Browser é invisível, mas testes passam e vídeos de falhas são gravados
 npm run test:headed
+```
+
+### Modos de feedback visual no dev container
+
+O dev container não tem display físico. Há dois modos de obter feedback visual:
+
+| Modo | Comando | Quando usar |
+|------|---------|------------|
+| **UI mode** (recomendado) | `npm run test:ui` | Debug interativo — abre web UI no host browser via port forwarding |
+| **Headed + vídeo** | `npm run test:headed` | Confirmar que testes passam headed; vídeos de falhas gravados automaticamente |
+| **Headless** | `npm test` | CI, execução rápida sem feedback visual |
+
+**VS Code "Show browser"**: Funciona após rebuild do container (Xvfb inicia automaticamente
+via `postStartCommand`). Na sessão atual, inicie manualmente se necessário:
+```bash
+pgrep Xvfb >/dev/null || (nohup Xvfb :99 -screen 0 1280x720x24 >/dev/null 2>&1 &)
+export DISPLAY=:99
 ```
 
 ---

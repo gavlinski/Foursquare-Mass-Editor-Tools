@@ -32,7 +32,8 @@
 	// "forwardPorts": [80, 443],
 
 	// Porta do Playwright HTML Report — forwarded para o host em todos os runtimes
-	"forwardPorts": [9323],
+	// Porta do Playwright UI mode (npm run test:ui) — forwarded para o host
+	"forwardPorts": [9323, 41428],
 
 	// Labels para a aba PORTS do VS Code (válido para ambas configurações)
 	"portsAttributes": {
@@ -49,12 +50,19 @@
 			"label": "Playwright HTML Report",
 			"protocol": "http",
 			"onAutoForward": "openBrowserOnce"
+		},
+		"41428": {
+			"label": "Playwright UI (test:ui)",
+			"protocol": "http",
+			"onAutoForward": "notify"
 		}
 	},
 
 	// Variável de ambiente para scripts detectarem que estão dentro do DevContainer
+	// DISPLAY=:99 habilita headed Chromium (Xvfb iniciado no postStartCommand)
 	"containerEnv": {
-		"DEVCONTAINER": "true"
+		"DEVCONTAINER": "true",
+		"DISPLAY": ":99"
 	},
 
 	// Cria symlink /var/www/html → workspace (VS Code mantém path padrão /workspaces/...)
@@ -66,7 +74,8 @@
 	"overrideCommand": false,
 
 	// Garante Apache rodando em cada reinício do container (segurança extra)
-	"postStartCommand": "service apache2 status > /dev/null 2>&1 || apache2ctl start",
+	// Inicia Xvfb :99 como display virtual para testes headed e VS Code "Show browser"
+	"postStartCommand": "bash -c 'pgrep Xvfb >/dev/null || (nohup Xvfb :99 -screen 0 1280x720x24 >/dev/null 2>&1 &); service apache2 status >/dev/null 2>&1 || apache2ctl start'",
 
 	// Configure tool-specific properties.
 	"customizations": {
