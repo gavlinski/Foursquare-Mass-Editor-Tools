@@ -60,7 +60,8 @@
 	// DISPLAY=:99 habilita headed Chromium (Xvfb iniciado no postStartCommand)
 	"containerEnv": {
 		"DEVCONTAINER": "true",
-		"DISPLAY": ":99"
+		"DISPLAY": ":99",
+		"PLAYWRIGHT_BROWSERS_PATH": "/var/www/html/data/mcp/playwright/browsers"
 	},
 
 	// Cria symlink /var/www/html → workspace (VS Code mantém path padrão /workspaces/...)
