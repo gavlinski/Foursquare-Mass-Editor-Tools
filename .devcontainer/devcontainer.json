@@ -54,7 +54,7 @@
 		"41428": {
 			"label": "Playwright UI (test:ui)",
 			"protocol": "http",
-			"onAutoForward": "notify"
+			"onAutoForward": "openBrowserOnce"
 		}
 	},
 
