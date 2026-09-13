@@ -1,4 +1,5 @@
 .DS_Store
+.devcontainer/devcontainer-lock.json
 
 # Bibliotecas externas (carregadas via CDN em produção)
 js/dijit/
