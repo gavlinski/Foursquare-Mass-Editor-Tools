@@ -9,7 +9,7 @@
  * @package    Foursquare-Mass-Editor-Tools
  * @author     Elio Gavlinski <gavlinski@gmail.com>
  * @copyright  Copyleft (c) 2011-2026
- * @version    3.2.0
+ * @version    3.2.1
  * @link       https://github.com/gavlinski/Foursquare-Mass-Editor-Tools/blob/master/edit_csv.php
  * @since      File available since Release 0.3
  * @license    GPLv3 <http://www.gnu.org/licenses/gpl.txt>
@@ -39,6 +39,7 @@ if (isset($_SESSION["oauth_token"])) {
 }
 
 include_once 'includes/asset_helper.php';
+include 'includes/app_credentials.php';
 ?>
 <!doctype html>
 <html lang="pt-BR">
@@ -176,8 +177,12 @@ foreach ($file as $f) {
 
 	echo '<section class="row">', chr(10), '<form name="form', $i, '" accept-charset="utf-8" encType="multipart/form-data" method="post">', chr(10);
 
-	$venue = $f['venue'];
-	echo '<input type="hidden" name="venue" value="', $venue, '"><a href="https://app.foursquare.com/v/', $venue, '" target="_blank"';
+	$venue = (string) $f['venue'];
+	$venueLink = 'https://app.foursquare.com/v/' . rawurlencode($venue);
+	if ($client_key !== '') {
+		$venueLink .= '?ref=' . rawurlencode($client_key);
+	}
+	echo '<input type="hidden" name="venue" value="', htmlspecialchars($venue, ENT_QUOTES, 'UTF-8'), '"><a href="', htmlspecialchars($venueLink, ENT_QUOTES, 'UTF-8'), '" target="_blank"';
 	if ($hasCategoryId) {
 		echo ' style="margin-right: 5px;"';
 	}
@@ -189,7 +194,7 @@ foreach ($file as $f) {
 	else
 		echo str_pad($i, 3, "0", STR_PAD_LEFT);
 	echo '</a>', chr(10);
-	
+
 	if ($hasCategoryId) {
 		echo '<span id="icone', $i - 1, '"><img id=catImg', $i - 1, ' src="https://app.foursquare.com/img/categories_v2/none_bg_32.png" style="height: 22px; width: 22px; margin-left: 0px"></span>', chr(10);
 	}
@@ -208,7 +213,7 @@ foreach ($file as $f) {
 		$crossStreet = htmlentities($f['crossStreet'], ENT_QUOTES, 'utf-8');
 		echo '<input type="text" dojoType="dijit.form.TextBox" name="crossStreet" maxlength="128" value="', $crossStreet, '" placeHolder="Rua transversal" style="width: 9em; margin-left: 5px;" onchange="verificarAlteracao(this, ', $i - 1, ')">', chr(10);
 	}
-	
+
 	if ($hasNeighborhood) {
 		$neighborhood = htmlentities($f['neighborhood'], ENT_QUOTES, 'utf-8');
 		echo '<input type="text" dojoType="dijit.form.TextBox" name="neighborhood" maxlength="128" value="', $neighborhood, '" placeHolder="Bairro" style="width: 9em; margin-left: 5px;" onchange="verificarAlteracao(this, ', $i - 1, ')">', chr(10);
@@ -228,7 +233,7 @@ foreach ($file as $f) {
 		$zip = $f['zip'];
 		echo '<input type="text" dojoType="dijit.form.TextBox" name="zip" maxlength="13" value="', $zip, '" placeHolder="C&oacute;digo postal" style="width: 7em; margin-left: 5px;" onchange="verificarAlteracao(this, ', $i - 1, ')">', chr(10);
 	}
-	
+
 	if ($hasParentId) {
 		$parentId = $f['parentId'];
 		echo '<input type="text" dojoType="dijit.form.TextBox" name="parentId" maxlength="24" value="', $parentId, '" placeHolder="Dentro" style="width: 14em; margin-left: 5px;" onchange="verificarAlteracao(this, ', $i - 1, ')">', chr(10);
@@ -243,17 +248,17 @@ foreach ($file as $f) {
 		$url = $f['url'];
 		echo '<input type="text" dojoType="dijit.form.TextBox" name="url" maxlength="256" value="', $url, '" placeHolder="Website" style="width: 8em; margin-left: 5px;" onchange="verificarAlteracao(this, ', $i - 1, ')">', chr(10);
 	}
-	
+
 	if ($hasTwitter) {
 		$twitter = $f['twitter'];
 		echo '<input type="text" dojoType="dijit.form.TextBox" name="twitter" maxlength="51" value="', $twitter, '" placeHolder="Twitter" style="width: 7em; margin-left: 5px;" onchange="verificarAlteracao(this, ', $i - 1, ')">', chr(10);
 	}
-	
+
 	if ($hasFacebook) {
 		$facebook = $f['facebook'];
 		echo '<input type="text" dojoType="dijit.form.TextBox" name="facebook" maxlength="51" value="', $facebook, '" placeHolder="Facebook" style="width: 7em; margin-left: 5px;" onchange="verificarAlteracao(this, ', $i - 1, ')">', chr(10);
 	}
-	
+
 	if ($hasInstagram) {
 		$instagram = $f['instagram'];
 		echo '<input type="text" dojoType="dijit.form.TextBox" name="instagram" maxlength="51" value="', $instagram, '" placeHolder="Instagram" style="width: 7em; margin-left: 5px;" onchange="verificarAlteracao(this, ', $i - 1, ')">', chr(10);
@@ -272,7 +277,7 @@ foreach ($file as $f) {
 		$description = htmlentities($f['description'], ENT_QUOTES, 'utf-8');
 		echo '<input type="text" dojoType="dijit.form.TextBox" name="description" maxlength="300" value="', $description, '" placeHolder="Descri&ccedil;&atilde;o" style="width: 8em; margin-left: 5px;" onchange="verificarAlteracao(this, ', $i - 1, ')">', chr(10);
 	}
-	
+
 	if ($hasMenu) {
 		$menu = $f['menu'];
 		echo '<input type="text" dojoType="dijit.form.TextBox" name="menu" maxlength="256" value="', $menu, '" placeHolder="Menu" style="width: 8em; margin-left: 5px;" onchange="verificarAlteracao(this, ', $i - 1, ')">', chr(10);
@@ -286,17 +291,17 @@ foreach ($file as $f) {
 			//echo '<input type="text" dojoType="dijit.form.TextBox" name="categoryId" placeHolder="Categorias" style="width: 9em; margin-left: 5px;" disabled>', chr(10);
 		//}
 	}
-	
+
 	if ($hasPrimaryCategoryId) {
 		$primaryCategoryId = $f['primaryCategoryId'];
 		echo '<input type="text" dojoType="dijit.form.TextBox" name="primaryCategoryId" maxlength="24" value="', $primaryCategoryId, '" placeHolder="Categoria Prim&aacute;ria" style="width: 14em; margin-left: 5px;" onchange="verificarAlteracao(this, ', $i - 1, ')">', chr(10);
 	}
-	
+
 	if ($hasAddCategoryIds) {
 		$addCategoryIds = $f['addCategoryIds'];
 		echo '<input type="text" dojoType="dijit.form.TextBox" name="addCategoryIds" maxlength="75" value="', $addCategoryIds, '" placeHolder="Adicionar Categoria(s)" style="width: 14em; margin-left: 5px;" onchange="verificarAlteracao(this, ', $i - 1, ')">', chr(10);
 	}
-	
+
 	if ($hasRemoveCategoryIds) {
 		$removeCategoryIds = $f['removeCategoryIds'];
 		echo '<input type="text" dojoType="dijit.form.TextBox" name="removeCategoryIds" maxlength="75" value="', $removeCategoryIds, '" placeHolder="Remover Categoria(s)" style="width: 14em; margin-left: 5px;" onchange="verificarAlteracao(this, ', $i - 1, ')">', chr(10);

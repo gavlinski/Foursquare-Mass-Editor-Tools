@@ -9,7 +9,7 @@
  * @package    Foursquare-Mass-Editor-Tools
  * @author     Elio Gavlinski <gavlinski@gmail.com>
  * @copyright  Copyleft (c) 2012-2026
- * @version    3.2.0
+ * @version    3.2.1
  * @link       https://github.com/gavlinski/Foursquare-Mass-Editor-Tools/blob/master/search.php
  * @since      File available since Release 1.5
  * @license    GPLv3 <http://www.gnu.org/licenses/gpl.txt
@@ -32,7 +32,7 @@ require_once __DIR__ . '/includes/asset_helper.php';
 <meta http-equiv="cache-control" content="no-cache">
 <meta http-equiv="pragma" content="no-cache">
 <?php
-define("VERSION", "Venues Searcher 3.2.0");
+define("VERSION", "Venues Searcher 3.2.1");
 
 // Captura tag <link> e CSS dinâmico do ProgressBar
 ob_start();
@@ -166,14 +166,19 @@ if (isset($_POST["intent"]))
 if (isset($_POST["radius"]))
 	$params["radius"] = $_POST["radius"];
 
+$file = [];
+$venuesIds = [];
+$data = '';
+
 if (isset($params))
 	$data = pesquisarVenues($params);
-else
+else {
 	echo ERRO99;
+	exit;
+}
 
 $_SESSION["file"] = filtrarArray($file);
 if ($_SESSION["file"] == null) {
-	$pbar->hide();
 	echo ERRO02;
 	exit;
 }
@@ -359,11 +364,7 @@ function pesquisarVenues($params) {
 		foreach ($json_response_venues as $venue) {
 			if (property_exists($venue, "id")) {
 				$array["venues"][] = $venue->id;
-				// Usa canonicalUrl se disponível (formato: https://app.foursquare.com/v/name/id)
-				if (property_exists($venue, "canonicalUrl"))
-					$array["file"][] = $venue->canonicalUrl;
-				else
-					$array["file"][] = "https://app.foursquare.com/v/" . $venue->id;
+				$array["file"][] = "https://app.foursquare.com/v/" . $venue->id;
 			}
 			$i += $delta;
 			//echo("\$i = $i,");

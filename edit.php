@@ -11,7 +11,7 @@ declare(strict_types=1);
  * @package    Foursquare-Mass-Editor-Tools
  * @author     Elio Gavlinski <gavlinski@gmail.com>
  * @copyright  Copyleft (c) 2011-2026
- * @version    3.2.0
+ * @version    3.2.1
  * @link       https://github.com/gavlinski/Foursquare-Mass-Editor-Tools/blob/master/edit.php
  * @since      File available since Release 0.5
  * @license    GPLv3 <http://www.gnu.org/licenses/gpl.txt>
@@ -289,9 +289,12 @@ foreach ($file as $f) {
         $venue = $venuesIds[$i - 1];
         echo '<div class="selectbox"><input name="selecao" data-dojo-type="dijit/form/CheckBox" value="' . ($i - 1) . '" onChange="atualizarItensMenuMais(this.value)"></div>' . "\n";
 
-        $venueLink = $f . '?ref=' . $client_key;
-        echo '<input type="hidden" name="venue" value="' . htmlspecialchars($venue) . '">';
-        echo '<span id="info' . ($i - 1) . '"><a id="venLnk' . ($i - 1) . '" href="' . htmlspecialchars($venueLink) . '" target="_blank" style="margin-left: 5px; margin-right: 5px; vertical-align: -1px;">';
+        $venueLink = 'https://app.foursquare.com/v/' . rawurlencode((string) $venue);
+        if ($client_key !== '') {
+            $venueLink .= '?ref=' . rawurlencode($client_key);
+        }
+        echo '<input type="hidden" name="venue" value="' . htmlspecialchars((string) $venue, ENT_QUOTES, 'UTF-8') . '">';
+        echo '<span id="info' . ($i - 1) . '"><a id="venLnk' . ($i - 1) . '" href="' . htmlspecialchars($venueLink, ENT_QUOTES, 'UTF-8') . '" target="_blank" style="margin-left: 5px; margin-right: 5px; vertical-align: -1px;">';
         
         // Formatação do número baseado na quantidade total
         if (count($file) < 10) {

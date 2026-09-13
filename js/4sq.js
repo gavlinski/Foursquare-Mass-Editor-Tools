@@ -1139,21 +1139,6 @@ function atualizarTabela(venue, i) {
 	var dicaVenue = atualizarDicaVenue(i);
 	createTooltip("venLnk" + i, dicaVenue);
 	
-	// Atualiza URL do link com canonicalUrl se disponível (Bug #3 relacionado)
-	if (venue.canonicalUrl) {
-		const linkElement = dojo.byId("venLnk" + i);
-		if (linkElement) {
-			// Remove TODAS as ocorrências de ?ref= (flag global /g) e adiciona apenas uma
-			const currentHref = linkElement.getAttribute('href');
-			const refMatch = currentHref.match(/\?ref=([^&]+)/);
-			const refParam = refMatch ? '?ref=' + refMatch[1] : '';
-			// Remove TODOS os ?ref= da URL canônica (pode ter duplicados)
-			const cleanCanonicalUrl = venue.canonicalUrl.replace(/\?ref=[^&]*/g, '');
-			linkElement.setAttribute('href', cleanCanonicalUrl + refParam);
-			debugLog('🔗 URL atualizada - Linha', i, ':', cleanCanonicalUrl + refParam);
-		}
-	}
-	
 	// Sempre adiciona colunas ao CSV (determinaremos formato no final)
 	// Temporariamente adiciona formato completo se aplicável, senão parcial
 	var estaVenueTemDadosCompletos = (modo == DADOS_COMPLETOS) || (venuesComDadosCompletos.indexOf(i) !== -1);
@@ -2541,16 +2526,11 @@ function showDialogEditField(field) {
 /**
  * Exibe modal de exportação de URLs dos locais carregados
  * Permite escolher entre 3 formatos:
- * - URL Canônica (com nome do local, só disponível se todos tiverem dados completos)
+ * - URL Canônica (compartilhável)
  * - URL Padrão (curta, sempre disponível)
  * - Somente IDs (apenas os IDs de 24 caracteres)
  */
 function showDialogExportUrls() {
-	var arq = txt.slice(0);
-	if (totalSelecionadas > 0)
-		arq = removerNaoSelecionadas(arq, 0);
-	
-	// Verifica se todos os locais têm dados completos
 	var indicesSelecionados = [];
 	if (totalSelecionadas > 0) {
 		// Se há seleção, considera apenas os selecionados
@@ -2566,18 +2546,21 @@ function showDialogExportUrls() {
 		}
 	}
 	
-	// Verifica se todos os locais considerados têm dados completos
-	var todosComDadosCompletos = indicesSelecionados.every(function(i) {
-		return venuesComDadosCompletos.indexOf(i) !== -1;
-	});
-	
 	// Formatos disponíveis
 	var FORMATO_CANONICA = 'canonica';
 	var FORMATO_PADRAO = 'padrao';
 	var FORMATO_IDS = 'ids';
 	
-	// Formato padrão: canônica se todos tiverem dados completos, senão padrão
-	var formatoAtual = todosComDadosCompletos ? FORMATO_CANONICA : FORMATO_PADRAO;
+	var formatoAtual = FORMATO_CANONICA;
+
+	function obterIdsSelecionados() {
+		return indicesSelecionados.map(function(i) {
+			var campoVenue = document.forms[i] && document.forms[i].elements['venue'];
+			return campoVenue ? campoVenue.value : '';
+		}).filter(function(venueId) {
+			return /^[a-f0-9]{24}$/i.test(venueId);
+		});
+	}
 	
 	/**
 	 * Gera lista de URLs no formato escolhido
@@ -2589,36 +2572,19 @@ function showDialogExportUrls() {
 		
 		switch(formato) {
 			case FORMATO_CANONICA:
-				// Pega URLs canônicas dos links
-				for (var j = 0; j < indicesSelecionados.length; j++) {
-					var i = indicesSelecionados[j];
-					var linkElement = dojo.byId("venLnk" + i);
-					if (linkElement) {
-						var url = linkElement.getAttribute('href');
-						// Remove parâmetro ?ref= se existir
-						url = url.replace(/\?ref=[^&]+/, '');
-						lista.push(url);
-					}
-				}
+				lista = obterIdsSelecionados().map(function(venueId) {
+					return 'https://app.foursquare.com/share/venue/' + venueId;
+				});
 				break;
 				
 			case FORMATO_PADRAO:
-				// Usa array arq (já filtrado por seleção) e remove ?ref= (Bug #3)
-				lista = arq.map(function(url) {
-					// Remove parâmetro ?ref= se existir
-					return url.replace(/%0A/g, '').replace(/\?ref=[^&]+/, '');
+				lista = obterIdsSelecionados().map(function(venueId) {
+					return 'https://app.foursquare.com/v/' + venueId;
 				});
 				break;
 				
 			case FORMATO_IDS:
-				// Extrai IDs de 24 caracteres das URLs
-				for (var k = 0; k < arq.length; k++) {
-					var url = arq[k];
-					var match = url.match(/\/v\/([a-f0-9]{24})/i);
-					if (match) {
-						lista.push(match[1]);
-					}
-				}
+				lista = obterIdsSelecionados();
 				break;
 		}
 		
@@ -2644,12 +2610,10 @@ function showDialogExportUrls() {
 		'<div style="margin: 10px 0 20px 0;">' +
 			'<div style="margin: 5px 0;">' +
 				'<input type="radio" name="formatoExport" id="radioCanonica" value="' + FORMATO_CANONICA + '" ' +
-					(formatoAtual === FORMATO_CANONICA ? 'checked' : '') + ' ' +
-					(!todosComDadosCompletos ? 'disabled' : '') + '> ' +
-				'<label for="radioCanonica" style="' + (!todosComDadosCompletos ? 'color: #999;' : '') + '">' +
-					'URL Canônica (com nome do local)' +
+					(formatoAtual === FORMATO_CANONICA ? 'checked' : '') + '> ' +
+				'<label for="radioCanonica">' +
+					'URL Canônica (compartilhável)' +
 				'</label>' +
-				(!todosComDadosCompletos ? ' <span id="iconCanonicaDisabled" class="hoverInfoTip">(?)</span>' : '') +
 			'</div>' +
 			'<div style="margin: 5px 0;">' +
 				'<input type="radio" name="formatoExport" id="radioPadrao" value="' + FORMATO_PADRAO + '" ' +
@@ -2675,16 +2639,6 @@ function showDialogExportUrls() {
 	
 	// Aguarda renderização do Dojo e conecta eventos
 	setTimeout(function() {
-		// Cria tooltip explicativa se URL Canônica estiver desabilitada
-		if (!todosComDadosCompletos && dojo.byId("iconCanonicaDisabled")) {
-			new dijit.Tooltip({
-				id: "tooltipCanonicaDisabled",
-				connectId: ["iconCanonicaDisabled"],
-				label: "Alguns locais não possuem os dados completos. Utilize a<br>opção <strong>Recarregar</strong> para obter URLs canônicas completas.",
-				position: ['after', 'below']
-			});
-		}
-		
 		// Event listener para mudança de formato
 		function atualizarFormatoExport() {
 			var radioCanonica = dojo.byId("radioCanonica");

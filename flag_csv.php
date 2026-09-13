@@ -9,7 +9,7 @@
  * @package    Foursquare-Mass-Editor-Tools
  * @author     Elio Gavlinski <gavlinski@gmail.com>
  * @copyright  Copyleft (c) 2011-2026
- * @version    3.2.0
+ * @version    3.2.1
  * @link       https://github.com/gavlinski/Foursquare-Mass-Editor-Tools/blob/master/flag_csv.php
  * @since      File available since Release 1.1
  * @license    GPLv3 <http://www.gnu.org/licenses/gpl.txt>
@@ -39,6 +39,7 @@ if (isset($_SESSION["oauth_token"])) {
 }
 
 include_once 'includes/asset_helper.php';
+include 'includes/app_credentials.php';
 ?>
 <!doctype html>
 <html lang="pt-BR">
@@ -178,8 +179,12 @@ foreach ($file as $f) {
 
 	echo '<section class="row">', chr(10), '<form name="form', $i, '" accept-charset="utf-8" encType="multipart/form-data" method="post">', chr(10);
 
-	$venue = $f['venue'];
-	echo '<input type="hidden" name="venue" value="', $venue, '"><a href="https://app.foursquare.com/v/', $venue, '" target="_blank"';
+	$venue = (string) $f['venue'];
+	$venueLink = 'https://app.foursquare.com/v/' . rawurlencode($venue);
+	if ($client_key !== '') {
+		$venueLink .= '?ref=' . rawurlencode($client_key);
+	}
+	echo '<input type="hidden" name="venue" value="', htmlspecialchars($venue, ENT_QUOTES, 'UTF-8'), '"><a href="', htmlspecialchars($venueLink, ENT_QUOTES, 'UTF-8'), '" target="_blank"';
 	if ($hasCategoryId) {
 		echo ' style="margin-right: 5px;"';
 	}

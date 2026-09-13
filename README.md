@@ -1,10 +1,10 @@
 # Foursquare Mass Editor Tools (Elio Tools)
 
-**Version 3.2.0** - Deploy Improvements, Auth & CSV Fixes
+**Version 3.2.1** - Venue URL Parsing and Export Fixes
 
 A comprehensive collection of **Superuser Tools** for Foursquare venues mass/bulk editing and searching, powered by the Foursquare API v2. This project has been **completely modernized** with a hybrid architecture combining modern PHP 8.1 features with legacy compatibility.
 
-## 🚀 Version 3.2.0 Highlights
+## 🚀 Version 3.2.1 Highlights
 
 - ✅ **Fully Migrated** from PHP 5.4 to PHP 8.1
 - ✅ **PSR-4 Autoloading** with Composer
@@ -236,6 +236,18 @@ Contributions are always welcome! Please:
 - Update documentation
 
 ## 📝 Changelog
+
+### Version 3.2.1 (2026-09-13)
+
+**Venue URLs & Export:**
+- Added support for shared venue URLs using the `/share/venue/{id}` format
+- Canonical URL export now generates shareable URLs from venue IDs
+- Standard URL and ID exports now use the venue ID directly
+- Ignored unreliable `canonicalUrl` values that could rewrite links to `/share/venue/`
+
+**Configuration & Links:**
+- Editor links now use the configured Foursquare client key when available
+- Empty `?ref=` parameters are omitted when no client key is configured
 
 ### Version 3.2.0 (2026-03-31)
 

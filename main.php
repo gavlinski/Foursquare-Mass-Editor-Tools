@@ -11,7 +11,7 @@ declare(strict_types=1);
  * @package    Foursquare-Mass-Editor-Tools
  * @author     Elio Gavlinski <gavlinski@gmail.com>
  * @copyright  Copyleft (c) 2012-2026
- * @version    3.2.0
+ * @version    3.2.1
  * @link       https://github.com/gavlinski/Foursquare-Mass-Editor-Tools/blob/master/main.php
  * @since      File available since Release 1.5
  * @license    GPLv3 <http://www.gnu.org/licenses/gpl.txt>
@@ -36,11 +36,11 @@ use ElioTools\Config\AppConfig;
 
 // Lê versão dinamicamente do build-info.json (gerado a cada build/CI)
 $_versionFile = __DIR__ . '/build-info.json';
-$VERSAO = '3.2.0'; // fallback para ambiente sem build
+$VERSAO = '3.2.1'; // fallback para ambiente sem build
 if (file_exists($_versionFile)) {
     $_buildData = @json_decode(@file_get_contents($_versionFile), true);
     if (!empty($_buildData['version'])) {
-        // Extrai apenas a parte SemVer (ex: "v3.2.0-1-g590b203" → "3.2.0")
+		// Extrai apenas a parte SemVer (ex: "v3.2.1-1-g590b203" → "3.2.1")
         if (preg_match('/^v?(\d+\.\d+\.\d+)/', $_buildData['version'], $_m)) {
             $VERSAO = $_m[1];
         }

@@ -189,6 +189,7 @@ if (isset($_FILES['txt']['tmp_name'])) {
  * - https://foursquare.com/v/name/4d7a895be8b7a1cdb4e3991f/
  * - http://foursquare.com/venue/94562 (formato antigo)
  * - *.foursquare.com/v/4eadbb7902d5cf33fa8cf19e/*
+ * - https://app.foursquare.com/share/venue/4fa58a69e4b00c58446e3bee?lang=pt?ref=...
  * 
  * @param string $input String contendo ID ou URL da venue
  * @return string|null Retorna o ID ou null se inválido
@@ -199,8 +200,8 @@ function extrairVenueId(string $input): ?string
     
     // Regex para IDs modernos (24 caracteres hexadecimais)
     // Usa negative lookahead para garantir que o "nome" não seja um ID hex de 24 chars
-    // Formato: (domínio)/(venue|v)/(nome-não-hex)?/(ID de 24 chars hex)
-    $patternModerno = '/(?:https?:\/\/)?(?:[^\/]*\.)?foursquare\.com\/(?:venue|v)\/(?:(?![0-9a-f]{24}(?:\/|$))[^\/]+\/)?([0-9a-f]{24})/i';
+    // Formato: (domínio)/(venue|v|share/venue)/(nome-não-hex)?/(ID de 24 chars hex)
+    $patternModerno = '/(?:https?:\/\/)?(?:[^\/]*\.)?foursquare\.com\/(?:share\/venue|venue|v)\/(?:(?![0-9a-f]{24}(?:[\/?#]|$))[^\/]+\/)?([0-9a-f]{24})(?=[\/?#]|$)/i';
     
     if (preg_match($patternModerno, $input, $matches)) {
         // O ID estará sempre no grupo 1
@@ -209,7 +210,7 @@ function extrairVenueId(string $input): ?string
     
     // Regex para IDs antigos (5-6 dígitos numéricos)
     // Formato: http://foursquare.com/venue/94562
-    $patternAntigo = '/(?:https?:\/\/)?(?:[^\/]*\.)?foursquare\.com\/venue\/(\d{5,6})(?:\/|$)/i';
+    $patternAntigo = '/(?:https?:\/\/)?(?:[^\/]*\.)?foursquare\.com\/(?:share\/venue|venue)\/(\d{5,6})(?:[\/?#]|$)/i';
     
     if (preg_match($patternAntigo, $input, $matches)) {
         return $matches[1];
