@@ -32,7 +32,9 @@ if find "$PLAYWRIGHT_BROWSERS_PATH" -maxdepth 1 -type d -name 'chromium-*' | gre
 fi
 
 echo -e "${YELLOW}⬇️  Instalando Chromium (primeira execução)...${NC}"
-if npx -y playwright@latest install chromium; then
+# Usa a versão local (node_modules) — 'playwright@latest' exige Node >=20 e falha
+# silenciosamente (exit 0, sem instalar nada) em versões antigas.
+if npx playwright install chromium; then
     echo -e "${GREEN}✅ Chromium instalado com sucesso${NC}"
 else
     echo -e "${RED}❌ Falha na instalação do Chromium${NC}"

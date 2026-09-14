@@ -14,7 +14,9 @@
 	},
 	"features": {
 		"ghcr.io/devcontainers/features/node:1": {
-			"version": "18"
+			// Playwright >=1.60 e @playwright/mcp requerem Node >=20 (silenciosamente
+			// não fazem nada em versões antigas, ex: install-deps não instala nada)
+			"version": "20"
 		}
 	},
 

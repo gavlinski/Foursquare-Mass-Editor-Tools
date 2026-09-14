@@ -55,38 +55,17 @@ echo -e "${YELLOW}➡️  Faça login manualmente no Foursquare no Brave.${NC}"
 echo -e "${YELLOW}➡️  Depois de concluir, volte aqui e pressione ENTER para capturar a sessão.${NC}"
 read -r
 
-# Obtém a WebSocket URL diretamente do /json/version (sem barra final) para
-# contornar o erro 500 que Brave retorna quando Playwright adiciona a barra final.
-echo -e "${CYAN}ℹ️  Obtendo WebSocket URL do browser...${NC}"
-BASE_URL="${CDP_ENDPOINT%/}"
-VERSION_JSON=$(curl -s --max-time 5 -H 'Host: localhost' "${BASE_URL}/json/version")
-echo -e "${CYAN}   /json/version: ${VERSION_JSON}${NC}"
-
-CDP_WS_URL=$(echo "$VERSION_JSON" \
-    | grep -o '"webSocketDebuggerUrl": *"[^"]*"' \
-    | grep -o '"ws://[^"]*"' \
-    | tr -d '"' \
-    | sed 's|ws://localhost/|ws://host.docker.internal:9222/|g; s|ws://127\.0\.0\.1/|ws://host.docker.internal:9222/|g')
-
-# Fallback: tentar /json/list (lista de targets)
-if [ -z "$CDP_WS_URL" ]; then
-    echo -e "${YELLOW}⚠️  webSocketDebuggerUrl não encontrada em /json/version, tentando /json/list...${NC}"
-    LIST_JSON=$(curl -s --max-time 5 -H 'Host: localhost' "${BASE_URL}/json/list")
-    echo -e "${CYAN}   /json/list: ${LIST_JSON}${NC}"
-    CDP_WS_URL=$(echo "$LIST_JSON" \
-        | grep -o '"webSocketDebuggerUrl": *"[^"]*"' \
-        | head -1 \
-        | grep -o '"ws://[^"]*"' \
-        | tr -d '"' \
-        | sed 's|ws://localhost/|ws://host.docker.internal:9222/|g; s|ws://127\.0\.0\.1/|ws://host.docker.internal:9222/|g')
+# Usa o endpoint HTTP com IP para que o Chrome aceite o cabeçalho Host do CDP.
+CDP_CONNECT_URL="$CDP_ENDPOINT"
+if [[ "$CDP_CONNECT_URL" == *"host.docker.internal"* ]]; then
+    CDP_HOST_IP=$(getent hosts host.docker.internal | awk 'NR==1 {print $1}')
+    if [ -z "$CDP_HOST_IP" ]; then
+        echo -e "${RED}❌ Não foi possível resolver host.docker.internal${NC}"
+        exit 1
+    fi
+    CDP_CONNECT_URL="${CDP_CONNECT_URL/host.docker.internal/$CDP_HOST_IP}"
 fi
-
-if [ -z "$CDP_WS_URL" ]; then
-    echo -e "${RED}❌ Não foi possível obter WebSocket URL de ${BASE_URL}${NC}"
-    echo -e "${YELLOW}   Verifique se o Brave está rodando com: --remote-debugging-port=9222${NC}"
-    exit 1
-fi
-echo -e "${CYAN}   WS URL: $CDP_WS_URL${NC}"
+echo -e "${CYAN}ℹ️  Endpoint CDP: $CDP_CONNECT_URL${NC}"
 
 TMP_DIR=$(mktemp -d)
 trap "rm -rf '$TMP_DIR'" EXIT
@@ -96,10 +75,10 @@ const fs = require('fs');
 const { chromium } = require('playwright');
 
 async function main() {
-    const wsUrl = process.env.CDP_WS_URL;
+    const cdpEndpoint = process.env.CDP_CONNECT_URL;
     const output = process.env.MCP_STORAGE_STATE;
 
-    const browser = await chromium.connectOverCDP(wsUrl);
+    const browser = await chromium.connectOverCDP(cdpEndpoint);
     const contexts = browser.contexts();
 
     if (!contexts.length) {
@@ -134,7 +113,7 @@ else
     cd /var/www/html
 fi
 
-if ! CDP_WS_URL="$CDP_WS_URL" MCP_STORAGE_STATE="$STORAGE_STATE" node "$TMP_DIR/script.js"; then
+if ! CDP_CONNECT_URL="$CDP_CONNECT_URL" MCP_STORAGE_STATE="$STORAGE_STATE" node "$TMP_DIR/script.js"; then
     echo -e "${RED}❌ Falha ao capturar storage state via CDP.${NC}"
     exit 1
 fi

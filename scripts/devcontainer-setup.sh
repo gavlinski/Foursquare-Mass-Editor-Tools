@@ -73,13 +73,19 @@ chmod 700 data/mcp/playwright || true
 chmod 775 data/mcp/playwright/browsers debug/mcp-artifacts || true
 chown -R root:www-data data/mcp debug/mcp-artifacts 2>/dev/null || true
 
+echo -e "${CYAN}📦 Instalando dependências do npm (necessário para o Playwright local)...${NC}"
+npm install --no-audit --no-fund > /tmp/npm-install.log 2>&1 || echo -e "${YELLOW}⚠️  npm install falhou, veja /tmp/npm-install.log${NC}"
+
+# NOTA: usar sempre a versão local (node_modules) via 'npx playwright', nunca 'playwright@latest'.
+# Versões recentes do Playwright exigem Node >=20 e simplesmente não fazem nada (exit 0 sem
+# instalar nada) quando rodam em versões antigas — falha silenciosa difícil de detectar.
 echo -e "${CYAN}⬇️  Verificando Chromium para Playwright MCP...${NC}"
 export PLAYWRIGHT_BROWSERS_PATH="/var/www/html/data/mcp/playwright/browsers"
 if find "$PLAYWRIGHT_BROWSERS_PATH" -maxdepth 1 -type d -name 'chromium-*' | grep -q .; then
     echo -e "${GREEN}✅ Chromium já disponível em cache persistente${NC}"
 else
     echo -e "${YELLOW}⚠️  Chromium não encontrado. Instalando (primeira execução)...${NC}"
-    if npx -y playwright@latest install chromium > /tmp/mcp-playwright-install.log 2>&1; then
+    if npx playwright install chromium > /tmp/mcp-playwright-install.log 2>&1; then
         echo -e "${GREEN}✅ Chromium instalado em cache persistente${NC}"
     else
         echo -e "${YELLOW}⚠️  Falha ao instalar Chromium automaticamente.${NC}"
@@ -89,7 +95,7 @@ fi
 
 # Dependências de sistema do Chromium — necessárias em todo rebuild (libs do SO, não do workspace)
 echo -e "${CYAN}📦 Instalando dependências de sistema do Chromium...${NC}"
-if npx -y playwright@latest install-deps chromium > /tmp/mcp-playwright-deps.log 2>&1; then
+if npx playwright install-deps chromium > /tmp/mcp-playwright-deps.log 2>&1; then
     echo -e "${GREEN}✅ Dependências do Chromium instaladas${NC}"
 else
     echo -e "${YELLOW}⚠️  Falha ao instalar dependências. Testes Playwright podem não funcionar.${NC}"
