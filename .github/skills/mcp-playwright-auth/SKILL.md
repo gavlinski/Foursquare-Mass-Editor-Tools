@@ -1,20 +1,9 @@
-# MCP Playwright Auth Skill
-
-## Name
-Playwright MCP — Autenticação e Injeção de Token Foursquare
-
-## Description
-Procedimentos para autenticar o agente MCP no Foursquare via CDP (Chrome DevTools Protocol), extrair tokens salvos e injetá-los no browser Playwright para navegar em páginas autenticadas. **Sem senhas armazenadas — o usuário autentica visualmente no Brave.**
-
-## When to use
-Carregue esta skill quando:
-- O agente MCP precisar acessar páginas protegidas da aplicação (main.php, edit.php, load.php)
-- Diagnosticar falhas de autenticação do Playwright MCP
-- Renovar o storage state expirado (token expira em ~6 meses)
-- Configurar o fluxo de auth em um novo dev container
-- Escrever testes ou automações que requerem sessão autenticada
-
 ---
+name: mcp-playwright-auth
+description: Procedimentos para autenticar o agente Playwright MCP no Foursquare via CDP (Chrome DevTools Protocol), extraindo e injetando tokens sem armazenar senhas — o usuário autentica visualmente no Brave. Use quando o agente precisar acessar páginas protegidas (main.php, edit.php, load.php), diagnosticar falhas de autenticação do MCP, renovar o storage state expirado, ou configurar o fluxo de auth em um novo dev container.
+---
+
+# Playwright MCP — Autenticação e Injeção de Token Foursquare
 
 ## Arquitetura do Fluxo
 
@@ -22,11 +11,12 @@ Carregue esta skill quando:
 Host macOS (Brave)                   Dev Container (Playwright MCP)
 ─────────────────────────────────────────────────────────────────
 Brave --remote-debugging-port=9222
-       ↑                                Bootstrap script:
-Usuário faz login no Foursquare         1. curl /json/version → ws:// URL
-       ↓                                2. chromium.connectOverCDP(wsUrl)
-Sessão salva no perfil Brave            3. context.storageState() → arquivo JSON
-                                        4. chmod 600 no arquivo
+      ↑                                Bootstrap script:
+    Usuário faz login no Foursquare         1. verifica /json/version via CDP
+      ↓                                2. resolve host.docker.internal para IP
+    Sessão salva no perfil Brave            3. chromium.connectOverCDP(http://IP:9222)
+                   4. context.storageState() → arquivo JSON
+                                        5. chmod 600 no arquivo
                                    ↓
                     data/mcp/playwright/foursquare.storage-state.json
                                    ↓
@@ -116,23 +106,15 @@ Após iniciar o Brave:
 ```json
 "playwright-headed": {
   "type": "stdio",
-  "command": "npx",
-  "args": [
-    "@playwright/mcp@latest",
-    "--cdp-endpoint", "http://host.docker.internal:9222",
-    "--cdp-header", "Host: localhost",
-    "--ignore-https-errors",
-    "--output-dir", "/var/www/html/debug/mcp-artifacts",
-    "--output-mode", "file",
-    "--viewport-size", "1440x900"
-  ],
+  "command": "/bin/bash",
+  "args": ["/var/www/html/scripts/mcp-headed-start.sh"],
   "env": {
     "PLAYWRIGHT_MCP_CONSOLE_LEVEL": "error"
   }
 }
 ```
 
-> Nota: `--cdp-header "Host: localhost"` é obrigatório — sem ele o Brave rejeita a conexão com erro "Host header is not an IP address or localhost".
+> O wrapper resolve `host.docker.internal` para o IP do gateway antes de iniciar o MCP. Isso é necessário porque algumas versões do Chrome/Brave rejeitam o cabeçalho `Host: host.docker.internal` com erro "Host header is not an IP address or localhost".
 
 ---
 
@@ -194,9 +176,13 @@ O script vai:
 1. Verificar se o Brave está acessível em `http://host.docker.internal:9222`
 2. Imprimir a URL de login para abrir no Brave
 3. Aguardar o usuário fazer login e pressionar ENTER
-4. Conectar ao Brave via WebSocket CDP
+4. Resolver o gateway Docker para um IP e conectar ao endpoint HTTP CDP
 5. Extrair `storageState` (cookies + localStorage)
 6. Salvar em `data/mcp/playwright/foursquare.storage-state.json` com `chmod 600`
+
+O arquivo é usado pelos testes `@playwright/test`. O servidor MCP headless não aplica
+esse arquivo automaticamente; para ele, valide a sessão e injete o cookie `oauth_token`
+no contexto autenticado conforme a seção abaixo.
 
 ### Passo 3 — Verificar
 
@@ -228,9 +214,9 @@ O agente deve **injetar o token manualmente** via JavaScript após cada `browser
 await page.goto('https://localhost/4sqmet/index.php');
 
 // 2. Injetar o token (obtido via get-foursquare-token.js)
-await page.evaluate(() => {
-  document.cookie = 'oauth_token=<TOKEN>; path=/; secure; samesite=lax';
-});
+await page.evaluate((token) => {
+  document.cookie = `oauth_token=${token}; path=/; secure; samesite=lax`;
+}, token);
 
 // 3. Navegar para a página autenticada
 await page.goto('https://localhost/4sqmet/main.php');
@@ -293,8 +279,8 @@ Se o arquivo `foursquare.storage-state.json` não existir ou o token estiver exp
 ## Troubleshooting
 
 ### "Host header is specified and is not an IP address or localhost"
-**Causa:** curl enviando `Host: host.docker.internal` para o Brave.
-**Solução:** O bootstrap script já inclui `-H 'Host: localhost'` nos curls. Se aparecer novamente, verificar versão do script.
+**Causa:** o Chrome/Brave rejeita a conexão CDP quando o hostname `host.docker.internal` aparece no cabeçalho Host do WebSocket.
+**Solução:** usar a versão atual de `mcp-foursquare-auth-bootstrap.sh` e `mcp-headed-start.sh`, que resolvem `host.docker.internal` para o IP do gateway. Não reintroduzir a transformação para `ws://host.docker.internal:9222`.
 
 ### "webSocketDebuggerUrl não encontrada"
 **Causa:** Brave iniciado sem `--remote-debugging-port=9222`, ou com o flag errado.
@@ -305,8 +291,16 @@ Se o arquivo `foursquare.storage-state.json` não existir ou o token estiver exp
 **Solução:** Abrir uma aba qualquer no Brave antes de pressionar ENTER.
 
 ### Token capturado mas `session_status.php` retorna `authenticated: false`
-**Causa:** O `PHPSESSID` no storage state aponta para uma sessão PHP que já expirou no servidor.
-**Solução:** Isso é esperado e normal — use apenas o `oauth_token` (não o PHPSESSID). O PHP recria a sessão e autentica via cookie `oauth_token` automaticamente.
+**Causas possíveis:** storage state antigo, token Foursquare expirado ou cookie capturado para o domínio errado.
+**Solução:** renovar o bootstrap com o Brave autenticado. Para a aplicação local, valide o cookie `oauth_token` cujo domínio é `localhost`; o token `.foursquare.com` não substitui esse cookie local. O `PHPSESSID` pode expirar e não deve ser usado como prova de validade.
+
+### Testes retornam redirect para `index.php`
+**Causa:** o storage state não contém um `oauth_token` local válido.
+**Solução:** executar `./scripts/mcp-foursquare-auth-bootstrap.sh`, confirmar que o arquivo foi atualizado e rodar novamente `npx playwright test`. Com o ambiente correto, a suíte `tests/e2e` deve passar os 20 testes.
+
+### `npx playwright@latest` mostra aviso de Node e não instala dependências
+**Causa:** versões recentes do Playwright exigem Node >=20 e podem sair com código 0 sem executar o comando em Node 18.
+**Solução:** o dev container usa Node 20. Depois de um rebuild, `scripts/devcontainer-setup.sh` executa `npm install`, `npx playwright install chromium` e `npx playwright install-deps chromium` usando a versão local pinada. Não usar `npx -y playwright@latest` nos scripts de preparação.
 
 ### `Cannot find module 'playwright'`
 **Causa:** `npx -p playwright node` não disponibiliza o módulo para `require()`.
@@ -352,7 +346,7 @@ Se o arquivo `foursquare.storage-state.json` não existir ou o token estiver exp
 ```
 
 **Por que o wrapper `mcp-headed-start.sh`?**
-O Brave retorna `ws://localhost/devtools/...` (sem porta) no CDP. O MCP tentaria conectar na porta 80 (Apache). O wrapper busca essa URL via `curl`, substitui `ws://localhost/` por `ws://host.docker.internal:9222/` e passa o valor correto ao `--cdp-endpoint`.
+O Brave retorna `ws://localhost/devtools/...` (sem porta) no CDP. O MCP tentaria conectar na porta 80 (Apache). O wrapper busca essa URL via `curl`, substitui `localhost` pelo IP do gateway Docker com a porta `9222` e passa o valor correto ao `--cdp-endpoint`.
 
 > ⚠️ **NÃO usar `--save-session` junto com `--storage-state`** — sobrescreve o storage state com sessão vazia ao iniciar.
 > ⚠️ **Usar caminhos absolutos** — `${workspaceFolder}` não é resolvido pelo processo Node do MCP server.
@@ -380,5 +374,5 @@ são parte da camada do container e são apagadas em cada rebuild.
 PLAYWRIGHT_BROWSERS_PATH=/var/www/html/data/mcp/playwright/browsers npx playwright install-deps chromium
 ```
 
-> **Fix permanente:** `scripts/devcontainer-setup.sh` executa isso automaticamente no `postCreateCommand`
-> (adicionado no commit `cad7301`). Após qualquer rebuild, as deps são reinstaladas sem intervenção manual.
+> **Fix permanente:** `scripts/devcontainer-setup.sh` executa isso automaticamente no `postCreateCommand`.
+> Após qualquer rebuild, as dependências são reinstaladas sem intervenção manual.

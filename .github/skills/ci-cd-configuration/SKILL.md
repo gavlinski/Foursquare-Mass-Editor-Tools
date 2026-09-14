@@ -1,18 +1,9 @@
-# CI/CD Configuration Skill
+---
+name: ci-cd-configuration
+description: Gerencia secrets vs. repository variables do pipeline GitHub Actions (.github/workflows/deploy.yml), com foco em centralização e segurança. Use ao configurar/rotacionar secrets ou variables, revisar o workflow de CI/CD, debugar falhas de acesso/autenticação no pipeline, ou auditar boas práticas de gestão de credenciais.
+---
 
-## Name
-GitHub Actions Configuration & Variable Management
-
-## Description
-Gerencia a configuração adequada de secrets e repository variables para o pipeline de CI/CD, com foco em centralização, segurança e clareza de responsabilidades.
-
-## When to use
-Carregue esta skill quando:
-- Configurar secrets ou repository variables
-- Revisar ou atualizar pipeline configuration
-- Trabalhar com credenciais e configurações sensíveis
-- Debugar problemas de acesso/autenticação no CI/CD
-- Auditar boas práticas de gestão de credenciais
+# CI/CD Configuration and Variable Management
 
 ## Key Files
 - `.github/workflows/deploy.yml` - Pipeline CI/CD que usa secrets/vars

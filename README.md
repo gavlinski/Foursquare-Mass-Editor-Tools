@@ -235,6 +235,9 @@ Contributions are always welcome! Please:
 - Write comprehensive tests
 - Update documentation
 
+### For AI coding agents
+This repo follows the open [AGENTS.md](AGENTS.md) convention. Start there for project overview, dev environment, build/test commands, and security considerations. Copilot/VS Code-specific wiring lives in [.github/copilot-instructions.md](.github/copilot-instructions.md), with deeper task-specific knowledge in [.github/skills/](.github/skills/) and path-scoped coding conventions in [.github/instructions/](.github/instructions/).
+
 ## 📝 Changelog
 
 ### Version 3.2.1 (2026-09-13)

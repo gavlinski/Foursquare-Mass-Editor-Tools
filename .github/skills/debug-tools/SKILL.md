@@ -1,18 +1,9 @@
-# Debug Tools Interface Skill
+---
+name: debug-tools
+description: Documenta a interface consolidada de ferramentas de debug em debug/index.php (card-based layout, footer padrão, scroll preservation). Use sempre que for adicionar uma nova ferramenta de debug, modificar debug/index.php, criar uma página de teste, ou for tentado a criar um arquivo de teste temporário fora da pasta debug/ — isso é proibido, use as ferramentas consolidadas.
+---
 
-## Name
-Consolidated Debug Tools Interface
-
-## Description
-Interface centralizada de ferramentas de debug em `debug/index.php` com 14 ferramentas consolidadas. Sistema de card-based layout, scroll preservation, e navegação padronizada. Jamais criar novos arquivos de teste na raiz.
-
-## When to use
-Carregue esta skill quando:
-- Adicionar nova ferramenta de debug
-- Modificar interface de debug/index.php
-- Criar página de teste em debug/
-- Diagnosticar problemas de desenvolvimento
-- Padronizar navegação de debug tools
+# Consolidated Debug Tools Interface
 
 ## Key Files
 - `debug/index.php` - Interface principal consolidada

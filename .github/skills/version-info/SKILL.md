@@ -1,18 +1,9 @@
-# Version Information Display Skill
+---
+name: version-info
+description: Sistema dual de exibição de versão (version.php) — página HTML e API JSON via content negotiation, badges de build_source, e a estrutura de build-info.json. Use ao modificar version.php, alterar a estrutura de build-info.json, customizar badges/labels, diagnosticar inconsistências de versão exibida, ou adicionar novos campos de informação de sistema.
+---
 
-## Name
-Version Endpoint and Build Information System
-
-## Description
-Sistema dual de exibição de informações de versão: página HTML user-friendly e API JSON para integração. Mostra build_source, commit info, tempo desde build, versões de PHP/servidor, e badges personalizados.
-
-## When to use
-Carregue esta skill quando:
-- Modificar version.php (HTML ou JSON response)
-- Trabalhar com build-info.json structure
-- Customizar badges (cores, labels)
-- Diagnosticar inconsistências de versão
-- Adicionar novos campos de informação
+# Version Endpoint and Build Information System
 
 ## Key Files
 - `version.php` - Endpoint dual (HTML + JSON API)

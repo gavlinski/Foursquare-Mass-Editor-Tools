@@ -1,19 +1,9 @@
-# DevContainer Setup Skill
+---
+name: devcontainer-setup
+description: Gerencia o ambiente VS Code Dev Container (.devcontainer/devcontainer.json, scripts/devcontainer-setup.sh, scripts/dev-internal.sh) — symlink de /var/www/html, mapeamento de portas OrbStack vs Docker Desktop, overrideCommand, e coexistência com ./dev.sh. Use ao modificar devcontainer.json, diagnosticar Apache/porta/symlink quebrados, adicionar extensões, ou explicar Dev Container vs ./dev.sh.
+---
 
-## Name
-VS Code Dev Container — Configuração e Manutenção
-
-## Description
-Gerencia a configuração do ambiente de desenvolvimento baseado em VS Code Dev Containers para este projeto. Cobre o `devcontainer.json`, scripts de inicialização, symlink `/var/www/html`, mapeamento de portas (OrbStack vs Docker Desktop), e coexistência com o fluxo externo via `./dev.sh`.
-
-## When to use
-Carregue esta skill quando:
-- Modificar `.devcontainer/devcontainer.json`
-- Trabalhar com `scripts/devcontainer-setup.sh` ou `scripts/dev-internal.sh`
-- Diagnosticar problemas de porta, Apache, symlink ou `postCreateCommand`
-- Adicionar novas extensões ou features ao Dev Container
-- Explicar diferenças entre Dev Container e `./dev.sh`
-- Atualizar documentação de onboarding em `docs/DEV_CONTAINER.md`
+# VS Code Dev Container — Configuração e Manutenção
 
 ## Key Files
 - `.devcontainer/devcontainer.json` — configuração principal

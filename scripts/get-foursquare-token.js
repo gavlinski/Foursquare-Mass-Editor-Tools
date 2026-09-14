@@ -19,8 +19,9 @@ try {
   const data = JSON.parse(fs.readFileSync(STORAGE_STATE_FILE, 'utf8'));
   const cookies = data.cookies || [];
 
-  // Procura pelo oauth_token (pode ser localhost ou .foursquare.com)
-  const oauthToken = cookies.find(c => c.name === 'oauth_token' && c.value.length > 20);
+  // O cookie local autentica a aplicação; o cookie .foursquare.com é apenas do upstream.
+  const oauthToken = cookies.find(c => c.domain === 'localhost' && c.name === 'oauth_token' && c.value.length > 20)
+    || cookies.find(c => c.name === 'oauth_token' && c.value.length > 20);
   const phpsessid = cookies.find(c => c.domain === 'localhost' && c.name === 'PHPSESSID');
 
   if (!oauthToken) {

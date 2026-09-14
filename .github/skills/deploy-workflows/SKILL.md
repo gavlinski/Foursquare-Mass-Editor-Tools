@@ -1,18 +1,9 @@
-# Deploy Workflows Skill
+---
+name: deploy-workflows
+description: Explica os 3 métodos de deploy do projeto — dev.sh (desenvolvimento local), deploy.sh (deploy manual, só em 5 cenários específicos) e o pipeline GitHub Actions (CI/CD automático, fluxo padrão). Use ao decidir qual método de deploy usar, modificar scripts de deploy, diagnosticar deploys travados/falhos, ou explicar a diferença entre os fluxos.
+---
 
-## Name
-Deployment and CI/CD Workflows
-
-## Description
-Gerencia os 3 métodos de deploy do projeto: desenvolvimento local (dev.sh), deploy manual (deploy.sh), e CI/CD automático (GitHub Actions).
-
-## When to use
-Carregue esta skill quando:
-- Modificar scripts de deploy
-- Trabalhar com CI/CD pipeline
-- Configurar ambientes de deploy
-- Diagnosticar problemas de deployment
-- Implementar novos modos de deploy
+# Deployment and CI/CD Workflows
 
 ## Key Files
 - `dev.sh` - Desenvolvimento local (sem build)

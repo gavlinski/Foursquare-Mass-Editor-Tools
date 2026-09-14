@@ -1,18 +1,9 @@
-# Analytics Hardening Skill
+---
+name: analytics-hardening
+description: Documenta os 4 layers de filtragem de bots/scanners e hardening do sistema de analytics (analytics.php, migrate_analytics_data.php). Use ao adicionar filtros de UA/scanner, investigar ruído no dashboard, melhorar detecção de requisições suspeitas, limpar dados retroativos ou auditar segurança/privacidade do sistema de analytics.
+---
 
-## Name
-Analytics Data Privacy & Security Filtering
-
-## Description
-Documenta padrões de filtragem e hardening do sistema de analytics, com foco em eliminar ruído de bots/scanners e dados suspeitos enquanto mantém privacidade do usuário.
-
-## When to use
-Carregue esta skill quando:
-- Adicionar novos filtros de bots/scanners
-- Investigar ruído em dados de analytics
-- Melhorar detection de requisições suspeitas
-- Trabalhar com retention/cleanup de dados
-- Auditar segurança do sistema de analytics
+# Analytics Hardening
 
 ## Key Files
 - `analytics.php` - Collector com filtros de entrada

@@ -1,22 +1,9 @@
-# Playwright Regression Tests Skill
-
-## Name
-Playwright — Geração e Execução de Testes de Regressão
-
-## Description
-Guia completo para criar, executar e manter os testes de regressão automatizados com `@playwright/test`.
-Cobre os 4 fluxos de regressão do runbook, configuração de autenticação, e o fluxo de
-"usar MCP para gerar uma vez, executar sem MCP no futuro".
-
-## When to use
-Carregue esta skill quando:
-- Precisar criar ou expandir testes de regressão em `tests/e2e/`
-- Debugar falhas nos testes existentes
-- Adicionar um novo fluxo funcional aos testes
-- Configurar execução de regressão no CI/CD
-- Usar o MCP (headed) para explorar e depois codificar novos testes
-
 ---
+name: playwright-regression
+description: Guia completo para criar, executar e manter os testes de regressão automatizados com @playwright/test, cobrindo os 4 fluxos do runbook (sessão/auth, edição em massa, Google Maps, erros/retry) e o padrão "MCP para explorar uma vez, @playwright/test para automatizar". Use ao criar/expandir testes em tests/e2e/, debugar falhas de teste, adicionar um novo fluxo funcional, ou configurar a execução de regressão no CI/CD.
+---
+
+# Playwright — Geração e Execução de Testes de Regressão
 
 ## Filosofia: MCP para Explorar → @playwright/test para Automatizar
 

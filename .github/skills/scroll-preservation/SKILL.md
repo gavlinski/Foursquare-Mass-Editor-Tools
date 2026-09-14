@@ -1,17 +1,9 @@
-# Scroll Preservation Skill
+---
+name: scroll-preservation
+description: Documenta o sistema de preservação de scroll em debug/index.php (sessionStorage + estratégia multi-retry) usado ao navegar para páginas de teste e voltar. Use ao modificar navegação em debug/index.php, adicionar novos links de páginas de teste, diagnosticar scroll que reseta para o topo, ou implementar padrão similar de preservação de estado de navegação.
+---
 
-## Name
-Debug Index Scroll Preservation System
-
-## Description
-Sistema que preserva a posição de scroll no debug/index.php quando o usuário navega para páginas de teste e retorna. Usa sessionStorage e estratégia multi-retry para restauração confiável.
-
-## When to use
-Carregue esta skill quando:
-- Modificar navegação em debug/index.php
-- Adicionar novos links para páginas de teste
-- Diagnosticar problemas de scroll preservation
-- Implementar sistemas similares de navegação com preservação de estado
+# Debug Index Scroll Preservation System
 
 ## Key Files
 - `debug/index.php` - Página principal com onclick handlers e IIFE de restauração

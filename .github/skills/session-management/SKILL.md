@@ -1,18 +1,9 @@
-# Session Management Skill
+---
+name: session-management
+description: Sistema de autenticação OAuth2 do Foursquare, monitoramento de sessão em tempo real (session-manager.js) e exibição de informações do sistema, integrado com backend PHP legado. Use ao modificar o fluxo OAuth2, trabalhar em session-manager.js, implementar monitoramento de sessão, diagnosticar problemas de autenticação/expiração, ou exibir versão/build no frontend.
+---
 
-## Name
-OAuth2 Session Management and Monitoring
-
-## Description
-Sistema de autenticação via OAuth2 do Foursquare, monitoramento de sessão em tempo real, e exibição de informações do sistema. Inclui session-manager.js (ES6) integrado com backend PHP legado.
-
-## When to use
-Carregue esta skill quando:
-- Modificar autenticação OAuth2
-- Trabalhar com session-manager.js
-- Implementar monitoramento de sessão
-- Diagnosticar problemas de autenticação
-- Exibir informações de versão/build no frontend
+# OAuth2 Session Management and Monitoring
 
 ## Key Files
 - `index.php` - Gerencia login/logout, OAuth callback

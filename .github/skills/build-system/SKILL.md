@@ -1,18 +1,9 @@
-# Build System Skill
+---
+name: build-system
+description: Gerencia o sistema de build e minificação de JavaScript (build.sh, build-docker.sh), a geração de build-info.json e o campo build_source (local/deploy/ci). Use ao modificar scripts de build, adicionar arquivos JS à minificação, diagnosticar builds quebrados ou desatualizados, ou alterar como a origem da build é detectada/exibida.
+---
 
-## Name
-Build System and Minification
-
-## Description
-Esta skill gerencia o sistema de build do projeto, incluindo minificação de JavaScript, geração de build-info.json, e controle de origem da build (build_source).
-
-## When to use
-Carregue esta skill quando:
-- Modificar scripts de build (`build.sh`, `build-docker.sh`)
-- Trabalhar com minificação de JavaScript
-- Alterar estrutura de `build-info.json`
-- Diagnosticar problemas de build
-- Atualizar `build_source` ou informações de versão
+# Build System and Minification
 
 ## Key Files
 - `build.sh` - Script principal de build (detecta npm local ou usa Docker)

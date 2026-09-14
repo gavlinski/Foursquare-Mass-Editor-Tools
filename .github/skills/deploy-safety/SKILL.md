@@ -1,18 +1,9 @@
-# Deploy Safety Skill
+---
+name: deploy-safety
+description: Documenta os mecanismos de segurança do deploy.sh — detecção de dirty-state no servidor, stash automático, backups timestamped e recuperação, além da configuração dinâmica de ServerName no Apache. Use ao debugar falhas de deploy, investigar inconsistências de estado no servidor, melhorar backup/restore, ou trabalhar em deploy.sh/docker-entrypoint.sh.
+---
 
-## Name
-Deployment Safety & Server State Management
-
-## Description
-Documenta práticas de segurança durante deployment, especialmente tratamento de dirty-state (arquivos não-comitados), backup automático e recuperação segura.
-
-## When to use
-Carregue esta skill quando:
-- Debugar falhas de deploy
-- Implementar novos safety mechanisms
-- Investigar server state inconsistencies
-- Melhorar backup/restore procedures
-- Trabalhar com deploy.sh ou CI/CD pipeline
+# Deployment Safety and Server State Management
 
 ## Key Files
 - `deploy.sh` - Deploy script com dirty-state handling
