@@ -686,6 +686,40 @@ test.describe('Consistência do CSV de venues', () => {
     expect(resultado.chainHtml).toBe('');
   });
 
+  test('mantém a rede primária fora das adições e inclui secundárias e terciárias', async ({ page }) => {
+    await carregarLogicaCsv(page);
+
+    const resultado = await page.evaluate(({ chainId, completeVenueId, secondaryChainId, tertiaryChainId }) => {
+      const editor = window as unknown as CsvHarnessWindow;
+      const header = ['venue', 'venueChainId', 'primaryVenueChainId', 'addVenueChainIds', 'removeVenueChainIds'];
+      editor.csv = [header, [`"${completeVenueId}"`, '', '', '', '']];
+      editor.venuesComDadosCompletos = [0];
+      editor.linhasEditadas = [];
+      document.getElementById('venueChainIndex')!.textContent = '0';
+
+      editor.atualizarRedes([
+        { id: chainId, name: 'Rede primária', logo: '' },
+        { id: secondaryChainId, name: 'Rede secundária', logo: '' },
+        { id: tertiaryChainId, name: 'Rede terciária', logo: '' }
+      ], chainId);
+      editor.processarEdicaoRedes();
+
+      const row = editor.csv[1];
+      return {
+        primaryChainId: row[header.indexOf('primaryVenueChainId')].replace(/"/g, ''),
+        addedChainIds: row[header.indexOf('addVenueChainIds')].replace(/"/g, '')
+      };
+    }, {
+      chainId,
+      completeVenueId,
+      secondaryChainId: '556e092ea7c82e6b724ee2f0',
+      tertiaryChainId: '556e092ea7c82e6b724ee2f1'
+    });
+
+    expect(resultado.primaryChainId).toBe(chainId);
+    expect(resultado.addedChainIds).toBe('556e092ea7c82e6b724ee2f0,556e092ea7c82e6b724ee2f1');
+  });
+
   test('preserva IDs e registra a rede removida em uma lista mista', async ({ page }) => {
     await carregarLogicaCsv(page);
 
