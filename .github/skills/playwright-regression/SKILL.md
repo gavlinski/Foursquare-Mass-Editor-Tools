@@ -1,6 +1,6 @@
 ---
 name: playwright-regression
-description: Guia completo para criar, executar e manter os testes de regressão automatizados com @playwright/test, cobrindo os 4 fluxos do runbook (sessão/auth, edição em massa, Google Maps, erros/retry) e o padrão "MCP para explorar uma vez, @playwright/test para automatizar". Use ao criar/expandir testes em tests/e2e/, debugar falhas de teste, adicionar um novo fluxo funcional, ou configurar a execução de regressão no CI/CD.
+description: Guia completo para criar, executar e manter os testes de regressão automatizados com @playwright/test, cobrindo sessão/auth, edição em massa e Redes, Google Maps, erros/retry e consistência de CSV; usa o padrão "MCP para explorar uma vez, @playwright/test para automatizar". Use ao criar/expandir testes em tests/e2e/, debugar falhas de teste, adicionar um novo fluxo funcional, ou configurar a execução de regressão no CI/CD.
 ---
 
 # Playwright — Geração e Execução de Testes de Regressão
@@ -32,6 +32,8 @@ tests/
     02-mass-editing.spec.ts   ← Regressão 2: Edição em Massa
     03-google-maps.spec.ts    ← Regressão 3: Google Maps
     04-errors-retry.spec.ts   ← Regressão 4: Erros e Retry
+    05-csv-consistency.spec.ts ← Regressão 5: CSV parcial/completo e Redes
+    auth-session.ts            ← Helpers de pré-condição de autenticação
 test-results/                 ← Artefatos de falha (gitignored)
 playwright-report/            ← Relatório HTML (gitignored)
 ```
@@ -124,7 +126,7 @@ test('redireciona para login sem token', async ({ browser }) => {
 
 ---
 
-## Os 4 Fluxos de Regressão
+## Os 5 Fluxos de Regressão
 
 ### Fluxo 1: Sessão e Autenticação (`01-session-auth.spec.ts`)
 
@@ -152,8 +154,9 @@ npx playwright test tests/e2e/01-session-auth.spec.ts
 
 **O que valida:**
 - `main.php` exibe formulário de entrada de IDs/URLs
-- Checkboxes de seleção de campos presentes
+- Checkboxes de seleção de campos presentes, incluindo Redes
 - `edit.php` renderiza campos Dojo (requer `TEST_VENUE_ID`)
+- Campo Redes fica disponível quando selecionado; inclusão local e mensagem de confirmação funcionam
 - Sinalização visual de campo alterado
 
 **ID de venue:** os testes usam `4ec42a0a9a522f580b42dbeb` como fallback fixo.
@@ -187,6 +190,18 @@ Para substituir: `export TEST_VENUE_ID="outro-id"` antes de rodar.
 - `load.php` com ID inválido não gera erro 500
 - `version.php` retorna JSON válido com `Accept: application/json`
 - (Skipped sem `TEST_VENUE_ID`) Interceptação de 401 da API
+
+---
+
+### Fluxo 5: Consistência CSV e Redes (`05-csv-consistency.spec.ts`)
+
+**O que valida:**
+- Cabeçalho e linhas CSV mantêm o mesmo número de colunas em dados parciais e completos.
+- Redes selecionadas incluem `venueChainId` e preservam os IDs após normalização e recarga.
+- Redes não selecionadas não são processadas, exibidas nem exportadas após recarregar uma venue completa.
+- Fluxo de URL direta mantém Redes selecionado conforme o comportamento de todos os campos.
+
+Este spec carrega `js/4sq.js` num harness local e não grava alterações em venues reais. A suíte completa deve ser executada com storage state válido; confirme o resumo do Playwright e não considere skips por falta de autenticação como cobertura aprovada.
 
 ---
 

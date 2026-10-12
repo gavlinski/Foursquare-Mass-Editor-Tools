@@ -74,7 +74,7 @@ fetch('version.php', {
 | `commit_hash` | String (40) | Hash completo do commit | "ddcf206..." |
 | `commit_short` | String (7) | Hash curto (git log --oneline) | "ddcf206" |
 | `branch` | String | Nome do branch | "refactor-ia", "main" |
-| `version` | String | git describe output | "4SQMET-02_03_00-117-gddcf206" |
+| `version` | String | `git describe` da série atual; antes da tag correspondente, usa `v` + versão do `package.json` | "v3.3.0" ou "v3.3.0-2-gabc1234" |
 | `build_source` | Enum | Quem disparou o build | "local", "deploy", "ci" |
 | `environment` | String | Tipo de build | "production" (sempre) |
 

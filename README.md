@@ -1,19 +1,17 @@
 # Foursquare Mass Editor Tools (Elio Tools)
 
-**Version 3.2.1** - Venue URL Parsing and Export Fixes
+**Version 3.3.0** - Chains Editing and CSV Improvements
 
 A comprehensive collection of **Superuser Tools** for Foursquare venues mass/bulk editing and searching, powered by the Foursquare API v2. This project has been **completely modernized** with a hybrid architecture combining modern PHP 8.1 features with legacy compatibility.
 
-## 🚀 Version 3.2.1 Highlights
+## 🚀 Version 3.3.0 Highlights
 
-- ✅ **Fully Migrated** from PHP 5.4 to PHP 8.1
-- ✅ **PSR-4 Autoloading** with Composer
-- ✅ **Modern Session Management** with OAuth2
-- ✅ **Real-time Status Monitoring** 
-- ✅ **Enhanced Security** with secure cookies and CSRF protection
-- ✅ **Docker Environment** for development
-- ✅ **Responsive UI** with unified status bar
-- ✅ **TypeScript-ready** architecture
+- ✅ **Chains** can be searched, assigned, reordered, and submitted with venue edits
+- ✅ Chain IDs and edit operations are included in CSV exports when selected
+- ✅ Partial and complete venue data stay aligned after reloads and CSV export
+- ✅ Bulk edits apply to selected venues and can prefill values shared by those venues
+- ✅ Session test fixtures are isolated from real authentication sessions
+- ✅ Version 3.3.0 retains the OAuth2, security, and responsive UI improvements
 
 ## 🎯 Key Features
 
@@ -27,17 +25,20 @@ A comprehensive collection of **Superuser Tools** for Foursquare venues mass/bul
 ### Editing Capabilities
 - ✏️ Mass editing of almost all venue fields
 - 🏷️ Category management with hierarchical tree view
+- 🏢 Chain search, assignment, primary selection, and editing
 - 🚩 All types of venue flagging
 - 📍 Google Maps integration with location markers
 - 🔍 Advanced search using Foursquare API
 
-### Modern Features (v3.1.0)
+### Current Capabilities (v3.3.0)
 - 🔐 **OAuth2 Authentication** with automatic token refresh
 - 📊 **Session Status Bar** with real-time monitoring
 - 🧹 **Cache Management** with automatic cleanup
 - 📱 **Responsive Design** for mobile and desktop
 - 🐳 **Docker Support** for easy development
 - 🔧 **Debug Tools** for development and testing
+
+For the complete release history, see [CHANGELOG.md](CHANGELOG.md).
 
 ## 🏗️ Architecture
 
@@ -238,101 +239,6 @@ Contributions are always welcome! Please:
 ### For AI coding agents
 This repo follows the open [AGENTS.md](AGENTS.md) convention. Start there for project overview, dev environment, build/test commands, and security considerations. Copilot/VS Code-specific wiring lives in [.github/copilot-instructions.md](.github/copilot-instructions.md), with deeper task-specific knowledge in [.github/skills/](.github/skills/) and path-scoped coding conventions in [.github/instructions/](.github/instructions/).
 
-## 📝 Changelog
-
-### Version 3.2.1 (2026-09-13)
-
-**Venue URLs & Export:**
-- Added support for shared venue URLs using the `/share/venue/{id}` format
-- Canonical URL export now generates shareable URLs from venue IDs
-- Standard URL and ID exports now use the venue ID directly
-- Ignored unreliable `canonicalUrl` values that could rewrite links to `/share/venue/`
-
-**Configuration & Links:**
-- Editor links now use the configured Foursquare client key when available
-- Empty `?ref=` parameters are omitted when no client key is configured
-
-### Version 3.2.0 (2026-03-31)
-
-**Deploy & CI/CD:**
-- Improved deploy flow safety: git stash handling for dirty working tree on server
-- Apache ServerName global written at container startup (eliminates AH00558 warning)
-- CI/CD workflow refined: Dojo local fallback validation step added
-- Tag convention migrated to SemVer `v*` format for GitHub ecosystem alignment
-
-**Authentication & Security:**
-- Cookie handling hardened for reliability across sessions
-- Auth flow edge cases resolved
-
-**Data & UI:**
-- CSV: expired file handling improvements
-- Postal code field: paste support enabled
-- Local Dojo/Dijit/Dojox fallback assets included in repository
-
-**Documentation:**
-- BUILD_AND_DEPLOY.md updated with deploy scenarios, build_source field details
-- GitHub Copilot agent skills expanded (ci-cd, deploy-safety, devcontainer)
-- Dependabot configuration added for automated dependency updates
-
-### Version 3.1.0 (2026-03-16)
-
-**Analytics Dashboard:**
-- Privacy-friendly self-hosted analytics (no external services)
-- Dashboard with unique visitors, page views, and top pages
-- Data migration script for legacy analytics cleanup
-
-**Infrastructure & Deployment:**
-- Production migration to new Docker Droplet (NYC3, Ubuntu 22.04)
-- Let's Encrypt SSL with automatic renewal
-- DigitalOcean Monitoring: Resource Alerts + Uptime Check
-- Dojo Toolkit migrated to Google CDN (primary) with local fallback (`js/dojo`, `js/dijit`, `js/dojox`)
-- Git tags realigned with SemVer (4SQMET-03_xx_xx series)
-
-**Build System:**
-- Loading overlay to prevent FOUC during Dojo initialization
-- Geocoding API server-side support
-- GitHub Copilot agent skills and instructions
-
-### Version 3.0.1 (2026-02-18)
-
-**Session Management Improvements:**
-- Reduced session check interval from 5 minutes to 2 minutes for faster expiration detection
-- Implemented cache busting in session status requests to prevent stale data
-- Enhanced session expiration detection logic (checks both `status='expired'` and `!authenticated`)
-- Added visibility change and focus event listeners for immediate session verification
-- Implemented cross-tab logout detection via localStorage events
-- Session timer now properly pauses on error/expired states
-
-**OAuth & Authentication:**
-- Added protection against OAuth redirect loops (max 10 attempts)
-- Implemented token validation before accepting cookie-stored tokens
-- Improved token restoration priority: session → cookie → superglobal
-- Added comprehensive debug logging for OAuth flow tracking
-
-**User Experience Enhancements:**
-- File upload state now persists via cookies when navigating back
-- Intelligent navigation detection (F5 vs Back button) using Performance API
-- Automatic file state restoration on browser back navigation
-- Enhanced venue editing with proper Dijit widget updates
-- Fixed placeholder visibility after loading venue data
-- Added `habilitarCamposLinha()` function to properly re-enable fields
-
-**UI & Styling:**
-- Fixed category tree positioning with proper CSS float clearing
-- Reduced session bar padding on large screens (40px → 15px)
-- Improved visual feedback with automatic error class removal on success
-- Session bar timer now respects `showTimer` parameter for better state control
-
-**Validation & Error Handling:**
-- Enhanced search coordinate validation with empty field checking
-- Better geocoding success verification before accessing results
-- Filtered error listeners to show only session-related errors
-- Improved error messages and user feedback
-
-### Version 3.0.0 (2025-07)
-- Initial modernization release with PHP 8.1 migration (tag: 4SQMET-03_00_00)
-- PSR-4 autoloading implementation
-- Docker containerization
 - Modern session management system
 
 ## 🔧 Testing and Debugging

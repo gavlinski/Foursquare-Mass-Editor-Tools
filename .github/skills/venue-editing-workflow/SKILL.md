@@ -23,14 +23,23 @@ const EDITABLE_FIELDS = [
     'name', 'address', 'crossStreet', 'neighborhood',
     'city', 'state', 'zip', 'phone', 'url',
     'twitter', 'facebook', 'instagram', 'categoryId',
-    'description', 'menu', 'venuell' // lat/lng
+    'description', 'menu', 'venuell', 'redes' // lat/lng and venue chains
 ];
 ```
 
-Ao adicionar um novo campo editável, ele precisa aparecer em três lugares:
-1. Esta lista em `js/4sq.js`.
-2. Um `renderizarCampo()` correspondente em `edit.php` (ver skill/instructions de Dojo widgets).
-3. O payload enviado em `xmlhttpRequest()` ao salvar.
+Ao adicionar um campo editável, mantenha alinhados a seleção/carregamento, a renderização em `edit.php`, a serialização CSV e o payload enviado ao salvar. Campos com modal e controles próprios, como Redes, não usam um input simples de `renderizarCampo()`.
+
+## Chains (Redes)
+
+O campo **Redes** é opcional e acompanha a seleção `editChains` publicada por `edit.php` em `window.appBootstrap`. Quando desmarcado, os dados de `venueChains` não são processados nem exibidos, as consultas adicionais de chains não são iniciadas e as colunas de Redes não são inseridas no CSV — inclusive durante a recarga de dados parciais como venues completas. O fluxo direto de venues continua selecionando todos os campos conforme definido em `load.php`.
+
+Com Redes selecionado, `processarRedesVenue()` lê `venueChains` da resposta da venue. `GET /v2/chains/search?query=...` fornece sugestões e `GET /v2/chains/{chainId}` pode completar nome/logo ausentes. A interface permite pesquisar por nome, informar o ID diretamente, adicionar/remover redes e promover uma rede principal. Logos e nomes são compartilhados com o CSV e tooltips.
+
+No salvamento, `salvarVenues()` envia pelo endpoint `proposeedit` os parâmetros `primaryVenueChainId`, `addVenueChainIds` e `removeVenueChainIds`, somente quando há mudanças. O comportamento desses parâmetros foi testado na API v2, embora não esteja documentado na referência pública da API. Não inferir sucesso apenas pela presença dos parâmetros no payload: verificar status e resultado da API ao validar alterações.
+
+O CSV inclui `venueChainId` apenas quando Redes foi selecionado. Quando disponível, os campos de proposta são `primaryVenueChainId`, `addVenueChainIds` e `removeVenueChainIds`. `normalizarCsv()` deve manter cabeçalho e linhas alinhados nos modos parcial e completo, inclusive após recarga.
+
+As regressões de UI ficam em `tests/e2e/02-mass-editing.spec.ts`; os cenários de alinhamento, recarga e seleção condicional estão em `tests/e2e/05-csv-consistency.spec.ts`.
 
 ## Core Functions (js/4sq.js)
 

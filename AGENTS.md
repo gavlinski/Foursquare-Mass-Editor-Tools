@@ -51,6 +51,8 @@ Coding conventions are enforced through path-scoped instruction files (VS Code `
 
 ## Domain knowledge (skills)
 
+Venue editing includes optional Chains support; the existing `venue-editing-workflow` skill documents its API v2, modal, selection, and CSV behavior.
+
 Deeper, task-triggered knowledge lives in `.github/skills/*/SKILL.md`. Load the relevant one before touching its area: `build-system`, `deploy-workflows`, `deploy-safety`, `ci-cd-configuration`, `devcontainer-setup`, `debug-tools`, `scroll-preservation`, `session-management`, `version-info`, `analytics-hardening`, `venue-editing-workflow`, `mcp-playwright-auth`, `playwright-regression`.
 
 ## Security considerations
