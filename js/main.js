@@ -13,7 +13,27 @@ dojo.require("dojox.image");
 
 // Utilitários de logging (isLocalhost, debugLog, debugInfo) são providos por session-manager.js
 
+function configurarBuscaCategoriaPrincipal() {
+	var widget = dijit.byId("categoryId");
+	if (!widget || !widget.textbox || widget._exactCategoryBlurBound) return;
+	widget._exactCategoryBlurBound = true;
+	widget.set("required", false);
+	widget.textbox.addEventListener("blur", function() {
+		var termo = (widget.get("displayedValue") || "").trim().toLocaleLowerCase();
+		if (!termo) return;
+
+		var termoEscapado = termo.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+		var correspondencias = widget.store.query({
+			name: new RegExp("^" + termoEscapado + "$", "i")
+		});
+		if (correspondencias.length === 1) {
+			widget.set("value", correspondencias[0].id);
+		}
+	});
+}
+
 dojo.addOnLoad(function() {
+	configurarBuscaCategoriaPrincipal();
 	// Preload de imagens do tema (Dojo carregará automaticamente quando necessário)
 	// dojox.image.preload(["js/dijit/themes/tundra/images/progressBarFull.png", "js/dijit/themes/tundra/images/progressBarAnim.gif"]);
 	
@@ -93,7 +113,7 @@ dojo.addOnLoad(function() {
 		}
 		//dojo.cookie("pagina", "", { expires: 15 });
 		//dojo.cookie("textarea", "", { expires: 15 });
-		var campos1 = dijit.byId("nome1").checked + "." + dijit.byId("endereco1").checked + "." + dijit.byId("ruatransversal1").checked + "." + dijit.byId("bairro1").checked + "." + dijit.byId("cidade1").checked + "." + dijit.byId("estado1").checked + "." + dijit.byId("codigopostal1").checked + "." + dijit.byId("dentro1").checked + "." + dijit.byId("telefone1").checked + "." + dijit.byId("sitedaweb1").checked + "." + dijit.byId("twitter1").checked + "." + dijit.byId("facebook1").checked + "." + dijit.byId("instagram1").checked + "." + dijit.byId("latlng1").checked + "." + dijit.byId("descricao1").checked + "." + dijit.byId("menu1").checked + "." + dijit.byId("horas1").checked;
+		var campos1 = dijit.byId("nome1").checked + "." + dijit.byId("endereco1").checked + "." + dijit.byId("ruatransversal1").checked + "." + dijit.byId("bairro1").checked + "." + dijit.byId("cidade1").checked + "." + dijit.byId("estado1").checked + "." + dijit.byId("codigopostal1").checked + "." + dijit.byId("dentro1").checked + "." + dijit.byId("telefone1").checked + "." + dijit.byId("sitedaweb1").checked + "." + dijit.byId("twitter1").checked + "." + dijit.byId("facebook1").checked + "." + dijit.byId("instagram1").checked + "." + dijit.byId("latlng1").checked + "." + dijit.byId("descricao1").checked + "." + dijit.byId("menu1").checked + "." + dijit.byId("redes1").checked + "." + dijit.byId("horas1").checked;
 		dojo.cookie("campos", campos1, { expires: 15 });
 		dojo.cookie("accordion", dijit.byId("accordion").selectedChildWidget.id, { expires: 15 });
 	});
@@ -118,7 +138,7 @@ dojo.addOnLoad(function() {
 		}
 		dojo.cookie("pagina", dijit.byId("pagina").value, { expires: 15 });
 		//dojo.cookie("textarea", "", { expires: 15 });
-		var campos2 = dijit.byId("nome2").checked + "." + dijit.byId("endereco2").checked + "." + dijit.byId("ruatransversal2").checked + "." + dijit.byId("bairro2").checked + "." + dijit.byId("cidade2").checked + "." + dijit.byId("estado2").checked + "." + dijit.byId("codigopostal2").checked + "." + dijit.byId("dentro2").checked + "." + dijit.byId("telefone2").checked + "." + dijit.byId("sitedaweb2").checked + "." + dijit.byId("twitter2").checked + "." + dijit.byId("facebook2").checked + "." + dijit.byId("instagram2").checked + "." + dijit.byId("latlng2").checked + "." + dijit.byId("descricao2").checked + "." + dijit.byId("menu2").checked + "." + dijit.byId("horas2").checked;
+		var campos2 = dijit.byId("nome2").checked + "." + dijit.byId("endereco2").checked + "." + dijit.byId("ruatransversal2").checked + "." + dijit.byId("bairro2").checked + "." + dijit.byId("cidade2").checked + "." + dijit.byId("estado2").checked + "." + dijit.byId("codigopostal2").checked + "." + dijit.byId("dentro2").checked + "." + dijit.byId("telefone2").checked + "." + dijit.byId("sitedaweb2").checked + "." + dijit.byId("twitter2").checked + "." + dijit.byId("facebook2").checked + "." + dijit.byId("instagram2").checked + "." + dijit.byId("latlng2").checked + "." + dijit.byId("descricao2").checked + "." + dijit.byId("menu2").checked + "." + dijit.byId("redes2").checked + "." + dijit.byId("horas2").checked;
 		dojo.cookie("campos", campos2, { expires: 15 });
 		dojo.cookie("accordion", dijit.byId("accordion").selectedChildWidget.id, { expires: 15 });
 	});
@@ -147,7 +167,7 @@ dojo.addOnLoad(function() {
 		}
 		//dojo.cookie("pagina", "", { expires: 15 });
 		dojo.cookie("textarea", dijit.byId("textarea_ids").value, { expires: 15 });
-		var campos3 = dijit.byId("nome3").checked + "." + dijit.byId("endereco3").checked + "." + dijit.byId("ruatransversal3").checked + "." + dijit.byId("bairro3").checked + "." + dijit.byId("cidade3").checked + "." + dijit.byId("estado3").checked + "." + dijit.byId("codigopostal3").checked + "." + dijit.byId("dentro3").checked + "." + dijit.byId("telefone3").checked + "." + dijit.byId("sitedaweb3").checked + "." + dijit.byId("twitter3").checked + "." + dijit.byId("facebook3").checked + "." + dijit.byId("instagram3").checked + "." + dijit.byId("latlng3").checked + "." + dijit.byId("descricao3").checked + "." + dijit.byId("menu3").checked + "." + dijit.byId("horas3").checked;
+		var campos3 = dijit.byId("nome3").checked + "." + dijit.byId("endereco3").checked + "." + dijit.byId("ruatransversal3").checked + "." + dijit.byId("bairro3").checked + "." + dijit.byId("cidade3").checked + "." + dijit.byId("estado3").checked + "." + dijit.byId("codigopostal3").checked + "." + dijit.byId("dentro3").checked + "." + dijit.byId("telefone3").checked + "." + dijit.byId("sitedaweb3").checked + "." + dijit.byId("twitter3").checked + "." + dijit.byId("facebook3").checked + "." + dijit.byId("instagram3").checked + "." + dijit.byId("latlng3").checked + "." + dijit.byId("descricao3").checked + "." + dijit.byId("menu3").checked + "." + dijit.byId("redes3").checked + "." + dijit.byId("horas3").checked;
 		dojo.cookie("campos", campos3, { expires: 15 });
 		dojo.cookie("accordion", dijit.byId("accordion").selectedChildWidget.id, { expires: 15 });
 	});
@@ -199,6 +219,7 @@ dojo.addOnLoad(function() {
 		campos4 += dijit.byId("latlng4").checked + ".";
 		(dijit.byId("descricao4").disabled) ? campos4 += "false." : campos4 += dijit.byId("descricao4").checked + ".";
 		(dijit.byId("menu4").disabled) ? campos4 += "false." : campos4 += dijit.byId("menu4").checked + ".";
+		campos4 += dijit.byId("redes4").checked + ".";
 		(dijit.byId("horas4").disabled) ? campos4 += "false." : campos4 += dijit.byId("horas4").checked;
 		
 		var search = [dijit.byId("query").value, dijit.byId("ll").value, dijit.byId("categoryId").value, dijit.byId("radius").value, dijit.byId("intent").value, dijit.byId("limit").value];
@@ -224,6 +245,12 @@ dojo.ready(function() {
 			isBackNavigation = (performance.navigation.type === 2);
 			debugLog("🔍 Tipo de navegação (deprecated):", performance.navigation.type);
 		}
+		try {
+			var referrerUrl = new URL(document.referrer);
+			if (referrerUrl.origin === window.location.origin && /\/edit\.php$/.test(referrerUrl.pathname)) {
+				isBackNavigation = true;
+			}
+		} catch (error) {}
 		
 		// Se for reload (F5) ou navegação normal, limpa os cookies de arquivo
 		if (!isBackNavigation) {
@@ -290,7 +317,9 @@ dojo.ready(function() {
 				dijit.byId("latlng"	+ i).attr("checked", (campos[13] === 'true'));
 				(dijit.byId("descricao" + i).disabled) ? dijit.byId("descricao" + i).attr("checked", false) : dijit.byId("descricao" + i).attr("checked", (campos[14] === 'true'));
 				(dijit.byId("menu" + i).disabled) ? dijit.byId("menu" + i).attr("checked", false) : dijit.byId("menu" + i).attr("checked", (campos[15] === 'true'));
-				(dijit.byId("horas" + i).disabled) ? dijit.byId("horas" + i).attr("checked", false) : dijit.byId("horas" + i).attr("checked", (campos[16] === 'true'));
+				if (campos.length > 17)
+					dijit.byId("redes" + i).attr("checked", (campos[16] === 'true'));
+				(dijit.byId("horas" + i).disabled) ? dijit.byId("horas" + i).attr("checked", false) : dijit.byId("horas" + i).attr("checked", (campos[campos.length > 17 ? 17 : 16] === 'true'));
 			}
 			dijit.byId("accordion").selectChild(dojo.cookie("accordion"), false);
 		} else {
@@ -303,6 +332,7 @@ dojo.ready(function() {
 				dijit.byId("codigopostal" + i).attr("checked", true);
 				dijit.byId("telefone" + i).attr("checked", true);
 				dijit.byId("sitedaweb" + i).attr("checked", true);
+				dijit.byId("redes" + i).attr("checked", true);
 			}
 			dijit.byId("accordion").selectChild("dijit_layout_ContentPane_3", false);
 		}

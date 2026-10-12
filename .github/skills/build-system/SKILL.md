@@ -32,6 +32,10 @@ if [ -z "$BUILD_SOURCE" ]; then
 fi
 ```
 
+### Versão do produto
+
+`package.json` é a versão de release pretendida. O build mantém `git describe` quando a tag/descrição já pertence a essa versão (por exemplo, `v3.3.0-2-gabc1234`); se o checkout ainda aponta para uma versão anterior ou não tem tags, o build usa `v<package.json.version>`. Assim a interface exibe a versão preparada no branch de release antes da criação da tag, sem perder o sufixo de commit depois que a tag correspondente existe.
+
 ### Configuração externa
 ```bash
 # deploy.sh define antes de chamar build.sh

@@ -5,23 +5,23 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Ferramentas de Debug - Foursquare Mass Editor</title>
     <style>
-        body { 
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; 
-            padding: 40px; 
-            background: #f0f2f5; 
-            color: #1a1a1a; 
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            padding: 40px;
+            background: #f0f2f5;
+            color: #1a1a1a;
             line-height: 1.6;
         }
         .container { max-width: 1000px; margin: 0 auto; }
-        .header-section { 
-            background: white; 
-            padding: 30px; 
-            border-radius: 12px; 
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1); 
+        .header-section {
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
             margin-bottom: 30px;
         }
-        h1 { 
-            color: #2c3e50; 
+        h1 {
+            color: #2c3e50;
             margin-bottom: 10px;
             margin-top: -5px;
             font-size: 2rem;
@@ -47,44 +47,44 @@
         .category-icon {
             font-size: 1.5rem;
         }
-        .card { 
-            background: white; 
-            padding: 20px; 
-            border-radius: 8px; 
-            box-shadow: 0 2px 4px rgba(0,0,0,0.08); 
-            margin-bottom: 12px; 
+        .card {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.08);
+            margin-bottom: 12px;
             transition: all 0.2s;
             border-left: 4px solid transparent;
         }
-        .card:hover { 
-            transform: translateX(4px); 
+        .card:hover {
+            transform: translateX(4px);
             box-shadow: 0 4px 12px rgba(0,0,0,0.12);
             border-left-color: #3498db;
         }
-        h2 { 
-            margin: 0 0 8px 0; 
-            font-size: 1.1rem; 
+        h2 {
+            margin: 0 0 8px 0;
+            font-size: 1.1rem;
             color: #2c3e50;
             display: flex;
             align-items: center;
             gap: 8px;
         }
-        p { 
-            color: #666; 
+        p {
+            color: #666;
             margin: 0;
             font-size: 0.95rem;
         }
-        a { 
-            text-decoration: none; 
-            color: inherit; 
-            display: block; 
+        a {
+            text-decoration: none;
+            color: inherit;
+            display: block;
         }
-        .tag { 
-            display: inline-block; 
-            padding: 3px 10px; 
-            border-radius: 12px; 
-            font-size: 0.75rem; 
-            font-weight: 600; 
+        .tag {
+            display: inline-block;
+            padding: 3px 10px;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            font-weight: 600;
             text-transform: uppercase;
             letter-spacing: 0.5px;
         }
@@ -98,18 +98,18 @@
         .tag-test { background: #f3e5f5; color: #8e24aa; }
         .tag-help { background: #e1f5fe; color: #0277bd; }
         .tag-legacy { background: #eeeeee; color: #616161; }
-        .back-link { 
+        .back-link {
             display: inline-flex;
             align-items: center;
             gap: 5px;
-            margin-bottom: 20px; 
-            color: #3498db; 
-            text-decoration: none; 
+            margin-bottom: 20px;
+            color: #3498db;
+            text-decoration: none;
             font-weight: 500;
             padding: 8px 0;
             transition: color 0.2s;
         }
-        .back-link:hover { 
+        .back-link:hover {
             color: #2980b9;
         }
         .endpoint-list {
@@ -161,14 +161,14 @@
                 <span class="category-icon">🎯</span>
                 Sistema e Versão
             </h3>
-            
+
             <a href="../version.php" onclick="sessionStorage.setItem('debugIndexScrollPos', window.scrollY || document.documentElement.scrollTop);">
                 <div class="card">
                     <h2><span class="tag tag-system">SYSTEM</span> Informações de Versão e Build</h2>
                     <p>Endpoint JSON com versão, commit hash, data de build, idade da build e informações do servidor. Essencial para rastreabilidade e rollback.</p>
                 </div>
             </a>
-            
+
             <a href="../clear_cache.php" onclick="sessionStorage.setItem('debugIndexScrollPos', window.scrollY || document.documentElement.scrollTop);">
                 <div class="card">
                     <h2><span class="tag tag-util">UTIL</span> Limpeza de Cache</h2>
@@ -198,14 +198,14 @@
                 <span class="category-icon">🔐</span>
                 Sessão e Autenticação
             </h3>
-            
+
             <a href="test_session_debug.html" onclick="sessionStorage.setItem('debugIndexScrollPos', window.scrollY || document.documentElement.scrollTop);">
                 <div class="card">
                     <h2><span class="tag tag-session">SESSION</span> Painel de Debug de Sessão</h2>
                     <p>Interface consolidada para testar criação, validação e destruição de sessões. Use esta ferramenta primeiro para troubleshooting de autenticação.</p>
                 </div>
             </a>
-            
+
             <div class="card">
                 <h2><span class="tag tag-session">SESSION</span> Endpoints de Backend</h2>
                 <p>APIs diretas para automação e testes via curl/Postman:</p>
@@ -223,21 +223,21 @@
                 <span class="category-icon">🗺️</span>
                 Google Maps
             </h3>
-            
+
             <a href="test_google_maps_config.php" onclick="sessionStorage.setItem('debugIndexScrollPos', window.scrollY || document.documentElement.scrollTop);">
                 <div class="card">
                     <h2><span class="tag tag-maps">MAPS</span> Diagnóstico de Configuração</h2>
                     <p>Verifica se as credenciais do Google Maps estão sendo carregadas corretamente do .env. Valida API Key, Map ID e configurações.</p>
                 </div>
             </a>
-            
+
             <a href="test_integration_markers.html" onclick="sessionStorage.setItem('debugIndexScrollPos', window.scrollY || document.documentElement.scrollTop);">
                 <div class="card">
                     <h2><span class="tag tag-maps">MAPS</span> Teste de Marcadores</h2>
                     <p>Valida a integração com a API do Google Maps e renderização de marcadores no mapa.</p>
                 </div>
             </a>
-            
+
             <div class="grid-2">
                 <a href="test_draggable_markers.html" onclick="sessionStorage.setItem('debugIndexScrollPos', window.scrollY || document.documentElement.scrollTop);">
                     <div class="card">
@@ -245,7 +245,7 @@
                         <p>Testa funcionalidade de drag-and-drop dos marcadores.</p>
                     </div>
                 </a>
-                
+
                 <a href="test_custom_markers.html" onclick="sessionStorage.setItem('debugIndexScrollPos', window.scrollY || document.documentElement.scrollTop);">
                     <div class="card">
                         <h2><span class="tag tag-maps">MAPS</span> Ícones Personalizados</h2>
@@ -261,21 +261,21 @@
                 <span class="category-icon">📍</span>
                 Geocodificação (Google Maps)
             </h3>
-            
+
             <a href="test_geocoding_detailed.php" onclick="sessionStorage.setItem('debugIndexScrollPos', window.scrollY || document.documentElement.scrollTop);">
                 <div class="card">
                     <h2><span class="tag tag-maps">MAPS</span> Debug Detalhado de Geocodificação</h2>
                     <p>Diagnóstico completo da conversão de endereços em coordenadas. Mostra resposta completa da API, status codes e mensagens de erro detalhadas.</p>
                 </div>
             </a>
-            
+
             <a href="test_geocoding.php" onclick="sessionStorage.setItem('debugIndexScrollPos', window.scrollY || document.documentElement.scrollTop);">
                 <div class="card">
                     <h2><span class="tag tag-maps">MAPS</span> Teste Rápido de Geocodificação</h2>
                     <p>Testa múltiplos endereços simultaneamente. Verifica se GOOGLE_MAPS_GEOCODING_KEY está configurada e funcional.</p>
                 </div>
             </a>
-            
+
             <div class="card" style="background: #e8f5e9; border-left-color: #4caf50;">
                 <h2><span class="tag tag-help">HELP</span> Como Configurar Geocoding API</h2>
                 <p>📚 Guia completo: <a href="../docs/GEOCODING_SETUP.md" target="_blank" style="display: inline; color: #2e7d32; font-weight: 600;">docs/GEOCODING_SETUP.md</a></p>
@@ -289,7 +289,7 @@
                 <span class="category-icon">🎨</span>
                 Interface e UI
             </h3>
-            
+
             <a href="css_test_interface.php" onclick="sessionStorage.setItem('debugIndexScrollPos', window.scrollY || document.documentElement.scrollTop);">
                 <div class="card">
                     <h2><span class="tag tag-ui">UI</span> Teste de Interface CSS</h2>
@@ -303,35 +303,35 @@
                     <p>Página dedicada para validar ícones, hierarquia visual do botão Salvar e comportamento responsivo da barra de ações da tela de edição.</p>
                 </div>
             </a>
-            
+
             <a href="test_visual_edited_rows.html" onclick="sessionStorage.setItem('debugIndexScrollPos', window.scrollY || document.documentElement.scrollTop);">
                 <div class="card">
                     <h2><span class="tag tag-ui">UI</span> Visualização de Linhas Editadas</h2>
                     <p>Teste visual de diferentes estados de linhas na tabela de edição: normal, editada, erro, sincronizando, etc.</p>
                 </div>
             </a>
-            
+
             <a href="test_dojo_cdn.php" onclick="sessionStorage.setItem('debugIndexScrollPos', window.scrollY || document.documentElement.scrollTop);">
                 <div class="card">
                     <h2><span class="tag tag-ui">UI</span> Diagnóstico de CDN do Dojo</h2>
                     <p>Valida carregamento de módulos via CDN, testa dojo.cookie e dojoConfig. Útil para troubleshooting de timing assíncrono.</p>
                 </div>
             </a>
-            
+
             <a href="test_progressbar.php" onclick="sessionStorage.setItem('debugIndexScrollPos', window.scrollY || document.documentElement.scrollTop);">
                 <div class="card">
                     <h2><span class="tag tag-ui">UI</span> Teste Progress Bar + Validação</h2>
                     <p>Verifica se as imagens do ProgressBar carregam corretamente. Mostra configuração atual do sistema (local ou CDN), testa carregamento das imagens e valida CSS dinâmico.</p>
                 </div>
             </a>
-            
+
             <a href="test_loading_overlay.html" onclick="sessionStorage.setItem('debugIndexScrollPos', window.scrollY || document.documentElement.scrollTop);">
                 <div class="card">
                     <h2><span class="tag tag-ui">UI</span> Loading Overlay - Teste Standalone</h2>
                     <p>Testa o sistema de loading overlay implementado para prevenir FOUC (Flash of Unstyled Content). Simula carregamento em diferentes velocidades e oferece controles interativos para validar animações, fade out e timeouts.</p>
                 </div>
             </a>
-            
+
             <a href="test_landing_theme.html" onclick="sessionStorage.setItem('debugIndexScrollPos', window.scrollY || document.documentElement.scrollTop);">
                 <div class="card">
                     <h2><span class="tag tag-ui">UI</span> Landing Page - Theme Switcher</h2>
@@ -346,18 +346,25 @@
                 <span class="category-icon">🔌</span>
                 APIs Foursquare
             </h3>
-            
+
             <a href="api_comparison_tool.html" onclick="sessionStorage.setItem('debugIndexScrollPos', window.scrollY || document.documentElement.scrollTop);">
                 <div class="card">
                     <h2><span class="tag tag-api">API</span> Comparação de APIs Foursquare</h2>
                     <p>Ferramenta interativa para comparar v2, v3 e Places API. Auxilia na auditoria de funcionalidades e análise de migração entre versões.</p>
                 </div>
             </a>
-            
+
             <a href="test_api_version.html" onclick="sessionStorage.setItem('debugIndexScrollPos', window.scrollY || document.documentElement.scrollTop);">
                 <div class="card">
                     <h2><span class="tag tag-api">API</span> Teste de Versionamento da API</h2>
                     <p>Interface para testar diferentes versões da API Foursquare (v2 vs v3) e comparar respostas de endpoints.</p>
+                </div>
+            </a>
+
+            <a href="test_chains_selector.php" onclick="sessionStorage.setItem('debugIndexScrollPos', window.scrollY || document.documentElement.scrollTop);">
+                <div class="card">
+                    <h2><span class="tag tag-api">API</span> Seletores de Redes (Chains)</h2>
+                    <p>Comparativo interativo das 3 opções de seletores de redes (FilteringSelect, Busca Visual e ComboBox) com consulta em tempo real à API v2.</p>
                 </div>
             </a>
         </div>
@@ -368,7 +375,7 @@
                 <span class="category-icon">📦</span>
                 Ferramentas Legadas
             </h3>
-            
+
             <div class="card" style="opacity: 0.7;">
                 <h2><span class="tag tag-legacy">LEGACY</span> Criador de Sessão Legado</h2>
                 <p>Mantido para compatibilidade com sistema antigo. Prefira usar o <strong>Painel de Debug de Sessão</strong> moderno.</p>
@@ -382,27 +389,27 @@
             <p>💡 Dica: Pressione <kbd style="padding: 2px 6px; background: #ecf0f1; border-radius: 3px; font-family: monospace;">Ctrl+F</kbd> para buscar uma ferramenta específica</p>
         </div>
     </div>
-    
+
     <script>
         // Restaurar posição de scroll ao voltar
         (function() {
             const savedScrollPos = sessionStorage.getItem('debugIndexScrollPos');
-            
+
             if (savedScrollPos) {
                 const scrollPos = parseInt(savedScrollPos);
-                
+
                 function tryRestoreScroll() {
                     window.scrollTo(0, scrollPos);
                     const currentPos = window.scrollY || document.documentElement.scrollTop;
-                    
+
                     if (currentPos === 0 && scrollPos > 0) {
                         return false;
                     }
                     return true;
                 }
-                
+
                 tryRestoreScroll();
-                
+
                 if (document.readyState === 'loading') {
                     document.addEventListener('DOMContentLoaded', function() {
                         setTimeout(function() {

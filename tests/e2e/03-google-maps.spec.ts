@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test';
+import { skipIfUnauthenticated } from './auth-session';
 
 /**
  * Regressão 3: Google Maps
@@ -12,6 +13,7 @@ import { test, expect } from '@playwright/test';
 test.describe('Google Maps', () => {
 
   test('main.php não gera erros críticos de Maps no console', async ({ page }) => {
+    await skipIfUnauthenticated(page);
     const consoleErrors: string[] = [];
     page.on('console', msg => {
       if (msg.type() === 'error') {
@@ -33,6 +35,7 @@ test.describe('Google Maps', () => {
   });
 
   test('mapa é renderizado em main.php (elemento do canvas presente)', async ({ page }) => {
+    await skipIfUnauthenticated(page);
     await page.goto('/4sqmet/main.php');
     await page.waitForLoadState('networkidle', { timeout: 20_000 });
 
@@ -64,6 +67,7 @@ test.describe('Google Maps', () => {
   });
 
   test('estabilidade ao navegar main.php → debug/ → main.php', async ({ page }) => {
+    await skipIfUnauthenticated(page);
     await page.goto('/4sqmet/main.php');
     await page.waitForLoadState('networkidle', { timeout: 20_000 });
 

@@ -4,8 +4,18 @@
  * Consolida funcionalidades de: test_session.php, test_complete_session.php
  */
 
+require_once __DIR__ . '/../vendor/autoload.php';
+
+use ElioTools\Config\AppConfig;
+
 header('Content-Type: application/json');
 header('Cache-Control: no-cache, must-revalidate');
+
+if (strtolower((string) (new AppConfig())->get('app_env')) === 'production') {
+    http_response_code(404);
+    echo json_encode(['status' => 'not_found']);
+    exit;
+}
 
 $mode = $_GET['mode'] ?? 'validate';
 

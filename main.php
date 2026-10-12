@@ -11,7 +11,7 @@ declare(strict_types=1);
  * @package    Foursquare-Mass-Editor-Tools
  * @author     Elio Gavlinski <gavlinski@gmail.com>
  * @copyright  Copyleft (c) 2012-2026
- * @version    3.2.1
+ * @version    3.3.0
  * @link       https://github.com/gavlinski/Foursquare-Mass-Editor-Tools/blob/master/main.php
  * @since      File available since Release 1.5
  * @license    GPLv3 <http://www.gnu.org/licenses/gpl.txt>
@@ -36,11 +36,11 @@ use ElioTools\Config\AppConfig;
 
 // Lê versão dinamicamente do build-info.json (gerado a cada build/CI)
 $_versionFile = __DIR__ . '/build-info.json';
-$VERSAO = '3.2.1'; // fallback para ambiente sem build
+$VERSAO = '3.3.0'; // fallback para ambiente sem build
 if (file_exists($_versionFile)) {
     $_buildData = @json_decode(@file_get_contents($_versionFile), true);
     if (!empty($_buildData['version'])) {
-		// Extrai apenas a parte SemVer (ex: "v3.2.1-1-g590b203" → "3.2.1")
+		// Extrai apenas a parte SemVer (ex: "v3.3.0-1-g590b203" → "3.3.0")
         if (preg_match('/^v?(\d+\.\d+\.\d+)/', $_buildData['version'], $_m)) {
             $VERSAO = $_m[1];
         }
@@ -423,6 +423,10 @@ if ((isset($_COOKIE['name'])) && (strlen($_COOKIE['name']) > 0))
 								<label for="menu1">Menu</label>
 							</div>
 							<div class="checkbox" style="width: 9.5em;">
+								<input id="redes1" name="campos1[]" dojoType="dijit.form.CheckBox" value="redes">
+								<label for="redes1">Redes</label>
+							</div>
+							<div class="checkbox" style="width: 9.5em;">
 								<input id="horas1" name="campos1[]" dojoType="dijit.form.CheckBox" value="horas" disabled>
 								<label for="horas1">Horas</label>
 							</div>
@@ -514,6 +518,10 @@ if ((isset($_COOKIE['name'])) && (strlen($_COOKIE['name']) > 0))
 							<div class="checkbox" style="width: 6.8em;">
 								<input id="menu2" name="campos2[]" dojoType="dijit.form.CheckBox" value="menu">
 								<label for="menu2">Menu</label>
+							</div>
+							<div class="checkbox" style="width: 9.5em;">
+								<input id="redes2" name="campos2[]" dojoType="dijit.form.CheckBox" value="redes">
+								<label for="redes2">Redes</label>
 							</div>
 							<div class="checkbox" style="width: 9.5em;">
 								<input id="horas2" name="campos2[]" dojoType="dijit.form.CheckBox" value="horas" disabled>
@@ -609,6 +617,10 @@ if ((isset($_COOKIE['name'])) && (strlen($_COOKIE['name']) > 0))
 								<label for="menu3">Menu</label>
 							</div>
 							<div class="checkbox" style="width: 9.5em;">
+								<input id="redes3" name="campos3[]" dojoType="dijit.form.CheckBox" value="redes">
+								<label for="redes3">Redes</label>
+							</div>
+							<div class="checkbox" style="width: 9.5em;">
 								<input id="horas3" name="campos3[]" dojoType="dijit.form.CheckBox" value="horas" disabled>
 								<label for="horas3">Horas</label>
 							</div>
@@ -639,33 +651,28 @@ if ((isset($_COOKIE['name'])) && (strlen($_COOKIE['name']) > 0))
 						<div class="categoryidcomboboxlabel"><label for="categoryId"><a href="https://docs.foursquare.com/developer/reference/place-search" target="_blank">Categoria</a>:</label></div>
 						<div class="categoryidcombobox">
 							<div class="combobox">
-								<select data-dojo-id="categoryId" name="categoryId" id="categoryId" data-dojo-type="dijit/form/FilteringSelect">
+								<select data-dojo-id="categoryId" name="categoryId" id="categoryId" data-dojo-type="dijit/form/FilteringSelect" data-dojo-props='queryExpr:"*${0}*",highlightMatch:"all",autoComplete:false,required:false'>
 <?php
 	$options = '									<option value=""></option>
 	';
 	if ($categories_loaded) {
 		$categories_names = array();
-	
-		foreach ($categories->response->categories as $category):
-			if (property_exists($category, "categories"))
-				foreach ($category->categories as $category2):
-					if (property_exists($category2, "name")) {
-						$categories_names[$category2->id] = $category2->name;
-					}
-					if (property_exists($category2, "categories"))
-						foreach ($category2->categories as $category3):
-							if (property_exists($category3, "name")) {
-								$categories_names[$category3->id] = $category3->name;
-							}
-							if (property_exists($category3, "categories"))
-								foreach ($category3->categories as $category4):
-									if (property_exists($category4, "name")) {
-										$categories_names[$category4->id] = $category4->name;
-									}
-								endforeach;
-						endforeach;
-				endforeach;
-		endforeach;
+		$addCategoryNames = function ($categoriesAtLevel) use (&$addCategoryNames, &$categories_names) {
+			foreach ($categoriesAtLevel as $categoryOption) {
+				if (isset($categoryOption->id) && isset($categoryOption->name)) {
+					$categories_names[$categoryOption->id] = $categoryOption->name;
+				}
+				if (property_exists($categoryOption, "categories") && is_array($categoryOption->categories)) {
+					$addCategoryNames($categoryOption->categories);
+				}
+			}
+		};
+
+		foreach ($categories->response->categories as $category) {
+			if (property_exists($category, "categories") && is_array($category->categories)) {
+				$addCategoryNames($category->categories);
+			}
+		}
 
 		asort($categories_names);
 		foreach ($categories_names as $key => $val) {
@@ -795,6 +802,10 @@ if ((isset($_COOKIE['name'])) && (strlen($_COOKIE['name']) > 0))
 							<div class="checkbox" style="width: 6.8em;">
 								<input id="menu4" name="campos4[]" dojoType="dijit.form.CheckBox" value="menu" disabled>
 								<label for="menu4">Menu</label>
+							</div>
+							<div class="checkbox" style="width: 9.5em;">
+								<input id="redes4" name="campos4[]" dojoType="dijit.form.CheckBox" value="redes">
+								<label for="redes4">Redes</label>
 							</div>
 							<div class="checkbox" style="width: 9.5em;">
 								<input id="horas4" name="campos4[]" dojoType="dijit.form.CheckBox" value="horas" disabled>

@@ -11,7 +11,7 @@ declare(strict_types=1);
  * @package    Foursquare-Mass-Editor-Tools
  * @author     Elio Gavlinski <gavlinski@gmail.com>
  * @copyright  Copyleft (c) 2011-2026
- * @version    3.0.0
+ * @version    3.3.0
  * @link       https://github.com/gavlinski/Foursquare-Mass-Editor-Tools/blob/master/load.php
  * @since      File available since Release 1.1
  * @license    GPLv3 <http://www.gnu.org/licenses/gpl.txt>
@@ -66,7 +66,7 @@ if (!$sessionManager->getAccessToken()) {
 <meta http-equiv="cache-control" content="no-cache">
 <meta http-equiv="pragma" content="no-cache">
 <?php
-define("VERSION", "Venues Loader 3.0.0");
+define("VERSION", "Venues Loader 3.3.0");
 
 // Captura tag <link> e CSS dinâmico do ProgressBar
 ob_start();
@@ -171,7 +171,7 @@ if (isset($_FILES['txt']['tmp_name'])) {
     } else {
         $_SESSION["campos"] = ["nome", "endereco", "ruatransversal", "bairro",
             "cidade", "estado", "codigopostal", "dentro", "telefone", "sitedaweb",
-            "twitter", "facebook", "instagram", "latlng", "descricao", "menu", "horas"];
+            "twitter", "facebook", "instagram", "latlng", "descricao", "menu", "redes", "horas"];
         setLocalCache("txt", implode('%0A,', $_SESSION["file"]), "venues");
         echo EDIT;
     }

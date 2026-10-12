@@ -11,7 +11,7 @@ declare(strict_types=1);
  * @package    Foursquare-Mass-Editor-Tools
  * @author     Elio Gavlinski <gavlinski@gmail.com>
  * @copyright  Copyleft (c) 2011-2026
- * @version    3.2.1
+ * @version    3.3.0
  * @link       https://github.com/gavlinski/Foursquare-Mass-Editor-Tools/blob/master/edit.php
  * @since      File available since Release 0.5
  * @license    GPLv3 <http://www.gnu.org/licenses/gpl.txt>
@@ -38,6 +38,7 @@ if ($oauthToken && ($sessionManager->get('file') != null)) {
     $file = $sessionManager->get('file');
     $venuesIds = $sessionManager->get('venuesIds');
     $campos = $sessionManager->get('campos');
+    $editChains = is_array($campos) && in_array('redes', $campos);
     if ($sessionManager->has('venues')) {
         $sessionManager->remove('venues');
     }
@@ -148,6 +149,7 @@ body.loading #listContainer {
 <script>
 window.appBootstrap = window.appBootstrap || {};
 window.appBootstrap.oauthToken = <?php echo json_encode($oauthToken, JSON_UNESCAPED_SLASHES); ?>;
+window.appBootstrap.editChains = <?php echo $editChains ? 'true' : 'false'; ?>;
 </script>
 <script src="js/google-maps-config.php?v=5.0.1" defer></script>
 <?php script_versioned('js/google-maps.js', ['defer' => 'defer']); ?>
@@ -200,6 +202,7 @@ $camposDisponiveis = [
     'latlng' => 'editLatLng',
     'descricao' => 'editDescription',
     'menu' => 'editMenu',
+    'redes' => 'editChains',
     'horas' => 'editHours'
 ];
 
@@ -217,7 +220,9 @@ if ($campos !== null) {
     foreach ($camposDisponiveis as $campo => $variavel) {
         if (in_array($campo, $campos)) {
             $$variavel = true;
-            $totalCampos++;
+            if ($campo !== 'redes') {
+                $totalCampos++;
+            }
             
             // Atualiza aliases para compatibilidade
             if ($campo === 'latlng') {
@@ -307,6 +312,11 @@ foreach ($file as $f) {
         echo '</a></span>' . "\n";
 
         echo '<span id="icone' . ($i - 1) . '"><img id="catImg' . $i . '" src="https://app.foursquare.com/img/categories_v2/none_bg_32.png" style="height: 22px; width: 22px; margin-left: 0px"></span>' . "\n";
+        if ($editChains) {
+            echo '<span id="chainIcone' . ($i - 1) . '" style="margin-left: 3px;"><img id="chainImg' . $i . '" src="https://app.foursquare.com/img/categories_v2/none_bg_32.png" style="height: 22px; width: 22px; margin-left: 0px" alt="Rede"></span>' . "\n";
+        } else {
+            echo '<span id="chainIcone' . ($i - 1) . '" style="display: none;"><img id="chainImg' . $i . '" src="https://app.foursquare.com/img/categories_v2/none_bg_32.png" style="height: 22px; width: 22px; margin-left: 0px" alt="Rede"></span>' . "\n";
+        }
 
         // Renderização dos campos usando a nova abordagem
         echo $editName ? renderizarCampo('text', 'name', $configCampos['name'], $ajusteInput, $i - 1) : renderizarCampo('hidden', 'name', [], 0, $i - 1);
@@ -377,7 +387,7 @@ foreach ($file as $f) {
 			//echo '<input type="text" dojoType="dijit.form.TextBox" name="hours" maxlength="256" value=" " placeHolder="Horas" style="width: ', 8 + $ajusteInput, 'em; margin-left: 5px;" onchange="verificarAlteracao(this, ', $i - 1, ')" data-name-ptbr="Horas">', chr(10);
 		//}
 	
-		echo '<input type="hidden" id="cid', $i - 1, '" name="categoryId"><input type="hidden" id="cna', $i - 1, '" name="categoryName"><input type="hidden" id="cic', $i - 1, '" name="categoryIcon"><input type="hidden" id="vdt', $i - 1, '" name="createdAt"><input type="hidden" id="vcc', $i - 1, '" name="checkinsCount"><input type="hidden" id="vuc', $i - 1, '" name="usersCount"><input type="hidden" id="vtc', $i - 1, '" name="tipCount"><input type="hidden" id="vpc', $i - 1, '" name="photosCount"><input type="hidden" id="vhc', $i - 1, '" name="likesCount"><input type="hidden" id="vlc', $i - 1, '" name="listedCount"><input type="hidden" id="vic', $i - 1, '" name="isClosed"><input type="hidden" id="vip', $i - 1, '" name="isPrivate"><input type="hidden" id="vid', $i - 1, '" name="isDeleted"><input type="hidden" id="vrf', $i - 1, '" name="verified">', chr(10);
+		echo '<input type="hidden" id="cid', $i - 1, '" name="categoryId"><input type="hidden" id="cna', $i - 1, '" name="categoryName"><input type="hidden" id="cic', $i - 1, '" name="categoryIcon"><input type="hidden" id="chid', $i - 1, '" name="venueChainId"><input type="hidden" id="chna', $i - 1, '" name="venueChainName"><input type="hidden" id="chic', $i - 1, '" name="venueChainLogo"><input type="hidden" id="vdt', $i - 1, '" name="createdAt"><input type="hidden" id="vcc', $i - 1, '" name="checkinsCount"><input type="hidden" id="vuc', $i - 1, '" name="usersCount"><input type="hidden" id="vtc', $i - 1, '" name="tipCount"><input type="hidden" id="vpc', $i - 1, '" name="photosCount"><input type="hidden" id="vhc', $i - 1, '" name="likesCount"><input type="hidden" id="vlc', $i - 1, '" name="listedCount"><input type="hidden" id="vic', $i - 1, '" name="isClosed"><input type="hidden" id="vip', $i - 1, '" name="isPrivate"><input type="hidden" id="vid', $i - 1, '" name="isDeleted"><input type="hidden" id="vrf', $i - 1, '" name="verified">', chr(10);
 		echo '<span id="result', $i - 1, '"></span>', chr(10), '</form>', chr(10), '</section>', chr(10);
 	}
 }
@@ -394,22 +404,52 @@ foreach ($file as $f) {
 	</div>
 </article>
 <!-- Janela de Edicao das Categorias -->
-<div data-dojo-type="dijit.Dialog" id="dlg_cats" data-dojo-props='title:"Categorias"'>
-	<div id="catsContainer"></div>
-	<div id="treeContainer"></div>
+<div data-dojo-type="dijit.Dialog" id="dlg_cats" class="category-editor-dialog" data-dojo-props='title:"Categorias"' style="display:none; width: 440px; max-width: calc(100vw - 24px);">
+    <div class="dijitDialogPaneContentArea category-editor-content">
+        <div id="catsContainer" class="category-selection-area"></div>
+        <div id="treeContainer"></div>
+        <div class="category-search-section">
+            <label for="categorySearchWidget" class="category-search-label">Buscar categoria:</label>
+            <div id="categorySearchMountPoint" class="category-search-input"></div>
+            <div id="categorySearchStatus" class="category-search-status" role="status" aria-live="polite"></div>
+        </div>
 	<span class="checkbox">
-		<div class="editAllCheckbox" style="width: 20em;">
+        <div class="editAllCheckbox category-editor-edit-all">
 			<input id="editAllCheckbox" name="editAllCheckbox" dojoType="dijit.form.CheckBox" value="editAllCategories">
 				<label for="editAllCheckbox">
 					Aplicar categoria(s) a todos os locais
 				</label>
 		</div>
 	</span>
-	<span style="clear: both; display: block;">
-		<button id="saveCatsButton" dojoType="dijit.form.Button" type="button" onclick="salvarCategorias()" name="saveCatsButton">OK</button>
-		<button data-dojo-type="dijit.form.Button" type="button" data-dojo-props="onClick:function(){ dijit.byId('dlg_cats').hide(); }">Cancelar</button>
+    <span class="category-editor-actions">
+		<button id="saveCatsButton" dojoType="dijit.form.Button" type="button" onclick="salvarCategorias()" name="saveCatsButton" style="margin: 0;">OK</button>
+		<button data-dojo-type="dijit.form.Button" type="button" data-dojo-props="onClick:function(){ dijit.byId('dlg_cats').hide(); }" style="margin: 0 0.2em;">Cancelar</button>
 	</span>
-	<div id="venueIndex" style="display: none"></div><div id="catsIds" style="display: none"></div><div id="catsIcones" style="display: none"></div>
+    <div id="venueIndex" class="dialog-state"></div><div id="catsIds" class="dialog-state"></div><div id="catsIcones" class="dialog-state"></div>
+    </div>
+</div>
+<!-- Janela de Edicao das Redes -->
+<div data-dojo-type="dijit.Dialog" id="dlg_chains" data-dojo-props='title:"Redes"' style="display:none; width: 440px; max-width: calc(100vw - 24px);">
+    <div class="dijitDialogPaneContentArea chain-editor-content">
+        <div id="chainsContainer" class="chain-selection-area"></div>
+        <div class="chain-search-section">
+            <label for="inputChainSearch" class="chain-search-label">Buscar rede ou digitar ID:</label>
+            <input type="text" id="inputChainSearch" dojoType="dijit.form.TextBox" style="width: 100%; box-sizing: border-box;" placeHolder="Ex: Cacau Show, Starbucks ou ID...">
+		</div>
+        <div id="chainsResultsContainer" class="chain-search-results visual-results-list"></div>
+        <div id="chainSearchStatus" class="chain-search-status" role="status" aria-live="polite"></div>
+        <div class="editAllCheckbox chain-editor-edit-all">
+			<input id="editAllChainsCheckbox" name="editAllChainsCheckbox" dojoType="dijit.form.CheckBox" value="editAllChains">
+			<label for="editAllChainsCheckbox">
+				Aplicar rede(s) a todos os locais
+			</label>
+		</div>
+	</div>
+    <span class="chain-editor-actions">
+		<button id="saveChainsButton" data-dojo-type="dijit.form.Button" type="button" onclick="salvarRedes()" style="margin: 0">OK</button>
+		<button data-dojo-type="dijit.form.Button" type="button" data-dojo-props="onClick:function(){ dijit.byId('dlg_chains').hide(); }" style="margin: 0 0.2em;">Cancelar</button>
+	</span>
+    <div id="venueChainIndex" class="dialog-state"></div><div id="chainsIds" class="dialog-state"></div><div id="chainsLogos" class="dialog-state"></div>
 </div>
 <!-- Barra de Progresso ao Salvar -->
 <div data-dojo-type="dijit.Dialog" id="dlg_save" data-dojo-props='title:"Salvando locais..."'>
@@ -438,6 +478,17 @@ id="saveProgress">
 		<button data-dojo-type="dijit.form.Button" type="button" data-dojo-props="onClick:function(){ dijit.byId('dlg_confirmEditAllCategories').hide(); }">Cancelar</button>
 	</div>
 </div>
+<!-- Modal de Confirmacao ao Editar Redes com Dados Parciais -->
+<div data-dojo-type="dijit.Dialog" id="dlg_confirmEditAllChains" data-dojo-props="title:'Edição Múltipla de Redes'" style="display:none; width: 450px;">
+    <div class="dijitDialogPaneContentArea">
+        <div id="confirmEditAllChainsMessage"></div>
+    </div>
+    <div class="dijitDialogPaneActionBar">
+        <button data-dojo-type="dijit.form.Button" type="button" data-dojo-props="onClick:function(){ dijit.byId('dlg_confirmEditAllChains').hide(); processarEdicaoRedes(); dijit.byId('dlg_chains').hide(); }">Continuar Mesmo Assim</button>
+        <button data-dojo-type="dijit.form.Button" type="button" data-dojo-props="onClick:function(){ dijit.byId('dlg_confirmEditAllChains').hide(); dijit.byId('dlg_chains').hide(); recarregarDadosVenues(); }">Recarregar Todas</button>
+        <button data-dojo-type="dijit.form.Button" type="button" data-dojo-props="onClick:function(){ dijit.byId('dlg_confirmEditAllChains').hide(); }">Cancelar</button>
+    </div>
+</div>
 <!-- Janela de Digitacao de Comentario -->
 <div id="dlg_comment" data-dojo-type="dijit.Dialog" data-dojo-props="title:'Coment&aacute;rios'" style="display:none; width: 356px;">
 	<div class="dijitDialogPaneContentArea">
@@ -449,16 +500,17 @@ id="saveProgress">
 	</div>
 </div>
 <!-- Janela de Edicao Multipla -->
-<div id="dlg_editField" data-dojo-type="dijit.Dialog" data-dojo-props="title:'Edi&ccedil;&atilde;o M&uacute;ltipla'" style="display:none; width: 275px;">
+<div id="dlg_editField" data-dojo-type="dijit.Dialog" data-dojo-props="title:'Edi&ccedil;&atilde;o M&uacute;ltipla'" style="display:none; width: 300px;">
 	<div id="editFieldContainer" class="dijitDialogPaneContentArea">
 		<div class="row">
 			<span class="label"><label for="selectEditField">Campo:</label></span>
-			<select data-dojo-id="selectEditField" name="selectEditField" id="selectEditField" data-dojo-type="dijit/form/Select" style="width: 15.1em; margin-bottom: 9px" data-dojo-props="onChange:function(){ dijit.byId('inputEditField').attr('value', ''); dijit.byId('inputEditField').attr('placeHolder', this.attr('displayedValue')); }"></select>
+            <select data-dojo-id="selectEditField" name="selectEditField" id="selectEditField" data-dojo-type="dijit/form/Select" style="width: 17em; margin-bottom: 9px" data-dojo-props="onChange:function(){ atualizarValorEdicaoMultipla(this.value); }"></select>
 		</div>
 		<div class="row">
 			<span class="label"><label for="selectEditField">Valor:</label></span>
-			<input type="text" id="inputEditField" name="inputEditField1" dojoType="dijit.form.TextBox" trim="true" style="width: 15.1em"/>
+			<input type="text" id="inputEditField" name="inputEditField1" dojoType="dijit.form.TextBox" trim="true" style="width: 17em"/>
 		</div>
+        <div id="editFieldStatus" class="bulk-edit-status" role="status" aria-live="polite"></div>
 	</div>
 	<div class="dijitDialogPaneActionBar">
 		<button data-dojo-type="dijit.form.Button" type="submit" id="editFieldOkButton" data-dojo-props="onClick:function(){ editField(dijit.byId('selectEditField').value, dijit.byId('inputEditField').value); }">OK</button>

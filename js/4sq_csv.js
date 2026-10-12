@@ -17,6 +17,7 @@ var relatorio = [];
 var total = 0;
 var timer;
 var categorias = [];
+var redes = {};
 
 // Inicializa variáveis que dependem de módulos Dojo
 dojo.ready(function() {
@@ -47,24 +48,34 @@ function atualizarResultado(i, imagem, dica) {
 	if (total == document.forms.length) {
 		if (dijit.byId("flagButton"))
 			dijit.byId("flagButton").setAttribute('disabled', false);
-		else 
+		else
 			dijit.byId("saveButton").setAttribute('disabled', false);
 	}
 }
 
-function xmlhttpRequest(metodo, endpoint, acao, dados, i) {
+function xmlhttpRequest(metodo, endpoint, acao, dados, i, callbacks) {
 	var xmlhttp = new XMLHttpRequest();
 	var imagem, dica;
+	var requestSettled = false;
 	xmlhttp.onreadystatechange = function() {
-		if (xmlhttp.readyState == 4) {
+		if (xmlhttp.readyState == 4 && !requestSettled) {
+			requestSettled = true;
 			try {
 				var resposta = JSON.parse(xmlhttp.responseText);
 			} catch(err) {
+				if (callbacks && callbacks.error) {
+					clearTimeout(xmlhttpTimeout);
+					callbacks.error(xmlhttp.status, null);
+				}
 				return false;
 			}
 			/*** O erro {"meta":{"code":400,"errorType":"param_error","errorDetail":"Must start with http:\/\/"}} é um bug da API que ocorre quando o campo url é enviado em branco. Mas mesmo dando erro, a venue é corretamente editada. ***/
 			if ((xmlhttp.status == 200) || ((xmlhttp.status == 400) && (resposta.meta.errorType == "param_error") && (resposta.meta.errorDetail == "Must start with http:\/\/"))) {
 				clearTimeout(xmlhttpTimeout);
+				if (callbacks && callbacks.success) {
+					callbacks.success(resposta);
+					return;
+				}
 
 				// Remove indicador visual de erro em caso de sucesso
 				if (i !== undefined && i !== null) {
@@ -96,6 +107,7 @@ function xmlhttpRequest(metodo, endpoint, acao, dados, i) {
 				} else if (metodo == "GET") {
 					montarTabela(resposta);
 					atualizarCategorias();
+					atualizarRedes();
 					atualizarWidgetsDijit(); // Atualiza widgets para ocultar placeholders					debugInfo("Categorias recuperadas!");
 					localStorage.setItem("categorias", JSON.stringify(resposta));
 					var d = new Date();
@@ -104,13 +116,16 @@ function xmlhttpRequest(metodo, endpoint, acao, dados, i) {
 				}
 			} else if (xmlhttp.status == 400) {
 				clearTimeout(xmlhttpTimeout);
-				atualizarResultado(i, "<img src='img/erro.png' alt='Erro 400: Bad Request, Tipo: " + resposta.meta.errorType + ", Detalhe: " + resposta.meta.errorDetail + "'>", "<span style=\"font-size: 12px\">Erro 400: Bad Request, Tipo: " + resposta.meta.errorType + ",<br>Detalhe: " + resposta.meta.errorDetail + "</span>");
+				if (callbacks && callbacks.error) callbacks.error(xmlhttp.status, resposta);
+				else atualizarResultado(i, "<img src='img/erro.png' alt='Erro 400: Bad Request, Tipo: " + resposta.meta.errorType + ", Detalhe: " + resposta.meta.errorDetail + "'>", "<span style=\"font-size: 12px\">Erro 400: Bad Request, Tipo: " + resposta.meta.errorType + ",<br>Detalhe: " + resposta.meta.errorDetail + "</span>");
 			} else if (xmlhttp.status == 401) {
 				clearTimeout(xmlhttpTimeout);
-				atualizarResultado(i, "<img src='img/erro.png' alt='Erro 401: Unauthorized, Tipo: " + resposta.meta.errorType + ", Detalhe: " + resposta.meta.errorDetail + "'>", "<span style=\"font-size: 12px\">Erro 401: Unauthorized, Tipo: " + resposta.meta.errorType + ",<br>Detalhe: " + resposta.meta.errorDetail + "</span>");
+				if (callbacks && callbacks.error) callbacks.error(xmlhttp.status, resposta);
+				else atualizarResultado(i, "<img src='img/erro.png' alt='Erro 401: Unauthorized, Tipo: " + resposta.meta.errorType + ", Detalhe: " + resposta.meta.errorDetail + "'>", "<span style=\"font-size: 12px\">Erro 401: Unauthorized, Tipo: " + resposta.meta.errorType + ",<br>Detalhe: " + resposta.meta.errorDetail + "</span>");
 			} else if (xmlhttp.status == 403) {
 				clearTimeout(xmlhttpTimeout);
-				atualizarResultado(i, "<img src='img/erro.png' alt='Erro 403: Forbidden'>", "<span style=\"font-size: 12px\">Erro 403: Forbidden, Tipo: " + resposta.meta.errorType + ",<br>Detalhe: " + resposta.meta.errorDetail + "</span>");
+				if (callbacks && callbacks.error) callbacks.error(xmlhttp.status, resposta);
+				else atualizarResultado(i, "<img src='img/erro.png' alt='Erro 403: Forbidden'>", "<span style=\"font-size: 12px\">Erro 403: Forbidden, Tipo: " + resposta.meta.errorType + ",<br>Detalhe: " + resposta.meta.errorDetail + "</span>");
 			} else {
 				clearTimeout(xmlhttpTimeout);
 				switch (xmlhttp.status) {
@@ -138,6 +153,10 @@ function xmlhttpRequest(metodo, endpoint, acao, dados, i) {
 					imagem  = "<img src='img/erro.png' alt='Erro 409: Conflict'>";
 					dica = "<span style=\"font-size: 12px\">Erro 409: Conflict</span>";
 					break;
+				case 429:
+					imagem = "<img src='img/erro.png' alt='Erro 429: Too Many Requests'>";
+					dica = "<span style=\"font-size: 12px\">Erro 429: Limite de requisições excedido</span>";
+					break;
 				case 500:
 					imagem = "<img src='img/erro.png' alt='Erro 500: Internal Server Error'>";
 					dica = "<span style=\"font-size: 12px\">Erro 500: Internal Server Error</span>";
@@ -149,12 +168,13 @@ function xmlhttpRequest(metodo, endpoint, acao, dados, i) {
 				case 504:
 					imagem = "<img src='img/erro.png' alt='Erro 504: Gateway Time-out'>";
 					dica = "<span style=\"font-size: 12px\">Erro 504: Gateway Time-out</span>";
-					break;					
+					break;
 				default:
 					imagem = "<img src='img/erro.png' alt='Erro desconhecido: " + xmlhttp.status + "'>";
 					dica = "<span style=\"font-size: 12px\">Erro desconhecido: " + xmlhttp.status + "</span>";
 				} // switch
-				atualizarResultado(i, imagem, dica);
+				if (callbacks && callbacks.error) callbacks.error(xmlhttp.status, resposta);
+				else atualizarResultado(i, imagem, dica);
 			}
 		}
 	}
@@ -163,9 +183,13 @@ function xmlhttpRequest(metodo, endpoint, acao, dados, i) {
 	xmlhttp.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
 	xmlhttp.send(dados);
 	var xmlhttpTimeout = setTimeout(function ajaxTimeout() {
+		if (requestSettled) return;
+		requestSettled = true;
 		xmlhttp.abort();
 		console.info(metodo + " abortado!");
-		if (metodo == "POST")
+		if (callbacks && callbacks.error)
+			callbacks.error(0, null);
+		else if (metodo == "POST")
 			atualizarResultado(i, "<img src='img/erro.png' alt='Erro: Request Timed Out'>", "<span style=\"font-size: 12px\">Erro: Request Timed Out</span>");
 	}, 60000);
 	return false;
@@ -208,7 +232,7 @@ function recuperarNomesCategorias(categoryId, separador) {
 	return nomes;
 }
 
-function adicionarCategoriaPrimaria(textboxValue, categoryId) { 
+function adicionarCategoriaPrimaria(textboxValue, categoryId) {
 	if ((textboxValue in categorias) && (categoryId.length < 3))
 		categoryId.unshift(textboxValue);
 	return categoryId;
@@ -238,13 +262,13 @@ function buscarCategoriaIndividual(catId, linhaIndex) {
 	// Exibe placeholder enquanto busca
 	dojo.byId("icone" + linhaIndex).innerHTML = "<img id=\"catImg" + linhaIndex + "\" src='https://foursquare.com/img/categories_v2/none_bg_32.png' style='height: 22px; width: 22px; margin-left: 0px; opacity: 0.5'>";
 	createTooltip("catImg" + linhaIndex, "<span style=\"font-size: 12px\">Buscando informações do local...</span>");
-	
+
 	// Busca os dados do local para pegar as categorias atualizadas
 	var venueId = document.forms[linhaIndex]["venue"].value;
 	var xhr = new XMLHttpRequest();
 	xhr.open("GET", "https://api.foursquare.com/v2/venues/" + venueId + "?oauth_token=" + oauth_token + "&v=" + DATA_VERSIONAMENTO, true);
 	xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
-	
+
 	xhr.onreadystatechange = function() {
 		if (xhr.readyState === 4) {
 			if (xhr.status === 200) {
@@ -259,7 +283,7 @@ function buscarCategoriaIndividual(catId, linhaIndex) {
 								categorias[cat.id] = {"nome": cat.name, "icone": cat.icon.prefix + "bg_32" + cat.icon.suffix};
 							}
 							debugInfo("Categorias do local " + venueId + " atualizadas via API");
-							
+
 							// Atualiza visualmente a linha
 							salvarCategoria(linhaIndex);
 						} else {
@@ -280,7 +304,7 @@ function buscarCategoriaIndividual(catId, linhaIndex) {
 			}
 		}
 	};
-	
+
 	xhr.send();
 }
 
@@ -336,6 +360,142 @@ function atualizarCategorias() {
 	}
 }
 
+function formatarLogoRede(logoObj) {
+	var defaultLogo = "https://app.foursquare.com/img/categories_v2/none_bg_32.png";
+	if (!logoObj || typeof logoObj !== "object") return defaultLogo;
+	var prefix = logoObj.prefix || "";
+	var suffix = logoObj.suffix || "";
+	if (!prefix || !suffix) return defaultLogo;
+	if (prefix.indexOf("img/general") > -1) {
+		var cleanPrefix = prefix.replace(/\/+$/, "");
+		var cleanSuffix = suffix.replace(/^\/+/, "");
+		return cleanPrefix + "/32x32/" + cleanSuffix;
+	}
+	return prefix + "32" + suffix;
+}
+
+function escapeChainTooltipHtml(value) {
+	var replacements = { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" };
+	return String(value).replace(/[&<>"']/g, function(character) {
+		return replacements[character];
+	});
+}
+
+function validarIdRede(chainId) {
+	return /^[a-f\d]{24}$/i.test(chainId || "");
+}
+
+function urlLogoRedeSegura(url) {
+	var defaultLogo = "https://app.foursquare.com/img/categories_v2/none_bg_32.png";
+	if (typeof url !== "string" || url === "") return defaultLogo;
+	var link = document.createElement("a");
+	link.href = url;
+	return link.protocol === "https:" ? link.href : defaultLogo;
+}
+
+function renderizarIconeRede(elemento, imageId, logoUrl, tooltipHtml, opacity) {
+	while (elemento.firstChild) elemento.removeChild(elemento.firstChild);
+	var imagem = document.createElement("img");
+	imagem.id = imageId;
+	imagem.alt = "Rede";
+	imagem.style.height = "22px";
+	imagem.style.width = "22px";
+	imagem.style.marginLeft = "0px";
+	imagem.style.opacity = String(opacity);
+	imagem.onerror = function() {
+		this.onerror = null;
+		this.src = "https://app.foursquare.com/img/categories_v2/none_bg_32.png";
+	};
+	imagem.src = urlLogoRedeSegura(logoUrl);
+	elemento.appendChild(imagem);
+	createTooltip(imageId, "<span style=\"font-size: 12px\">" + escapeChainTooltipHtml(tooltipHtml) + "</span>");
+}
+
+function buscarRedeIndividual(chainId, linhaIndex, tentativa) {
+	if (!validarIdRede(chainId)) return;
+	tentativa = tentativa || 0;
+	var defaultLogo = "https://app.foursquare.com/img/categories_v2/none_bg_32.png";
+	var endpoint = "https://api.foursquare.com/v2/chains/" + encodeURIComponent(chainId) + "?oauth_token=" + encodeURIComponent(oauth_token) + "&v=" + DATA_VERSIONAMENTO;
+	xmlhttpRequest("GET", endpoint, "chain", null, linhaIndex, {
+		success: function(resp) {
+			var vc = resp.response && resp.response.venueChain;
+			var chainIcon = dojo.byId("chainIcone" + linhaIndex);
+			if (!vc) {
+				if (chainIcon) renderizarIconeRede(chainIcon, "chainImg" + linhaIndex, defaultLogo, "Detalhes da rede indisponíveis", 1);
+				return;
+			}
+			var logoUrl = formatarLogoRede(vc.logo);
+			var nome = (vc.bestName && vc.bestName.name) ? vc.bestName.name : vc.id;
+			redes[chainId] = { nome: nome, logo: logoUrl };
+			if (chainIcon) renderizarIconeRede(chainIcon, "chainImg" + linhaIndex, logoUrl, nome || chainId, 1);
+		},
+		error: function(status) {
+			if ((status === 429 || status === 504 || status === 0) && tentativa < 3) {
+				setTimeout(function() { buscarRedeIndividual(chainId, linhaIndex, tentativa + 1); }, 500 * Math.pow(2, tentativa));
+				return;
+			}
+			if (status === 401 && window.sessionManager && typeof window.sessionManager.showTokenExpiredDialog === "function") {
+				window.sessionManager.showTokenExpiredDialog();
+			}
+			var chainIcon = dojo.byId("chainIcone" + linhaIndex);
+			var message = status === 401 ? "Sessão Foursquare expirada" : "Erro ao buscar rede (" + (status || "timeout") + ")";
+			if (chainIcon) renderizarIconeRede(chainIcon, "chainImg" + linhaIndex, defaultLogo, message, 1);
+		}
+	});
+}
+
+function salvarRede(i) {
+	if (!document.forms[i]["venueChainId"]) return;
+	var chainIds = document.forms[i]["venueChainId"].value ? document.forms[i]["venueChainId"].value.split(",") : [];
+	var defaultLogo = "https://app.foursquare.com/img/categories_v2/none_bg_32.png";
+
+	if (document.forms[i]["removeVenueChainIds"]) {
+		var valRemove = document.forms[i]["removeVenueChainIds"].value.trim();
+		if (valRemove) {
+			var toRemove = valRemove.split(",");
+			chainIds = chainIds.filter(function(id) { return toRemove.indexOf(id) === -1; });
+		}
+	}
+	if (document.forms[i]["addVenueChainIds"]) {
+		var valAdd = document.forms[i]["addVenueChainIds"].value.trim();
+		if (valAdd) {
+			var toAdd = valAdd.split(",");
+			toAdd.forEach(function(id) {
+				if (chainIds.indexOf(id) === -1) chainIds.push(id);
+			});
+		}
+	}
+	if (document.forms[i]["primaryVenueChainId"]) {
+		var valPrimary = document.forms[i]["primaryVenueChainId"].value.trim();
+		if (valPrimary) {
+			var idx = chainIds.indexOf(valPrimary);
+			if (idx > -1) chainIds.splice(idx, 1);
+			chainIds.unshift(valPrimary);
+		}
+	}
+
+	chainIds = chainIds.map(function(id) { return id.trim(); }).filter(validarIdRede);
+	var activeChainId = chainIds[0] || "";
+	var chainIconeElem = dojo.byId("chainIcone" + i);
+	if (!chainIconeElem) return;
+
+	if (activeChainId && activeChainId in redes) {
+		renderizarIconeRede(chainIconeElem, "chainImg" + i, redes[activeChainId].logo, redes[activeChainId].nome || activeChainId, 1);
+	} else if (activeChainId) {
+		renderizarIconeRede(chainIconeElem, "chainImg" + i, defaultLogo, "Buscando rede: " + activeChainId + "...", 0.7);
+		buscarRedeIndividual(activeChainId, i);
+	} else {
+		renderizarIconeRede(chainIconeElem, "chainImg" + i, defaultLogo, "Sem rede", 0.3);
+	}
+}
+
+function atualizarRedes() {
+	var totalLinhas = document.forms.length;
+	for (var i = 0; i < totalLinhas; i++) {
+		salvarRede(i);
+	}
+}
+
 /**
  * Atualiza widgets Dijit para ocultar placeholders
  * Chamada após carregar dados das categorias
@@ -343,15 +503,15 @@ function atualizarCategorias() {
 function atualizarWidgetsDijit() {
 	debugLog('🔧 Atualizando widgets Dijit para ocultar placeholders...');
 	var totalLinhas = document.forms.length;
-	
+
 	for (var i = 0; i < totalLinhas; i++) {
 		var form = document.forms[i];
 		var totalColunas = form.elements.length;
-		
+
 		for (var j = 0; j < totalColunas; j++) {
 			var element = form.elements[j];
 			var elementName = element.name;
-			
+
 			// Atualiza widget se tiver valor e não for hidden
 			if (element.value && element.value.trim() !== '' && element.type !== 'hidden') {
 				try {
@@ -395,7 +555,7 @@ function salvarVenues() {
 					dados += "&venuell=" + encodeURIComponent(ll.replace(/ /g, ""));
 			} else if (elementName == "menu") {
 					dados += "&menuUrl=" + encodeURIComponent(document.forms[i].elements[j].value);
-			} else if (['primaryCategoryId', 'addCategoryIds', 'removeCategoryIds'].indexOf(elementName) > -1) {
+			} else if (['primaryCategoryId', 'addCategoryIds', 'removeCategoryIds', 'primaryVenueChainId', 'addVenueChainIds', 'removeVenueChainIds'].indexOf(elementName) > -1) {
 				var id = document.forms[i].elements[j].value;
 				if (id != null && id != "")
 					dados += "&" + elementName + "=" + id;
@@ -480,7 +640,7 @@ dojo.addOnLoad(function() {
 	} else {
 		// Fallback para verificação legacy com cookie
 		debugLog("🔄 Usando validação legacy de token CSV");
-		
+
 		// Verifica se o token existe via cookie
 		const legacyToken = dojo.cookie("oauth_token");
 		if (!legacyToken || legacyToken === "undefined" || legacyToken === "null") {
@@ -490,26 +650,26 @@ dojo.addOnLoad(function() {
 			}
 			return;
 		}
-		
+
 		debugLog("✅ Token legacy válido - continuando inicialização CSV");
 		// Continua com a inicialização normal
 		initializeCSVApplication();
 	}
-	
+
 	function initializeCSVApplication() {
-	
+
 	/*** Guia de Estilo ***/
 	dlg_guia = new dijit.Dialog({
 		title: "Guia de estilo",
 		style: "width: 435px"
 	});
-	
+
 	/*** Submenu Sinalizar ***/
 	if (dojo.query('#dropdownButtonContainer1').length != 0) {
 		var menu1 = new dijit.Menu({
 			style: "display: none;"
 		});
-		
+
 		var menuItem1 = new dijit.MenuItem({
 			label: "Doesn't exist",
 			onClick: function() {
@@ -517,7 +677,7 @@ dojo.addOnLoad(function() {
 			}
 		});
 		menu1.addChild(menuItem1);
-		
+
 		var menuItem2 = new dijit.MenuItem({
 			label: "Event over",
 			onClick: function() {
@@ -525,7 +685,7 @@ dojo.addOnLoad(function() {
 			}
 		});
 		menu1.addChild(menuItem2);
-		
+
 		var menuItem3 = new dijit.MenuItem({
 			label: "Inappropriate",
 			onClick: function() {
@@ -533,7 +693,7 @@ dojo.addOnLoad(function() {
 			}
 		});
 		menu1.addChild(menuItem3);
-		
+
 		var menuItem4 = new dijit.MenuItem({
 			label: "Closed",
 			onClick: function() {
@@ -541,7 +701,7 @@ dojo.addOnLoad(function() {
 			}
 		});
 		menu1.addChild(menuItem4);
-		
+
 		var menuItem5 = new dijit.MenuItem({
 			label: "Doesn't exist",
 			onClick: function() {
@@ -549,10 +709,10 @@ dojo.addOnLoad(function() {
 			}
 		});
 		menu1.addChild(menuItem5);
-		
+
 		/*** Separador (item) ***/
 		menu1.addChild(new dijit.MenuSeparator);
-		
+
 		var menuItem6 = new dijit.MenuItem({
 			label: "Public",
 			onClick: function() {
@@ -560,7 +720,7 @@ dojo.addOnLoad(function() {
 			}
 		});
 		menu1.addChild(menuItem6);
-		
+
 		var menuItem7 = new dijit.MenuItem({
 			label: "Private",
 			onClick: function() {
@@ -568,10 +728,10 @@ dojo.addOnLoad(function() {
 			}
 		});
 		menu1.addChild(menuItem7);
-		
+
 		/*** Separador (item) ***/
 		menu1.addChild(new dijit.MenuSeparator);
-		
+
 		var menuItem8= new dijit.MenuItem({
 			label: "Not Closed",
 			onClick: function() {
@@ -579,7 +739,7 @@ dojo.addOnLoad(function() {
 			}
 		});
 		menu1.addChild(menuItem8);
-		
+
 		var menuItem9 = new dijit.MenuItem({
 			label: "Undelete",
 			onClick: function() {
@@ -587,7 +747,7 @@ dojo.addOnLoad(function() {
 			}
 		});
 		menu1.addChild(menuItem9);
-		
+
 		var button1 = new dijit.form.DropDownButton({
 			label: "Sinalizar",
 			name: "menuButton",
@@ -596,7 +756,7 @@ dojo.addOnLoad(function() {
 		});
 		dojo.byId("dropdownButtonContainer1").appendChild(button1.domNode);
 	}
-	
+
 	var menu2 = new dijit.Menu({
 		style: "display: none;"
 	});
@@ -652,7 +812,7 @@ dojo.addOnLoad(function() {
 			window.location.href = "data:text/html;charset=utf-8," + encodeURIComponent(html.join("\r\n"));
 		}
 	});
-	menu2.addChild(menu2Item1);	 
+	menu2.addChild(menu2Item1);
 	var button2 = new dijit.form.DropDownButton({
 		label: "Exportar",
 		name: "menuExportar",
@@ -661,7 +821,7 @@ dojo.addOnLoad(function() {
 		id: "exportButton"
 	});
 	dojo.byId("dropdownButtonContainer2").appendChild(button2.domNode);
-	
+
 	if (dojo.query('#icone0').length != 0) {
 		var d = new Date();
 		d.setHours(0, 0, 0, 0);
@@ -690,4 +850,6 @@ function verificarAlteracao(textbox, i) {
 	//console.info("changed: " + textbox.name + ", new value: " + textbox.value);
 	if ((textbox.name == "primaryCategoryId") || (textbox.name == "addCategoryIds") || (textbox.name == "removeCategoryIds"))
 		salvarCategoria(i);
+	if ((textbox.name == "primaryVenueChainId") || (textbox.name == "addVenueChainIds") || (textbox.name == "removeVenueChainIds"))
+		salvarRede(i);
 }

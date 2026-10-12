@@ -171,6 +171,12 @@ header('Content-Type: application/json');
 echo json_encode($response);
 ```
 
+### Synthetic test sessions
+
+Tokens beginning with `test_token_` or `simulated_token_` are fixtures, not Foursquare credentials. `session_status.php` detects these prefixes, destroys the session, expires the related cookies, and returns `authenticated: false` with reason `synthetic_test_session`. The E2E fixture uses an isolated browser context with empty `storageState` so it cannot replace the user's real PHP session.
+
+In `APP_ENV=production`, `debug/session_test_manager.php` and `debug/debug_session.php` return `404`. Keep the fixture tests environment-aware and verify the Playwright summary: an authentication-related skip is not equivalent to a passing authenticated test.
+
 ## Session Middleware
 
 ### session_middleware.php
