@@ -29,6 +29,8 @@ type CsvHarnessWindow = Window & {
   DADOS_PARCIAIS: number;
   categorias: Array<{ ids?: string }>;
   redes: Array<{ ids?: string; nomes?: string; logos?: string; items?: Array<{ id: string; name: string; logo: string }> }>;
+  redesInfoCache: Record<string, { nome: string; logo: string }>;
+  pendingChainRequests: Record<string, number[]>;
   venuesComDadosCompletos: number[];
   linhasEditadas: number[];
   obterEstadoEdicaoDaNavegacao: () => {
@@ -344,6 +346,85 @@ test.describe('Consistência do CSV de venues', () => {
     await expect.poll(() => page.evaluate(() => (window as unknown as Window & { __expiredDialogShown: boolean }).__expiredDialogShown)).toBe(true);
     await expect(page.locator('#tt_chainImg0')).toContainText('Sessão Foursquare expirada');
     await expect(page.locator('#chainIcone0 img')).toHaveAttribute('src', 'https://app.foursquare.com/img/categories_v2/none_bg_32.png');
+  });
+
+  test('detalhes de Chain não armazenam falhas e permitem nova tentativa', async ({ page }) => {
+    const testChainId = '556e092ea7c82e6b724ee2ef';
+    await carregarLogicaCsv(page);
+
+    await page.evaluate(testChainId => {
+      const editor = window as unknown as CsvHarnessWindow & {
+        oauth_token: string;
+        XMLHttpRequest: typeof XMLHttpRequest;
+      };
+      delete editor.redesInfoCache[testChainId];
+      editor.oauth_token = 'test-token';
+      editor.redes[0] = {
+        items: [{ id: testChainId, name: 'Rede (556e092e...)', logo: 'https://app.foursquare.com/img/categories_v2/none_bg_32.png' }]
+      };
+
+      const responses = [
+        { status: 401, body: JSON.stringify({ meta: { code: 401, errorType: 'invalid_auth' } }) },
+        { status: 200, body: '{invalid json' },
+        {
+          status: 200,
+          body: JSON.stringify({
+            response: {
+              venueChain: {
+                id: testChainId,
+                bestName: { name: 'Chain recuperada' },
+                logo: { prefix: 'https://image.test/', suffix: 'chain.png' }
+              }
+            }
+          })
+        }
+      ];
+
+      editor.XMLHttpRequest = class {
+        readyState = 0;
+        status = 0;
+        responseText = '';
+        onreadystatechange: (() => void) | null = null;
+        onerror: (() => void) | null = null;
+        ontimeout: (() => void) | null = null;
+        onabort: (() => void) | null = null;
+
+        open() {}
+        setRequestHeader() {}
+        send() {
+          const response = responses.shift();
+          if (!response) throw new Error('Unexpected chain request');
+          this.status = response.status;
+          this.responseText = response.body;
+          this.readyState = 4;
+          this.onreadystatechange?.();
+        }
+      } as unknown as typeof XMLHttpRequest;
+
+      editor.buscarInfoRede(testChainId, 0);
+    }, testChainId);
+
+    await expect.poll(() => page.evaluate(testChainId => {
+      const editor = window as unknown as CsvHarnessWindow;
+      return !editor.pendingChainRequests[testChainId] && !editor.redesInfoCache[testChainId];
+    }, testChainId)).toBe(true);
+
+    await page.evaluate(testChainId => {
+      (window as unknown as CsvHarnessWindow).buscarInfoRede(testChainId, 0);
+    }, testChainId);
+    await expect.poll(() => page.evaluate(testChainId => {
+      const editor = window as unknown as CsvHarnessWindow;
+      return !editor.pendingChainRequests[testChainId] && !editor.redesInfoCache[testChainId];
+    }, testChainId)).toBe(true);
+
+    await page.evaluate(testChainId => {
+      (window as unknown as CsvHarnessWindow).buscarInfoRede(testChainId, 0);
+    }, testChainId);
+    await expect.poll(() => page.evaluate(testChainId => {
+      const editor = window as unknown as CsvHarnessWindow;
+      return editor.redesInfoCache[testChainId]?.nome;
+    }, testChainId)).toBe('Chain recuperada');
+    await expect(page.locator('#chna0')).toHaveValue(JSON.stringify(['Chain recuperada']));
   });
 
   test('mantém as colunas alinhadas no modo parcial', async ({ page }) => {

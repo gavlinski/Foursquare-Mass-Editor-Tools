@@ -1,6 +1,28 @@
 import { test, expect } from '@playwright/test';
 import { skipIfUnauthenticated } from './auth-session';
 
+type EditorWindow = Window & {
+  dijit?: {
+    byId(id: string): {
+      getChildren(): Array<{ domNode: HTMLElement }>;
+      selectChild(pane: { domNode: HTMLElement }, animate?: boolean): void;
+    } | undefined;
+  };
+};
+
+async function abrirPainelDeIds(page: import('@playwright/test').Page) {
+  await page.waitForFunction(() => Boolean((window as EditorWindow).dijit?.byId('accordion')));
+  const painelAberto = await page.evaluate(() => {
+    const accordion = (window as EditorWindow).dijit?.byId('accordion');
+    const painelIds = accordion?.getChildren().find(pane => pane.domNode.querySelector('#f_ids'));
+    if (!accordion || !painelIds) return false;
+    accordion.selectChild(painelIds, false);
+    return true;
+  });
+  expect(painelAberto).toBe(true);
+  await expect(page.locator('#textarea_ids')).toBeVisible({ timeout: 10_000 });
+}
+
 /**
  * Regressão 4: Erros e Retry
  *
@@ -50,25 +72,23 @@ test.describe('Erros e Retry', () => {
     test.skip(!VENUE_ID_TESTE, 'TEST_VENUE_ID não definido');
     await skipIfUnauthenticated(page);
 
-    // Interceptar chamadas à API Foursquare e retornar 401
-    await page.route('**/v2/venues/**', route => {
-      route.fulfill({
+    await page.route('**/v2/venues/**', async route => {
+      await route.fulfill({
         status: 401,
         contentType: 'application/json',
         body: JSON.stringify({ meta: { code: 401, errorType: 'invalid_auth' } }),
       });
     });
 
-    await page.goto(`/4sqmet/edit.php?ids=${VENUE_ID_TESTE}&fields=name`);
+    await page.goto('/4sqmet/main.php');
     await page.waitForLoadState('networkidle', { timeout: 20_000 });
+    await abrirPainelDeIds(page);
+    await page.locator('#textarea_ids').fill(VENUE_ID_TESTE);
+    await page.locator('label[for="nome3"]').click();
+    await page.getByRole('button', { name: /Continuar/i }).filter({ visible: true }).click();
+    await page.waitForURL('**/edit.php**', { timeout: 30_000 });
 
-    // Deve aparecer alguma mensagem de erro de autenticação
-    const errorMsg = page.locator(
-      'text=401, text=expirada, text=autenticação, text=invalid_auth, .error, .alert'
-    ).first();
-    const visible = await errorMsg.isVisible().catch(() => false);
-    // Relaxado: não falha se o feedback ainda não tiver sido implementado para 401 interceptado
-    expect(typeof visible).toBe('boolean');
+    await expect(page.locator('#result0 img')).toHaveAttribute('alt', /Erro 401: Unauthorized, Tipo: invalid_auth/);
   });
 
   test('version.php retorna JSON válido com Accept: application/json', async ({ page }) => {

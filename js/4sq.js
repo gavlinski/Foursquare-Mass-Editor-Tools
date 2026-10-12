@@ -223,37 +223,48 @@ function buscarInfoRede(cId, i) {
 	}
 	pendingChainRequests[cId] = [i];
 	var token = getOauthToken();
-	if (!token) return;
+	if (!token) {
+		delete pendingChainRequests[cId];
+		return;
+	}
 
 	var xhr = new XMLHttpRequest();
+	var requestFinished = false;
+	function liberarSolicitacaoPendente() {
+		if (requestFinished) return;
+		requestFinished = true;
+		delete pendingChainRequests[cId];
+	}
 	xhr.open("GET", "https://api.foursquare.com/v2/chains/" + cId + "?oauth_token=" + token + "&v=" + DATA_VERSIONAMENTO, true);
 	xhr.onreadystatechange = function() {
-		if (xhr.readyState === 4) {
-			var nome = "Rede (" + cId.substr(0, 8) + "...)";
-			var logo = "https://app.foursquare.com/img/categories_v2/none_bg_32.png";
+		if (xhr.readyState === 4 && !requestFinished) {
+			var venueChain = null;
 			if (xhr.status === 200) {
 				try {
 					var resp = JSON.parse(xhr.responseText);
-					if (resp.response && resp.response.venueChain) {
-						var vc = resp.response.venueChain;
-						if (vc.bestName && vc.bestName.name) {
-							nome = vc.bestName.name;
-						}
-						logo = formatarLogoRede(vc.logo);
-					}
+					venueChain = resp && resp.response && resp.response.venueChain;
 				} catch(e) {}
 			}
+			var nome = venueChain && venueChain.bestName && venueChain.bestName.name;
+			if (typeof nome !== "string" || !nome.trim()) {
+				liberarSolicitacaoPendente();
+				return;
+			}
+			var logo = formatarLogoRede(venueChain.logo);
+			var linhas = pendingChainRequests[cId] || [];
+			liberarSolicitacaoPendente();
 			redesInfoCache[cId] = { nome: nome, logo: logo };
 			try {
 				localStorage.setItem('redes_cache', JSON.stringify(redesInfoCache));
 			} catch(e) {}
-			var linhas = pendingChainRequests[cId] || [];
-			delete pendingChainRequests[cId];
 			for (var idx = 0; idx < linhas.length; idx++) {
 				aplicarInfoRedeNaLinha(cId, nome, logo, linhas[idx]);
 			}
 		}
 	};
+	xhr.onerror = liberarSolicitacaoPendente;
+	xhr.ontimeout = liberarSolicitacaoPendente;
+	xhr.onabort = liberarSolicitacaoPendente;
 	xhr.send();
 }
 
