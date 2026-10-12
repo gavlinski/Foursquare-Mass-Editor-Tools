@@ -9,7 +9,7 @@
  * @package    Foursquare-Mass-Editor-Tools
  * @author     Elio Gavlinski <gavlinski@gmail.com>
  * @copyright  Copyleft (c) 2011-2026
- * @version    3.0.0
+ * @version    3.3.0
  * @link       https://github.com/gavlinski/Foursquare-Mass-Editor-Tools/blob/master/load_csv.php
  * @since      File available since Release 1.1
  * @license    GPLv3 <http://www.gnu.org/licenses/gpl.txt>
@@ -32,7 +32,7 @@ require_once __DIR__ . '/includes/asset_helper.php';
 <meta http-equiv="pragma" content="no-cache">
 <title>Carregando...</title>
 <?php
-define("VERSION", "CSV Venues Editor 3.0.0");
+define("VERSION", "CSV Venues Editor 3.3.0");
 
 // Captura tag <link> e CSS dinâmico do ProgressBar
 ob_start();

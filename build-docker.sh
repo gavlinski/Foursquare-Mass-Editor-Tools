@@ -41,6 +41,13 @@ COMMIT_HASH=$(git rev-parse HEAD 2>/dev/null || echo "unknown")
 COMMIT_SHORT=$(git rev-parse --short HEAD 2>/dev/null || echo "unknown")
 BRANCH=$(git rev-parse --abbrev-ref HEAD 2>/dev/null || echo "unknown")
 VERSION=$(git describe --tags --always 2>/dev/null || echo "dev-$(date +%Y%m%d)")
+PACKAGE_VERSION=$(node -p "require('./package.json').version" 2>/dev/null || echo "")
+if [ -n "$PACKAGE_VERSION" ]; then
+    case "$VERSION" in
+        "v${PACKAGE_VERSION}"|"${PACKAGE_VERSION}"|"v${PACKAGE_VERSION}-"*|"${PACKAGE_VERSION}-"*) ;;
+        *) VERSION="v${PACKAGE_VERSION}" ;;
+    esac
+fi
 
 # Detecta origem da build (quem disparou)
 # BUILD_SOURCE deve ser passado via variável de ambiente
