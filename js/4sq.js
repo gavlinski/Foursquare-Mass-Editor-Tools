@@ -81,9 +81,211 @@ function handleMissingOauthToken(contexto) {
 }
 
 var categorias = [];
+var redes = [];
 var store = {};
+var categorySearchWidget = null;
+var categorySearchStore = null;
+var categorySearchItems = [];
+var categoryPaths = {};
 
 var timer;
+var timerRede;
+var timerBuscaRede;
+var xhrBuscaRede;
+var sequenciaBuscaRede = 0;
+
+var redesInfoCache = {};
+try {
+	var savedRedesCache = localStorage.getItem('redes_cache');
+	if (savedRedesCache) redesInfoCache = JSON.parse(savedRedesCache);
+} catch(e) {}
+
+var pendingChainRequests = {};
+
+function formatarLogoRede(logoObj) {
+	var defaultLogo = "https://app.foursquare.com/img/categories_v2/none_bg_32.png";
+	if (!logoObj || typeof logoObj !== "object") return defaultLogo;
+	var prefix = logoObj.prefix || "";
+	var suffix = logoObj.suffix || "";
+	if (!prefix || !suffix) return defaultLogo;
+	if (prefix.indexOf("img/general") > -1) {
+		var cleanPrefix = prefix.replace(/\/+$/, "");
+		var cleanSuffix = suffix.replace(/^\/+/, "");
+		return cleanPrefix + "/32x32/" + cleanSuffix;
+	}
+	return prefix + "32" + suffix;
+}
+
+function formatarLogoRedeUrl(url) {
+	var defaultLogo = "https://app.foursquare.com/img/categories_v2/none_bg_32.png";
+	if (!url || typeof url !== "string") return defaultLogo;
+	if (url.indexOf("32x32") > -1 || url.indexOf("none_bg_32.png") > -1) return url;
+	if (url.indexOf("img/general") > -1) {
+		return url.replace(/\/img\/general\/+/, "/img/general/32x32/");
+	}
+	return url;
+}
+
+function isRedesSelecionada() {
+	if (window.appBootstrap && typeof window.appBootstrap.editChains === "boolean") {
+		return window.appBootstrap.editChains;
+	}
+	var span = dojo.byId("chainIcone0");
+	return span && span.style.display !== "none";
+}
+
+function buscarInfoRede(cId, i) {
+	if (!cId || cId.length < 10) return;
+	if (redesInfoCache[cId]) {
+		aplicarInfoRedeNaLinha(cId, redesInfoCache[cId].nome, redesInfoCache[cId].logo, i);
+		return;
+	}
+	if (pendingChainRequests[cId]) {
+		pendingChainRequests[cId].push(i);
+		return;
+	}
+	pendingChainRequests[cId] = [i];
+	var token = getOauthToken();
+	if (!token) return;
+
+	var xhr = new XMLHttpRequest();
+	xhr.open("GET", "https://api.foursquare.com/v2/chains/" + cId + "?oauth_token=" + token + "&v=" + DATA_VERSIONAMENTO, true);
+	xhr.onreadystatechange = function() {
+		if (xhr.readyState === 4) {
+			var nome = "Rede (" + cId.substr(0, 8) + "...)";
+			var logo = "https://app.foursquare.com/img/categories_v2/none_bg_32.png";
+			if (xhr.status === 200) {
+				try {
+					var resp = JSON.parse(xhr.responseText);
+					if (resp.response && resp.response.venueChain) {
+						var vc = resp.response.venueChain;
+						if (vc.bestName && vc.bestName.name) {
+							nome = vc.bestName.name;
+						}
+						logo = formatarLogoRede(vc.logo);
+					}
+				} catch(e) {}
+			}
+			redesInfoCache[cId] = { nome: nome, logo: logo };
+			try {
+				localStorage.setItem('redes_cache', JSON.stringify(redesInfoCache));
+			} catch(e) {}
+			var linhas = pendingChainRequests[cId] || [];
+			delete pendingChainRequests[cId];
+			for (var idx = 0; idx < linhas.length; idx++) {
+				aplicarInfoRedeNaLinha(cId, nome, logo, linhas[idx]);
+			}
+		}
+	};
+	xhr.send();
+}
+
+function atualizarTooltipRedes(i, targetId) {
+	var nomesNode = dojo.byId("chna" + i);
+	var nomes = nomesNode && nomesNode.value ? nomesNode.value.split(",").join(", ") : "";
+	createTooltip(targetId || "chainLnk" + i, "<span style=\"font-size: 12px\">" + escapeTooltipHtml(nomes || "Sem rede definida") + "</span>");
+}
+
+function processarRedesVenue(venue, i) {
+	redes[i] = new Rede("", "", "");
+	if (!isRedesSelecionada()) {
+		if (dojo.byId("chid" + i)) dojo.byId("chid" + i).value = "";
+		if (dojo.byId("chna" + i)) dojo.byId("chna" + i).value = "";
+		if (dojo.byId("chic" + i)) dojo.byId("chic" + i).value = "";
+		return;
+	}
+
+	if (venue.venueChains && venue.venueChains.length > 0) {
+		for (var c = 0; c < venue.venueChains.length; c++) {
+			var vChain = venue.venueChains[c];
+			var cId = vChain.id || "";
+			var cNome = "";
+			var cLogo = "";
+
+			if (vChain.bestName && vChain.bestName.name) cNome = vChain.bestName.name;
+			if (vChain.logo) cLogo = formatarLogoRede(vChain.logo);
+
+			if (cId && (!cNome || !cLogo || cLogo.indexOf("none_bg_32.png") > -1)) {
+				if (redesInfoCache[cId]) {
+					cNome = redesInfoCache[cId].nome;
+					cLogo = redesInfoCache[cId].logo;
+				} else {
+					cNome = cNome || "Rede (" + cId.substr(0, 8) + "...)";
+					cLogo = cLogo || "https://app.foursquare.com/img/categories_v2/none_bg_32.png";
+					buscarInfoRede(cId, i);
+				}
+			} else if (cId && cNome && cLogo) {
+				redesInfoCache[cId] = { nome: cNome, logo: cLogo };
+				try { localStorage.setItem('redes_cache', JSON.stringify(redesInfoCache)); } catch(e) {}
+			}
+
+			redes[i].ids += cId + ",";
+			redes[i].nomes += cNome + ",";
+			redes[i].logos += cLogo + ",";
+		}
+		redes[i].ids = redes[i].ids.slice(0, -1);
+		redes[i].nomes = redes[i].nomes.slice(0, -1);
+		redes[i].logos = redes[i].logos.slice(0, -1);
+	}
+
+	if (dojo.byId("chid" + i)) dojo.byId("chid" + i).value = redes[i].ids;
+	if (dojo.byId("chna" + i)) dojo.byId("chna" + i).value = redes[i].nomes;
+	if (dojo.byId("chic" + i)) dojo.byId("chic" + i).value = redes[i].logos;
+}
+
+function atualizarIconeRede(i, permitirEdicao) {
+	var chainIconeElem = dojo.byId("chainIcone" + i);
+	if (!chainIconeElem) return;
+	if (!isRedesSelecionada()) {
+		chainIconeElem.style.display = "none";
+		chainIconeElem.innerHTML = "";
+		return;
+	}
+
+	chainIconeElem.style.display = "inline";
+	if (redes[i] && redes[i].ids != "") {
+		var logoSrc = formatarLogoRedeUrl(redes[i].logos.split(",")[0]);
+		if (permitirEdicao) {
+			chainIconeElem.innerHTML = "<a id='chainLnk" + i + "' href='javascript:editarRedes(" + i + ")'><img id='chainImg" + i + "' src='" + logoSrc + "' style='height: 22px; width: 22px; margin-left: 0px' onerror=\"this.src='https://app.foursquare.com/img/categories_v2/none_bg_32.png'\"></a>";
+		} else {
+			chainIconeElem.innerHTML = "<img id='chainLnk" + i + "' src='" + logoSrc + "' style='height: 22px; width: 22px; margin-left: 0px' onerror=\"this.src='https://app.foursquare.com/img/categories_v2/none_bg_32.png'\">";
+		}
+		atualizarTooltipRedes(i);
+	} else if (permitirEdicao) {
+		chainIconeElem.innerHTML = "<a id='chainLnk" + i + "' href='javascript:editarRedes(" + i + ")'><img id='chainImg" + i + "' src='https://app.foursquare.com/img/categories_v2/none_bg_32.png' style='height: 22px; width: 22px; margin-left: 0px; opacity: 0.4;'></a>";
+		createTooltip("chainLnk" + i, "<span style=\"font-size: 12px\">Sem rede definida (clique para adicionar)</span>");
+	} else {
+		chainIconeElem.innerHTML = "<img id='chainLnk" + i + "' src='https://app.foursquare.com/img/categories_v2/none_bg_32.png' style='height: 22px; width: 22px; margin-left: 0px; opacity: 0.2;'>";
+		createTooltip("chainLnk" + i, "<span style=\"font-size: 12px\">Sem rede definida</span>");
+	}
+}
+
+function aplicarInfoRedeNaLinha(cId, nome, logo, i) {
+	if (!document.forms[i]) return;
+	var chainImg = dojo.byId("chainImg" + i);
+	if (!chainImg) {
+		chainImg = dojo.byId("chainLnk" + i);
+	}
+	if (redes[i]) {
+		var ids = (redes[i].ids || "").split(",");
+		var chainIndex = ids.indexOf(cId);
+		if (chainIndex !== -1) {
+			var nomes = (redes[i].nomes || "").split(",");
+			var logos = (redes[i].logos || "").split(",");
+			nomes[chainIndex] = nome;
+			logos[chainIndex] = logo;
+			redes[i].nomes = nomes.join(",");
+			redes[i].logos = logos.join(",");
+			if (dojo.byId("chna" + i)) dojo.byId("chna" + i).value = redes[i].nomes;
+			if (dojo.byId("chic" + i)) dojo.byId("chic" + i).value = redes[i].logos;
+		}
+	}
+	if (redes[i] && redes[i].ids && redes[i].ids.split(",")[0] === cId && chainImg && logo && logo.indexOf("none_bg_32.png") === -1) {
+		chainImg.src = logo;
+		chainImg.style.opacity = "1";
+	}
+	atualizarTooltipRedes(i);
+}
 
 var totalCarregadas = 0;
 var totalNaoCarregadas = 0;
@@ -286,7 +488,16 @@ function desabilitarLinha(i) {
 			else {
 				dojo.byId("icone" + i).innerHTML = "<img id=catImg" + i + " src='" + dojo.byId("cic" + i).value.split(",", 1)[0] + "' style='height: 22px; width: 22px; margin-left: 0px'>";
 				createTooltip("catImg" + i, "<span style=\"font-size: 12px\">" + dojo.byId("cna" + i).value.replace(/,/gi, ", ") + "</span>");
-			} 
+			}
+			if (dojo.byId("chainIcone" + i)) {
+				if (dojo.byId("chid" + i) && dojo.byId("chid" + i).value != "") {
+					var logoSrc = dojo.byId("chic" + i).value.split(",")[0] || "https://app.foursquare.com/img/categories_v2/none_bg_32.png";
+					dojo.byId("chainIcone" + i).innerHTML = "<img id='chainImg" + i + "' src='" + logoSrc + "' style='height: 22px; width: 22px; margin-left: 0px' onerror=\"this.src='https://app.foursquare.com/img/categories_v2/none_bg_32.png'\">";
+					createTooltip("chainImg" + i, "<span style=\"font-size: 12px\">" + escapeTooltipHtml(dojo.byId("chna" + i).value.replace(/,/gi, ", ")) + "</span>");
+				} else {
+					dojo.byId("chainIcone" + i).innerHTML = "<img id='chainImg" + i + "' src='https://app.foursquare.com/img/categories_v2/none_bg_32.png' style='height: 22px; width: 22px; margin-left: 0px; opacity: 0.2;'>";
+				}
+			}
 		}
 	);
 	var linhaEditada = linhasEditadas.indexOf(parseInt(i));
@@ -364,11 +575,21 @@ function xmlhttpRequest(metodo, endpoint, acao, dados, i) {
 						categorias[i].ids = document.forms[i]["categoryId"].value;
 						categorias[i].nomes = document.forms[i]["categoryName"].value;
 						categorias[i].icones = document.forms[i]["categoryIcon"].value;
+						if (redes[i] && document.forms[i]["venueChainId"]) {
+							redes[i].ids = document.forms[i]["venueChainId"].value;
+							redes[i].nomes = document.forms[i]["venueChainName"].value;
+							redes[i].logos = document.forms[i]["venueChainLogo"].value;
+						}
 						if (venuellOriginais[i] != document.forms[i]["venuell"].value)
 							venuellOriginais[i] = document.forms[i]["venuell"].value;
 						dica = "<span style=\"font-size: 12px\">Editada com sucesso</span>";
 						atualizarEditadas(i, false);
-						relatorio.push(new Array(document.forms[i]["name"].value, "editada", getDataHora(), document.forms[i]["venue"].value, dojo.byId("cna" + i).value, dijit.byId("textareaComment").value));
+						var campoRedesRelatorio = /** @type {HTMLInputElement|null} */ (document.getElementById("chna" + i));
+						var redesRelatorio = window.appBootstrap && window.appBootstrap.editChains && campoRedesRelatorio
+							? campoRedesRelatorio.value
+							: "";
+						var campoNomeRelatorio = /** @type {HTMLInputElement|null} */ (document.forms[i].elements.namedItem("name"));
+						relatorio.push(new Array(campoNomeRelatorio ? campoNomeRelatorio.value : "", "editada", getDataHora(), document.forms[i]["venue"].value, dojo.byId("cna" + i).value, dijit.byId("textareaComment").value, redesRelatorio));
 						dijit.byId("menuItemExportarRelatorio").setAttribute("disabled", false);
 					} else if (acao == "flag") {
 						dica = "<span style=\"font-size: 12px\">Sinalizada com sucesso</span>";
@@ -870,6 +1091,63 @@ function atualizarDicaVenue(i) {
 	return dica;
 }
 
+function montarPrefixoLinhaCsv(venueId, categoryId, chainId, header, incluirCategoria) {
+	var campos = ['"' + venueId + '"'];
+	if (incluirCategoria) campos.push('"' + (categoryId || "") + '"');
+	if (header.indexOf("venueChainId") !== -1) campos.push('"' + (chainId || "") + '"');
+	return campos.join("&&");
+}
+
+function deveIncluirColunasRedesCsv() {
+	return isRedesSelecionada();
+}
+
+function removerColunasRedesDoCsv() {
+	if (!csv.length || !csv[0]) return;
+	var nomesColunasRedes = ["venueChainId", "primaryVenueChainId", "addVenueChainIds", "removeVenueChainIds"];
+	for (var coluna = 0; coluna < nomesColunasRedes.length; coluna++) {
+		var indice = csv[0].indexOf(nomesColunasRedes[coluna]);
+		while (indice !== -1) {
+			csv[0].splice(indice, 1);
+			for (var linha = 1; linha < csv.length; linha++) {
+				if (csv[linha] && csv[linha].length > indice) csv[linha].splice(indice, 1);
+			}
+			indice = csv[0].indexOf(nomesColunasRedes[coluna]);
+		}
+	}
+}
+
+function montarSufixoLinhaCsv(i, completa, incluirRedes) {
+	if (!completa) {
+		return [
+			document.forms[i]["checkinsCount"].value,
+			document.forms[i]["usersCount"].value,
+			document.forms[i]["tipCount"].value
+		];
+	}
+
+	var colunas = ["", "", ""];
+	if (incluirRedes) colunas = colunas.concat("", "", "");
+	return colunas.concat(
+		document.forms[i]["createdAt"].value,
+		document.forms[i]["checkinsCount"].value,
+		document.forms[i]["usersCount"].value,
+		document.forms[i]["tipCount"].value,
+		document.forms[i]["likesCount"].value,
+		document.forms[i]["listedCount"].value,
+		document.forms[i]["photosCount"].value,
+		document.forms[i]["isClosed"].value,
+		document.forms[i]["isPrivate"].value,
+		document.forms[i]["isDeleted"].value
+	);
+}
+
+function anexarSufixoCsv(i, completa) {
+	csv[i + 1] = csv[i + 1].concat(
+		montarSufixoLinhaCsv(i, completa, deveIncluirColunasRedesCsv())
+	);
+}
+
 function atualizarTabela(venue, i) {
 	totalCarregadas++;
 	var linha = "";
@@ -890,6 +1168,9 @@ function atualizarTabela(venue, i) {
 		//console.log(dojo.byId("cna" + i).value + " (" + dojo.byId("cid" + i).value + ") [" + dojo.byId("cic" + i).value + "]");
 		//console.log(categorias[i].nomes + " (" + categorias[i].ids + ") [" + categorias[i].icones + "]");
 	}
+
+	processarRedesVenue(venue, i);
+
 	document.forms[i]["name"].value = venue.name;
 	// Update Dijit widget to hide placeholder
 	if (venue.name !== undefined) {
@@ -901,15 +1182,13 @@ function atualizarTabela(venue, i) {
 	var venuellValue = (venue.location.lat + ', ' + venue.location.lng).replace(/undefined/gi, "0.0");
 	var venuellWidget = dijit.byId(dojo.query("input[name=venuell]")[i].id);
 	if (venuellWidget) venuellWidget.set("value", venuellValue);
-	
+
 	// Verifica se esta linha foi marcada para recarregamento (precisa estar aqui para usar depois)
 	const isReloading = document.forms[i].getAttribute('data-reloading') === 'true';
 	const permitirEdicao = (modo == DADOS_COMPLETOS) || isReloading;
-	
-	linha = '"' + venue.id + '"';
-	// Adiciona categoryId se esta venue tem dados completos (corrige inconsistência no CSV)
-	if (permitirEdicao) 
-		linha += '&&' + '"' + categorias[i].ids + '"';
+
+	var chainIdOriginal = (redes[i] && redes[i].ids) ? redes[i].ids : "";
+	linha = montarPrefixoLinhaCsv(venue.id, categorias[i].ids, chainIdOriginal, csv[0], permitirEdicao);
 	var elementName;
 	var length = document.forms[i].elements.length;
 	for (j = columnsStartIndex; j < length; j++) {
@@ -1121,6 +1400,7 @@ function atualizarTabela(venue, i) {
 			createTooltip("catLnk" + i, "<span style=\"font-size: 12px\">" + categorias[i].nomes.replace(/,/gi, ", ") + "</span>");
 		}
 	}
+	atualizarIconeRede(i, permitirEdicao);
 	document.forms[i]["verified"].value = venue.verified;
 	document.forms[i]["checkinsCount"].value = venue.stats.checkinsCount;
 	document.forms[i]["usersCount"].value = venue.stats.usersCount;
@@ -1485,11 +1765,30 @@ function normalizarCsv() {
 			debugLog('⚠️ Colunas finais já adicionadas, pulando');
 		}
 	} else {
-		// Todas têm apenas dados parciais - NÃO cria coluna categoryId
-		var jaTemColunasParciais = (csv[0].indexOf("checkins") !== -1 && csv[0].length <= 14);
+		// Todas têm apenas dados parciais
+		// categoryId NÃO é adicionada no modo parcial sem reload.
+		// venueChainId: adicionada APENAS se "Redes" estava selecionado na tela principal!
+		if (isRedesSelecionada()) {
+			var headerTemVenueChainId = (csv[0].indexOf("venueChainId") !== -1);
+			if (!headerTemVenueChainId) {
+				csv[0].splice(1, 0, "venueChainId");
+				for (var k = 0; k < document.forms.length; k++) {
+					if (csv[k + 1]) {
+						var chainVal = (redes[k] && redes[k].ids) ? redes[k].ids : "";
+						csv[k + 1].splice(1, 0, chainVal ? '"' + chainVal + '"' : '""');
+					}
+				}
+				debugLog('✅ venueChainId inserido no CSV parcial pois "Redes" estava selecionado');
+			}
+		} else {
+			removerColunasRedesDoCsv();
+			debugLog('ℹ️ venueChainId NÃO incluído no CSV parcial pois "Redes" não foi selecionado');
+		}
+
+		var jaTemColunasParciais = (csv[0].indexOf("checkins") !== -1);
 		if (!jaTemColunasParciais) {
 			csv[0] = csv[0].concat("checkins", "users", "tips");
-			debugLog('✅ CSV mantido em modo parcial (3 colunas, SEM categoryId)');
+			debugLog('✅ CSV mantido em modo parcial (3 colunas)');
 		}
 	}
 }
@@ -1827,6 +2126,34 @@ function salvarVenues() {
 		} else {
 			debugLog('⚠️ Venue', i, 'NÃO tem dados completos - categorias NÃO serão processadas');
 		}
+
+		// Processa redes para esta venue
+		var indexPrimaryChainId = csv[0].indexOf("primaryVenueChainId");
+		var indexRemoveChainIds = csv[0].indexOf("removeVenueChainIds");
+		var indexAddChainIds = csv[0].indexOf("addVenueChainIds");
+
+		if (indexPrimaryChainId !== -1 || indexRemoveChainIds !== -1 || indexAddChainIds !== -1) {
+			var primaryChainFromCsv = (indexPrimaryChainId !== -1 && csv[i + 1][indexPrimaryChainId])
+				? csv[i + 1][indexPrimaryChainId].replace(/"/g, '') : '';
+			var removeChainFromCsv = (indexRemoveChainIds !== -1 && csv[i + 1][indexRemoveChainIds])
+				? csv[i + 1][indexRemoveChainIds].replace(/"/g, '') : '';
+			var addChainFromCsv = (indexAddChainIds !== -1 && csv[i + 1][indexAddChainIds])
+				? csv[i + 1][indexAddChainIds].replace(/"/g, '') : '';
+
+			if (removeChainFromCsv != '') {
+				dados += "&removeVenueChainIds=" + removeChainFromCsv;
+				debugLog('✅ removeVenueChainIds adicionado:', removeChainFromCsv);
+			}
+			if (primaryChainFromCsv != '') {
+				dados += "&primaryVenueChainId=" + primaryChainFromCsv;
+				debugLog('✅ primaryVenueChainId adicionado:', primaryChainFromCsv);
+			}
+			if (addChainFromCsv != '') {
+				dados += "&addVenueChainIds=" + addChainFromCsv;
+				debugLog('✅ addVenueChainIds adicionado:', addChainFromCsv);
+			}
+		}
+
 		var comentario = encodeURIComponent(dijit.byId("textareaComment").value);
 		if (comentario != "")
 			dados += "&comment=" + comentario;
@@ -2216,6 +2543,25 @@ dojo.addOnLoad(function inicializar() {
 			}
 		});
 		subMenu2.addChild(subMenu2Item);
+
+		var subMenu2ItemChains = new dijit.MenuItem({
+			label: "Redes",
+			id: "menu2ItemChains",
+			disabled: !(window.appBootstrap && window.appBootstrap.editChains),
+			onClick: function() {
+				atualizarRedes([], "", "");
+				if (dojo.byId("venueChainIndex")) dojo.byId("venueChainIndex").innerHTML = "0";
+				if (dojo.byId("chainsResultsContainer")) {
+					dojo.byId("chainsResultsContainer").innerHTML = "";
+					dojo.byId("chainsResultsContainer").style.display = "none";
+				}
+				dijit.byId("dlg_chains").show();
+				configurarBuscaReativaRede();
+				if (dijit.byId("inputChainSearch")) dijit.byId("inputChainSearch").set("value", "");
+				configurarEdicaoMultiplaRedes(true);
+			}
+		});
+		subMenu2.addChild(subMenu2ItemChains);
 	}
 	if (document.form1.name.type == "hidden")
 		columnsStartIndex++;

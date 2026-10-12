@@ -39,14 +39,20 @@ test.describe('Edição em Massa', () => {
 
     // Fluxo correto: main.php → preencher IDs → submeter → edit.php
     // Navegação direta para edit.php falha em CI (exige sessão estabelecida via load.php)
+    await skipIfUnauthenticated(page);
     await page.goto('/4sqmet/main.php');
     await page.waitForLoadState('networkidle', { timeout: 20_000 });
+    await abrirPainelDeIds(page);
 
-    // Preencher ID de venue na textarea (id fixo, sempre visível no pane ativo do accordion)
     await page.locator('#textarea_ids').fill(VENUE_ID_TESTE);
 
     // Marcar checkbox "Nome" — label[for=nome3] é confiável com Dojo CheckBox
     await page.locator('label[for="nome3"]').click();
+    const checkboxRedes = page.locator('#redes3');
+    if (!(await checkboxRedes.isChecked())) {
+      await page.locator('label[for="redes3"]').click();
+    }
+    await expect(checkboxRedes).toBeChecked();
 
     // Submeter o formulário f_ids (action="load.php")
     // Há múltiplos botões "Continuar" (um por pane do accordion), clicar no visível
@@ -60,6 +66,15 @@ test.describe('Edição em Massa', () => {
     await expect(page).toHaveURL(/edit\.php/);
     const dojoCount = await page.locator('[dojoType], [data-dojo-type], .dijitTextBox').count();
     expect(dojoCount).toBeGreaterThan(0);
+    await expect.poll(() => page.evaluate(() => (window as EditorWindow).appBootstrap?.editChains)).toBe(true);
+    await expect(page.locator('#chainIcone0')).toBeVisible();
+
+    await page.evaluate(() => {
+      editarRedes(0);
+      atualizarRedes([], '', '');
+      adicionarRedeNaEdicao('0123456789abcdef01234567', 'Rede de teste', '');
+    });
+    await expect(page.locator('#chainSearchStatus')).toHaveText('Rede adicionada.');
   });
 
   test('edit.php - sinalização de alteração em campo', async ({ page }) => {

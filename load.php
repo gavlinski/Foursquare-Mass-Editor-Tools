@@ -171,7 +171,7 @@ if (isset($_FILES['txt']['tmp_name'])) {
     } else {
         $_SESSION["campos"] = ["nome", "endereco", "ruatransversal", "bairro",
             "cidade", "estado", "codigopostal", "dentro", "telefone", "sitedaweb",
-            "twitter", "facebook", "instagram", "latlng", "descricao", "menu", "horas"];
+            "twitter", "facebook", "instagram", "latlng", "descricao", "menu", "redes", "horas"];
         setLocalCache("txt", implode('%0A,', $_SESSION["file"]), "venues");
         echo EDIT;
     }

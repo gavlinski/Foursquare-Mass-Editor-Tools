@@ -169,6 +169,26 @@ if (array_key_exists("removeCategoryIds", $file[0])) {
 } else {
 	$hasRemoveCategoryIds = false;
 }
+if (array_key_exists("venueChainId", $file[0])) {
+	$hasVenueChainId = true;
+} else {
+	$hasVenueChainId = false;
+}
+if (array_key_exists("primaryVenueChainId", $file[0])) {
+	$hasPrimaryVenueChainId = true;
+} else {
+	$hasPrimaryVenueChainId = false;
+}
+if (array_key_exists("addVenueChainIds", $file[0])) {
+	$hasAddVenueChainIds = true;
+} else {
+	$hasAddVenueChainIds = false;
+}
+if (array_key_exists("removeVenueChainIds", $file[0])) {
+	$hasRemoveVenueChainIds = true;
+} else {
+	$hasRemoveVenueChainIds = false;
+}
 
 $i = 0;
 
@@ -197,6 +217,9 @@ foreach ($file as $f) {
 
 	if ($hasCategoryId) {
 		echo '<span id="icone', $i - 1, '"><img id=catImg', $i - 1, ' src="https://app.foursquare.com/img/categories_v2/none_bg_32.png" style="height: 22px; width: 22px; margin-left: 0px"></span>', chr(10);
+	}
+	if ($hasVenueChainId) {
+		echo '<span id="chainIcone', $i - 1, '"><img id=chainImg', $i - 1, ' src="https://app.foursquare.com/img/categories_v2/none_bg_32.png" style="height: 22px; width: 22px; margin-left: 0px"></span>', chr(10);
 	}
 
 	if ($hasName) {
@@ -305,6 +328,26 @@ foreach ($file as $f) {
 	if ($hasRemoveCategoryIds) {
 		$removeCategoryIds = $f['removeCategoryIds'];
 		echo '<input type="text" dojoType="dijit.form.TextBox" name="removeCategoryIds" maxlength="75" value="', $removeCategoryIds, '" placeHolder="Remover Categoria(s)" style="width: 14em; margin-left: 5px;" onchange="verificarAlteracao(this, ', $i - 1, ')">', chr(10);
+	}
+
+	if ($hasVenueChainId) {
+		$venueChainId = $f['venueChainId'];
+		echo '<input type="text" dojoType="dijit.form.TextBox" name="venueChainId" maxlength="75" value="', $venueChainId, '" placeHolder="Rede(s)" style="width: 14em; margin-left: 5px;" readonly>', chr(10);
+	}
+
+	if ($hasPrimaryVenueChainId) {
+		$primaryVenueChainId = $f['primaryVenueChainId'];
+		echo '<input type="text" dojoType="dijit.form.TextBox" name="primaryVenueChainId" maxlength="24" value="', $primaryVenueChainId, '" placeHolder="Rede Prim&aacute;ria" style="width: 14em; margin-left: 5px;" onchange="verificarAlteracao(this, ', $i - 1, ')">', chr(10);
+	}
+
+	if ($hasAddVenueChainIds) {
+		$addVenueChainIds = $f['addVenueChainIds'];
+		echo '<input type="text" dojoType="dijit.form.TextBox" name="addVenueChainIds" maxlength="75" value="', $addVenueChainIds, '" placeHolder="Adicionar Rede(s)" style="width: 14em; margin-left: 5px;" onchange="verificarAlteracao(this, ', $i - 1, ')">', chr(10);
+	}
+
+	if ($hasRemoveVenueChainIds) {
+		$removeVenueChainIds = $f['removeVenueChainIds'];
+		echo '<input type="text" dojoType="dijit.form.TextBox" name="removeVenueChainIds" maxlength="75" value="', $removeVenueChainIds, '" placeHolder="Remover Rede(s)" style="width: 14em; margin-left: 5px;" onchange="verificarAlteracao(this, ', $i - 1, ')">', chr(10);
 	}
 
 	echo '<span id="result', $i - 1, '"></span>', chr(10), '</form>', chr(10), '</section>', chr(10);
