@@ -9,6 +9,7 @@ RUN apt-get update \
         libzip-dev \
         unzip \
         git \
+        ripgrep \
         libonig-dev \
         libpng-dev \
         libxml2-dev \
