@@ -5,6 +5,7 @@ dojo.require("dijit.form.CheckBox");
 dojo.require("dijit.form.TextBox");
 dojo.require("dijit.form.ToggleButton");
 dojo.require("dijit.Tooltip");
+dojo.require("dijit.form.FilteringSelect");
 dojo.require("dojo.data.ItemFileReadStore");
 dojo.require("dijit.Tree");
 dojo.require("dijit.Menu");
@@ -348,7 +349,7 @@ function atualizarDicaResultado(item, imagem, dica) {
 function atualizarEditadas(i, timeout) {
 	if (timeout == false) {
 		linhasEditadas.splice(linhasEditadas.indexOf(i), 1);
-		
+
 		// Remove indicador visual de edição e erro após salvar com sucesso
 		var linhaElement = dojo.byId("linha" + i);
 		if (linhaElement) {
@@ -418,14 +419,14 @@ function atualizarFalhas(metodo, i, acao, timeout) {
 	if (metodo == "GET") {
 		desabilitarLinha(i);
 		totalNaoCarregadas++;
-		
+
 		// Adiciona indicador visual de erro
 		var linhaElement = dojo.byId("linha" + i);
 		if (linhaElement) {
 			dojo.removeClass(linhaElement, "edited"); // Remove estado editado se existir
 			dojo.addClass(linhaElement, "error");
 		}
-		
+
 		/*** Se tiver sido a última venue a ser carregada ***/
 		if (totalCarregadas == (document.forms.length - totalNaoCarregadas)) {
 			limparLinhasEditadas();
@@ -446,7 +447,7 @@ function atualizarFalhas(metodo, i, acao, timeout) {
 		else if (acao == "flag")
 			atualizarSinalizadas(i, timeout);
 	}
-	
+
 	// Adiciona indicador visual de erro para POST (save/flag)
 	if (metodo == "POST") {
 		var linhaElement = dojo.byId("linha" + i);
@@ -473,6 +474,19 @@ function limparLinhasEditadas() {
 	linhasEditadas = [];
 	dijit.byId("saveButton").setAttribute('disabled', false);
 	dijit.byId("reloadButton").setAttribute('disabled', false);
+}
+
+function marcarLinhaEditada(i) {
+	var indice = parseInt(i);
+	if (linhasEditadas.indexOf(indice) === -1) {
+		linhasEditadas.push(indice);
+	}
+	var linhaElement = dojo.byId("linha" + indice);
+	if (linhaElement && !dojo.hasClass(linhaElement, "edited")) {
+		dojo.addClass(linhaElement, "edited");
+	}
+	var saveButton = dijit.byId("saveButton");
+	if (saveButton) saveButton.set("disabled", false);
 }
 
 function desabilitarLinha(i) {
@@ -558,13 +572,13 @@ function xmlhttpRequest(metodo, endpoint, acao, dados, i) {
 			/*** O erro {"meta":{"code":400,"errorType":"param_error","errorDetail":"Must start with http:\/\/"}} é um bug da API que ocorre quando o campo url é enviado em branco. Mas mesmo dando erro, a venue é corretamente editada. ***/
 			if ((xmlhttp.status == 200) || ((xmlhttp.status == 400) && (resposta.meta.errorType == "param_error") && (resposta.meta.errorDetail == "Must start with http:\/\/"))) {
 				clearTimeout(xmlhttpTimeout);
-				
+
 				// Remove indicador visual de erro em caso de sucesso
 				var linhaElement = dojo.byId("linha" + i);
 				if (linhaElement) {
 					dojo.removeClass(linhaElement, "error");
 				}
-				
+
 				if (metodo == "POST") {
 					imagem = "<img src='img/ok.png' alt='" + xmlhttp.responseText + "' style='vertical-align: middle;'>";
 					totalProgresso++;
@@ -660,7 +674,7 @@ function xmlhttpRequest(metodo, endpoint, acao, dados, i) {
 				case 504:
 					imagem = errorImg + " alt='Erro 504: Gateway Time-out'>";
 					dica = "<span style=\"font-size: 12px\">Erro 504: Gateway Time-out</span>";
-					break;					
+					break;
 				default:
 					imagem = errorImg + " alt='Erro desconhecido: " + xmlhttp.status + "'>";
 					dica = "<span style=\"font-size: 12px\">Erro desconhecido: " + xmlhttp.status + "</span>";
@@ -693,14 +707,301 @@ function Categoria(ids, nomes, icones) {
 	this.icones = icones;
 }
 
-function atualizarCategorias(nomes, ids, icones) {
-	dojo.byId("catsContainer").innerHTML = "";
-	for (j = 0; j < nomes.length; j++)
-		dojo.byId("catsContainer").innerHTML += "<div id='categoria" + (j + 1) + "' class='categoria' ondblclick=\"tornarCategoriaPrimaria('" + (j + 1) + "')\" onclick=\"removerCategoria('" + (j + 1) + "')\">" + nomes[j] + ",</div>";
-	dojo.byId("catsContainer").innerHTML = dojo.byId("catsContainer").innerHTML.slice(0, -7) + "</div>";
-	dojo.byId("catsIds").innerHTML = ids;
-	dojo.byId("catsIcones").innerHTML = icones;
+function Rede(ids, nomes, logos) {
+	this.ids = ids || "";
+	this.nomes = nomes || "";
+	this.logos = logos || "";
+}
+
+function nomeItemSelecionado(node) {
+	if (!node) return "";
+	var label = node.querySelector(".selected-item-name");
+	return label ? label.textContent.trim() : node.textContent.replace(/,/g, "").trim();
+}
+
+function obterIdPrimarioSelecionado(container, ids) {
+	if (!container || !ids) return "";
+	var items = container.querySelectorAll(".selected-item");
+	var idsLista = ids.split(",");
+	for (var i = 0; i < items.length; i++) {
+		if (items[i].getAttribute("data-primary") === "true") return idsLista[i] || "";
+	}
+	return idsLista[0] || "";
+}
+
+function obterItensSelecionadosPrimariaPrimeiro(container, ids, icones) {
+	var items = container.querySelectorAll(".selected-item");
+	var idsLista = ids ? ids.split(",") : [];
+	var iconesLista = icones ? icones.split(",") : [];
+	var resultado = { nomes: [], ids: [], icones: [] };
+	var indicePrimario = 0;
+	for (var i = 0; i < items.length; i++) {
+		resultado.nomes.push(nomeItemSelecionado(items[i]));
+		resultado.ids.push(idsLista[i] || "");
+		resultado.icones.push(iconesLista[i] || "");
+		if (items[i].getAttribute("data-primary") === "true") indicePrimario = i;
+	}
+	if (indicePrimario > 0) {
+		resultado.nomes.unshift(resultado.nomes.splice(indicePrimario, 1)[0]);
+		resultado.ids.unshift(resultado.ids.splice(indicePrimario, 1)[0]);
+		resultado.icones.unshift(resultado.icones.splice(indicePrimario, 1)[0]);
+	}
+	return resultado;
+}
+
+function criarItemSelecionado(container, id, index, nome, icone, tipo, adminId, primary) {
+	var item = document.createElement("div");
+	item.id = id;
+	item.className = "categoria selected-item";
+	item.setAttribute("data-primary", primary ? "true" : "false");
+
+	var image = document.createElement("img");
+	image.className = "selected-item-icon";
+	image.alt = "";
+	image.src = icone || "https://app.foursquare.com/img/categories_v2/none_bg_32.png";
+	image.onerror = function() { this.src = "https://app.foursquare.com/img/categories_v2/none_bg_32.png"; };
+	item.appendChild(image);
+
+	var label = document.createElement(tipo === "rede" && adminId ? "a" : "span");
+	label.className = "selected-item-name";
+	label.textContent = nome;
+	if (tipo === "rede" && adminId) {
+		label.className += " selected-chain-admin-link";
+		label.href = "https://app.foursquare.com/admin/chain/" + encodeURIComponent(adminId);
+		label.target = "_blank";
+		label.rel = "noopener noreferrer";
+		label.addEventListener("click", function(event) { event.stopPropagation(); });
+		label.addEventListener("dblclick", function(event) { event.stopPropagation(); });
+	}
+	item.appendChild(label);
+
+	{
+		var actions = document.createElement("div");
+		actions.className = "selected-item-actions";
+		if (primary) {
+			var primaryLabel = document.createElement("span");
+			primaryLabel.className = "selected-item-primary";
+			primaryLabel.textContent = "Primária";
+			actions.appendChild(primaryLabel);
+		} else {
+			var makePrimaryButton = document.createElement("button");
+			makePrimaryButton.type = "button";
+			makePrimaryButton.className = "selected-item-primary-action";
+			makePrimaryButton.textContent = "Definir como principal";
+			makePrimaryButton.addEventListener("click", function(event) {
+				event.stopPropagation();
+				if (tipo === "categoria") tornarCategoriaPrimaria(index);
+				else tornarRedePrimaria(index);
+			});
+			actions.appendChild(makePrimaryButton);
+		}
+
+		var removeButton = document.createElement("button");
+		removeButton.type = "button";
+		removeButton.className = "selected-item-remove";
+		removeButton.setAttribute("aria-label", "Remover " + (tipo === "categoria" ? "categoria " : "rede ") + nome);
+		removeButton.title = tipo === "categoria" ? "Remover categoria" : "Remover rede";
+		removeButton.innerHTML = "<span aria-hidden=\"true\">&times;</span>";
+		removeButton.addEventListener("click", function(event) {
+			event.stopPropagation();
+			if (tipo === "categoria") removerCategoria(index);
+			else removerRede(index);
+		});
+		actions.appendChild(removeButton);
+		item.appendChild(actions);
+	}
+	container.appendChild(item);
+	return item;
+}
+
+function atualizarCategorias(nomes, ids, icones, primaryId) {
+	var container = dojo.byId("catsContainer");
+	for (var tooltipIndex = 1; tooltipIndex <= 3; tooltipIndex++) {
+		destroyTooltip("categoria" + tooltipIndex);
+	}
+	nomes = nomes || [];
+	var idsLista = ids ? ids.split(",") : [];
+	if (primaryId === undefined) primaryId = obterIdPrimarioSelecionado(container, dojo.byId("catsIds").innerHTML);
+	if (idsLista.indexOf(primaryId) === -1) primaryId = idsLista[0] || "";
+	var iconesLista = icones ? icones.split(",") : [];
+	container.innerHTML = "";
+	if (!nomes || nomes.length === 0) {
+		container.innerHTML = "<span class='category-selection-empty'>Nenhuma categoria selecionada</span>";
+	} else {
+		for (var j = 0; j < nomes.length; j++) {
+			var categoryIndex = j + 1;
+			criarItemSelecionado(container, "categoria" + categoryIndex, categoryIndex, nomes[j], iconesLista[j], "categoria", "", idsLista[j] === primaryId);
+		}
+	}
+	dojo.byId("catsIds").innerHTML = ids || "";
+	dojo.byId("catsIcones").innerHTML = icones || "";
+	var saveButton = dijit.byId("saveCatsButton");
+	if (saveButton) {
+		saveButton.set("disabled", !idsLista.some(function(id) { return id !== ""; }));
+	}
+	atualizarStatusBuscaCategoria("", "");
 	//console.log(dojo.byId("catsIcones").innerHTML);
+}
+
+function atualizarBuscaCategorias(categoriasArvore) {
+	var items = [];
+	categoryPaths = {};
+
+	function indexarCategoria(categoria, caminhoAnterior) {
+		var caminho = caminhoAnterior.concat(categoria.id);
+		categoryPaths[categoria.id] = caminho;
+		if (caminhoAnterior.length > 0) {
+			items.push({
+				id: categoria.id,
+				name: categoria.name,
+				icon: categoria.icon
+			});
+		}
+		(categoria.children || []).forEach(function(categoriaFilha) {
+			indexarCategoria(categoriaFilha, caminho);
+		});
+	}
+
+	(categoriasArvore || []).forEach(function(categoriaRaiz) {
+		indexarCategoria(categoriaRaiz, []);
+	});
+	items.sort(function(a, b) {
+		return a.name.localeCompare(b.name);
+	});
+	categorySearchItems = items;
+
+	categorySearchStore = new dojo.data.ItemFileReadStore({
+		data: {
+			identifier: "id",
+			label: "name",
+			items: items
+		}
+	});
+	if (categorySearchWidget) {
+		categorySearchWidget.set("store", categorySearchStore);
+		categorySearchWidget.reset();
+	}
+}
+
+function inicializarBuscaCategorias() {
+	if (categorySearchWidget) return;
+	if (!categorySearchStore) {
+		categorySearchStore = new dojo.data.ItemFileReadStore({
+			data: { identifier: "id", label: "name", items: [] }
+		});
+	}
+
+	categorySearchWidget = new dijit.form.FilteringSelect({
+		id: "categorySearchWidget",
+		name: "categorySearch",
+		store: categorySearchStore,
+		searchAttr: "name",
+		queryExpr: "*${0}*",
+		highlightMatch: "all",
+		autoComplete: false,
+		required: false,
+		placeHolder: "Digite para buscar uma categoria...",
+		style: "width: 100%;",
+		onChange: function(value) {
+			if (!value || !categorySearchStore) return;
+			categorySearchStore.fetchItemByIdentity({
+				identity: value,
+				onItem: function(item) {
+					if (!item) {
+						atualizarStatusBuscaCategoria("Selecione uma categoria da lista.", "error");
+						return;
+					}
+						processarCategoriaBusca(
+							categorySearchStore.getValue(item, "id"),
+							categorySearchStore.getLabel(item),
+							categorySearchStore.getValue(item, "icon"),
+							true
+						);
+					categorySearchWidget.set("value", "");
+				}
+			});
+		}
+	}, "categorySearchMountPoint");
+	categorySearchWidget.startup();
+	categorySearchWidget.textbox.addEventListener("blur", function(event) {
+		var termo = event.target.value.trim().toLocaleLowerCase();
+		if (!termo) return;
+		var categoria = categorySearchItems.filter(function(item) {
+			return item.name.trim().toLocaleLowerCase() === termo;
+		})[0];
+		if (!categoria) return;
+
+		processarCategoriaBusca(categoria.id, categoria.name, categoria.icon);
+		categorySearchWidget.set("value", "");
+	});
+}
+
+function processarCategoriaBusca(id, nome, icone, focarArvore) {
+	var result = adicionarCategoriaSelecionada(id, nome, icone);
+	if (result === "added") {
+		atualizarStatusBuscaCategoria("Categoria adicionada.", "success");
+		if (focarArvore) selecionarCategoriaNaArvore(id);
+	} else if (result === "duplicate") {
+		atualizarStatusBuscaCategoria("Esta categoria já está selecionada.", "error");
+		if (focarArvore) selecionarCategoriaNaArvore(id);
+	} else {
+		atualizarStatusBuscaCategoria("O limite de 3 categorias foi atingido.", "error");
+	}
+}
+
+function atualizarStatusBuscaCategoria(message, status) {
+	var statusNode = dojo.byId("categorySearchStatus");
+	if (!statusNode) return;
+	statusNode.textContent = message || "";
+	statusNode.className = "category-search-status" + (status ? " is-" + status : "");
+}
+
+function selecionarCategoriaNaArvore(id) {
+	var tree = dijit.byId("treeContainer");
+	var path = categoryPaths[id];
+	if (!tree || !path) return;
+
+	function expandirCaminho(node, pathIndex) {
+		var children = node.getChildren();
+		var targetNode = null;
+		for (var i = 0; i < children.length; i++) {
+			if (children[i].getIdentity() === path[pathIndex]) {
+				targetNode = children[i];
+				break;
+			}
+		}
+		if (!targetNode) return;
+
+		if (pathIndex === path.length - 1) {
+			tree.set("selectedNodes", [targetNode]);
+			tree.focusNode(targetNode);
+			return;
+		}
+
+		tree._expandNode(targetNode).then(function() {
+			expandirCaminho(targetNode, pathIndex + 1);
+		});
+	}
+
+	expandirCaminho(tree.rootNode, 0);
+}
+
+function adicionarCategoriaSelecionada(id, nome, icone) {
+	var idsNode = dojo.byId("catsIds");
+	var ids = idsNode && idsNode.innerHTML ? idsNode.innerHTML.split(",") : [];
+	if (ids.indexOf(id) !== -1) return "duplicate";
+	if (ids.length >= 3) return "limit";
+
+	var nomes = dojo.query("#catsContainer .selected-item").map(function(node) {
+		return nomeItemSelecionado(node);
+	});
+	var iconesNode = dojo.byId("catsIcones");
+	var icones = iconesNode && iconesNode.innerHTML ? iconesNode.innerHTML.split(",") : [];
+	ids.push(id);
+	nomes.push(nome);
+	icones.push(icone);
+	atualizarCategorias(nomes, ids.join(","), icones.join(","));
+	return "added";
 }
 
 /**
@@ -739,14 +1040,14 @@ function editarCategorias(i) {
 		ids = dojo.byId("cid" + i).value;
 		icones = dojo.byId("cic" + i).value;
 	}
-	atualizarCategorias(nomes, ids, icones);
+	atualizarCategorias(nomes, ids, icones, ids ? ids.split(",")[0] : "");
 	dojo.byId("venueIndex").innerHTML = i;
-	
+
 	// Garante que a árvore de categorias está montada antes de abrir modal
 	// Verifica se existe o widget Tree real (não apenas o container DOM)
 	var containerElement = dojo.byId("treeContainer");
 	var hasTreeWidget = containerElement && containerElement.children && containerElement.children.length > 0;
-	
+
 	if (!hasTreeWidget) {
 		debugLog('🌳 Árvore de categorias não existe ou está vazia, verificando cache...');
 		var cachedCategories = localStorage.getItem('categorias');
@@ -767,9 +1068,13 @@ function editarCategorias(i) {
 	} else {
 		debugLog('✅ Árvore de categorias já existe, reutilizando');
 	}
-	
+
 	dijit.byId("dlg_cats").show();
-	
+	inicializarBuscaCategorias();
+	if (categorySearchStore) categorySearchWidget.set("store", categorySearchStore);
+	categorySearchWidget.set("value", "");
+	atualizarStatusBuscaCategoria("", "");
+
 	// Habilita checkbox apenas se houver 2+ venues com dados completos
 	var totalComDadosCompletos = contarVenuesComDadosCompletos();
 	if (totalComDadosCompletos >= 2) {
@@ -785,75 +1090,58 @@ function removerCategoria(i) {
 	if (timer)
 		clearTimeout(timer);
 	timer = setTimeout(function remover() {
-		//console.info('Remover a categoria ' + i);
+		var container = dojo.byId("catsContainer");
+		var items = container.querySelectorAll(".selected-item");
+		var ids = dojo.byId("catsIds").innerHTML.split(",");
+		var icones = dojo.byId("catsIcones").innerHTML.split(",");
 		var nomes = [];
-		var ids = "";
-		var icones = "";
-		if ((dojo.byId("categoria1") !== null) && (i != 1)) {
-			nomes.push(dojo.byId("categoria1").innerHTML.replace(/,/gi, ""));
-			ids += dojo.byId("catsIds").innerHTML.substr(0, 24) + ",";
-			icones += dojo.byId("catsIcones").innerHTML.split(",", 1)[0] + ",";
+		var primaryId = obterIdPrimarioSelecionado(container, dojo.byId("catsIds").innerHTML);
+		var removedName = "";
+		for (var itemIndex = 0; itemIndex < items.length; itemIndex++) {
+			nomes.push(nomeItemSelecionado(items[itemIndex]));
+			if (itemIndex === parseInt(i, 10) - 1) removedName = nomes[itemIndex];
 		}
-		if ((dojo.byId("categoria2") !== null) && (i != 2)) {
-			nomes.push(dojo.byId("categoria2").innerHTML.replace(/,/gi, ""));
-			ids += dojo.byId("catsIds").innerHTML.substr(25, 24) + ",";
-			icones += dojo.byId("catsIcones").innerHTML.split(",", 2)[1] + ",";
-		}
-		if ((dojo.byId("categoria3") !== null) && (i != 3)) {
-			nomes.push(dojo.byId("categoria3").innerHTML);
-			ids += dojo.byId("catsIds").innerHTML.substr(50, 24) + ",";
-			icones += dojo.byId("catsIcones").innerHTML.split(",", 3)[2] + ",";
-		}
-		atualizarCategorias(nomes, ids.slice(0, -1), icones.slice(0, -1));
+		var targetIndex = parseInt(i, 10) - 1;
+		ids.splice(targetIndex, 1);
+		icones.splice(targetIndex, 1);
+		nomes.splice(targetIndex, 1);
+		if (ids.indexOf(primaryId) === -1) primaryId = ids[0] || "";
+		atualizarCategorias(nomes, ids.join(","), icones.join(","), primaryId);
+		atualizarStatusBuscaCategoria('Categoria "' + removedName + '" removida.', "success");
 	}, 250);
 }
 
 function tornarCategoriaPrimaria(i) {
-	clearTimeout(timer);
-	//console.info("Tornar a categoria " + i + " primaria");
+	var container = dojo.byId("catsContainer");
+	var items = container.querySelectorAll(".selected-item");
+	var targetIndex = parseInt(i, 10) - 1;
+	var categoryName = nomeItemSelecionado(items[targetIndex]);
+	var alreadyPrimary = items[targetIndex].getAttribute("data-primary") === "true";
+	var ids = dojo.byId("catsIds").innerHTML;
+	var icones = dojo.byId("catsIcones").innerHTML;
 	var nomes = [];
-	var ids = "";
-	var icones = "";
-	nomes.push(dojo.byId("categoria" + i).innerHTML.replace(/,/gi, ""));
-	if (i == 1) {
-		ids += dojo.byId("catsIds").innerHTML.substr(0, 24) + ",";
-		icones += dojo.byId("catsIcones").innerHTML.split(",", 1)[0] + ",";
-	} else if (i == 2) {
-		ids += dojo.byId("catsIds").innerHTML.substr(25, 24) + ",";
-		icones += dojo.byId("catsIcones").innerHTML.split(",", 2)[1] + ",";
-	} else if (i == 3) {
-		ids += dojo.byId("catsIds").innerHTML.substr(50, 24) + ",";
-		icones += dojo.byId("catsIcones").innerHTML.split(",", 3)[2] + ",";
+	for (var itemIndex = 0; itemIndex < items.length; itemIndex++) {
+		nomes.push(nomeItemSelecionado(items[itemIndex]));
 	}
-	if ((dojo.byId("categoria1") !== null) && (i != 1)) {
-		nomes.push(dojo.byId("categoria1").innerHTML.replace(/,/gi, ""));
-		ids += dojo.byId("catsIds").innerHTML.substr(0, 24) + ",";
-		icones += dojo.byId("catsIcones").innerHTML.split(",", 1)[0] + ",";
-	}
-	if ((dojo.byId("categoria2") !== null) && (i != 2)) {
-		nomes.push(dojo.byId("categoria2").innerHTML.replace(/,/gi, ""));
-		ids += dojo.byId("catsIds").innerHTML.substr(25, 24) + ",";
-		icones += dojo.byId("catsIcones").innerHTML.split(",", 2)[1] + ",";
-	}
-	if ((dojo.byId("categoria3") !== null) && (i != 3)) {
-		nomes.push(dojo.byId("categoria3").innerHTML);
-		ids += dojo.byId("catsIds").innerHTML.substr(50, 24) + ",";
-		icones += dojo.byId("catsIcones").innerHTML.split(",", 3)[2] + ",";
-	}
-	atualizarCategorias(nomes, ids.slice(0, -1), icones.slice(0, -1));
+	var primaryId = ids ? ids.split(",")[targetIndex] : "";
+	atualizarCategorias(nomes, ids, icones, primaryId);
+	var message = alreadyPrimary
+		? 'Categoria "' + categoryName + '" já é a primária.'
+		: 'Categoria "' + categoryName + '" definida como primária.';
+	atualizarStatusBuscaCategoria(message, "success");
 }
 
 function salvarCategorias() {
 	var venueIndex, venueLoop;
 	var nomes = "";
-	
+
 	// Verifica se checkbox está marcada e há venues com dados parciais
 	if (dijit.byId("editAllCheckbox").checked && temVenuesComDadosParciais()) {
 		// Mostra modal de confirmação
 		mostrarConfirmacaoEdicaoMultiplaCategorias();
 		return;
 	}
-	
+
 	// Processa a edição normalmente
 	processarEdicaoCategorias();
 }
@@ -869,22 +1157,22 @@ function mostrarConfirmacaoEdicaoMultiplaCategorias() {
 			totalParciais++;
 		}
 	}
-	
+
 	// Textos com singular e plural corretos
-	var textoParciais = totalParciais === 1 
-		? "Há <strong>1 local</strong> carregado com dados parciais que não pode ter as categorias alteradas sem risco de perda de informações." 
+	var textoParciais = totalParciais === 1
+		? "Há <strong>1 local</strong> carregado com dados parciais que não pode ter as categorias alteradas sem risco de perda de informações."
 		: "Há <strong>" + totalParciais + " locais</strong> carregados com dados parciais que não podem ter as categorias alteradas sem risco de perda de informações.";
-	
+
 	var textoCompletos = totalComDadosCompletos === 1
 		? "Apenas <strong>1 local</strong> carregado com dados completos será alterado."
 		: "Apenas <strong>" + totalComDadosCompletos + " locais</strong> carregados com dados completos serão alterados.";
-	
+
 	// Atualiza apenas o conteúdo da mensagem, não o dialog inteiro
-	dojo.byId("confirmEditAllCategoriesMessage").innerHTML = 
+	dojo.byId("confirmEditAllCategoriesMessage").innerHTML =
 		"<p style='margin: 10px 0;'><strong>Atenção:</strong> " + textoParciais + "</p>" +
 		"<p style='margin: 10px 0;'>" + textoCompletos + "</p>" +
 		"<p style='margin: 10px 0;'><strong>O que deseja fazer?</strong></p>";
-	
+
 	dijit.byId("dlg_confirmEditAllCategories").show();
 }
 
@@ -895,12 +1183,14 @@ function processarEdicaoCategorias() {
 	var venueIndex, venueLoop;
 	var nomes = "";
 	if (dojo.byId("catsIds").innerHTML != "") {
-		nomes = dojo.byId("categoria1").innerHTML;
-		if (dojo.byId("categoria2") !== null) {
-			nomes += dojo.byId("categoria2").innerHTML;
-			if (dojo.byId("categoria3") !== null)
-				nomes += dojo.byId("categoria3").innerHTML;
-		}
+		var selecionadas = obterItensSelecionadosPrimariaPrimeiro(
+			dojo.byId("catsContainer"),
+			dojo.byId("catsIds").innerHTML,
+			dojo.byId("catsIcones").innerHTML
+		);
+		nomes = selecionadas.nomes.join(",");
+		dojo.byId("catsIds").innerHTML = selecionadas.ids.join(",");
+		dojo.byId("catsIcones").innerHTML = selecionadas.icones.join(",");
 		if (dijit.byId("editAllCheckbox").checked) {
 			venueIndex = 0;
 			venueLoop = document.forms.length - 1;
@@ -911,39 +1201,39 @@ function processarEdicaoCategorias() {
 		for (i = venueIndex; i <= venueLoop; i++) {
 			// Se editAllCheckbox estiver marcada, aplica apenas em venues com dados completos
 			var podeEditar = !dijit.byId("editAllCheckbox").checked || venuesComDadosCompletos.indexOf(i) !== -1;
-			
+
 			if (dojo.query("input[name=selecao]")[i].disabled != true && podeEditar) {
 				dojo.byId("cna" + i).value = nomes;
 				dojo.byId("cid" + i).value = dojo.byId("catsIds").innerHTML;
 				dojo.byId("cic" + i).value = dojo.byId("catsIcones").innerHTML;
 				dojo.byId("icone" + i).innerHTML = "<a id='catLnk" + i + "' href='javascript:editarCategorias(" + i + ")'><img id=catImg" + i + " src='" + dojo.byId("cic" + i).value.split(",", 1)[0] + "' style='height: 22px; width: 22px; margin-left: 0px'></a>";
-				
+
 				// SOLUÇÃO SIMPLES: Lê categoryId ORIGINAL do CSV (essa coluna NUNCA é modificada)
 				// Ela sempre contém o estado original do Foursquare, servindo como fonte da verdade
 				var indexCategoryId = csv[0].indexOf("categoryId");
 				var categoryIdOriginalCSV = "";
 				var categoriasOriginais = [];
-				
+
 				if (indexCategoryId !== -1 && csv[parseInt(i) + 1] && csv[parseInt(i) + 1][indexCategoryId]) {
 					categoryIdOriginalCSV = csv[parseInt(i) + 1][indexCategoryId].replace(/"/g, "");
 					if (categoryIdOriginalCSV) {
 						categoriasOriginais = categoryIdOriginalCSV.split(",");
 					}
 				}
-				
+
 				// Pega categorias NOVAS selecionadas na árvore
 				var categoryIds = dojo.byId("cid" + i).value;
 				var categoriasNovas = categoryIds.split(",");
-				
+
 				debugLog('📋 CSV[categoryId] ORIGINAL (imutável) - Linha', i, ':', categoriasOriginais.join(', ') || '(vazio)');
 				debugLog('📋 Categorias NOVAS (selecionadas) - Linha', i, ':', categoriasNovas.join(', '));
-				
+
 				// Calcula diferenças comparando SEMPRE com categorias ORIGINAIS do CSV
 				// Categorias removidas: estavam no original mas não estão mais nas novas
 				categoriasRemover = categoriasOriginais.filter(function(val) {
 					return categoriasNovas.indexOf(val) == -1;
 				});
-				
+
 				// Categorias adicionadas (secundárias): estão nas novas mas não no original
 				// IMPORTANTE: Só adiciona secundárias (índices 1 e 2) porque primaryCategoryId já cuida da primária
 				var categoriasSecundariasNovas = [];
@@ -952,9 +1242,9 @@ function processarEdicaoCategorias() {
 						categoriasSecundariasNovas.push(categoriasNovas[j]);
 					}
 				}
-				
+
 				debugLog('🔍 Diferenças calculadas - Adicionar:', categoriasSecundariasNovas.join(',') || '(nenhuma)', '| Remover:', categoriasRemover.join(',') || '(nenhuma)');
-				
+
 				// Atualiza removeCategoryIds no CSV (SEMPRE, mesmo se vazio para limpar valores antigos)
 				var indexRemove = csv[0].indexOf("removeCategoryIds");
 				if (categoriasRemover.length > 0) {
@@ -964,7 +1254,7 @@ function processarEdicaoCategorias() {
 					csv[parseInt(i) + 1][indexRemove] = '""'; // Limpa coluna se não há categorias a remover
 					debugLog('ℹ️ Nenhuma categoria removida na linha', i, '- CSV[removeCategoryIds] limpo');
 				}
-				
+
 				// Atualiza primaryCategoryId se mudou em relação ao original
 				if (categoriasOriginais.length > 0 && categoriasOriginais[0] != categoriasNovas[0]) {
 					var index = csv[0].indexOf("primaryCategoryId");
@@ -978,7 +1268,7 @@ function processarEdicaoCategorias() {
 				} else {
 					debugLog('ℹ️ Categoria primária não mudou na linha', i, '(permanece:', categoriasOriginais[0] || 'vazio', ')');
 				}
-				
+
 				// Atualiza addCategoryIds no CSV (SEMPRE, mesmo se vazio para limpar valores antigos)
 				var indexAdd = csv[0].indexOf("addCategoryIds");
 				if (categoriasSecundariasNovas.length > 0) {
@@ -988,7 +1278,7 @@ function processarEdicaoCategorias() {
 					csv[parseInt(i) + 1][indexAdd] = '""'; // Limpa coluna se não há categorias a adicionar
 					debugLog('ℹ️ Nenhuma categoria secundária nova na linha', i, '- CSV[addCategoryIds] limpo');
 				}
-				
+
 				// AGORA SIM: Atualiza array global categorias[] após calcular diferenças
 				if (categorias[i]) {
 					categorias[i].ids = categoryIds;
@@ -997,14 +1287,7 @@ function processarEdicaoCategorias() {
 					debugLog('📝 Array categorias[] atualizado - Índice', i);
 				}
 				dojo.byId("result" + i).innerHTML = "";
-				if (linhasEditadas.indexOf(parseInt(i)) == -1)
-					linhasEditadas.push(parseInt(i));
-				
-				// Adiciona classe visual para indicar linha editada
-				var linhaElement = dojo.byId("linha" + i);
-				if (linhaElement && !dojo.hasClass(linhaElement, "edited")) {
-					dojo.addClass(linhaElement, "edited");
-				}
+				marcarLinhaEditada(i);
 				//console.log(dojo.byId("cna" + i).value);
 				//console.log(dojo.byId("cid" + i).value);
 				//console.log(dojo.byId("cic" + i).value);
@@ -1017,16 +1300,478 @@ function processarEdicaoCategorias() {
 	}
 }
 
+function atualizarRedes(nomes, ids, logos, primaryId) {
+	var container = dojo.byId("chainsContainer");
+	if (!container) return;
+	var idsLista = ids ? ids.split(",") : [];
+	if (primaryId === undefined) primaryId = obterIdPrimarioSelecionado(container, dojo.byId("chainsIds").innerHTML);
+	if (idsLista.indexOf(primaryId) === -1) primaryId = idsLista[0] || "";
+	var logosLista = logos ? logos.split(",") : [];
+	container.innerHTML = "";
+	if (nomes && nomes.length > 0 && nomes[0] !== "") {
+		for (var j = 0; j < nomes.length; j++) {
+			criarItemSelecionado(container, "rede" + (j + 1), j + 1, nomes[j], logosLista[j], "rede", idsLista[j], idsLista[j] === primaryId);
+		}
+	} else {
+		container.innerHTML = "<span class='chain-selection-empty'>Nenhuma rede selecionada</span>";
+	}
+	if (dojo.byId("chainsIds")) dojo.byId("chainsIds").innerHTML = ids || "";
+	if (dojo.byId("chainsLogos")) dojo.byId("chainsLogos").innerHTML = logos || "";
+}
+
+function configurarEdicaoMultiplaRedes(marcado) {
+	var habilitada = contarVenuesComDadosCompletos() >= 2;
+	dijit.byId("editAllChainsCheckbox").attr("checked", habilitada && marcado);
+	dijit.byId("editAllChainsCheckbox").attr("disabled", !habilitada);
+}
+
+function configurarBuscaReativaRede() {
+	if (timerBuscaRede) clearTimeout(timerBuscaRede);
+	sequenciaBuscaRede++;
+	if (xhrBuscaRede) {
+		xhrBuscaRede.abort();
+		xhrBuscaRede = null;
+	}
+	var inputWidget = dijit.byId("inputChainSearch");
+	if (!inputWidget || !inputWidget.textbox || inputWidget.textbox.chainSearchListenersAdded) return;
+	var input = inputWidget.textbox;
+	input.chainSearchListenersAdded = true;
+	input.addEventListener("input", function() {
+		debounceBuscarRedePeloNome(inputWidget.get("value"));
+	});
+	input.addEventListener("keydown", function(event) {
+		if (event.key === "Enter" || event.keyCode === 13) {
+			event.preventDefault();
+			buscarRedePeloNome(inputWidget.get("value"));
+		}
+	});
+}
+
+function editarRedes(i) {
+	var nomes = [];
+	var ids = "";
+	var logos = "";
+	if (dojo.byId("chid" + i) && dojo.byId("chid" + i).value != "") {
+		nomes = dojo.byId("chna" + i).value.split(",");
+		ids = dojo.byId("chid" + i).value;
+		logos = dojo.byId("chic" + i).value;
+	}
+	atualizarRedes(nomes, ids, logos, ids ? ids.split(",")[0] : "");
+	dojo.byId("venueChainIndex").innerHTML = i;
+
+	var resContainer = dojo.byId("chainsResultsContainer");
+	if (resContainer) {
+		resContainer.innerHTML = "";
+		resContainer.style.display = "none";
+	}
+	atualizarStatusBuscaRede("", "");
+
+	dijit.byId("dlg_chains").show();
+	configurarBuscaReativaRede();
+	if (dijit.byId("inputChainSearch")) dijit.byId("inputChainSearch").set("value", "");
+
+	configurarEdicaoMultiplaRedes(false);
+}
+
+function removerRede(index) {
+	if (timerRede)
+		clearTimeout(timerRede);
+	timerRede = setTimeout(function remover() {
+		var chainElements = dojo.query("#chainsContainer .categoria");
+		var currentIds = (dojo.byId("chainsIds") && dojo.byId("chainsIds").innerHTML) ? dojo.byId("chainsIds").innerHTML.split(",") : [];
+		var currentLogos = (dojo.byId("chainsLogos") && dojo.byId("chainsLogos").innerHTML) ? dojo.byId("chainsLogos").innerHTML.split(",") : [];
+		var currentNomes = [];
+		var primaryId = obterIdPrimarioSelecionado(dojo.byId("chainsContainer"), currentIds.join(","));
+		for (var c = 0; c < chainElements.length; c++) {
+			currentNomes.push(nomeItemSelecionado(chainElements[c]));
+		}
+		var targetIdx = parseInt(index) - 1;
+		var removedName = currentNomes[targetIdx];
+		if (targetIdx >= 0 && targetIdx < currentIds.length) {
+			currentIds.splice(targetIdx, 1);
+			currentNomes.splice(targetIdx, 1);
+			currentLogos.splice(targetIdx, 1);
+		}
+		if (currentIds.indexOf(primaryId) === -1) primaryId = currentIds[0] || "";
+		atualizarRedes(currentNomes, currentIds.join(","), currentLogos.join(","), primaryId);
+		if (removedName) {
+			atualizarStatusBuscaRede('Rede "' + removedName + '" removida.', "success");
+		}
+	}, 250);
+}
+
+function tornarRedePrimaria(index) {
+	if (timerRede)
+		clearTimeout(timerRede);
+	var chainElements = dojo.query("#chainsContainer .categoria");
+	var currentIds = (dojo.byId("chainsIds") && dojo.byId("chainsIds").innerHTML) ? dojo.byId("chainsIds").innerHTML.split(",") : [];
+	var currentLogos = (dojo.byId("chainsLogos") && dojo.byId("chainsLogos").innerHTML) ? dojo.byId("chainsLogos").innerHTML.split(",") : [];
+	var currentNomes = [];
+	for (var c = 0; c < chainElements.length; c++) {
+		currentNomes.push(nomeItemSelecionado(chainElements[c]));
+	}
+	var targetIdx = parseInt(index) - 1;
+	if (targetIdx >= 0 && targetIdx < currentIds.length) {
+		var primaryName = currentNomes[targetIdx];
+		var primaryId = currentIds[targetIdx];
+		var alreadyPrimary = obterIdPrimarioSelecionado(dojo.byId("chainsContainer"), currentIds.join(",")) === primaryId;
+		atualizarRedes(currentNomes, currentIds.join(","), currentLogos.join(","), primaryId);
+		var message = alreadyPrimary
+			? 'Rede "' + primaryName + '" já é a primária.'
+			: 'Rede "' + primaryName + '" definida como primária.';
+		atualizarStatusBuscaRede(message, "success");
+	}
+}
+
+function atualizarStatusBuscaRede(message, status) {
+	var statusNode = dojo.byId("chainSearchStatus");
+	if (!statusNode) return;
+	statusNode.textContent = message || "";
+	statusNode.className = "chain-search-status" + (status ? " is-" + status : "");
+}
+
+function salvarRedes() {
+	if (dijit.byId("editAllChainsCheckbox") && dijit.byId("editAllChainsCheckbox").checked && temVenuesComDadosParciais()) {
+		mostrarConfirmacaoEdicaoMultiplaRedes();
+		return;
+	}
+	processarEdicaoRedes();
+}
+
+function mostrarConfirmacaoEdicaoMultiplaRedes() {
+	var totalComDadosCompletos = contarVenuesComDadosCompletos();
+	var totalParciais = 0;
+	for (var i = 0; i < document.forms.length; i++) {
+		if (venuesComDadosCompletos.indexOf(i) === -1 && dojo.query("input[name=selecao]")[i].disabled != true) {
+			totalParciais++;
+		}
+	}
+
+	var textoParciais = totalParciais === 1
+		? "Há <strong>1 local</strong> carregado com dados parciais que não pode ter as redes alteradas sem risco de perda de informações."
+		: "Há <strong>" + totalParciais + " locais</strong> carregados com dados parciais que não podem ter as redes alteradas sem risco de perda de informações.";
+	var textoCompletos = totalComDadosCompletos === 1
+		? "Apenas <strong>1 local</strong> carregado com dados completos será alterado."
+		: "Apenas <strong>" + totalComDadosCompletos + " locais</strong> carregados com dados completos serão alterados.";
+
+	dojo.byId("confirmEditAllChainsMessage").innerHTML =
+		"<p style='margin: 10px 0;'><strong>Atenção:</strong> " + textoParciais + "</p>" +
+		"<p style='margin: 10px 0;'>" + textoCompletos + "</p>" +
+		"<p style='margin: 10px 0;'><strong>O que deseja fazer?</strong></p>";
+
+	dijit.byId("dlg_confirmEditAllChains").show();
+}
+
+function processarEdicaoRedes() {
+	var venueIndex, venueLoop;
+	var selecionadas = obterItensSelecionadosPrimariaPrimeiro(
+		dojo.byId("chainsContainer"),
+		dojo.byId("chainsIds") ? dojo.byId("chainsIds").innerHTML : "",
+		dojo.byId("chainsLogos") ? dojo.byId("chainsLogos").innerHTML : ""
+	);
+	var ids = selecionadas.ids.join(",");
+	var logos = selecionadas.icones.join(",");
+
+	if (dijit.byId("editAllChainsCheckbox") && dijit.byId("editAllChainsCheckbox").checked) {
+		venueIndex = 0;
+		venueLoop = document.forms.length - 1;
+	} else {
+		venueIndex = parseInt(dojo.byId("venueChainIndex").innerHTML);
+		venueLoop = venueIndex;
+	}
+
+	var nomes = selecionadas.nomes.join(",");
+
+	for (var i = venueIndex; i <= venueLoop; i++) {
+		var aplicarEmVenueCompleta = !dijit.byId("editAllChainsCheckbox").checked || venuesComDadosCompletos.indexOf(i) !== -1;
+		if (document.forms[i] && dojo.query("input[name=selecao]")[i] && dojo.query("input[name=selecao]")[i].disabled != true && aplicarEmVenueCompleta) {
+			if (dojo.byId("chna" + i)) dojo.byId("chna" + i).value = nomes;
+			if (dojo.byId("chid" + i)) dojo.byId("chid" + i).value = ids;
+			if (dojo.byId("chic" + i)) dojo.byId("chic" + i).value = logos;
+
+			var chainIconeElem = dojo.byId("chainIcone" + i);
+			if (chainIconeElem) {
+				if (ids !== "") {
+					var logoSrc = logos.split(",")[0] || "https://app.foursquare.com/img/categories_v2/none_bg_32.png";
+					chainIconeElem.innerHTML = "<a id='chainLnk" + i + "' href='javascript:editarRedes(" + i + ")'><img id='chainImg" + i + "' src='" + logoSrc + "' style='height: 22px; width: 22px; margin-left: 0px' onerror=\"this.src='https://app.foursquare.com/img/categories_v2/none_bg_32.png'\"></a>";
+					createTooltip("chainLnk" + i, "<span style=\"font-size: 12px\">" + escapeTooltipHtml(nomes.replace(/,/gi, ", ")) + "</span>");
+				} else {
+					chainIconeElem.innerHTML = "<a id='chainLnk" + i + "' href='javascript:editarRedes(" + i + ")'><img id='chainImg" + i + "' src='https://app.foursquare.com/img/categories_v2/none_bg_32.png' style='height: 22px; width: 22px; margin-left: 0px; opacity: 0.4;'></a>";
+					createTooltip("chainLnk" + i, "<span style=\"font-size: 12px\">Sem rede definida (clique para adicionar)</span>");
+				}
+			}
+
+			// Compara com rede original do CSV
+			var indexChainId = csv[0].indexOf("venueChainId");
+			var chainIdOriginalCSV = "";
+			var redesOriginais = [];
+
+			if (indexChainId !== -1 && csv[parseInt(i) + 1] && csv[parseInt(i) + 1][indexChainId]) {
+				chainIdOriginalCSV = csv[parseInt(i) + 1][indexChainId].replace(/"/g, "");
+				if (chainIdOriginalCSV) {
+					redesOriginais = chainIdOriginalCSV.split(",");
+				}
+			}
+
+			var redesNovas = ids ? ids.split(",") : [];
+
+			var redesRemover = redesOriginais.filter(function(val) {
+				return redesNovas.indexOf(val) == -1;
+			});
+
+			var redesAdicionar = [];
+			for (var j = 1; j < redesNovas.length; j++) {
+				if (redesOriginais.indexOf(redesNovas[j]) == -1) {
+					redesAdicionar.push(redesNovas[j]);
+				}
+			}
+
+			var indexRemoveChain = csv[0].indexOf("removeVenueChainIds");
+			if (indexRemoveChain !== -1) {
+				if (redesRemover.length > 0) {
+					csv[parseInt(i) + 1][indexRemoveChain] = '"' + redesRemover.toString() + '"';
+				} else {
+					csv[parseInt(i) + 1][indexRemoveChain] = '""';
+				}
+			}
+
+			var indexAddChain = csv[0].indexOf("addVenueChainIds");
+			if (indexAddChain !== -1) {
+				if (redesAdicionar.length > 0) {
+					csv[parseInt(i) + 1][indexAddChain] = '"' + redesAdicionar.toString() + '"';
+				} else {
+					csv[parseInt(i) + 1][indexAddChain] = '""';
+				}
+			}
+
+			var indexPrimaryChain = csv[0].indexOf("primaryVenueChainId");
+			if (indexPrimaryChain !== -1) {
+				if (redesNovas.length > 0 && (redesOriginais.length === 0 || redesOriginais[0] !== redesNovas[0])) {
+					csv[parseInt(i) + 1][indexPrimaryChain] = '"' + redesNovas[0] + '"';
+				} else {
+					csv[parseInt(i) + 1][indexPrimaryChain] = '""';
+				}
+			}
+
+			if (redes[i]) {
+				redes[i].ids = ids;
+				redes[i].nomes = nomes;
+				redes[i].logos = logos;
+			} else {
+				redes[i] = new Rede(ids, nomes, logos);
+			}
+
+			dojo.byId("result" + i).innerHTML = "";
+			marcarLinhaEditada(i);
+		}
+	}
+	dijit.byId("dlg_chains").hide();
+}
+
+function debounceBuscarRedePeloNome(query) {
+	if (timerBuscaRede) clearTimeout(timerBuscaRede);
+	sequenciaBuscaRede++;
+	var sequencia = sequenciaBuscaRede;
+	if (xhrBuscaRede) {
+		xhrBuscaRede.abort();
+		xhrBuscaRede = null;
+	}
+	query = (query || "").trim();
+	var resultsContainer = dojo.byId("chainsResultsContainer");
+	if (query.length < 2) {
+		resultsContainer.innerHTML = "";
+		resultsContainer.style.display = "none";
+		atualizarStatusBuscaRede("", "");
+		return;
+	}
+	timerBuscaRede = setTimeout(function() {
+		buscarRedePeloNome(query, sequencia);
+	}, 300);
+}
+
+function buscarRedePeloNome(query, sequencia) {
+	var inputWidget = dijit.byId("inputChainSearch");
+	if (typeof query !== "string") query = inputWidget ? inputWidget.get("value") : "";
+	query = query.trim();
+	if (sequencia === undefined) {
+		if (timerBuscaRede) clearTimeout(timerBuscaRede);
+		sequencia = ++sequenciaBuscaRede;
+		if (xhrBuscaRede) xhrBuscaRede.abort();
+	}
+	if (sequencia !== sequenciaBuscaRede) return;
+	var resultsContainer = dojo.byId("chainsResultsContainer");
+	var token = getOauthToken();
+	if (!token) return handleMissingOauthToken("pesquisar redes");
+	if (!query) return;
+
+	if (query.length === 24 && /^[0-9a-f]{24}$/i.test(query)) {
+		mostrarMensagemBuscaRede("Buscando detalhes da rede por ID...", "muted");
+		var xhrId = new XMLHttpRequest();
+		xhrBuscaRede = xhrId;
+		xhrId.open("GET", "https://api.foursquare.com/v2/chains/" + query + "?oauth_token=" + token + "&v=" + DATA_VERSIONAMENTO, true);
+		xhrId.onreadystatechange = function() {
+			if (xhrId.readyState !== 4 || sequencia !== sequenciaBuscaRede) return;
+			xhrBuscaRede = null;
+			if (xhrId.status === 200) {
+				try {
+					var resp = JSON.parse(xhrId.responseText);
+					if (resp.response && resp.response.venueChain) {
+						var vc = resp.response.venueChain;
+						var logo = formatarLogoRede(vc.logo);
+						var nome = (vc.bestName && vc.bestName.name) ? vc.bestName.name : vc.id;
+						adicionarRedeNaEdicao(vc.id, nome, logo);
+						setTimeout(function() {
+							if (sequencia === sequenciaBuscaRede) resultsContainer.style.display = "none";
+						}, 1500);
+						return;
+					}
+				} catch(e) {}
+			}
+			adicionarRedeNaEdicao(query, "Rede (" + query.substr(0, 8) + "...) ", "https://app.foursquare.com/img/categories_v2/none_bg_32.png");
+			setTimeout(function() {
+				if (sequencia === sequenciaBuscaRede) resultsContainer.style.display = "none";
+			}, 1500);
+		};
+		xhrId.send();
+		return;
+	}
+
+	mostrarMensagemBuscaRede("Buscando redes...", "muted");
+	var xhr = new XMLHttpRequest();
+	xhrBuscaRede = xhr;
+	xhr.open("GET", "https://api.foursquare.com/v2/chains/search?query=" + encodeURIComponent(query) + "&oauth_token=" + token + "&v=" + DATA_VERSIONAMENTO, true);
+	xhr.onreadystatechange = function() {
+		if (xhr.readyState !== 4 || sequencia !== sequenciaBuscaRede) return;
+		xhrBuscaRede = null;
+		if (xhr.status === 200) {
+			try {
+				var resp = JSON.parse(xhr.responseText);
+				if (resp.response && resp.response.results && resp.response.results.length > 0) {
+					resultsContainer.innerHTML = "";
+					resp.response.results.forEach(function(r) {
+						var logo = formatarLogoRede(r.logo);
+						var nome = (r.bestName && r.bestName.name) ? r.bestName.name : r.id;
+						var item = document.createElement("button");
+						item.type = "button";
+						item.className = "chain-search-result-item visual-result-item";
+						var main = document.createElement("div");
+						main.className = "chain-search-result-main visual-item-left";
+						var image = document.createElement("img");
+						image.src = logo;
+						image.alt = "";
+						image.onerror = function() { this.src = "https://app.foursquare.com/img/categories_v2/none_bg_32.png"; };
+						var details = document.createElement("div");
+						var name = document.createElement("span");
+						name.className = "chain-search-result-name visual-item-title";
+						name.textContent = nome;
+						var identity = document.createElement("div");
+						identity.className = "chain-search-result-id visual-item-subtitle";
+						identity.textContent = "ID: " + r.id;
+						main.appendChild(image);
+						details.appendChild(name);
+						details.appendChild(identity);
+						main.appendChild(details);
+						var resultCount = document.createElement("div");
+						resultCount.className = "chain-search-result-count visual-item-right";
+						var count = r.count || 0;
+						var countries = r.countries || 1;
+						var countLabel = document.createElement("div");
+						countLabel.textContent = count + (count === 1 ? " local" : " locais");
+						var countriesLabel = document.createElement("div");
+						countriesLabel.textContent = countries + (countries === 1 ? " país" : " países");
+						resultCount.appendChild(countLabel);
+						resultCount.appendChild(countriesLabel);
+						item.appendChild(main);
+						item.appendChild(resultCount);
+						resultsContainer.appendChild(item);
+						dojo.connect(item, "onclick", function() {
+							adicionarRedeNaEdicao(r.id, nome, logo);
+						});
+					});
+					resultsContainer.style.display = "block";
+				} else {
+					mostrarMensagemBuscaRede("Nenhuma rede encontrada para \"" + query + "\".", "muted");
+				}
+			} catch(e) {
+				mostrarMensagemBuscaRede("Erro ao processar resposta.", "error");
+			}
+		} else {
+			mostrarMensagemBuscaRede("Erro na consulta da API (" + xhr.status + ").", "error");
+		}
+	};
+	xhr.send();
+}
+
+function mostrarMensagemBuscaRede(message, status) {
+	var resultsContainer = dojo.byId("chainsResultsContainer");
+	resultsContainer.innerHTML = "";
+	var messageNode = document.createElement("div");
+	messageNode.className = "chain-search-message is-" + status;
+	messageNode.textContent = message;
+	resultsContainer.appendChild(messageNode);
+	resultsContainer.style.display = "block";
+}
+
+function adicionarRedeNaEdicao(id, nome, logo) {
+	var currentIds = (dojo.byId("chainsIds") && dojo.byId("chainsIds").innerHTML) ? dojo.byId("chainsIds").innerHTML.split(",") : [];
+	var currentLogos = (dojo.byId("chainsLogos") && dojo.byId("chainsLogos").innerHTML) ? dojo.byId("chainsLogos").innerHTML.split(",") : [];
+	var chainElements = dojo.query("#chainsContainer .categoria");
+	var currentNomes = [];
+	for (var c = 0; c < chainElements.length; c++) {
+		currentNomes.push(nomeItemSelecionado(chainElements[c]));
+	}
+
+	if (currentIds.indexOf(id) > -1) {
+		atualizarStatusBuscaRede("Esta rede já está selecionada.", "error");
+		return "duplicate";
+	}
+	if (currentIds.length >= 3) {
+		atualizarStatusBuscaRede("O limite de 3 redes foi atingido.", "error");
+		return "limit";
+	}
+	currentIds.push(id);
+	currentNomes.push(nome);
+	currentLogos.push(logo || "https://app.foursquare.com/img/categories_v2/none_bg_32.png");
+	atualizarRedes(currentNomes, currentIds.join(","), currentLogos.join(","));
+	atualizarStatusBuscaRede("Rede adicionada.", "success");
+
+	var resContainer = dojo.byId("chainsResultsContainer");
+	if (resContainer) resContainer.style.display = "none";
+	return "added";
+}
+
+function escapeTooltipHtml(value) {
+	var replacements = {
+		"&": "&amp;",
+		"<": "&lt;",
+		">": "&gt;",
+		'"': "&quot;",
+		"'": "&#39;"
+	};
+	return String(value).replace(/[&<>"']/g, function(character) {
+		return replacements[character];
+	});
+}
+
 function createTooltip(target_id, content) {
-	var obj = dojo.byId('tt_' + target_id);
-	if (obj != null)
-		obj.parentNode.removeChild(obj);
+	destroyTooltip(target_id);
 	var tooltip = new dijit.Tooltip({
 		connectId: [target_id],
 		label: content
 	});
 	tooltip.domNode.id = 'tt_' + target_id;
 	document.body.appendChild(tooltip.domNode);
+}
+
+function destroyTooltip(target_id) {
+	var obj = dojo.byId('tt_' + target_id);
+	if (!obj) return;
+	var tooltip = dijit.registry.byNode(obj);
+	if (tooltip) {
+		tooltip.destroyRecursive();
+	} else if (obj.parentNode) {
+		obj.parentNode.removeChild(obj);
+	}
 }
 
 function formattedTime(unix_timestamp) {
@@ -1352,10 +2097,10 @@ function atualizarTabela(venue, i) {
 			//console.log(j, document.forms[i].elements[j].name, "ignorado");
 	}
 	dojo.byId("result" + i).innerHTML = "";
-	
+
 	// Primeiro habilita todos os campos (remove restrições anteriores)
 	habilitarCamposLinha(i);
-	
+
 	// Depois verifica se deve desabilitar baseado nas categorias atuais
 	if (venue.categories[0] != undefined) {
 		if (venue.categories[0].id == CATEGORIA_HOME)
@@ -1378,12 +2123,12 @@ function atualizarTabela(venue, i) {
 	}
 	csv[i + 1] = linha.replace(/undefined/gi, "").split("&&");
 	venuellOriginais[i] = document.forms[i]["venuell"].value;
-	
+
 	// Marca esta venue como tendo dados completos se aplicável
 	if (permitirEdicao && venuesComDadosCompletos.indexOf(i) === -1) {
 		venuesComDadosCompletos.push(i);
 	}
-	
+
 	if (venue.categories[0] == undefined) {
 		(permitirEdicao) ? dojo.byId("icone" + i).innerHTML = "<a id='catLnk" + i + "' href='javascript:editarCategorias(" + i + ")'><img id=catImg" + i + " src='https://foursquare.com/img/categories_v2/none_bg_32.png' style='height: 22px; width: 22px; margin-left: 0px'></a>" : dojo.byId("icone" + i).innerHTML = "<img id=catImg" + i + " src='https://foursquare.com/img/categories_v2/none_bg_32.png' style='height: 22px; width: 22px; margin-left: 0px'>";
 	} else if ((venue.categories[0].id == CATEGORIA_HOME) || (modo == DADOS_PARCIAIS)) {
@@ -1418,119 +2163,69 @@ function atualizarTabela(venue, i) {
 		document.forms[i]["createdAt"].value = formattedTime(venue.createdAt);
 	var dicaVenue = atualizarDicaVenue(i);
 	createTooltip("venLnk" + i, dicaVenue);
-	
+
 	// Sempre adiciona colunas ao CSV (determinaremos formato no final)
 	// Temporariamente adiciona formato completo se aplicável, senão parcial
 	var estaVenueTemDadosCompletos = (modo == DADOS_COMPLETOS) || (venuesComDadosCompletos.indexOf(i) !== -1);
-	
-	if (estaVenueTemDadosCompletos) {
-		// Dados completos: adiciona todos os campos em colunas separadas
-		csv[i + 1] = csv[i + 1].concat(
-			"", "", "",
-			document.forms[i]["createdAt"].value,
-			document.forms[i]["checkinsCount"].value,
-			document.forms[i]["usersCount"].value,
-			document.forms[i]["tipCount"].value,
-			document.forms[i]["likesCount"].value,
-			document.forms[i]["listedCount"].value,
-			document.forms[i]["photosCount"].value,
-			document.forms[i]["isClosed"].value,
-			document.forms[i]["isPrivate"].value,
-			document.forms[i]["isDeleted"].value
-		);
-	} else {
-		// Dados parciais: adiciona apenas checkins, users, tips (temporário)
-		csv[i + 1] = csv[i + 1].concat(
-			document.forms[i]["checkinsCount"].value,
-			document.forms[i]["usersCount"].value,
-			document.forms[i]["tipCount"].value
-		);
-	}
-	
+	anexarSufixoCsv(i, estaVenueTemDadosCompletos);
+
 	// Normaliza CSV apenas uma vez, quando todas venues foram carregadas (Bug #1 e #2)
 	if (totalCarregadas == document.forms.length - totalNaoCarregadas) {
 		normalizarCsv();
-		
+
 		if (dojo.query("input[name=selecao]:enabled").length == 0)
 			dijit.byId("menuSelecionar").setAttribute('disabled', true);
 	}
-	
+
 	window.locais[i] = [(i + 1) + ". " + venue.name, venue.location.lat, venue.location.lng];
 	debugInfo("Venue " + i + " recuperada!");
-	
+
 	// Atualiza marcadores no mapa quando venue é carregada
 	if (window.googleMaps && window.googleMaps.map) {
 		window.googleMaps.updateMarkers(window.locais);
 		debugInfo("Marcadores atualizados!");
 	}
-	
+
 	// Só limpa linhas editadas se for carregamento inicial (não reload)
 	// Durante reload, a limpeza é feita seletivamente em executarRecarregamento
 	if (!isReloading && totalCarregadas == (document.forms.length - totalNaoCarregadas)) {
 		limparLinhasEditadas();
 		debugInfo("Marcadores posicionados!");
-		
+
 		// Ativa navegação vertical após todos os campos estarem prontos
 		setupVerticalNavigation();
 	}
 }
 
 function montarArvore(resposta) {
-	/*** Organiza em ordem alfabética o segundo, terceiro e quarto níveis das categorias ***/
-	for (j = 0; j < resposta.response.categories.length; j++) {
-		resposta.response.categories[j].categories.sort(function(el1, el2) {
-			return compare(el1, el2, "name")
+	function ordenarCategoriasRecursivamente(categoriasNoNivel) {
+		if (!categoriasNoNivel || !categoriasNoNivel.length) return;
+		categoriasNoNivel.sort(function(el1, el2) {
+			return compare(el1, el2, "name");
 		});
-		for (k = 0; k < resposta.response.categories[j].categories.length; k++) {
-			if (resposta.response.categories[j].categories[k].categories.length > 1)
-				resposta.response.categories[j].categories[k].categories.sort(function(el1, el2) {
-					return compare(el1, el2, "name")
-				});
-			for (l = 0; l < resposta.response.categories[j].categories[k].categories.length; l++)
-				if (resposta.response.categories[j].categories[k].categories[l].categories.length > 1)
-					resposta.response.categories[j].categories[k].categories[l].categories.sort(function(el1, el2) {
-						return compare(el1, el2, "name")
-					});
-		}
+		categoriasNoNivel.forEach(function(categoria) {
+			ordenarCategoriasRecursivamente(categoria.categories);
+		});
 	}
-	var restructuredData = dojo.map(resposta.response.categories, dojo.hitch(this, function categoriasPrimarias(category1) {
-		var newCategory1 = {};
-		newCategory1.id = category1.id;
-		newCategory1.name = category1.name;
-		newCategory1.icon = category1.icon.prefix + "bg_32" + category1.icon.suffix;
-		newCategory1.children = dojo.map(category1.categories, dojo.hitch(this, function categoriasSecundarias(idPrefix, category2) {
-			var newCategory2 = {};
-			//newCategory2.id = idPrefix + "_" + category2.id;
-			newCategory2.id = category2.id;
-			newCategory2.name = category2.name;
-			newCategory2.icon = category2.icon.prefix + "bg_32" + category2.icon.suffix;
-			if (category2.categories != "") {
-				newCategory2.children = dojo.map(category2.categories, dojo.hitch(this, function categoriasTerciarias(idPrefix, category3) {
-					var newCategory3 = {};
-					//newCategory3.id = idPrefix + "_" + category3.id;
-					newCategory3.id = category3.id;
-					newCategory3.name = category3.name;
-					newCategory3.icon = category3.icon.prefix + "bg_32" + category3.icon.suffix;
-					if (category3.categories != "") {
-						newCategory3.children = dojo.map(category3.categories, dojo.hitch(this, function categoriasQuaternarias(idPrefix, category4) {
-							var newCategory4 = {};
-							//newCategory4.id = idPrefix + "_" + category4.id;
-							newCategory4.id = category4.id;
-							newCategory4.name = category4.name;
-							newCategory4.icon = category4.icon.prefix + "bg_32" + category4.icon.suffix;
-							return newCategory4;
-						}, newCategory3.id));
-					}
-					return newCategory3;
-				}, newCategory2.id));
-			}
-		return newCategory2;
-		}, newCategory1.id));
-	return newCategory1;
-	}));
+	function transformarCategoria(categoria) {
+		var novaCategoria = {
+			id: categoria.id,
+			name: categoria.name,
+			icon: categoria.icon.prefix + "bg_32" + categoria.icon.suffix
+		};
+		if (categoria.categories && categoria.categories.length) {
+			novaCategoria.children = dojo.map(categoria.categories, transformarCategoria);
+		}
+		return novaCategoria;
+	}
+	resposta.response.categories.forEach(function(categoriaRaiz) {
+		ordenarCategoriasRecursivamente(categoriaRaiz.categories);
+	});
+	var restructuredData = dojo.map(resposta.response.categories, transformarCategoria);
 	JSONText = JSON.stringify(restructuredData);
 	//console.log(JSONText);
-	
+	atualizarBuscaCategorias(restructuredData);
+
 	// Verifica se widget já existe - se sim, REUTILIZA (não destrói!)
 	var existingTree = dijit.byId("treeContainer");
 	if (existingTree) {
@@ -1538,7 +2233,7 @@ function montarArvore(resposta) {
 		debugInfo("✅ Árvore de categorias já existe - reutilizando sem destruir.");
 		return; // Não precisa recriar
 	}
-	
+
 	// Garante que o container DOM existe
 	var containerElement = dojo.byId("treeContainer");
 	if (!containerElement) {
@@ -1556,7 +2251,7 @@ function montarArvore(resposta) {
 		// Limpa o conteúdo HTML residual
 		containerElement.innerHTML = "";
 	}
-	
+
 	// Cria árvore (primeira vez ou recriação)
 	store = new dojo.data.ItemFileReadStore({
 		data: {
@@ -1571,7 +2266,7 @@ function montarArvore(resposta) {
 		rootLabel: "Categorias",
 		childrenAttrs: ["children"]
 	});
-	
+
 	// Cria a árvore usando o container existente (que já tem o ID e CSS corretos)
 	var treeWidget = new dijit.Tree({
 		model: treeModel,
@@ -1590,31 +2285,208 @@ function montarArvore(resposta) {
 }
 
 function treeOnClick(item) {
-	if (!item.root) {
-		//console.log("Execute of node " + store.getLabel(item) + ", id=" + store.getValue(item, "id") + ", icon=" + store.getValue(item, "icon"));
-		var i = 1;
-		if (dojo.byId("categoria3") !== null)
-			//console.warn("Limite maximo de categorias");
-			return false;
-		else if (((dojo.byId("categoria2") !== null) && (dojo.byId("categoria2").innerHTML.replace(/,/gi, "") == store.getLabel(item))) || ((dojo.byId("categoria1") !== null) && (dojo.byId("categoria1").innerHTML.replace(/,/gi, "") == store.getLabel(item))))
-			//console.warn("Categoria repetida");
-			return false;
-		else if (dojo.byId("categoria2") !== null)
-			i = 3;
-		else if (dojo.byId("categoria1") !== null)
-			i = 2;
-		// Adiciona categoria
-		if (i != 1) {
-			dojo.byId("catsContainer").innerHTML = dojo.byId("catsContainer").innerHTML.slice(0, -6) + ",</div>"
-			dojo.byId("catsIds").innerHTML += ",";
-			dojo.byId("catsIcones").innerHTML += ",";
+	if (item.root) return false;
+	var result = adicionarCategoriaSelecionada(
+		store.getValue(item, "id"),
+		store.getLabel(item),
+		store.getValue(item, "icon")
+	);
+	if (result === "limit") {
+		atualizarStatusBuscaCategoria("O limite de 3 categorias foi atingido.", "error");
+		return false;
+	}
+	if (result === "duplicate") return false;
+	return result === "added";
+}
+
+var estadoEdicaoParaRestaurar = null;
+var chaveEstadoEdicao = "fmet:editor-state";
+
+function obterIdsDasVenues() {
+	var ids = [];
+	for (var i = 0; i < document.forms.length; i++) {
+		ids.push(document.forms[i].elements.namedItem("venue").value);
+	}
+	return ids;
+}
+
+function obterEstadoEdicaoDaNavegacao() {
+	var entradas = window.performance && window.performance.getEntriesByType
+		? window.performance.getEntriesByType("navigation")
+		: [];
+	var navigationType = entradas.length > 0 ? entradas[0].type : "";
+	var deveRestaurar = navigationType === "back_forward" || navigationType === "reload";
+	if (!deveRestaurar && window.performance && window.performance.navigation) {
+		deveRestaurar = window.performance.navigation.type === 1 || window.performance.navigation.type === 2;
+	}
+
+	try {
+		var salvo = sessionStorage.getItem(chaveEstadoEdicao);
+		if (!deveRestaurar || !salvo) {
+			if (!deveRestaurar) sessionStorage.removeItem(chaveEstadoEdicao);
+			return null;
 		}
-		dojo.byId("catsContainer").innerHTML += "<div id='categoria" + i + "' class='categoria' ondblclick=\"tornarCategoriaPrimaria('" + i + "')\" onclick=\"removerCategoria('" + i + "')\">" + store.getLabel(item) + "</div>";
-		dojo.byId("catsIds").innerHTML += store.getValue(item, "id");
-		dojo.byId("catsIcones").innerHTML += store.getValue(item, "icon");
-		return true;
+		var estado = JSON.parse(salvo);
+		if (estado.version !== 1 || JSON.stringify(estado.venueIds) !== JSON.stringify(obterIdsDasVenues()) ||
+			estado.editChains !== !!(window.appBootstrap && window.appBootstrap.editChains)) {
+			sessionStorage.removeItem(chaveEstadoEdicao);
+			return null;
+		}
+		return estado;
+	} catch (error) {
+		return null;
 	}
 }
+
+function salvarEstadoEdicao() {
+	if (!document.forms.length) return;
+	for (var i = 0; i < document.forms.length; i++) {
+		var resultadoLinha = dojo.byId("result" + i);
+		if (resultadoLinha && resultadoLinha.querySelector("img[src*='loading.gif']")) return;
+	}
+	var estado = {
+		version: 1,
+		venueIds: obterIdsDasVenues(),
+		editChains: !!(window.appBootstrap && window.appBootstrap.editChains),
+		modo: modo,
+		csv: csv,
+		categorias: categorias,
+		redes: isRedesSelecionada() ? redes : [],
+		venuesComDadosCompletos: venuesComDadosCompletos,
+		linhasEditadas: linhasEditadas,
+		venuellOriginais: venuellOriginais,
+		locais: window.locais,
+		relatorio: relatorio,
+		failedRequests: failedRequests,
+		rows: []
+	};
+	for (var i = 0; i < document.forms.length; i++) {
+		var form = document.forms[i];
+		var fields = [];
+		for (var j = 0; j < form.elements.length; j++) {
+			var field = form.elements[j];
+			fields.push({
+				value: field.value,
+				checked: field.checked,
+				disabled: field.disabled,
+				readOnly: field.readOnly
+			});
+		}
+		estado.rows.push({
+			fields: fields,
+			className: dojo.byId("linha" + i).className,
+			categoryHtml: dojo.byId("icone" + i).innerHTML,
+			chainHtml: isRedesSelecionada() && dojo.byId("chainIcone" + i) ? dojo.byId("chainIcone" + i).innerHTML : null,
+			resultHtml: dojo.byId("result" + i).innerHTML
+		});
+	}
+	try {
+		sessionStorage.setItem(chaveEstadoEdicao, JSON.stringify(estado));
+	} catch (error) {
+		debugLog("⚠️ Não foi possível salvar o estado do editor para o retorno do navegador.", error);
+	}
+}
+
+function restaurarEstadoEdicao(estado) {
+	var redesHabilitadas = isRedesSelecionada();
+	modo = estado.modo;
+	csv = estado.csv || [];
+	if (!redesHabilitadas) removerColunasRedesDoCsv();
+	categorias = estado.categorias || [];
+	redes = redesHabilitadas ? (estado.redes || []) : [];
+	venuesComDadosCompletos = estado.venuesComDadosCompletos || [];
+	linhasEditadas = estado.linhasEditadas || [];
+	venuellOriginais = estado.venuellOriginais || [];
+	window.locais = estado.locais || [];
+	relatorio = estado.relatorio || [];
+	failedRequests = estado.failedRequests || {};
+	totalCarregadas = document.forms.length;
+	totalNaoCarregadas = 0;
+
+	for (var i = 0; i < estado.rows.length; i++) {
+		var form = document.forms[i];
+		var linha = dojo.byId("linha" + i);
+		var row = estado.rows[i];
+		for (var j = 0; j < row.fields.length && j < form.elements.length; j++) {
+			var field = form.elements[j];
+			var savedField = row.fields[j];
+			var widget = field.id ? dijit.byId(field.id) : null;
+			if (field.type === "checkbox" && widget) {
+				widget.set("checked", savedField.checked, false);
+			} else if (widget && typeof widget.set === "function") {
+				widget.set("value", savedField.value, false);
+			} else {
+				field.value = savedField.value;
+			}
+			field.disabled = savedField.disabled;
+			field.readOnly = savedField.readOnly;
+		}
+		linha.className = row.className;
+		dojo.byId("icone" + i).innerHTML = row.categoryHtml;
+		var chainIcone = dojo.byId("chainIcone" + i);
+		if (chainIcone && !redesHabilitadas) {
+			chainIcone.style.display = "none";
+			chainIcone.innerHTML = "";
+		} else if (row.chainHtml !== null && chainIcone) {
+			chainIcone.innerHTML = row.chainHtml;
+		}
+		dojo.byId("result" + i).innerHTML = row.resultHtml;
+
+		var categoryTarget = dojo.byId("catLnk" + i) ? "catLnk" + i : (dojo.byId("catImg" + i) ? "catImg" + i : null);
+		if (categoryTarget) {
+			createTooltip(categoryTarget, "<span style=\"font-size: 12px\">" + (dojo.byId("cna" + i).value || "").replace(/,/gi, ", ") + "</span>");
+		}
+		if (dojo.byId("venLnk" + i)) createTooltip("venLnk" + i, atualizarDicaVenue(i));
+		if (redesHabilitadas && dojo.byId("chainIcone" + i)) atualizarTooltipRedes(i);
+	}
+
+	linhasSelecionadas = dojo.query("input[name=selecao]:checked");
+	totalSelecionadas = linhasSelecionadas.length;
+	if (dijit.byId("saveButton")) dijit.byId("saveButton").set("disabled", linhasEditadas.length === 0);
+	if (dijit.byId("reloadButton")) dijit.byId("reloadButton").setAttribute("disabled", false);
+	if (dijit.byId("menuSinalizar")) atualizarItensMenuMais();
+	if (dijit.byId("menuItemExportarRelatorio")) {
+		dijit.byId("menuItemExportarRelatorio").setAttribute("disabled", relatorio.length === 0);
+	}
+	if (modo === DADOS_COMPLETOS) {
+		var categoriasSalvas = localStorage.getItem("categorias");
+		if (categoriasSalvas) {
+			try {
+				montarArvore(JSON.parse(categoriasSalvas));
+			} catch (error) {
+				carregarListaCategorias();
+			}
+		} else {
+			carregarListaCategorias();
+		}
+	}
+	atualizarMarcadoresLocais();
+	setupVerticalNavigation();
+	debugInfo("Estado anterior do editor restaurado.");
+}
+
+function atualizarMarcadoresLocais() {
+	if (window.googleMaps && window.googleMaps.map && window.locais && window.locais.length > 0) {
+		window.googleMaps.updateMarkers(window.locais);
+	}
+}
+
+window.addEventListener("pagehide", salvarEstadoEdicao);
+window.addEventListener("pageshow", function(event) {
+	if (!event.persisted) return;
+	try {
+		var estado = JSON.parse(sessionStorage.getItem(chaveEstadoEdicao) || "null");
+		if (!estado || JSON.stringify(estado.venueIds) !== JSON.stringify(obterIdsDasVenues())) return;
+		for (var i = 0; i < estado.rows.length; i++) {
+			var checkbox = document.forms[i].elements.namedItem("selecao");
+			var savedCheckbox = estado.rows[i].fields[0];
+			var widget = checkbox && dijit.byId(checkbox.id);
+			if (widget && savedCheckbox) widget.set("checked", savedCheckbox.checked, false);
+		}
+		linhasSelecionadas = dojo.query("input[name=selecao]:checked");
+		if (dijit.byId("menuSinalizar")) atualizarItensMenuMais();
+	} catch (error) {}
+});
 
 function carregarDadosVenues() {
 	var venue;
@@ -1623,7 +2495,16 @@ function carregarDadosVenues() {
 
 	if (!token)
 		return handleMissingOauthToken("carregar os locais");
-	
+	if (estadoEdicaoParaRestaurar) {
+		var estado = estadoEdicaoParaRestaurar;
+		estadoEdicaoParaRestaurar = null;
+		restaurarEstadoEdicao(estado);
+		try {
+			sessionStorage.removeItem(chaveEstadoEdicao);
+		} catch (error) {}
+		return;
+	}
+
 	//if (localStorage && localStorage.getItem('venues'))
 		//json = JSON.parse(localStorage.getItem('venues'));
 	if (json == "") {
@@ -1663,33 +2544,35 @@ function carregarDadosVenues() {
 function normalizarCsv() {
 	// Verifica se há pelo menos um venue com dados completos
 	var temAlgumComDadosCompletos = (modo == DADOS_COMPLETOS) || (venuesComDadosCompletos.length > 0);
-	
+	var deveIncluirRedesNoCsv = deveIncluirColunasRedesCsv();
+
 	debugLog('🔧 Normalização CSV iniciada:', {
 		modo: modo,
 		venuesComDadosCompletos: venuesComDadosCompletos.length,
 		venuesComDadosCompletosArray: venuesComDadosCompletos,
 		temAlgumComDadosCompletos: temAlgumComDadosCompletos,
+		deveIncluirRedesNoCsv: deveIncluirRedesNoCsv,
 		headerAntes: csv[0].slice(0, 5).join(', ') + '...',
 		headerLength: csv[0].length
 	});
-	
+
 	if (temAlgumComDadosCompletos) {
 		// PASSO 1: Insere categoryId se necessário
 		var headerTemCategoryId = (csv[0].length > 1 && csv[0][1] === "categoryId");
 		debugLog('📋 Header tem categoryId?', headerTemCategoryId, '| Header:', csv[0].slice(0, 5));
-		
+
 		if (!headerTemCategoryId) {
 			// Insere categoryId no header (posição 1, logo após "venue")
 			csv[0].splice(1, 0, "categoryId");
 			debugLog('✅ CategoryId inserido no header. Novo header:', csv[0].slice(0, 5));
-			
+
 			// Insere categoryId em cada linha conforme seu tipo
 			var linhasAtualizadas = 0;
 			for (var k = 0; k < document.forms.length; k++) {
 				if (csv[k + 1]) {
 					// Verifica se ESTA linha específica foi recarregada (tem dados completos)
 					var foiRecarregada = venuesComDadosCompletos.indexOf(k) !== -1;
-					
+
 					if (foiRecarregada) {
 						// Linha recarregada JÁ TEM categoryId (adicionado na linha 791), não insere
 						debugLog('  → Linha', k, 'JÁ tem categoryId (recarregada), pulando');
@@ -1708,52 +2591,78 @@ function normalizarCsv() {
 			}
 			debugLog('✅ CategoryId inserido em', linhasAtualizadas, 'linhas parciais');
 		}
-		
+
+		// Insere venueChainId apenas se deveIncluirRedesNoCsv
+		if (deveIncluirRedesNoCsv) {
+			var headerTemVenueChainId = (csv[0].indexOf("venueChainId") !== -1);
+			if (!headerTemVenueChainId) {
+				var catPos = csv[0].indexOf("categoryId");
+				var chainInsertPos = (catPos !== -1) ? catPos + 1 : 1;
+				csv[0].splice(chainInsertPos, 0, "venueChainId");
+				for (var k = 0; k < document.forms.length; k++) {
+					if (csv[k + 1]) {
+						var chainIdValue = (redes[k] && redes[k].ids) ? redes[k].ids : "";
+						csv[k + 1].splice(chainInsertPos, 0, chainIdValue ? '"' + chainIdValue + '"' : '""');
+					}
+				}
+				debugLog('✅ venueChainId inserido no header e linhas do CSV');
+			}
+		} else {
+			removerColunasRedesDoCsv();
+			debugLog('ℹ️ Colunas de redes removidas do CSV pois redes não foi selecionada');
+		}
+
 		// PASSO 2: Adiciona colunas finais ao header (verifica se já foi feito)
 		var jaTemColunasFinais = (csv[0].indexOf("createdAt") !== -1);
 		if (!jaTemColunasFinais) {
 			// Verifica se header já tem as 3 colunas parciais (checkins, users, tips)
 			var temColunasParciais = (csv[0].indexOf("checkins") !== -1);
-			
+
 			if (temColunasParciais) {
-				// Remove as 3 colunas parciais do final do header antes de adicionar as 13 completas
+				// Remove as 3 colunas parciais do final do header antes de adicionar as colunas completas
 				debugLog('📋 Header tem colunas parciais, removendo para substituir por completas');
 				// Encontra índice de "checkins" e remove dali até o final
 				var indexCheckins = csv[0].indexOf("checkins");
 				csv[0] = csv[0].slice(0, indexCheckins);
 			}
-			
-			// Adiciona colunas completas apenas ao HEADER (primaryCategoryId, addCategoryIds, removeCategoryIds vêm ANTES das métricas)
-			csv[0] = csv[0].concat("primaryCategoryId", "addCategoryIds", "removeCategoryIds", "createdAt", "checkins", "users", "tips", "likes", "listed", "photos", "closed", "private", "deleted");
-			
-			// Normaliza APENAS as linhas parciais (que ainda não têm as 13 colunas)
-			// IMPORTANTE: Se modo == DADOS_COMPLETOS desde início, todas as linhas JÁ TÊM as 13 colunas
+
+			// Adiciona colunas completas ao HEADER (categorias e redes vêm ANTES das métricas)
+			var colunasExtras = ["primaryCategoryId", "addCategoryIds", "removeCategoryIds"];
+			if (deveIncluirRedesNoCsv) {
+				colunasExtras.push("primaryVenueChainId", "addVenueChainIds", "removeVenueChainIds");
+			}
+			colunasExtras.push("createdAt", "checkins", "users", "tips", "likes", "listed", "photos", "closed", "private", "deleted");
+			csv[0] = csv[0].concat(colunasExtras);
+
+			// Normaliza APENAS as linhas parciais (que ainda não têm as colunas completas)
 			var todasComDadosCompletos = (modo == DADOS_COMPLETOS && venuesComDadosCompletos.length === 0);
 			var linhasNormalizadas = 0;
-			
+
 			if (!todasComDadosCompletos) {
 				// Há mix de parciais e completas (ou apenas recarregadas)
 				for (var k = 0; k < document.forms.length; k++) {
 					var foiRecarregada = venuesComDadosCompletos.indexOf(k) !== -1;
-					
+
 					if (!foiRecarregada && csv[k + 1]) {
 						// Esta linha tem apenas 3 colunas no final (checkins, users, tips)
-						// Remove as 3 colunas do final
 						csv[k + 1] = csv[k + 1].slice(0, -3);
-						// Adiciona 13 colunas completas (3 vazias + 1 vazia + 3 com dados + 6 vazias)
-						csv[k + 1] = csv[k + 1].concat(
-							"", "", "",           // primaryCategoryId, addCategoryIds, removeCategoryIds (vazios)
+						var colunasLinha = ["", "", ""]; // primaryCategoryId, addCategoryIds, removeCategoryIds
+						if (deveIncluirRedesNoCsv) {
+							colunasLinha.push("", "", ""); // primaryVenueChainId, addVenueChainIds, removeVenueChainIds
+						}
+						colunasLinha.push(
 							"",                   // createdAt (vazio)
 							document.forms[k]["checkinsCount"].value,
 							document.forms[k]["usersCount"].value,
 							document.forms[k]["tipCount"].value,
 							"", "", "", "", "", "" // likes, listed, photos, closed, private, deleted (vazios)
 						);
+						csv[k + 1] = csv[k + 1].concat(colunasLinha);
 						linhasNormalizadas++;
 					}
 				}
 			} else {
-				debugLog('✅ Todas venues carregadas com dados completos desde início, linhas já têm 13 colunas');
+				debugLog('✅ Todas venues carregadas com dados completos desde início, linhas já têm colunas completas');
 			}
 			debugLog('✅ Colunas finais adicionadas:', {
 				headerColunas: csv[0].length,
@@ -1808,9 +2717,9 @@ function recarregarDadosVenues(excluirIndice) {
 		// Verifica se há seleções
 		var checkboxesSelecionados = dojo.query("input[name=selecao]:checked");
 		var totalSelecionadas = checkboxesSelecionados.length;
-		
+
 		var numEdicoes = linhasEditadas.length;
-		
+
 		// Se houver seleções, conta apenas as editadas que estão selecionadas
 		if (totalSelecionadas > 0) {
 			var edicoesNaSelecionadas = 0;
@@ -1822,12 +2731,12 @@ function recarregarDadosVenues(excluirIndice) {
 			});
 			numEdicoes = edicoesNaSelecionadas;
 		}
-		
+
 		// Só exibe mensagem se houver edições pendentes nos locais selecionados
 		if (numEdicoes > 0) {
 			var mensagem = "Você tem " + numEdicoes + (numEdicoes > 1 ? " edições" : " edição") + " não " + (numEdicoes > 1 ? "salvas" : "salva") + " nos " + (totalSelecionadas > 0 ? "locais selecionados" : "locais") + ". Recarregar descartará todas as alterações. Deseja continuar?";
 			dojo.byId("reloadMessage").innerHTML = mensagem;
-			
+
 			// Configura ação do botão de confirmação
 			var confirmButton = dijit.byId("confirmReloadButton");
 			if (confirmButton._connections) {
@@ -1837,7 +2746,7 @@ function recarregarDadosVenues(excluirIndice) {
 				dijit.byId("dlg_reload").hide();
 				executarRecarregamento(excluirIndice);
 			};
-			
+
 			dijit.byId("dlg_reload").show();
 		} else {
 			// Não há edições nos locais selecionados, recarrega diretamente
@@ -1862,7 +2771,7 @@ function executarRecarregamento(excluirIndice) {
 	var venuesParaRecarregar = [];
 	var checkboxesSelecionados = dojo.query("input[name=selecao]:checked");
 	var totalSelecionadas = checkboxesSelecionados.length;
-	
+
 	if (totalSelecionadas > 0) {
 		// Recarrega apenas as selecionadas
 		checkboxesSelecionados.forEach(function(checkbox) {
@@ -1881,35 +2790,35 @@ function executarRecarregamento(excluirIndice) {
 				venuesParaRecarregar.push(i);
 			}
 		}
-		var mensagemLog = excluirIndice !== undefined 
+		var mensagemLog = excluirIndice !== undefined
 			? "Recarregando " + venuesParaRecarregar.length + " venue" + (venuesParaRecarregar.length > 1 ? "s" : "") + " (exceto a venue de origem)..."
 			: "Recarregando todas as " + venuesParaRecarregar.length + " venues...";
 		debugInfo(mensagemLog);
 	}
-	
+
 	// Salva estado dos checkboxes antes do reload
 	var estadoCheckboxes = {};
 	dojo.query("input[name=selecao]").forEach(function(checkbox) {
 		estadoCheckboxes[checkbox.id] = dijit.byId(checkbox.id).checked;
 	});
-	
+
 	// Salva posição do scroll
 	var scrollTop = window.pageYOffset || document.documentElement.scrollTop;
-	
+
 	// Configura progress bar
 	totalCarregadas = 0;
 	totalNaoCarregadas = 0;
 	var totalParaRecarregar = venuesParaRecarregar.length;
 	dijit.byId("saveProgress").update({maximum: totalParaRecarregar, progress: 0});
-	
+
 	var tituloModal = "Recarregando " + totalParaRecarregar + " venue" + (totalParaRecarregar > 1 ? "s" : "") + "...";
 	dijit.byId("dlg_save").set("title", tituloModal);
 	dijit.byId("dlg_save").show();
-	
+
 	// Desabilita botões durante recarregamento
 	dijit.byId("saveButton").setAttribute("disabled", true);
 	dijit.byId("reloadButton").setAttribute("disabled", true);
-	
+
 	// Remove indicadores visuais apenas das linhas que serão recarregadas
 	for (var idx = 0; idx < venuesParaRecarregar.length; idx++) {
 		var venueIdx = venuesParaRecarregar[idx];
@@ -1924,17 +2833,17 @@ function executarRecarregamento(excluirIndice) {
 			linhasEditadas.splice(posicaoEditada, 1);
 		}
 	}
-	
+
 	// Limpa cache JSON para forçar dados completos
 	json = "";
 	if (localStorage) {
 		localStorage.removeItem('venues');
 		localStorage.removeItem('venuesComDadosCompletos');
 	}
-	
+
 	// Força modo DADOS_COMPLETOS
 	modo = DADOS_COMPLETOS;
-	
+
 	// Carrega categorias se necessário (habilita edição)
 	var d = new Date();
 	d.setHours(0, 0, 0, 0);
@@ -1945,30 +2854,30 @@ function executarRecarregamento(excluirIndice) {
 		montarArvore(resposta);
 		debugInfo("Categorias recuperadas do localStorage!");
 	}
-	
+
 	// Contador para progresso
 	var carregadasNoReload = 0;
-	
+
 	// Recarrega cada venue
 	venuesParaRecarregar.forEach(function(venueIndex) {
 		var venue = document.forms[venueIndex]["venue"].value;
 		dojo.byId("result" + venueIndex).innerHTML = "<img src='img/loading.gif' alt='Recarregando dados...'>";
-		
+
 		// Marca que esta linha está sendo recarregada (para habilitar categorias depois)
 		document.forms[venueIndex].setAttribute('data-reloading', 'true');
-		
+
 		// Faz requisição à API
 		xmlhttpRequest("GET", "https://api.foursquare.com/v2/venues/" + venue + "?oauth_token=" + token + "&v=" + DATA_VERSIONAMENTO, "reload", null, venueIndex);
 	});
-	
+
 	// Monitora conclusão do reload (a atualização de progresso é feita via xmlhttpRequest callback)
 	var checkReloadComplete = setInterval(function() {
 		var totalProcessadas = totalCarregadas + totalNaoCarregadas;
 		dijit.byId("saveProgress").update({progress: totalProcessadas});
-		
+
 		if (totalProcessadas >= totalParaRecarregar) {
 			clearInterval(checkReloadComplete);
-			
+
 			// Restaura estado dos checkboxes
 			setTimeout(function() {
 				for (var checkboxId in estadoCheckboxes) {
@@ -1976,39 +2885,39 @@ function executarRecarregamento(excluirIndice) {
 						dijit.byId(checkboxId).setChecked(estadoCheckboxes[checkboxId]);
 					}
 				}
-				
+
 				// Remove marcação de recarregamento das linhas
 				venuesParaRecarregar.forEach(function(venueIndex) {
 					document.forms[venueIndex].removeAttribute('data-reloading');
 				});
-				
+
 				// Restaura posição do scroll
 				window.scrollTo(0, scrollTop);
 			}, 100);
-			
+
 			// Atualiza marcadores do Google Maps
 			if (window.googleMaps && window.googleMaps.map && window.locais.length > 0) {
 				debugInfo("Atualizando marcadores do mapa...");
 				window.googleMaps.updateMarkers(window.locais);
 			}
-			
+
 			// Normaliza CSV após recarregamento (para garantir consistência entre parciais e completos)
 			debugLog('🔄 Executando normalização após reload...');
 			normalizarCsv();
-			
+
 			// Exibe mensagem final
 			var mensagemFinal = "Recarregamento concluído!";
 			if (totalNaoCarregadas > 0) {
 				mensagemFinal += " (" + totalNaoCarregadas + " falha" + (totalNaoCarregadas > 1 ? "s" : "") + ")";
 			}
 			dijit.byId("dlg_save").set("title", mensagemFinal);
-			
+
 			// Habilita botões após conclusão
 			dijit.byId("saveButton").setAttribute("disabled", false);
 			dijit.byId("reloadButton").setAttribute("disabled", false);
-			
+
 			debugInfo("✅ " + mensagemFinal);
-			
+
 			// Fecha modal após 2 segundos
 			setTimeout(function() {
 				dijit.byId("dlg_save").hide();
@@ -2060,10 +2969,10 @@ function salvarVenues() {
 		var ll = document.forms[i]["venuell"].value;
 		if ((ll != null) && (ll != "") && (ll != venuellOriginais[i]))
 			dados += "&venuell=" + encodeURIComponent(ll.replace(/ /g, ""));
-		
+
 		// Verifica se esta venue tem dados completos (modo global OU venue individual recarregada)
 		var estaVenueTemDadosCompletos = (modo == DADOS_COMPLETOS) || (venuesComDadosCompletos.indexOf(i) !== -1);
-		
+
 		debugLog('🔍 salvarVenues - Venue', i, ':', {
 			modo: modo,
 			modoString: modo == DADOS_COMPLETOS ? 'DADOS_COMPLETOS' : 'DADOS_PARCIAIS',
@@ -2072,41 +2981,41 @@ function salvarVenues() {
 			estaVenueTemDadosCompletos: estaVenueTemDadosCompletos,
 			categoryIdValue: document.forms[i]["categoryId"].value
 		});
-		
+
 		if (estaVenueTemDadosCompletos) {
 			var categoryIds = document.forms[i]["categoryId"].value;
 			debugLog('📋 Processando categorias para venue', i, '- categoryIds:', categoryIds);
-			
+
 			if ((categoryIds != null) && (categoryIds != "")) {
 				// LÊ DO CSV as colunas já calculadas por processarEdicaoCategorias()
 				// (não recalcula pois categorias[i].ids já foi sobrescrito com novos valores)
 				var indexPrimaryCategoryId = csv[0].indexOf("primaryCategoryId");
 				var indexRemoveCategoryIds = csv[0].indexOf("removeCategoryIds");
 				var indexAddCategoryIds = csv[0].indexOf("addCategoryIds");
-				
+
 				debugLog('🔍 Índices CSV:', {
 					primaryCategoryId: indexPrimaryCategoryId,
 					removeCategoryIds: indexRemoveCategoryIds,
 					addCategoryIds: indexAddCategoryIds
 				});
-				
+
 				// Remove aspas dos valores do CSV
-				var primaryFromCsv = (indexPrimaryCategoryId !== -1 && csv[i + 1][indexPrimaryCategoryId]) 
-					? csv[i + 1][indexPrimaryCategoryId].replace(/"/g, '') 
+				var primaryFromCsv = (indexPrimaryCategoryId !== -1 && csv[i + 1][indexPrimaryCategoryId])
+					? csv[i + 1][indexPrimaryCategoryId].replace(/"/g, '')
 					: '';
-				var removeFromCsv = (indexRemoveCategoryIds !== -1 && csv[i + 1][indexRemoveCategoryIds]) 
-					? csv[i + 1][indexRemoveCategoryIds].replace(/"/g, '') 
+				var removeFromCsv = (indexRemoveCategoryIds !== -1 && csv[i + 1][indexRemoveCategoryIds])
+					? csv[i + 1][indexRemoveCategoryIds].replace(/"/g, '')
 					: '';
-				var addFromCsv = (indexAddCategoryIds !== -1 && csv[i + 1][indexAddCategoryIds]) 
-					? csv[i + 1][indexAddCategoryIds].replace(/"/g, '') 
+				var addFromCsv = (indexAddCategoryIds !== -1 && csv[i + 1][indexAddCategoryIds])
+					? csv[i + 1][indexAddCategoryIds].replace(/"/g, '')
 					: '';
-				
+
 				debugLog('📊 Valores do CSV venue', i, ':', {
 					primaryCategoryId: primaryFromCsv,
 					removeCategoryIds: removeFromCsv,
 					addCategoryIds: addFromCsv
 				});
-				
+
 				// Adiciona parâmetros aos dados do POST
 				if (removeFromCsv != '') {
 					dados += "&removeCategoryIds=" + removeFromCsv;
@@ -2198,7 +3107,7 @@ function sinalizarVenues(problema) {
 	} else {
 		totalParaSinalizar = totalSelecionadas;
 	}
-	
+
 	totalProgresso = 0;
 	totalTimeout = 0;
 	dijit.byId("saveProgress").update({maximum: totalParaSinalizar, progress: totalSinalizadas});
@@ -2206,7 +3115,7 @@ function sinalizarVenues(problema) {
 	dijit.byId("dlg_save").show();
 	dijit.byId("menuSinalizar").setAttribute("disabled", true);
 	debugInfo("Enviando dados...");
-	
+
 	var l = 0;
 	var linhas = linhasSelecionadas.slice(0);
 	function sinalizar(delayTime) {
@@ -2242,7 +3151,7 @@ function sinalizarVenues(problema) {
 			}
 		}, delayTime); // wait 0 or 5000 milliseconds (API duplicate bug) to flag
 	}
-	
+
 	sinalizar(0);
 }
 
@@ -2295,37 +3204,37 @@ function pad(str, len, pad, dir) {
 // Callback para integração com o sistema de mapas
 window.atualizarPosicaoMarcador = function(index, event) {
 	debugLog('📍 Marcador movido:', index, event);
-	
+
 	if (!event || !event.latLng) return;
-	
+
 	const marcador = index + 1;
 	const novaPosicao = event.latLng.lat() + ', ' + event.latLng.lng();
-	
+
 	debugInfo('Marcador ' + marcador + ' movido: ' + novaPosicao);
-	
+
 	// Integração com o sistema existente
 	try {
 		const inputElements = dojo.query("input[name=selecao]");
 		if (inputElements[index] && !inputElements[index].disabled) {
 			const inputId = dojo.query("input[name=venuell]")[index].id;
-			
-			if (inputId === "" || 
-				(dijit.byId(inputId) && 
-				 dijit.byId(inputId).textbox.value !== novaPosicao && 
-				 !dijit.byId(inputId).readOnly && 
+
+			if (inputId === "" ||
+				(dijit.byId(inputId) &&
+				 dijit.byId(inputId).textbox.value !== novaPosicao &&
+				 !dijit.byId(inputId).readOnly &&
 				 !dijit.byId(inputId).disabled)) {
-				
+
 				// Atualiza o campo
 				if (inputId === "") {
 					dojo.query("input[name=venuell]")[index].value = novaPosicao;
 				} else {
 					dijit.byId(inputId).set("value", novaPosicao);
 				}
-				
+
 				// Marca a linha como editada
 				debugLog('🔵 Marcando linha ' + (index + 1) + ' como editada após arrastar marcador');
 				verificarAlteracao(dojo.query("input[name=venuell]")[index], index);
-				
+
 				// Atualiza CSV
 				if (window.csv) {
 					const csvIndex = window.csv[0].indexOf("venuell");
@@ -2333,7 +3242,7 @@ window.atualizarPosicaoMarcador = function(index, event) {
 						window.csv[parseInt(index) + 1][csvIndex] = novaPosicao;
 					}
 				}
-				
+
 				// Limpa resultado
 				const resultElement = dojo.byId("result" + index);
 				if (resultElement) {
@@ -2362,8 +3271,13 @@ function removerNaoSelecionadas(arq, startIndex) {
 
 var dlgGuia;
 dojo.addOnLoad(function inicializar() {
-	if (localStorage && localStorage.getItem('venues'))
+	estadoEdicaoParaRestaurar = obterEstadoEdicaoDaNavegacao();
+	if (estadoEdicaoParaRestaurar) {
+		modo = estadoEdicaoParaRestaurar.modo;
+		json = modo === DADOS_PARCIAIS ? {} : "";
+	} else if (localStorage && localStorage.getItem('venues')) {
 		json = JSON.parse(localStorage.getItem('venues'));
+	}
 
 	/*** Valida OAuth Token via SessionManager moderno ***/
 	if (window.sessionManager) {
@@ -2386,7 +3300,7 @@ dojo.addOnLoad(function inicializar() {
 	} else {
 		// Fallback para verificação legacy com cookie
 		debugLog("🔄 Usando validação legacy de token");
-		
+
 		// Verifica se o token existe via cookie
 		const legacyToken = getOauthToken();
 		if (!legacyToken || legacyToken === "undefined" || legacyToken === "null") {
@@ -2394,14 +3308,14 @@ dojo.addOnLoad(function inicializar() {
 			handleMissingOauthToken("inicializar o editor");
 			return;
 		}
-		
+
 		debugLog("✅ Token legacy válido - continuando inicialização");
 		// Continua com a inicialização normal
 		initializeApplication();
 	}
-	
+
 	function initializeApplication() {
-	
+
 	/*** Inicializar Google Maps ***/
 	if (document.getElementById('mapa')) {
 		const initMap = () => {
@@ -2411,7 +3325,7 @@ dojo.addOnLoad(function inicializar() {
 					debugInfo("Mapa carregado!");
 					// Se já há venues carregadas, posiciona os marcadores imediatamente
 					if (window.locais && window.locais.length > 0) {
-						window.googleMaps.updateMarkers(window.locais);
+						atualizarMarcadoresLocais();
 						debugInfo("Marcadores posicionados no mapa!");
 					}
 				}).catch(error => {
@@ -2433,7 +3347,7 @@ dojo.addOnLoad(function inicializar() {
 			});
 		}
 	}
-	
+
 	/*** Autoajusta o tamanho inicial do mapa conforme largura da lista ***/
 	// Só define largura inicial se não foi personalizada pelo usuário
 	const mapaElement = dojo.byId('mapa');
@@ -2441,47 +3355,47 @@ dojo.addOnLoad(function inicializar() {
 		dojo.style("mapa", "width", dojo.byId('listContainer').offsetWidth.toString() + "px");
 		debugLog('📏 Largura inicial do mapa definida automaticamente');
 	}
-	
+
 	/*** Guia de Estilo ***/
 	dlg_guia = new dijit.Dialog({
 		title: "Guia de estilo",
 		style: "width: 435px"
 	});
-	
+
 	/*** Modal de Exportação de URLs ***/
 	dlg_export_urls = new dijit.Dialog({
 		title: "Exportar URLs",
 		style: "width: 600px"
 	});
-	
+
 	/*** Modal de Exportação de URL Direta ***/
 	dlg_export_direct_url = new dijit.Dialog({
 		title: "Exportar URL Direta",
 		style: "width: 500px"
 	});
-	
+
 	/*** Modal de Relatório ***/
 	dlg_report = new dijit.Dialog({
 		title: "Relatório de Edições",
 		style: "width: 900px; max-width: 95%;"
 	});
-	
+
 	/*** Modal de Exportação CSV ***/
 	dlg_export_csv = new dijit.Dialog({
 		title: "Exportar CSV",
 		style: "width: 700px; max-width: 90%;"
 	});
-	
+
 	/*** DropDown do menu Mais ***/
 	var menu = new dijit.Menu({
 		style: "display: none;"
 	});
-	
+
 	/*** Submenu Selecionar ***/
 	var subMenu1 = new dijit.Menu({
 		style: "display: none;"
 	});
-	
+
 	var subMenu1Item1 = new dijit.MenuItem({
 		label: "Todas",
 		id: "menuItemSelecionarTodas",
@@ -2490,7 +3404,7 @@ dojo.addOnLoad(function inicializar() {
 		}
 	});
 	subMenu1.addChild(subMenu1Item1);
-	
+
 	var subMenu1Item2 = new dijit.MenuItem({
 		label: "Nenhuma",
 		id: "menuItemSelecionarNenhuma",
@@ -2499,25 +3413,25 @@ dojo.addOnLoad(function inicializar() {
 		}
 	});
 	subMenu1.addChild(subMenu1Item2);
-	
+
 	var menuItem1 = new dijit.PopupMenuItem({
 		label: "Selecionar",
 		id: "menuSelecionar",
 		popup: subMenu1
 	});
-	
+
 	menu.addChild(menuItem1);
-	
+
 	/*** Separador ***/
 	menu.addChild(new dijit.MenuSeparator);
-	
+
 	/*** Submenu Editar ***/
 	var subMenu2 = new dijit.Menu({
 		style: "display: none;"
 	});
-	
+
 	var elements;
-	var elementName;	
+	var elementName;
 	var nomeCampo;
 	var options = [];
 	var select = dijit.byId("selectEditField");
@@ -2529,7 +3443,7 @@ dojo.addOnLoad(function inicializar() {
 			onClick: function() {
 				atualizarCategorias([], "", "");
 				dijit.byId("dlg_cats").show();
-				
+
 				// Habilita checkbox apenas se houver 2+ venues com dados completos
 				var totalComDadosCompletos = contarVenuesComDadosCompletos();
 				if (totalComDadosCompletos >= 2) {
@@ -2590,27 +3504,27 @@ dojo.addOnLoad(function inicializar() {
 			options.push({ value: elementName, label: nomeCampo, selected: false });
 			csv[0] = csv[0].concat(elementName);
 			//console.info(c, elementName, nomeCampo, "adicionado");
-		} //else 
+		} //else
 			//console.info(c, elements[c].name, "ignorado");
 	}
 	// REMOVIDO: primaryCategoryId, addCategoryIds, removeCategoryIds são adicionados por normalizarCsv()
 	// para evitar duplicação quando modo == DADOS_COMPLETOS
 	select.addOption(options);
-	
+
 	var menuItem2 = new dijit.PopupMenuItem({
 		label: "Editar",
 		id: "menuEditar",
 		iconClass: "editIcon",
 		popup: subMenu2
 	});
-	
+
 	menu.addChild(menuItem2);
 
 	/*** Submenu Sinalizar ***/
 	var subMenu3 = new dijit.Menu({
 		style: "display: none;"
 	});
-	
+
 	var subMenu3Item1 = new dijit.MenuItem({
 		label: "duplicate", // "Duplicadas",
 		id: "menuItemSinalizarDuplicate",
@@ -2619,10 +3533,10 @@ dojo.addOnLoad(function inicializar() {
 		}
 	});
 	subMenu3.addChild(subMenu3Item1);
-	
+
 	/*** Separador (item) ***/
 	subMenu3.addChild(new dijit.MenuSeparator);
-	
+
 	var subMenu3Item2 = new dijit.MenuItem({
 		label: "doesnt_exist", // "N&atilde;o existe",
 		id: "menuItemSinalizarDoesnt_exist",
@@ -2633,7 +3547,7 @@ dojo.addOnLoad(function inicializar() {
 		}
 	});
 	subMenu3.addChild(subMenu3Item2);
-	
+
 	var subMenu3Item3 = new dijit.MenuItem({
 		label: "event_over", // "J&aacute; terminou",
 		id: "menuItemSinalizarEvent_over",
@@ -2643,7 +3557,7 @@ dojo.addOnLoad(function inicializar() {
 		}
 	});
 	subMenu3.addChild(subMenu3Item3);
-	
+
 	var subMenu3Item4 = new dijit.MenuItem({
 		label: "inappropriate", // "Inadequada",
 		id: "menuItemSinalizarInappropriate",
@@ -2653,7 +3567,7 @@ dojo.addOnLoad(function inicializar() {
 		}
 	});
 	subMenu3.addChild(subMenu3Item4);
-	
+
 	var subMenu3Item5 = new dijit.MenuItem({
 		label: "closed", // "Fechada",
 		id: "menuItemSinalizarClosed",
@@ -2663,10 +3577,10 @@ dojo.addOnLoad(function inicializar() {
 		}
 	});
 	subMenu3.addChild(subMenu3Item5);
-	
+
 	/*** Separador (item) ***/
 	subMenu3.addChild(new dijit.MenuSeparator);
-	
+
 	var subMenu3Item6 = new dijit.MenuItem({
 		label: "home_remove", // "",
 		id: "menuItemSinalizarHome_remove",
@@ -2676,7 +3590,7 @@ dojo.addOnLoad(function inicializar() {
 		}
 	});
 	subMenu3.addChild(subMenu3Item6);
-	
+
 	var subMenu3Item7 = new dijit.MenuItem({
 		label: "home_recategorize", // "",
 		id: "menuItemSinalizarHome_recategorize",
@@ -2686,10 +3600,10 @@ dojo.addOnLoad(function inicializar() {
 		}
 	});
 	subMenu3.addChild(subMenu3Item7);
-	
+
 	/*** Separador (item) ***/
 	subMenu3.addChild(new dijit.MenuSeparator);
-	
+
 	var subMenu3Item8 = new dijit.MenuItem({
 		label: "public", // "P&uacute;blica",
 		id: "menuItemSinalizarPublic",
@@ -2699,7 +3613,7 @@ dojo.addOnLoad(function inicializar() {
 		}
 	});
 	subMenu3.addChild(subMenu3Item8);
-	
+
 	var subMenu3Item9 = new dijit.MenuItem({
 		label: "private", // "Particular",
 		id: "menuItemSinalizarPrivate",
@@ -2709,10 +3623,10 @@ dojo.addOnLoad(function inicializar() {
 		}
 	});
 	subMenu3.addChild(subMenu3Item9);
-	
+
 	/*** Separador (item) ***/
 	subMenu3.addChild(new dijit.MenuSeparator);
-	
+
 	var subMenu3Item10 = new dijit.MenuItem({
 		label: "not_closed", // "Reaberta",
 		id: "menuItemSinalizarNot_closed",
@@ -2722,7 +3636,7 @@ dojo.addOnLoad(function inicializar() {
 		}
 	});
 	subMenu3.addChild(subMenu3Item10);
-	
+
 	var subMenu3Item11 = new dijit.MenuItem({
 		label: "un_delete", // "",
 		id: "menuItemSinalizarUn_delete",
@@ -2732,7 +3646,7 @@ dojo.addOnLoad(function inicializar() {
 		}
 	});
 	subMenu3.addChild(subMenu3Item11);
-	
+
 	var menuItem3 = new dijit.PopupMenuItem({
 		label: "Sinalizar",
 		id: "menuSinalizar",
@@ -2741,15 +3655,15 @@ dojo.addOnLoad(function inicializar() {
 		popup: subMenu3
 	});
 	menu.addChild(menuItem3);
-	
+
 	/*** Separador (Submenu) ***/
 	menu.addChild(new dijit.MenuSeparator);
-	
+
 	/*** Submenu Exportar ***/
 	var subMenu4 = new dijit.Menu({
 		style: "display: none;"
 	});
-	
+
 	var subMenu4Item1 = new dijit.MenuItem({
 		label: "Arquivo CSV",
 		id: "menuItemExportarCSV",
@@ -2758,7 +3672,7 @@ dojo.addOnLoad(function inicializar() {
 		}
 	});
 	subMenu4.addChild(subMenu4Item1);
-	
+
 	var subMenu4Item2 = new dijit.MenuItem({
 		label: "Arquivo TXT",
 		id: "menuItemExportarTXT",
@@ -2767,10 +3681,10 @@ dojo.addOnLoad(function inicializar() {
 		}
 	});
 	subMenu4.addChild(subMenu4Item2);
-	
+
 	/**
 	 * Menu item for exporting venue data as a direct URL.
-	 * 
+	 *
 	 * Creates a Dijit MenuItem that, when clicked, generates a URL containing venue IDs
 	 * extracted from a text array. The venue IDs are obtained by:
 	 * 1. Creating a copy of the 'txt' array
@@ -2778,10 +3692,10 @@ dojo.addOnLoad(function inicializar() {
 	 * 3. Trimming each ID to 24 characters maximum
 	 * 4. If there are selected items (totalSelecionadas > 0), filtering out non-selected venues
 	 * 5. Opening a new window with a data URL containing the venue IDs as a comma-separated list
-	 * 
+	 *
 	 * The generated URL format is:
 	 * https://4sq.eliotools.site/load.php?venues=[venue_id1,venue_id2,...]
-	 * 
+	 *
 	 * @type {dijit.MenuItem}
 	 * @property {string} label - Display text "URL direta" (Direct URL)
 	 * @property {string} id - MenuItem identifier "menuItemExportarURL"
@@ -2795,9 +3709,9 @@ dojo.addOnLoad(function inicializar() {
 		}
 	});
 	subMenu4.addChild(subMenu4Item3);
-	
+
 	subMenu4.addChild(new dijit.MenuSeparator);
-	
+
 	var subMenu4Item4 = new dijit.MenuItem({
 		label: "Relat&oacute;rio",
 		id: "menuItemExportarRelatorio",
@@ -2807,7 +3721,7 @@ dojo.addOnLoad(function inicializar() {
 		}
 	});
 	subMenu4.addChild(subMenu4Item4);
-	
+
 	var menuItem4 = new dijit.PopupMenuItem({
 		label: "Exportar",
 		id: "menuExportar",
@@ -2815,7 +3729,7 @@ dojo.addOnLoad(function inicializar() {
 		popup: subMenu4
 	});
 	menu.addChild(menuItem4);
-	
+
 	/*** Menu Mais ***/
 	var button = new dijit.form.DropDownButton({
 		label: "Mais",
@@ -2824,7 +3738,7 @@ dojo.addOnLoad(function inicializar() {
 		id: "progButton"
 	});
 	dojo.byId("dropdownButtonContainer").appendChild(button.domNode);
-	
+
 	if (localStorage && localStorage.getItem('txt'))
 		txt = localStorage.getItem("txt").split(',');
 	carregarDadosVenues();
@@ -2866,7 +3780,60 @@ function showDialogComment(caller, comment) {
 
 function showDialogEditField(field) {
 	dijit.byId("selectEditField").attr("value", field);
+	atualizarValorEdicaoMultipla(field);
+	atualizarStatusEdicaoMultipla("");
 	dijit.byId('dlg_editField').show();
+}
+
+function obterAlvosEdicaoMultipla(campo) {
+	var checkboxes = dojo.query("input[name=selecao]");
+	var campos = dojo.query("input[name=" + campo + "]");
+	var haSelecionadas = dojo.query("input[name=selecao]:checked").length > 0;
+	var alvos = [];
+
+	for (var i = 0; i < document.forms.length; i++) {
+		var checkbox = checkboxes[i];
+		if (!checkbox || checkbox.disabled || (haSelecionadas && !checkbox.checked)) continue;
+
+		var input = campos[i];
+		if (!input) continue;
+
+		var widget = dijit.getEnclosingWidget(input);
+		if (!widget || widget.readOnly || widget.disabled) continue;
+		alvos.push({ index: i, widget: widget });
+	}
+
+	return { alvos: alvos, haSelecionadas: haSelecionadas };
+}
+
+function atualizarValorEdicaoMultipla(campo) {
+	var inputValor = dijit.byId("inputEditField");
+	var selectCampo = dijit.byId("selectEditField");
+	if (!inputValor || !selectCampo) return;
+
+	var estado = obterAlvosEdicaoMultipla(campo);
+	var valorComum = "";
+	var valoresIguais = estado.alvos.length > 0;
+
+	if (valoresIguais) {
+		valorComum = estado.alvos[0].widget.textbox.value;
+		for (var i = 1; i < estado.alvos.length; i++) {
+			if (estado.alvos[i].widget.textbox.value !== valorComum) {
+				valoresIguais = false;
+				break;
+			}
+		}
+	}
+
+	inputValor.set("value", valoresIguais ? valorComum : "");
+	inputValor.set("placeHolder", selectCampo.get("displayedValue"));
+}
+
+function atualizarStatusEdicaoMultipla(mensagem, status) {
+	var statusNode = dojo.byId("editFieldStatus");
+	if (!statusNode) return;
+	statusNode.textContent = mensagem || "";
+	statusNode.className = "bulk-edit-status" + (status ? " is-" + status : "");
 }
 
 /**
@@ -2891,12 +3858,12 @@ function showDialogExportUrls() {
 			indicesSelecionados.push(i);
 		}
 	}
-	
+
 	// Formatos disponíveis
 	var FORMATO_CANONICA = 'canonica';
 	var FORMATO_PADRAO = 'padrao';
 	var FORMATO_IDS = 'ids';
-	
+
 	var formatoAtual = FORMATO_CANONICA;
 
 	function obterIdsSelecionados() {
@@ -2907,7 +3874,7 @@ function showDialogExportUrls() {
 			return /^[a-f0-9]{24}$/i.test(venueId);
 		});
 	}
-	
+
 	/**
 	 * Gera lista de URLs no formato escolhido
 	 * @param {string} formato - 'canonica', 'padrao' ou 'ids'
@@ -2915,41 +3882,41 @@ function showDialogExportUrls() {
 	 */
 	function gerarListaUrls(formato) {
 		var lista = [];
-		
+
 		switch(formato) {
 			case FORMATO_CANONICA:
 				lista = obterIdsSelecionados().map(function(venueId) {
 					return 'https://app.foursquare.com/share/venue/' + venueId;
 				});
 				break;
-				
+
 			case FORMATO_PADRAO:
 				lista = obterIdsSelecionados().map(function(venueId) {
 					return 'https://app.foursquare.com/v/' + venueId;
 				});
 				break;
-				
+
 			case FORMATO_IDS:
 				lista = obterIdsSelecionados();
 				break;
 		}
-		
+
 		return lista.join('\n');
 	}
-	
+
 	// Gera lista inicial
 	var urlList = gerarListaUrls(formatoAtual);
-	
+
 	// Destroi widgets anteriores para evitar erros do Dojo
 	if (dijit.byId('btnSaveUrls')) dijit.byId('btnSaveUrls').destroy();
 	if (dijit.byId('btnCopyUrls')) dijit.byId('btnCopyUrls').destroy();
 	if (dijit.byId('btnCancelUrls')) dijit.byId('btnCancelUrls').destroy();
 	if (dijit.byId('tooltipCanonicaDisabled')) dijit.byId('tooltipCanonicaDisabled').destroy();
-	
+
 	// Contador de locais
 	var numLocais = indicesSelecionados.length;
 	var textoLocais = numLocais === 1 ? '1 local' : numLocais + ' locais';
-	
+
 	// Cria o conteúdo da modal
 	var dialogContent = '<div style="padding: 10px;">' +
 		'<p style="margin-top: 0;"><strong>Escolha o formato de exportação:</strong></p>' +
@@ -2979,10 +3946,10 @@ function showDialogExportUrls() {
 		'<button id="btnCancelUrls" dojoType="dijit.form.Button">Cancelar</button>' +
 		'</div>' +
 		'</div>';
-	
+
 	dlg_export_urls.attr("content", dialogContent);
 	dlg_export_urls.show();
-	
+
 	// Aguarda renderização do Dojo e conecta eventos
 	setTimeout(function() {
 		// Event listener para mudança de formato
@@ -2990,7 +3957,7 @@ function showDialogExportUrls() {
 			var radioCanonica = dojo.byId("radioCanonica");
 			var radioPadrao = dojo.byId("radioPadrao");
 			var radioIds = dojo.byId("radioIds");
-			
+
 			if (radioCanonica && radioCanonica.checked) {
 				formatoAtual = FORMATO_CANONICA;
 			} else if (radioPadrao && radioPadrao.checked) {
@@ -2998,7 +3965,7 @@ function showDialogExportUrls() {
 			} else if (radioIds && radioIds.checked) {
 				formatoAtual = FORMATO_IDS;
 			}
-			
+
 			// Atualiza textarea com novo formato
 			var textarea = dojo.byId("exportUrlsTextarea");
 			if (textarea) {
@@ -3006,7 +3973,7 @@ function showDialogExportUrls() {
 				textarea.value = urlList;
 			}
 		}
-		
+
 		// Conecta eventos de mudança nos radioboxes
 		if (dojo.byId("radioCanonica")) {
 			dojo.connect(dojo.byId("radioCanonica"), "onchange", atualizarFormatoExport);
@@ -3017,7 +3984,7 @@ function showDialogExportUrls() {
 		if (dojo.byId("radioIds")) {
 			dojo.connect(dojo.byId("radioIds"), "onchange", atualizarFormatoExport);
 		}
-		
+
 		// Event listeners para botões
 		dojo.connect(dijit.byId("btnSaveUrls"), "onClick", function() {
 			// Pega conteúdo atualizado do textarea
@@ -3025,7 +3992,7 @@ function showDialogExportUrls() {
 			var blob = new Blob([textoAtual], {type: 'text/plain;charset=utf-8'});
 			var link = document.createElement('a');
 			link.href = window.URL.createObjectURL(blob);
-			
+
 			// Nome do arquivo baseado no formato
 			var sufixo = '';
 			if (formatoAtual === FORMATO_CANONICA) {
@@ -3033,27 +4000,27 @@ function showDialogExportUrls() {
 			} else if (formatoAtual === FORMATO_IDS) {
 				sufixo = '_ids';
 			}
-			
+
 			link.download = 'venues_urls' + sufixo + '_' + new Date().getTime() + '.txt';
 			link.click();
 			window.URL.revokeObjectURL(link.href);
 			debugInfo('📁 Arquivo exportado com sucesso!');
-			
+
 			// Fecha a modal após salvar
 			dlg_export_urls.hide();
 		});
-		
+
 		dojo.connect(dijit.byId("btnCopyUrls"), "onClick", function() {
 			var textarea = document.getElementById('exportUrlsTextarea');
 			textarea.select();
 			document.execCommand('copy');
 			alert('URLs copiadas para a área de transferência!');
 			debugInfo('📋 URLs copiadas para o clipboard!');
-			
+
 			// Fecha a modal após copiar
 			dlg_export_urls.hide();
 		});
-		
+
 		dojo.connect(dijit.byId("btnCancelUrls"), "onClick", function() {
 			dlg_export_urls.hide();
 		});
@@ -3068,22 +4035,22 @@ function showDialogExportUrls() {
 function showDialogExportDirectUrl() {
 	var basePath = window.location.pathname.replace(/\/[^/]*$/, '');
 	var baseUrl = window.location.origin + basePath;
-	
+
 	// Extrai IDs dos venues
 	var arq = txt.slice(0);
 	for (var i = 0; i < arq.length; i++) {
-		arq[i] = arq[i].split("/").pop().slice(0, 24); 
+		arq[i] = arq[i].split("/").pop().slice(0, 24);
 	}
 	if (totalSelecionadas > 0)
 		arq = removerNaoSelecionadas(arq, 0);
-	
+
 	// Gera a URL direta
 	var directUrl = baseUrl + '/load.php?venues=' + arq.toString();
-	
+
 	// Destroi widgets anteriores para evitar erros do Dojo
 	if (dijit.byId('btnCopyDirectUrl')) dijit.byId('btnCopyDirectUrl').destroy();
 	if (dijit.byId('btnCancelDirectUrl')) dijit.byId('btnCancelDirectUrl').destroy();
-	
+
 	// Cria o conteúdo da modal
 	var dialogContent = '<div style="padding: 10px;">' +
 		'<p style="margin-top: 0;">URL direta para carregar ' + (totalSelecionadas > 0 ? 'os locais selecionados' : 'todos os locais') + ':</p>' +
@@ -3093,10 +4060,10 @@ function showDialogExportDirectUrl() {
 		'<button id="btnCancelDirectUrl" dojoType="dijit.form.Button">Cancelar</button>' +
 		'</div>' +
 		'</div>';
-	
+
 	dlg_export_direct_url.attr("content", dialogContent);
 	dlg_export_direct_url.show();
-	
+
 	// Aguarda renderização do Dojo e conecta eventos
 	setTimeout(function() {
 		dojo.connect(dijit.byId("btnCopyDirectUrl"), "onClick", function() {
@@ -3105,11 +4072,11 @@ function showDialogExportDirectUrl() {
 			document.execCommand('copy');
 			alert('URL copiada para a área de transferência!');
 			debugInfo('📋 URL direta copiada para o clipboard!');
-			
+
 			// Fecha a modal após copiar
 			dlg_export_direct_url.hide();
 		});
-		
+
 		dojo.connect(dijit.byId("btnCancelDirectUrl"), "onClick", function() {
 			dlg_export_direct_url.hide();
 		});
@@ -3127,14 +4094,14 @@ function createHtmlTable(headers, rows, tableId) {
 	var tableHtml = '<table id="' + tableId + '" style="width: 100%; border-collapse: collapse; font-size: 12px; font-family: monospace;">' +
 		'<thead>' +
 		'<tr style="background-color: #f0f0f0; border-bottom: 2px solid #333;">';
-	
+
 	// Adiciona cabeçalhos
 	for (var i = 0; i < headers.length; i++) {
 		tableHtml += '<th style="padding: 8px; text-align: left; border: 1px solid #ddd;">' + headers[i] + '</th>';
 	}
-	
+
 	tableHtml += '</tr></thead><tbody>';
-	
+
 	// Adiciona linhas de dados
 	for (var i = 0; i < rows.length; i++) {
 		tableHtml += '<tr style="border-bottom: 1px solid #ddd;">';
@@ -3144,7 +4111,7 @@ function createHtmlTable(headers, rows, tableId) {
 		}
 		tableHtml += '</tr>';
 	}
-	
+
 	tableHtml += '</tbody></table>';
 	return tableHtml;
 }
@@ -3164,21 +4131,21 @@ function showDialogExportCsv() {
 	}
 	if (totalSelecionadas > 0)
 		arq = removerNaoSelecionadas(arq, 1);
-	
+
 	if (arq.length === 0) {
 		alert('Nenhum dado para exportar.');
 		return;
 	}
-	
+
 	// Destroi widgets anteriores para evitar erros do Dojo
 	if (dijit.byId('btnSaveCsv')) dijit.byId('btnSaveCsv').destroy();
 	if (dijit.byId('btnCancelCsv')) dijit.byId('btnCancelCsv').destroy();
-	
+
 	// Primeira linha são os cabeçalhos
 	var headers = arq[0].map(function(header) {
 		return header.replace(/"/g, ''); // Remove aspas dos cabeçalhos
 	});
-	
+
 	// Restante são os dados
 	var rows = [];
 	for (var i = 1; i < arq.length; i++) {
@@ -3187,10 +4154,10 @@ function showDialogExportCsv() {
 		});
 		rows.push(row);
 	}
-	
+
 	// Cria a tabela HTML
 	var tableHtml = createHtmlTable(headers, rows, 'csvPreviewTable');
-	
+
 	var dialogContent = '<div style="padding: 10px;">' +
 		'<p style="margin-top: 0;">Pré-visualização do CSV' + (totalSelecionadas > 0 ? ' (apenas selecionados)' : '') + ':</p>' +
 		'<div style="overflow-x: auto; max-height: 400px; overflow-y: auto; border: 1px solid #ddd;">' +
@@ -3201,10 +4168,10 @@ function showDialogExportCsv() {
 		'<button id="btnCancelCsv" dojoType="dijit.form.Button">Cancelar</button>' +
 		'</div>' +
 		'</div>';
-	
+
 	dlg_export_csv.attr("content", dialogContent);
 	dlg_export_csv.show();
-	
+
 	// Aguarda renderização do Dojo e conecta eventos
 	setTimeout(function() {
 		dojo.connect(dijit.byId("btnSaveCsv"), "onClick", function() {
@@ -3213,7 +4180,7 @@ function showDialogExportCsv() {
 			for (var i = 0; i < arq.length; i++) {
 				csvContent.push(arq[i].join(";"));
 			}
-			
+
 			var blob = new Blob([csvContent.join("\r\n")], {type: 'text/csv;charset=utf-8'});
 			var link = document.createElement('a');
 			link.href = window.URL.createObjectURL(blob);
@@ -3221,11 +4188,11 @@ function showDialogExportCsv() {
 			link.click();
 			window.URL.revokeObjectURL(link.href);
 			debugInfo('📁 Arquivo CSV exportado com sucesso!');
-			
+
 			// Fecha a modal após salvar
 			dlg_export_csv.hide();
 		});
-		
+
 		dojo.connect(dijit.byId("btnCancelCsv"), "onClick", function() {
 			dlg_export_csv.hide();
 		});
@@ -3244,38 +4211,44 @@ function showDialogReport() {
 	var COL_ID = 3;
 	var COL_CATEGORIES = 4;
 	var COL_COMMENTS = 5;
-	
+	var COL_CHAINS = 6;
+
 	// Destroi widgets anteriores para evitar erros do Dojo
 	if (dijit.byId('btnSaveReport')) dijit.byId('btnSaveReport').destroy();
 	if (dijit.byId('btnCancelReport')) dijit.byId('btnCancelReport').destroy();
-	
+
 	// Verifica quais colunas devem ser exibidas
 	var hasCategories = (json == "");
+	var hasChains = !!(window.appBootstrap && window.appBootstrap.editChains);
 	var hasComments = false;
-	
+
 	for (var i = 0; i < relatorio.length; i++) {
 		if (relatorio[i][COL_NAME] == undefined)
 			relatorio[i][COL_NAME] = "";
 		if (relatorio[i][COL_CATEGORIES] == undefined)
 			relatorio[i][COL_CATEGORIES] = "";
+		if (relatorio[i][COL_CHAINS] == undefined)
+			relatorio[i][COL_CHAINS] = "";
 		if (relatorio[i][COL_COMMENTS] && relatorio[i][COL_COMMENTS].length > 0)
 			hasComments = true;
 	}
-	
+
 	// Prepara cabeçalhos
 	var headers = ['Nome', 'Ação', 'Data', 'Hora', 'ID'];
 	if (hasCategories)
 		headers.push('Categorias');
+	if (hasChains)
+		headers.push('Redes');
 	if (hasComments)
 		headers.push('Comentários');
-	
+
 	// Prepara dados
 	var rows = [];
 	for (var i = 0; i < relatorio.length; i++) {
 		var dateTime = relatorio[i][COL_DATETIME].split(' ');
 		var date = dateTime[0] || '';
 		var time = dateTime[1] || '';
-		
+
 		var row = [
 			relatorio[i][COL_NAME] || '',
 			relatorio[i][COL_ACTION],
@@ -3283,20 +4256,22 @@ function showDialogReport() {
 			time,
 			relatorio[i][COL_ID]
 		];
-		
+
 		if (hasCategories)
 			row.push(relatorio[i][COL_CATEGORIES] || '');
+		if (hasChains)
+			row.push(relatorio[i][COL_CHAINS] || '');
 		if (hasComments) {
 			var comment = relatorio[i][COL_COMMENTS] ? relatorio[i][COL_COMMENTS].replace(/(\r\n|\n|\r)/gm, " ").replace(/\s+/g, " ") : '';
 			row.push(comment);
 		}
-		
+
 		rows.push(row);
 	}
-	
+
 	// Cria a tabela usando a função utilitária
 	var tableHtml = createHtmlTable(headers, rows, 'reportTable');
-	
+
 	var dialogContent = '<div style="padding: 10px; overflow-x: auto;">' +
 		tableHtml +
 		'<div style="text-align: right; margin-top: 15px;">' +
@@ -3304,40 +4279,43 @@ function showDialogReport() {
 		'<button id="btnCancelReport" dojoType="dijit.form.Button">Cancelar</button>' +
 		'</div>' +
 		'</div>';
-	
+
 	dlg_report.attr("content", dialogContent);
 	dlg_report.show();
-	
+
 	// Aguarda renderização do Dojo e conecta eventos
 	setTimeout(function() {
 		dojo.connect(dijit.byId("btnSaveReport"), "onClick", function() {
 			// Gera conteúdo em texto simples para download
 			var textContent = 'Nome\tAção\tData\tHora\tID';
 			if (hasCategories) textContent += '\tCategorias';
+			if (hasChains) textContent += '\tRedes';
 			if (hasComments) textContent += '\tComentários';
 			textContent += '\n';
-			
+
 			for (var i = 0; i < relatorio.length; i++) {
 				var dateTime = relatorio[i][COL_DATETIME].split(' ');
 				var date = dateTime[0] || '';
 				var time = dateTime[1] || '';
-				
+
 				textContent += (relatorio[i][COL_NAME] || '') + '\t' +
 					relatorio[i][COL_ACTION] + '\t' +
 					date + '\t' +
 					time + '\t' +
 					relatorio[i][COL_ID];
-				
+
 				if (hasCategories)
 					textContent += '\t' + (relatorio[i][COL_CATEGORIES] || '');
+				if (hasChains)
+					textContent += '\t' + (relatorio[i][COL_CHAINS] || '');
 				if (hasComments) {
 					var comment = relatorio[i][COL_COMMENTS] ? relatorio[i][COL_COMMENTS].replace(/(\r\n|\n|\r)/gm, " ").replace(/\s+/g, " ") : '';
 					textContent += '\t' + comment;
 				}
-				
+
 				textContent += '\n';
 			}
-			
+
 			var blob = new Blob([textContent], {type: 'text/plain;charset=utf-8'});
 			var link = document.createElement('a');
 			link.href = window.URL.createObjectURL(blob);
@@ -3345,11 +4323,11 @@ function showDialogReport() {
 			link.click();
 			window.URL.revokeObjectURL(link.href);
 			debugInfo('📁 Relatório exportado com sucesso!');
-			
+
 			// Fecha a modal após salvar
 			dlg_report.hide();
 		});
-		
+
 		dojo.connect(dijit.byId("btnCancelReport"), "onClick", function() {
 			dlg_report.hide();
 		});
@@ -3364,7 +4342,7 @@ function showDialogReport() {
 function setupVerticalNavigation() {
 	const listContainer = dojo.byId("listContainer");
 	if (!listContainer) return;
-	
+
 	/**
 	 * Procura recursivamente o próximo campo habilitado na direção especificada
 	 * @param {string} fieldName - Nome do campo a procurar
@@ -3376,31 +4354,31 @@ function setupVerticalNavigation() {
 		const maxAttempts = 100; // Limite de segurança para evitar loops infinitos
 		let attempts = 0;
 		let currentIndex = startIndex + direction;
-		
+
 		while (attempts < maxAttempts) {
 			const targetRow = dojo.byId("linha" + currentIndex);
-			
+
 			// Se não existe mais linha nesta direção, retorna null
 			if (!targetRow) {
 				return null;
 			}
-			
+
 			// Procura o input com o mesmo name na linha
 			const targetInput = dojo.query("input[name='" + fieldName + "'][type='text']", targetRow)[0];
-			
+
 			// Se encontrou o input e ele está habilitado, retorna
 			if (targetInput && !targetInput.disabled) {
 				return targetInput;
 			}
-			
+
 			// Se o input está desabilitado, continua procurando na mesma direção
 			currentIndex += direction;
 			attempts++;
 		}
-		
+
 		return null;
 	}
-	
+
 	// Busca todos os inputs dentro das linhas (exceto hidden)
 	dojo.query("section.row input[type='text']", listContainer).forEach(function(input) {
 		// Conecta evento keydown no elemento DOM nativo
@@ -3409,29 +4387,29 @@ function setupVerticalNavigation() {
 			if (e.keyCode !== dojo.keys.UP_ARROW && e.keyCode !== dojo.keys.DOWN_ARROW) {
 				return;
 			}
-			
+
 			// Previne o comportamento padrão (mover cursor dentro do input)
 			dojo.stopEvent(e);
-			
+
 			// Identifica o campo atual
 			const fieldName = input.name;
-			
+
 			// Encontra a linha (section) pai navegando pelo DOM
 			let currentRow = input.parentNode;
 			while (currentRow && currentRow.tagName !== 'SECTION') {
 				currentRow = currentRow.parentNode;
 			}
 			if (!currentRow || !currentRow.id) return;
-			
+
 			// Extrai o índice da linha atual do ID (formato: "linha0", "linha1", etc)
 			const currentIndex = parseInt(currentRow.id.replace("linha", ""), 10);
-			
+
 			// Determina a direção da navegação (1 = DOWN, -1 = UP)
 			const direction = (e.keyCode === dojo.keys.DOWN_ARROW) ? 1 : -1;
-			
+
 			// Procura o próximo campo habilitado recursivamente
 			const targetInput = findNextEnabledInput(fieldName, currentIndex, direction);
-			
+
 			if (targetInput) {
 				// Move o foco para o campo de destino
 				setTimeout(function() {
@@ -3441,7 +4419,7 @@ function setupVerticalNavigation() {
 			}
 		});
 	});
-	
+
 	debugLog('⌨️ Navegação vertical (UP/DOWN arrows) ativada nos campos (pula desabilitados)');
 }
 
@@ -3457,31 +4435,23 @@ function verificarAlteracao(textbox, i) {
 	} else {
 		valorOriginal = valorOriginal || '';
 	}
-	
+
 	// Verifica se esta linha está sendo recarregada - se sim, ignora alterações
 	var formElement = document.forms[i];
 	if (formElement && formElement.getAttribute('data-reloading') === 'true') {
 		return; // Ignora alterações durante reload
 	}
-	
+
 	if (valorOriginal != textbox.value) {
 		//console.info("changed (" + i + "): " + textbox.name + ", old value: " + valorOriginal + ", new value: " + textbox.value);
 		csv[i + 1][index] = '"' + textbox.value + '"';
 		dojo.byId("result" + i).innerHTML = "";
-		if (linhasEditadas.indexOf(i) == -1)
-			linhasEditadas.push(i);
-		
-		// Adiciona classe visual para indicar linha editada
 		var linhaElement = dojo.byId("linha" + i);
-		if (linhaElement) {
-			dojo.removeClass(linhaElement, "error"); // Remove erro se existir
-			if (!dojo.hasClass(linhaElement, "edited")) {
-				dojo.addClass(linhaElement, "edited");
-			}
-		}
+		if (linhaElement) dojo.removeClass(linhaElement, "error");
+		marcarLinhaEditada(i);
 		if (textbox.name == "venuell") {
 			var latlng = textbox.value.replace(/ /g, "").split(",");
-			
+
 			// Atualiza marcador no mapa
 			if (window.googleMaps && window.googleMaps.moveMarker) {
 				const position = { lat: parseFloat(latlng[0]), lng: parseFloat(latlng[1]) };
@@ -3501,26 +4471,38 @@ function atualizarItensMenuMais(i) {
 }
 
 function editField(campo, valor) {
-	var inputId, index;
-	for (i = 0; i <= document.forms.length - 1; i++) {
-		if (dojo.query("input[name=selecao]")[i].disabled != true) {
-			inputId = dojo.query("input[name=" + campo + "]")[i].id;
-			if ((dijit.byId(inputId).textbox.value != valor) && (dijit.byId(inputId).readOnly == false) && (dijit.byId(inputId).disabled == false)) {
-				dijit.byId(inputId).set("value", valor);
-				//console.log(campo, dijit.byId(inputId).value);
-				index = csv[0].indexOf(campo);
-				csv[parseInt(i) + 1][index] = dijit.byId(inputId).value;
-				dojo.byId("result" + i).innerHTML = "";
-				if (linhasEditadas.indexOf(parseInt(i)) == -1)
-					linhasEditadas.push(parseInt(i));
-				
-				// Adiciona classe visual para indicar linha editada
-				var linhaElement = dojo.byId("linha" + i);
-				if (linhaElement && !dojo.hasClass(linhaElement, "edited")) {
-					dojo.addClass(linhaElement, "edited");
-				}
-				//console.log(csv[parseInt(i) + 1][2], csv[parseInt(i) + 1][index]);
-			}
+	var estado = obterAlvosEdicaoMultipla(campo);
+	var alterados = 0;
+	var index = csv[0].indexOf(campo);
+
+	for (var alvoIndex = 0; alvoIndex < estado.alvos.length; alvoIndex++) {
+		var alvo = estado.alvos[alvoIndex];
+		if (alvo.widget.textbox.value === valor) continue;
+
+		alvo.widget.set("value", valor);
+		if (index !== -1 && csv[parseInt(alvo.index, 10) + 1]) {
+			csv[parseInt(alvo.index, 10) + 1][index] = alvo.widget.get("value");
 		}
+		dojo.byId("result" + alvo.index).innerHTML = "";
+		marcarLinhaEditada(alvo.index);
+		alterados++;
 	}
+
+	var mensagem;
+	if (alterados === 0) {
+		mensagem = "Nenhum local precisou ser alterado.";
+	} else {
+		var campoLabel = dijit.byId("selectEditField").get("displayedValue");
+		var escopo;
+		if (estado.haSelecionadas) {
+			escopo = alterados + (alterados === 1 ? " local selecionado" : " locais selecionados");
+		} else {
+			escopo = "todos os locais";
+		}
+
+		mensagem = valor === ""
+			? campoLabel + " removido em " + escopo + "."
+			: campoLabel + ' alterado para "' + valor + '" em ' + escopo + ".";
+	}
+	atualizarStatusEdicaoMultipla(mensagem, "success");
 	} // Fecha initializeApplication()

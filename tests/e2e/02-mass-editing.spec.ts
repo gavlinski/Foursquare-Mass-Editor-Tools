@@ -1,4 +1,40 @@
 import { test, expect } from '@playwright/test';
+import { skipIfUnauthenticated } from './auth-session';
+
+type AccordionPane = { domNode: HTMLElement };
+type EditorWidget = {
+  get(name: string): string;
+  set(name: string, value: string | boolean): void;
+  getChildren(): AccordionPane[];
+  selectChild(pane: AccordionPane, animate?: boolean): void;
+};
+type EditorWindow = Window & {
+  dijit?: {
+    byId(id: string): EditorWidget | undefined;
+    getEnclosingWidget(node: Element): EditorWidget | undefined;
+  };
+  appBootstrap?: { editChains?: boolean };
+};
+
+async function abrirPainelDeIds(page: import('@playwright/test').Page) {
+  await page.waitForFunction(() => {
+    const editorWindow = window as EditorWindow;
+    return Boolean(editorWindow.dijit?.byId('accordion'));
+  });
+  const painelAberto = await page.evaluate(() => {
+    const accordion = (window as EditorWindow).dijit?.byId('accordion');
+    if (!accordion) return false;
+    const painelIds = accordion.getChildren().find((pane: { domNode: HTMLElement }) =>
+      pane.domNode.querySelector('#f_ids')
+    );
+    if (!painelIds) return false;
+    accordion.selectChild(painelIds, false);
+    return true;
+  });
+
+  expect(painelAberto).toBe(true);
+  await expect(page.locator('#textarea_ids')).toBeVisible({ timeout: 10_000 });
+}
 
 /**
  * Regressão 2: Edição em Massa
@@ -12,23 +48,24 @@ import { test, expect } from '@playwright/test';
 test.describe('Edição em Massa', () => {
 
   test('main.php exibe formulário de entrada de IDs/URLs', async ({ page }) => {
+    await skipIfUnauthenticated(page);
     await page.goto('/4sqmet/main.php');
-    // Campo de entrada de IDs ou URLs — Dojo SimpleTextarea com id fixo
-    // Nota: 'textarea, input[type=text]' falha pois inputs internos do Dojo (validation icons)
-    // aparecem primeiro no DOM e são hidden. Usar o ID específico do elemento.
-    await expect(page.locator('#textarea_ids')).toBeVisible({ timeout: 10_000 });
+    await abrirPainelDeIds(page);
     // Botão Continuar — Dojo converte <button dojoType="dijit.form.Button"> em <span role="button">
     // por isso 'button:has-text()' não funciona; usar getByRole que respeita ARIA roles
-    await expect(page.getByRole('button', { name: /Continuar/i }).first()).toBeVisible();
+    await expect(page.getByRole('button', { name: /Continuar/i }).filter({ visible: true }).first()).toBeVisible();
   });
 
   test('main.php exibe checkboxes de seleção de campos', async ({ page }) => {
+    await skipIfUnauthenticated(page);
     await page.goto('/4sqmet/main.php');
+    await abrirPainelDeIds(page);
     // Deve haver pelo menos 5 checkboxes (Nome, Endereço, Telefone, etc.)
     const checkboxes = page.locator('input[type=checkbox]');
     await expect(checkboxes).toHaveCount(await checkboxes.count(), { timeout: 5_000 });
     const count = await checkboxes.count();
     expect(count).toBeGreaterThanOrEqual(5);
+    await expect(page.locator('label[for="redes3"]')).toBeVisible();
   });
 
   test('edit.php renderiza campos Dojo para ID de venue válido', async ({ page }) => {
@@ -83,8 +120,10 @@ test.describe('Edição em Massa', () => {
 
     // Fluxo correto: main.php → preencher IDs → submeter → edit.php
     // Navegação direta para edit.php falha em CI (exige sessão estabelecida via load.php)
+    await skipIfUnauthenticated(page);
     await page.goto('/4sqmet/main.php');
     await page.waitForLoadState('networkidle', { timeout: 20_000 });
+    await abrirPainelDeIds(page);
 
     // Preencher ID de venue e marcar checkbox "Nome"
     await page.locator('#textarea_ids').fill(VENUE_ID_TESTE);
@@ -95,11 +134,54 @@ test.describe('Edição em Massa', () => {
     await page.waitForURL('**/edit.php**', { timeout: 30_000 });
     await page.waitForLoadState('networkidle', { timeout: 30_000 });
 
-    // Agora em edit.php — o primeiro dijitInputInner é o campo de nome
-    // Nota: Dojo NÃO preserva o atributo [name] no dijitInputInner, então não usar [name="name"]
-    // main.php tinha o problema de id="pagina" aparecer primeiro — em edit.php o primeiro é o nome
-    const nameInput = page.locator('input.dijitInputInner').first();
-    await nameInput.fill('Teste MCP Playwright');
+    const valoresAtuais = await page.evaluate(() => {
+      const camposVisiveis = Array.from(document.querySelectorAll<HTMLInputElement>('input.dijitInputInner'));
+      return {
+        address: camposVisiveis[0]?.value,
+        city: camposVisiveis[1]?.value,
+      };
+    });
+    expect(valoresAtuais.address).toBeDefined();
+
+    await page.evaluate(() => {
+      const editorWindow = window as EditorWindow;
+      editorWindow.dijit?.byId('selectEditField')?.set('value', 'address');
+      const checkbox = document.querySelector<HTMLInputElement>('input[name="selecao"]');
+      if (checkbox) editorWindow.dijit?.getEnclosingWidget(checkbox)?.set('checked', true);
+      showDialogEditField('address');
+    });
+    await expect.poll(() => page.evaluate(() =>
+      (window as EditorWindow).dijit?.byId('inputEditField')?.get('value')
+    )).toBe(valoresAtuais.address);
+
+    await page.evaluate(() => {
+      (window as EditorWindow).dijit?.byId('selectEditField')?.set('value', 'city');
+    });
+    await expect.poll(() => page.evaluate(() =>
+      (window as EditorWindow).dijit?.byId('inputEditField')?.get('value')
+    )).toBe(valoresAtuais.city);
+
+    await page.evaluate(() => {
+      (window as EditorWindow).dijit?.byId('selectEditField')?.set('value', 'address');
+    });
+    await expect.poll(() => page.evaluate(() =>
+      (window as EditorWindow).dijit?.byId('inputEditField')?.get('value')
+    )).toBe(valoresAtuais.address);
+
+    await page.evaluate(() => {
+      (window as EditorWindow).dijit?.byId('inputEditField')?.set('value', 'Teste MCP Playwright');
+    });
+    await expect.poll(() => page.evaluate(() =>
+      (window as EditorWindow).dijit?.byId('inputEditField')?.get('value')
+    )).toBe('Teste MCP Playwright');
+    await page.getByRole('button', { name: 'Aplicar' }).filter({ visible: true }).click();
+    await expect(page.locator('#editFieldStatus')).toHaveText('Endereço alterado para "Teste MCP Playwright" em 1 local selecionado.');
+
+    await page.evaluate(() => {
+      (window as EditorWindow).dijit?.byId('inputEditField')?.set('value', '');
+    });
+    await page.getByRole('button', { name: 'OK', exact: true }).filter({ visible: true }).click();
+    await expect(page.locator('#editFieldStatus')).toHaveText('Endereço removido em 1 local selecionado.');
 
     // Verificar sinalização de alteração pendente (verificação relaxada)
     const count = await page.locator('.alterado, .changed, [class*="modified"], .row-modified').count();

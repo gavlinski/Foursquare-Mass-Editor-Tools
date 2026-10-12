@@ -500,16 +500,17 @@ id="saveProgress">
 	</div>
 </div>
 <!-- Janela de Edicao Multipla -->
-<div id="dlg_editField" data-dojo-type="dijit.Dialog" data-dojo-props="title:'Edi&ccedil;&atilde;o M&uacute;ltipla'" style="display:none; width: 275px;">
+<div id="dlg_editField" data-dojo-type="dijit.Dialog" data-dojo-props="title:'Edi&ccedil;&atilde;o M&uacute;ltipla'" style="display:none; width: 300px;">
 	<div id="editFieldContainer" class="dijitDialogPaneContentArea">
 		<div class="row">
 			<span class="label"><label for="selectEditField">Campo:</label></span>
-			<select data-dojo-id="selectEditField" name="selectEditField" id="selectEditField" data-dojo-type="dijit/form/Select" style="width: 15.1em; margin-bottom: 9px" data-dojo-props="onChange:function(){ dijit.byId('inputEditField').attr('value', ''); dijit.byId('inputEditField').attr('placeHolder', this.attr('displayedValue')); }"></select>
+            <select data-dojo-id="selectEditField" name="selectEditField" id="selectEditField" data-dojo-type="dijit/form/Select" style="width: 17em; margin-bottom: 9px" data-dojo-props="onChange:function(){ atualizarValorEdicaoMultipla(this.value); }"></select>
 		</div>
 		<div class="row">
 			<span class="label"><label for="selectEditField">Valor:</label></span>
-			<input type="text" id="inputEditField" name="inputEditField1" dojoType="dijit.form.TextBox" trim="true" style="width: 15.1em"/>
+			<input type="text" id="inputEditField" name="inputEditField1" dojoType="dijit.form.TextBox" trim="true" style="width: 17em"/>
 		</div>
+        <div id="editFieldStatus" class="bulk-edit-status" role="status" aria-live="polite"></div>
 	</div>
 	<div class="dijitDialogPaneActionBar">
 		<button data-dojo-type="dijit.form.Button" type="submit" id="editFieldOkButton" data-dojo-props="onClick:function(){ editField(dijit.byId('selectEditField').value, dijit.byId('inputEditField').value); }">OK</button>

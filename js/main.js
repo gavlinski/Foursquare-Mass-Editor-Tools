@@ -13,7 +13,27 @@ dojo.require("dojox.image");
 
 // Utilitários de logging (isLocalhost, debugLog, debugInfo) são providos por session-manager.js
 
+function configurarBuscaCategoriaPrincipal() {
+	var widget = dijit.byId("categoryId");
+	if (!widget || !widget.textbox || widget._exactCategoryBlurBound) return;
+	widget._exactCategoryBlurBound = true;
+	widget.set("required", false);
+	widget.textbox.addEventListener("blur", function() {
+		var termo = (widget.get("displayedValue") || "").trim().toLocaleLowerCase();
+		if (!termo) return;
+
+		var termoEscapado = termo.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+		var correspondencias = widget.store.query({
+			name: new RegExp("^" + termoEscapado + "$", "i")
+		});
+		if (correspondencias.length === 1) {
+			widget.set("value", correspondencias[0].id);
+		}
+	});
+}
+
 dojo.addOnLoad(function() {
+	configurarBuscaCategoriaPrincipal();
 	// Preload de imagens do tema (Dojo carregará automaticamente quando necessário)
 	// dojox.image.preload(["js/dijit/themes/tundra/images/progressBarFull.png", "js/dijit/themes/tundra/images/progressBarAnim.gif"]);
 	
@@ -225,6 +245,12 @@ dojo.ready(function() {
 			isBackNavigation = (performance.navigation.type === 2);
 			debugLog("🔍 Tipo de navegação (deprecated):", performance.navigation.type);
 		}
+		try {
+			var referrerUrl = new URL(document.referrer);
+			if (referrerUrl.origin === window.location.origin && /\/edit\.php$/.test(referrerUrl.pathname)) {
+				isBackNavigation = true;
+			}
+		} catch (error) {}
 		
 		// Se for reload (F5) ou navegação normal, limpa os cookies de arquivo
 		if (!isBackNavigation) {

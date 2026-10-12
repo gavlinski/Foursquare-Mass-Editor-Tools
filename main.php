@@ -651,33 +651,28 @@ if ((isset($_COOKIE['name'])) && (strlen($_COOKIE['name']) > 0))
 						<div class="categoryidcomboboxlabel"><label for="categoryId"><a href="https://docs.foursquare.com/developer/reference/place-search" target="_blank">Categoria</a>:</label></div>
 						<div class="categoryidcombobox">
 							<div class="combobox">
-								<select data-dojo-id="categoryId" name="categoryId" id="categoryId" data-dojo-type="dijit/form/FilteringSelect">
+								<select data-dojo-id="categoryId" name="categoryId" id="categoryId" data-dojo-type="dijit/form/FilteringSelect" data-dojo-props='queryExpr:"*${0}*",highlightMatch:"all",autoComplete:false,required:false'>
 <?php
 	$options = '									<option value=""></option>
 	';
 	if ($categories_loaded) {
 		$categories_names = array();
-	
-		foreach ($categories->response->categories as $category):
-			if (property_exists($category, "categories"))
-				foreach ($category->categories as $category2):
-					if (property_exists($category2, "name")) {
-						$categories_names[$category2->id] = $category2->name;
-					}
-					if (property_exists($category2, "categories"))
-						foreach ($category2->categories as $category3):
-							if (property_exists($category3, "name")) {
-								$categories_names[$category3->id] = $category3->name;
-							}
-							if (property_exists($category3, "categories"))
-								foreach ($category3->categories as $category4):
-									if (property_exists($category4, "name")) {
-										$categories_names[$category4->id] = $category4->name;
-									}
-								endforeach;
-						endforeach;
-				endforeach;
-		endforeach;
+		$addCategoryNames = function ($categoriesAtLevel) use (&$addCategoryNames, &$categories_names) {
+			foreach ($categoriesAtLevel as $categoryOption) {
+				if (isset($categoryOption->id) && isset($categoryOption->name)) {
+					$categories_names[$categoryOption->id] = $categoryOption->name;
+				}
+				if (property_exists($categoryOption, "categories") && is_array($categoryOption->categories)) {
+					$addCategoryNames($categoryOption->categories);
+				}
+			}
+		};
+
+		foreach ($categories->response->categories as $category) {
+			if (property_exists($category, "categories") && is_array($category->categories)) {
+				$addCategoryNames($category->categories);
+			}
+		}
 
 		asort($categories_names);
 		foreach ($categories_names as $key => $val) {
