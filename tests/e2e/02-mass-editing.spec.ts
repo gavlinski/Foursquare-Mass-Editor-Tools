@@ -135,13 +135,15 @@ test.describe('Edição em Massa', () => {
     await page.waitForLoadState('networkidle', { timeout: 30_000 });
 
     const valoresAtuais = await page.evaluate(() => {
-      const camposVisiveis = Array.from(document.querySelectorAll<HTMLInputElement>('input.dijitInputInner'));
+      const valorDoCampo = (nome: string) =>
+        document.querySelector<HTMLInputElement>(`input[name="${nome}"]`)?.value;
       return {
-        address: camposVisiveis[0]?.value,
-        city: camposVisiveis[1]?.value,
+        address: valorDoCampo('address'),
+        city: valorDoCampo('city'),
       };
     });
     expect(valoresAtuais.address).toBeDefined();
+    expect(valoresAtuais.city).toBeDefined();
 
     await page.evaluate(() => {
       const editorWindow = window as EditorWindow;
