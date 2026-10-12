@@ -462,12 +462,40 @@ include_once __DIR__ . '/../includes/asset_helper.php';
         var prefix = logoObj.prefix || "";
         var suffix = logoObj.suffix || "";
         if (!prefix || !suffix) return defaultLogo;
+        var url;
         if (prefix.indexOf("img/general") > -1) {
             var cleanPrefix = prefix.replace(/\/+$/, "");
             var cleanSuffix = suffix.replace(/^\/+/, "");
-            return cleanPrefix + "/32x32/" + cleanSuffix;
+            url = cleanPrefix + "/32x32/" + cleanSuffix;
+        } else {
+            url = prefix + "32" + suffix;
         }
-        return prefix + "32" + suffix;
+        try {
+            var parsedUrl = new URL(url, window.location.href);
+            return parsedUrl.protocol === "https:" ? parsedUrl.href : defaultLogo;
+        } catch (e) {
+            return defaultLogo;
+        }
+    }
+
+    function criarImagemRede(url, nome) {
+        var imagem = document.createElement("img");
+        imagem.src = url;
+        imagem.alt = nome;
+        imagem.onerror = function() {
+            this.onerror = null;
+            this.src = defaultLogo;
+        };
+        return imagem;
+    }
+
+    function exibirMensagem(container, mensagem, cor) {
+        var elemento = document.createElement("div");
+        elemento.style.padding = "12px";
+        elemento.style.fontSize = "13px";
+        elemento.style.color = cor;
+        elemento.textContent = mensagem;
+        container.replaceChildren(elemento);
     }
 
     // Estado local da tela de testes
@@ -549,16 +577,22 @@ include_once __DIR__ . '/../includes/asset_helper.php';
             return;
         }
 
-        infoDiv.innerHTML = "⏳ Carregando dados da venue na API v2...";
+        infoDiv.textContent = "⏳ Carregando dados da venue na API v2...";
 
         try {
-            var url = "https://api.foursquare.com/v2/venues/" + venueId + "?oauth_token=" + token + "&v=" + DATA_VERSIONAMENTO;
+            var url = "https://api.foursquare.com/v2/venues/" + encodeURIComponent(venueId) + "?oauth_token=" + encodeURIComponent(token) + "&v=" + DATA_VERSIONAMENTO;
             var resp = await fetch(url);
             var json = await resp.json();
 
             if (json.meta && json.meta.code === 200 && json.response && json.response.venue) {
                 var v = json.response.venue;
-                infoDiv.innerHTML = "✅ Local encontrado: <strong>" + (v.name || "") + "</strong> (" + (v.location.city || "") + "/" + (v.location.state || "") + ")";
+                infoDiv.replaceChildren();
+                infoDiv.appendChild(document.createTextNode("✅ Local encontrado: "));
+                var venueName = document.createElement("strong");
+                venueName.textContent = v.name || "";
+                infoDiv.appendChild(venueName);
+                var location = v.location || {};
+                infoDiv.appendChild(document.createTextNode(" (" + (location.city || "") + "/" + (location.state || "") + ")"));
 
                 redesOriginais = [];
                 redesAtuais = [];
@@ -576,10 +610,10 @@ include_once __DIR__ . '/../includes/asset_helper.php';
                 renderizarRedesSelecionadas();
                 atualizarSimulacaoPayload();
             } else {
-                infoDiv.innerHTML = "❌ Erro ao buscar venue: " + (json.meta ? json.meta.errorDetail || json.meta.errorType : "Desconhecido");
+                infoDiv.textContent = "❌ Erro ao buscar venue: " + (json.meta ? json.meta.errorDetail || json.meta.errorType : "Desconhecido");
             }
         } catch (e) {
-            infoDiv.innerHTML = "❌ Erro de conexão: " + e.message;
+            infoDiv.textContent = "❌ Erro de conexão: " + e.message;
         }
     }
 
@@ -587,27 +621,60 @@ include_once __DIR__ . '/../includes/asset_helper.php';
     function renderizarRedesSelecionadas() {
         var container = document.getElementById("selectedChainsContainer");
         if (redesAtuais.length === 0) {
-            container.innerHTML = '<span style="color: #94a3b8; font-size: 13px;">Nenhuma rede selecionada para este local.</span>';
+            container.replaceChildren();
+            var emptyMessage = document.createElement("span");
+            emptyMessage.style.color = "#94a3b8";
+            emptyMessage.style.fontSize = "13px";
+            emptyMessage.textContent = "Nenhuma rede selecionada para este local.";
+            container.appendChild(emptyMessage);
             return;
         }
 
-        var html = "";
+        container.replaceChildren();
         redesAtuais.forEach(function(ch, idx) {
             var isPrimary = (idx === 0);
-            html += '<div class="chain-badge ' + (isPrimary ? 'is-primary' : '') + '">';
-            html += '<img src="' + ch.logo + '" alt="' + ch.name + '" onerror="this.src=\'' + defaultLogo + '\'">';
-            html += '<span>' + ch.name + '</span>';
-            html += '<small style="color: #64748b; font-size: 11px;">(' + ch.id.substr(0, 8) + '...)</small>';
+            var badge = document.createElement("div");
+            badge.className = "chain-badge" + (isPrimary ? " is-primary" : "");
+            badge.appendChild(criarImagemRede(ch.logo, ch.name));
+
+            var name = document.createElement("span");
+            name.textContent = ch.name;
+            badge.appendChild(name);
+
+            var id = document.createElement("small");
+            id.style.color = "#64748b";
+            id.style.fontSize = "11px";
+            id.textContent = "(" + String(ch.id).substr(0, 8) + "...)";
+            badge.appendChild(id);
+
             if (isPrimary) {
-                html += '<span style="font-size: 10px; font-weight: 700; background: #6366f1; color: #fff; padding: 1px 6px; border-radius: 10px;">PRIMÁRIA</span>';
+                var primaryLabel = document.createElement("span");
+                primaryLabel.style.cssText = "font-size: 10px; font-weight: 700; background: #6366f1; color: #fff; padding: 1px 6px; border-radius: 10px;";
+                primaryLabel.textContent = "PRIMÁRIA";
+                badge.appendChild(primaryLabel);
             } else {
-                html += '<button type="button" class="badge-primary-btn" onclick="tornarPrimaria(' + idx + ')">tornar primária</button>';
+                var primaryButton = document.createElement("button");
+                primaryButton.type = "button";
+                primaryButton.className = "badge-primary-btn";
+                primaryButton.textContent = "tornar primária";
+                primaryButton.addEventListener("click", function() { tornarPrimaria(idx); });
+                badge.appendChild(primaryButton);
             }
-            html += '<span class="badge-remove" title="Remover rede" onclick="removerRede(' + idx + ')">&times;</span>';
-            html += '</div>';
+
+            var removeButton = document.createElement("button");
+            removeButton.type = "button";
+            removeButton.className = "badge-remove";
+            removeButton.title = "Remover rede";
+            removeButton.style.background = "none";
+            removeButton.style.border = "none";
+            removeButton.style.padding = "0";
+            removeButton.setAttribute("aria-label", "Remover " + ch.name);
+            removeButton.textContent = "×";
+            removeButton.addEventListener("click", function() { removerRede(idx); });
+            badge.appendChild(removeButton);
+            container.appendChild(badge);
         });
 
-        container.innerHTML = html;
         atualizarSimulacaoPayload();
     }
 
@@ -753,37 +820,55 @@ include_once __DIR__ . '/../includes/asset_helper.php';
             loading.style.display = "none";
 
             if (json.response && json.response.results && json.response.results.length > 0) {
-                var html = "";
+                container.replaceChildren();
                 json.response.results.forEach(function(r) {
                     var logoUrl = formatarLogoRede(r.logo);
                     var nome = (r.bestName && r.bestName.name) ? r.bestName.name : r.id;
                     var locaisTxt = (r.count || 0) + " locais";
                     var paisesTxt = (r.countries || 1) + " país(es)";
 
-                    html += '<div class="visual-result-item" onclick="adicionarRede(\'' + r.id + '\', \'' + nome.replace(/'/g, "\\'") + '\', \'' + logoUrl + '\')">';
-                    html += '  <div class="visual-item-left">';
-                    html += '    <img src="' + logoUrl + '" alt="' + nome + '" onerror="this.src=\'' + defaultLogo + '\'">';
-                    html += '    <div>';
-                    html += '      <div class="visual-item-title">' + nome + '</div>';
-                    html += '      <div class="visual-item-subtitle">ID: ' + r.id + '</div>';
-                    html += '    </div>';
-                    html += '  </div>';
-                    html += '  <div class="visual-item-right">';
-                    html += '    <div style="font-weight: 600; color: #475569;">' + locaisTxt + '</div>';
-                    html += '    <div>' + paisesTxt + '</div>';
-                    html += '  </div>';
-                    html += '</div>';
+                    var result = document.createElement("div");
+                    result.className = "visual-result-item";
+                    result.addEventListener("click", function() { adicionarRede(r.id, nome, logoUrl); });
+
+                    var left = document.createElement("div");
+                    left.className = "visual-item-left";
+                    left.appendChild(criarImagemRede(logoUrl, nome));
+                    var details = document.createElement("div");
+                    var title = document.createElement("div");
+                    title.className = "visual-item-title";
+                    title.textContent = nome;
+                    var subtitle = document.createElement("div");
+                    subtitle.className = "visual-item-subtitle";
+                    subtitle.textContent = "ID: " + String(r.id || "");
+                    details.appendChild(title);
+                    details.appendChild(subtitle);
+                    left.appendChild(details);
+                    result.appendChild(left);
+
+                    var right = document.createElement("div");
+                    right.className = "visual-item-right";
+                    var count = document.createElement("div");
+                    count.style.fontWeight = "600";
+                    count.style.color = "#475569";
+                    count.textContent = locaisTxt;
+                    var countries = document.createElement("div");
+                    countries.textContent = paisesTxt;
+                    right.appendChild(count);
+                    right.appendChild(countries);
+                    result.appendChild(right);
+                    container.appendChild(result);
                 });
 
-                container.innerHTML = html;
                 container.style.display = "block";
             } else {
-                container.innerHTML = '<div style="padding: 12px; font-size: 13px; color: #94a3b8; text-align: center;">Nenhuma rede encontrada para "' + query + '"</div>';
+                exibirMensagem(container, 'Nenhuma rede encontrada para "' + query + '"', "#94a3b8");
+                container.firstChild.style.textAlign = "center";
                 container.style.display = "block";
             }
         } catch (e) {
             loading.style.display = "none";
-            container.innerHTML = '<div style="padding: 12px; font-size: 13px; color: #ef4444;">Erro ao buscar: ' + e.message + '</div>';
+            exibirMensagem(container, "Erro ao buscar: " + e.message, "#ef4444");
             container.style.display = "block";
         }
     }

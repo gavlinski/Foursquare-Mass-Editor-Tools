@@ -135,6 +135,217 @@ function colunasCompletas(): string[] {
 }
 
 test.describe('Consistência do CSV de venues', () => {
+  test('página de debug renderiza dados remotos de Chains como texto', async ({ page }) => {
+    const venueName = '<img id="xss-probe" src=x onerror="window.__xssTriggered=true"> Venue';
+    const city = '<svg id="xss-svg" onload="window.__xssTriggered=true"></svg>';
+    const chainName = '<img id="xss-probe" src=x onerror="window.__xssTriggered=true"> Chain';
+    const chainId = '556e092ea7c82e6b724ee2ef';
+
+    await page.addInitScript(() => {
+      (window as unknown as Window & { __xssTriggered: boolean }).__xssTriggered = false;
+    });
+    await page.route('https://api.foursquare.com/v2/**', async route => {
+      const url = new URL(route.request().url());
+      if (url.pathname.includes('/venues/')) {
+        await route.fulfill({
+          contentType: 'application/json',
+          body: JSON.stringify({
+            meta: { code: 200 },
+            response: {
+              venue: {
+                name: venueName,
+                location: { city, state: 'CA' },
+                venueChains: [{
+                  id: chainId,
+                  bestName: { name: chainName },
+                  logo: { prefix: 'javascript:', suffix: 'alert(1)' }
+                }]
+              }
+            }
+          })
+        });
+        return;
+      }
+
+      await route.fulfill({
+        contentType: 'application/json',
+        body: JSON.stringify({
+          response: {
+            results: [{
+              id: chainId,
+              bestName: { name: chainName },
+              logo: { prefix: 'javascript:', suffix: 'alert(1)' },
+              count: 1,
+              countries: 1
+            }]
+          }
+        })
+      });
+    });
+
+    await page.goto('/4sqmet/debug/test_chains_selector.php');
+    await page.evaluate(async ({ venueName, chainName }) => {
+      const debugPage = window as unknown as Window & {
+        carregarDadosLocal: () => Promise<void>;
+        executarBuscaOpt2: (query: string) => Promise<void>;
+      };
+      (document.getElementById('tokenInput') as HTMLInputElement).value = 'test-token';
+      await debugPage.carregarDadosLocal();
+      await debugPage.executarBuscaOpt2('xss');
+      return { venueName, chainName };
+    }, { venueName, chainName });
+
+    await expect(page.locator('#localInfo')).toContainText(venueName);
+    await expect(page.locator('#localInfo')).toContainText(city);
+    await expect(page.locator('#selectedChainsContainer .chain-badge')).toContainText(chainName);
+    await expect(page.locator('#opt2ResultsList .visual-item-title')).toHaveText(chainName);
+    await expect(page.locator('#xss-probe, #xss-svg')).toHaveCount(0);
+    const logoSources = await page.locator('#selectedChainsContainer img, #opt2ResultsList img')
+      .evaluateAll(images => images.map(image => (image as HTMLImageElement).src));
+    expect(logoSources).toEqual([
+      'https://app.foursquare.com/img/categories_v2/none_bg_32.png',
+      'https://app.foursquare.com/img/categories_v2/none_bg_32.png'
+    ]);
+    expect(await page.evaluate(() => (window as unknown as Window & { __xssTriggered: boolean }).__xssTriggered)).toBe(false);
+  });
+
+  test('detalhes de Chain usam o handler central para retry e sessão expirada', async ({ page }) => {
+    const chainId = '556e092ea7c82e6b724ee2ef';
+    await page.setContent(`<form><div id="chainIcone0"></div></form>`);
+    await page.evaluate(chainId => {
+      const editor = window as unknown as Window & {
+        dojo: { require: () => void; ready: (callback: () => void) => void; addOnLoad: () => void; byId: (id: string) => HTMLElement | null; cookie: () => string };
+        dijit: { byId: () => null; Tooltip: new (options: { label: string }) => { domNode: HTMLDivElement } };
+        __requestMode: string;
+        __requestCount: number;
+        __tooltipHtml: string;
+        __expiredDialogShown: boolean;
+        sessionManager: { showTokenExpiredDialog: () => void };
+        XMLHttpRequest: typeof XMLHttpRequest;
+      };
+      editor.dojo = {
+        require: () => undefined,
+        ready: callback => callback(),
+        addOnLoad: () => undefined,
+        byId: id => document.getElementById(id),
+        cookie: () => ''
+      };
+      editor.dijit = {
+        byId: () => null,
+        Tooltip: class {
+          domNode = document.createElement('div');
+          constructor(options: { label: string }) {
+            this.domNode.innerHTML = options.label;
+          }
+        }
+      };
+      editor.__requestMode = 'rate-limit';
+      editor.__requestCount = 0;
+      editor.__tooltipHtml = '';
+      editor.__expiredDialogShown = false;
+      editor.sessionManager = { showTokenExpiredDialog: () => { editor.__expiredDialogShown = true; } };
+      const originalSetTimeout = window.setTimeout.bind(window);
+      window.setTimeout = ((handler: TimerHandler, timeout?: number) => {
+        return originalSetTimeout(handler, timeout === 60000 ? 0 : timeout);
+      }) as typeof window.setTimeout;
+      class FakeXhr {
+        readyState = 0;
+        status = 0;
+        responseText = '';
+        onreadystatechange: (() => void) | null = null;
+        private requestNumber = 0;
+
+        open() {
+          this.requestNumber = ++editor.__requestCount;
+        }
+
+        setRequestHeader() {}
+
+        send() {
+          if (editor.__requestMode === 'timeout') return;
+          setTimeout(() => {
+            if (editor.__requestMode === 'unauthorized') {
+              this.status = 401;
+              this.responseText = JSON.stringify({ meta: { code: 401, errorType: 'invalid_auth' } });
+            } else if (editor.__requestMode === 'rate-limit' && this.requestNumber === 1) {
+              this.status = 429;
+              this.responseText = JSON.stringify({ meta: { code: 429, errorType: 'rate_limit' } });
+            } else if (editor.__requestMode === 'gateway-timeout') {
+              this.status = 504;
+              this.responseText = JSON.stringify({ meta: { code: 504, errorType: 'gateway_timeout' } });
+            } else {
+              this.status = 200;
+              this.responseText = JSON.stringify({
+                response: { venueChain: { id: chainId, bestName: { name: 'Chain de teste' }, logo: { prefix: 'https://image.test/', suffix: 'chain.png' } } }
+              });
+            }
+            this.readyState = 4;
+            this.onreadystatechange?.();
+          }, 0);
+        }
+
+        abort() {
+          this.readyState = 4;
+          this.status = 0;
+          this.onreadystatechange?.();
+        }
+      }
+      editor.XMLHttpRequest = FakeXhr as unknown as typeof XMLHttpRequest;
+    }, chainId);
+    await page.addScriptTag({ path: path.resolve(process.cwd(), 'js/4sq_csv.js') });
+
+    await page.evaluate(chainId => {
+      const editor = window as Window & { oauth_token: string; buscarRedeIndividual: (id: string, index: number) => void };
+      editor.oauth_token = 'test-token';
+      editor.buscarRedeIndividual(chainId, 0);
+    }, chainId);
+    await expect.poll(() => page.evaluate(() => (window as unknown as Window & { __requestCount: number }).__requestCount)).toBe(2);
+    await expect.poll(() => page.evaluate(chainId => {
+      return (window as unknown as { redes: Record<string, { nome: string }> }).redes[chainId]?.nome;
+    }, chainId)).toBe('Chain de teste');
+    await expect(page.locator('#tt_chainImg0')).toContainText('Chain de teste');
+
+    await page.evaluate(chainId => {
+      const editor = window as unknown as Window & {
+        __requestMode: string;
+        __requestCount: number;
+        buscarRedeIndividual: (id: string, index: number) => void;
+      };
+      editor.__requestMode = 'gateway-timeout';
+      editor.__requestCount = 0;
+      editor.buscarRedeIndividual(chainId, 0);
+    }, chainId);
+    await expect.poll(() => page.evaluate(() => (window as unknown as Window & { __requestCount: number }).__requestCount), { timeout: 8000 }).toBe(4);
+    await expect(page.locator('#tt_chainImg0')).toContainText('Erro ao buscar rede (504)');
+
+    await page.evaluate(chainId => {
+      const editor = window as unknown as Window & {
+        __requestMode: string;
+        __requestCount: number;
+        buscarRedeIndividual: (id: string, index: number) => void;
+      };
+      editor.__requestMode = 'timeout';
+      editor.__requestCount = 0;
+      editor.buscarRedeIndividual(chainId, 0);
+    }, chainId);
+    await expect.poll(() => page.evaluate(() => (window as unknown as Window & { __requestCount: number }).__requestCount), { timeout: 8000 }).toBe(4);
+    await expect(page.locator('#tt_chainImg0')).toContainText('Erro ao buscar rede (timeout)');
+
+    await page.evaluate(chainId => {
+      const editor = window as unknown as Window & {
+        __requestMode: string;
+        __requestCount: number;
+        buscarRedeIndividual: (id: string, index: number) => void;
+      };
+      editor.__requestMode = 'unauthorized';
+      editor.__requestCount = 0;
+      editor.buscarRedeIndividual(chainId, 0);
+    }, chainId);
+    await expect.poll(() => page.evaluate(() => (window as unknown as Window & { __expiredDialogShown: boolean }).__expiredDialogShown)).toBe(true);
+    await expect(page.locator('#tt_chainImg0')).toContainText('Sessão Foursquare expirada');
+    await expect(page.locator('#chainIcone0 img')).toHaveAttribute('src', 'https://app.foursquare.com/img/categories_v2/none_bg_32.png');
+  });
+
   test('mantém as colunas alinhadas no modo parcial', async ({ page }) => {
     await carregarLogicaCsv(page);
 

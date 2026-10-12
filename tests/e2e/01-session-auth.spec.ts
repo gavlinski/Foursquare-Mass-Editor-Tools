@@ -1,6 +1,8 @@
 import { test, expect } from '@playwright/test';
 import { skipIfUnauthenticated } from './auth-session';
 
+const isProductionTargeted = process.env.E2E_TARGET_ENV === 'production';
+
 /**
  * Regressão 1: Sessão e Autenticação
  *
@@ -46,7 +48,7 @@ test.describe('Sessão e Autenticação', () => {
     try {
       const page = await context.newPage();
       const createResponse = await page.request.get('/4sqmet/debug/session_test_manager.php?action=create');
-      test.skip(createResponse.status() === 404, 'Ferramentas de sessão de teste ficam desativadas em produção');
+      test.skip(isProductionTargeted && createResponse.status() === 404, 'Ferramentas de sessão de teste ficam desativadas em produção');
       expect(createResponse.status()).toBe(200);
 
       const statusResponse = await page.request.get('/4sqmet/session_status.php');
@@ -64,7 +66,7 @@ test.describe('Sessão e Autenticação', () => {
 
   test('debug/debug_session.php - validar sessão', async ({ page }) => {
     const response = await page.request.get('/4sqmet/debug/debug_session.php?mode=validate');
-    test.skip(response.status() === 404, 'Ferramentas de sessão de teste ficam desativadas em produção');
+    test.skip(isProductionTargeted && response.status() === 404, 'Ferramentas de sessão de teste ficam desativadas em produção');
     expect(response.status()).toBe(200);
   });
 

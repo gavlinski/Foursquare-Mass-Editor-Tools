@@ -53,19 +53,29 @@ function atualizarResultado(i, imagem, dica) {
 	}
 }
 
-function xmlhttpRequest(metodo, endpoint, acao, dados, i) {
+function xmlhttpRequest(metodo, endpoint, acao, dados, i, callbacks) {
 	var xmlhttp = new XMLHttpRequest();
 	var imagem, dica;
+	var requestSettled = false;
 	xmlhttp.onreadystatechange = function() {
-		if (xmlhttp.readyState == 4) {
+		if (xmlhttp.readyState == 4 && !requestSettled) {
+			requestSettled = true;
 			try {
 				var resposta = JSON.parse(xmlhttp.responseText);
 			} catch(err) {
+				if (callbacks && callbacks.error) {
+					clearTimeout(xmlhttpTimeout);
+					callbacks.error(xmlhttp.status, null);
+				}
 				return false;
 			}
 			/*** O erro {"meta":{"code":400,"errorType":"param_error","errorDetail":"Must start with http:\/\/"}} é um bug da API que ocorre quando o campo url é enviado em branco. Mas mesmo dando erro, a venue é corretamente editada. ***/
 			if ((xmlhttp.status == 200) || ((xmlhttp.status == 400) && (resposta.meta.errorType == "param_error") && (resposta.meta.errorDetail == "Must start with http:\/\/"))) {
 				clearTimeout(xmlhttpTimeout);
+				if (callbacks && callbacks.success) {
+					callbacks.success(resposta);
+					return;
+				}
 
 				// Remove indicador visual de erro em caso de sucesso
 				if (i !== undefined && i !== null) {
@@ -106,13 +116,16 @@ function xmlhttpRequest(metodo, endpoint, acao, dados, i) {
 				}
 			} else if (xmlhttp.status == 400) {
 				clearTimeout(xmlhttpTimeout);
-				atualizarResultado(i, "<img src='img/erro.png' alt='Erro 400: Bad Request, Tipo: " + resposta.meta.errorType + ", Detalhe: " + resposta.meta.errorDetail + "'>", "<span style=\"font-size: 12px\">Erro 400: Bad Request, Tipo: " + resposta.meta.errorType + ",<br>Detalhe: " + resposta.meta.errorDetail + "</span>");
+				if (callbacks && callbacks.error) callbacks.error(xmlhttp.status, resposta);
+				else atualizarResultado(i, "<img src='img/erro.png' alt='Erro 400: Bad Request, Tipo: " + resposta.meta.errorType + ", Detalhe: " + resposta.meta.errorDetail + "'>", "<span style=\"font-size: 12px\">Erro 400: Bad Request, Tipo: " + resposta.meta.errorType + ",<br>Detalhe: " + resposta.meta.errorDetail + "</span>");
 			} else if (xmlhttp.status == 401) {
 				clearTimeout(xmlhttpTimeout);
-				atualizarResultado(i, "<img src='img/erro.png' alt='Erro 401: Unauthorized, Tipo: " + resposta.meta.errorType + ", Detalhe: " + resposta.meta.errorDetail + "'>", "<span style=\"font-size: 12px\">Erro 401: Unauthorized, Tipo: " + resposta.meta.errorType + ",<br>Detalhe: " + resposta.meta.errorDetail + "</span>");
+				if (callbacks && callbacks.error) callbacks.error(xmlhttp.status, resposta);
+				else atualizarResultado(i, "<img src='img/erro.png' alt='Erro 401: Unauthorized, Tipo: " + resposta.meta.errorType + ", Detalhe: " + resposta.meta.errorDetail + "'>", "<span style=\"font-size: 12px\">Erro 401: Unauthorized, Tipo: " + resposta.meta.errorType + ",<br>Detalhe: " + resposta.meta.errorDetail + "</span>");
 			} else if (xmlhttp.status == 403) {
 				clearTimeout(xmlhttpTimeout);
-				atualizarResultado(i, "<img src='img/erro.png' alt='Erro 403: Forbidden'>", "<span style=\"font-size: 12px\">Erro 403: Forbidden, Tipo: " + resposta.meta.errorType + ",<br>Detalhe: " + resposta.meta.errorDetail + "</span>");
+				if (callbacks && callbacks.error) callbacks.error(xmlhttp.status, resposta);
+				else atualizarResultado(i, "<img src='img/erro.png' alt='Erro 403: Forbidden'>", "<span style=\"font-size: 12px\">Erro 403: Forbidden, Tipo: " + resposta.meta.errorType + ",<br>Detalhe: " + resposta.meta.errorDetail + "</span>");
 			} else {
 				clearTimeout(xmlhttpTimeout);
 				switch (xmlhttp.status) {
@@ -140,6 +153,10 @@ function xmlhttpRequest(metodo, endpoint, acao, dados, i) {
 					imagem  = "<img src='img/erro.png' alt='Erro 409: Conflict'>";
 					dica = "<span style=\"font-size: 12px\">Erro 409: Conflict</span>";
 					break;
+				case 429:
+					imagem = "<img src='img/erro.png' alt='Erro 429: Too Many Requests'>";
+					dica = "<span style=\"font-size: 12px\">Erro 429: Limite de requisições excedido</span>";
+					break;
 				case 500:
 					imagem = "<img src='img/erro.png' alt='Erro 500: Internal Server Error'>";
 					dica = "<span style=\"font-size: 12px\">Erro 500: Internal Server Error</span>";
@@ -156,7 +173,8 @@ function xmlhttpRequest(metodo, endpoint, acao, dados, i) {
 					imagem = "<img src='img/erro.png' alt='Erro desconhecido: " + xmlhttp.status + "'>";
 					dica = "<span style=\"font-size: 12px\">Erro desconhecido: " + xmlhttp.status + "</span>";
 				} // switch
-				atualizarResultado(i, imagem, dica);
+				if (callbacks && callbacks.error) callbacks.error(xmlhttp.status, resposta);
+				else atualizarResultado(i, imagem, dica);
 			}
 		}
 	}
@@ -165,9 +183,13 @@ function xmlhttpRequest(metodo, endpoint, acao, dados, i) {
 	xmlhttp.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
 	xmlhttp.send(dados);
 	var xmlhttpTimeout = setTimeout(function ajaxTimeout() {
+		if (requestSettled) return;
+		requestSettled = true;
 		xmlhttp.abort();
 		console.info(metodo + " abortado!");
-		if (metodo == "POST")
+		if (callbacks && callbacks.error)
+			callbacks.error(0, null);
+		else if (metodo == "POST")
 			atualizarResultado(i, "<img src='img/erro.png' alt='Erro: Request Timed Out'>", "<span style=\"font-size: 12px\">Erro: Request Timed Out</span>");
 	}, 60000);
 	return false;
@@ -389,33 +411,37 @@ function renderizarIconeRede(elemento, imageId, logoUrl, tooltipHtml, opacity) {
 	createTooltip(imageId, "<span style=\"font-size: 12px\">" + escapeChainTooltipHtml(tooltipHtml) + "</span>");
 }
 
-function buscarRedeIndividual(chainId, linhaIndex) {
+function buscarRedeIndividual(chainId, linhaIndex, tentativa) {
 	if (!validarIdRede(chainId)) return;
+	tentativa = tentativa || 0;
 	var defaultLogo = "https://app.foursquare.com/img/categories_v2/none_bg_32.png";
-	var xhr = new XMLHttpRequest();
-	xhr.open("GET", "https://api.foursquare.com/v2/chains/" + encodeURIComponent(chainId) + "?oauth_token=" + encodeURIComponent(oauth_token) + "&v=" + DATA_VERSIONAMENTO, true);
-	xhr.onreadystatechange = function() {
-		if (xhr.readyState === 4) {
-			if (xhr.status === 200) {
-				try {
-					var resp = JSON.parse(xhr.responseText);
-					if (resp.response && resp.response.venueChain) {
-						var vc = resp.response.venueChain;
-						var logoUrl = formatarLogoRede(vc.logo);
-						var nome = (vc.bestName && vc.bestName.name) ? vc.bestName.name : vc.id;
-						redes[chainId] = { nome: nome, logo: logoUrl };
-						var chainIcon = dojo.byId("chainIcone" + linhaIndex);
-						if (chainIcon) {
-							renderizarIconeRede(chainIcon, "chainImg" + linhaIndex, logoUrl, nome || chainId, 1);
-						}
-					}
-				} catch(e) {
-					console.error("Erro ao processar rede " + chainId + ": " + e.message);
-				}
+	var endpoint = "https://api.foursquare.com/v2/chains/" + encodeURIComponent(chainId) + "?oauth_token=" + encodeURIComponent(oauth_token) + "&v=" + DATA_VERSIONAMENTO;
+	xmlhttpRequest("GET", endpoint, "chain", null, linhaIndex, {
+		success: function(resp) {
+			var vc = resp.response && resp.response.venueChain;
+			var chainIcon = dojo.byId("chainIcone" + linhaIndex);
+			if (!vc) {
+				if (chainIcon) renderizarIconeRede(chainIcon, "chainImg" + linhaIndex, defaultLogo, "Detalhes da rede indisponíveis", 1);
+				return;
 			}
+			var logoUrl = formatarLogoRede(vc.logo);
+			var nome = (vc.bestName && vc.bestName.name) ? vc.bestName.name : vc.id;
+			redes[chainId] = { nome: nome, logo: logoUrl };
+			if (chainIcon) renderizarIconeRede(chainIcon, "chainImg" + linhaIndex, logoUrl, nome || chainId, 1);
+		},
+		error: function(status) {
+			if ((status === 429 || status === 504 || status === 0) && tentativa < 3) {
+				setTimeout(function() { buscarRedeIndividual(chainId, linhaIndex, tentativa + 1); }, 500 * Math.pow(2, tentativa));
+				return;
+			}
+			if (status === 401 && window.sessionManager && typeof window.sessionManager.showTokenExpiredDialog === "function") {
+				window.sessionManager.showTokenExpiredDialog();
+			}
+			var chainIcon = dojo.byId("chainIcone" + linhaIndex);
+			var message = status === 401 ? "Sessão Foursquare expirada" : "Erro ao buscar rede (" + (status || "timeout") + ")";
+			if (chainIcon) renderizarIconeRede(chainIcon, "chainImg" + linhaIndex, defaultLogo, message, 1);
 		}
-	};
-	xhr.send();
+	});
 }
 
 function salvarRede(i) {
