@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test';
+import { skipIfUnauthenticated } from './auth-session';
 
 /**
  * Regressão 4: Erros e Retry
@@ -47,6 +48,7 @@ test.describe('Erros e Retry', () => {
   test('edit.php intercepta 401 da API e exibe mensagem de sessão expirada', async ({ page }) => {
     const VENUE_ID_TESTE = process.env.TEST_VENUE_ID || '4ec42a0a9a522f580b42dbeb';
     test.skip(!VENUE_ID_TESTE, 'TEST_VENUE_ID não definido');
+    await skipIfUnauthenticated(page);
 
     // Interceptar chamadas à API Foursquare e retornar 401
     await page.route('**/v2/venues/**', route => {

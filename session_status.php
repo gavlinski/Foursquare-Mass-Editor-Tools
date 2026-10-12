@@ -77,6 +77,25 @@ try {
         exit;
     }
 
+    // Tokens with these prefixes are only issued by local session-test tools.
+    if (str_starts_with($token, 'test_token_') || str_starts_with($token, 'simulated_token_')) {
+        error_log('session_status.php: Sessão sintética de teste detectada; encerrando sessão');
+        $sessionManager->destroy();
+        $sessionManager->expireCookieEverywhere('oauth_token');
+        $sessionManager->expireCookieEverywhere('name');
+        $sessionManager->expireCookieEverywhere('coordinates');
+
+        echo json_encode([
+            'status' => 'expired',
+            'message' => 'Sessão de teste detectada; autenticação necessária',
+            'authenticated' => false,
+            'timestamp' => time(),
+            'reason' => 'synthetic_test_session',
+            'redirect_url' => 'index.php'
+        ]);
+        exit;
+    }
+
     // Verifica se há dados de usuário na sessão (para casos de sessão existente)
     $userData = $_SESSION['user_data'] ?? null;
     if ($userData && is_array($userData)) {

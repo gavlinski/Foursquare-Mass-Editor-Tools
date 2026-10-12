@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test';
+import { skipIfUnauthenticated } from './auth-session';
 
 /**
  * Regressão 1: Sessão e Autenticação
@@ -13,12 +14,14 @@ import { test, expect } from '@playwright/test';
 test.describe('Sessão e Autenticação', () => {
 
   test('main.php carrega autenticado - sem redirect para login', async ({ page }) => {
+    await skipIfUnauthenticated(page);
     await page.goto('/4sqmet/main.php');
     await expect(page).toHaveURL(/main\.php/);
     await expect(page.locator('text=Conectado')).toBeVisible({ timeout: 10_000 });
   });
 
   test('barra de sessão exibe nome do usuário', async ({ page }) => {
+    await skipIfUnauthenticated(page);
     await page.goto('/4sqmet/main.php');
     // A barra de status exibe "Usuário: <nome>"
     const sessionBar = page.locator('#session-info, .session-bar, [id*="session"], [class*="session"]').first();
@@ -26,23 +29,47 @@ test.describe('Sessão e Autenticação', () => {
   });
 
   test('session_status.php retorna authenticated: true', async ({ page }) => {
+    await skipIfUnauthenticated(page);
     const response = await page.request.get('/4sqmet/session_status.php');
     expect(response.status()).toBe(200);
     const body = await response.json();
     expect(body.authenticated).toBe(true);
   });
 
-  test('debug/session_test_manager.php - criar sessão de teste', async ({ page }) => {
-    const response = await page.request.get('/4sqmet/debug/session_test_manager.php?action=create');
-    expect(response.status()).toBe(200);
+  test('fixture de sessão de teste é isolada e redirecionada para login', async ({ browser }) => {
+    const context = await browser.newContext({
+      baseURL: 'https://localhost',
+      ignoreHTTPSErrors: true,
+      storageState: { cookies: [], origins: [] },
+    });
+
+    try {
+      const page = await context.newPage();
+      const createResponse = await page.request.get('/4sqmet/debug/session_test_manager.php?action=create');
+      test.skip(createResponse.status() === 404, 'Ferramentas de sessão de teste ficam desativadas em produção');
+      expect(createResponse.status()).toBe(200);
+
+      const statusResponse = await page.request.get('/4sqmet/session_status.php');
+      expect(statusResponse.status()).toBe(200);
+      const status = await statusResponse.json();
+      expect(status.authenticated).toBe(false);
+      expect(status.reason).toBe('synthetic_test_session');
+
+      await page.goto('/4sqmet/main.php');
+      await expect(page).toHaveURL(/index\.php/);
+    } finally {
+      await context.close();
+    }
   });
 
   test('debug/debug_session.php - validar sessão', async ({ page }) => {
     const response = await page.request.get('/4sqmet/debug/debug_session.php?mode=validate');
+    test.skip(response.status() === 404, 'Ferramentas de sessão de teste ficam desativadas em produção');
     expect(response.status()).toBe(200);
   });
 
   test('logout redireciona para index.php', async ({ page }) => {
+    await skipIfUnauthenticated(page);
     await page.goto('/4sqmet/main.php');
     // Navegação sem clicar em logout — apenas confirma que o botão existe
     const logoutBtn = page.getByRole('button', { name: /logout/i })

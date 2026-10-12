@@ -5,6 +5,17 @@
  * create_test_session_final.php, quick_session.php, temp_session.php
  */
 
+require_once __DIR__ . '/../vendor/autoload.php';
+
+use ElioTools\Config\AppConfig;
+
+if (strtolower((string) (new AppConfig())->get('app_env')) === 'production') {
+    http_response_code(404);
+    header('Content-Type: application/json');
+    echo json_encode(['status' => 'not_found']);
+    exit;
+}
+
 // Desabilita output buffering para resposta imediata
 if (ob_get_level()) {
     ob_end_clean();

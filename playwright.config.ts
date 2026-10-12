@@ -1,4 +1,6 @@
 import { defineConfig, devices } from '@playwright/test';
+import fs from 'node:fs';
+import path from 'node:path';
 
 /**
  * Playwright configuration for regression tests.
@@ -12,6 +14,35 @@ import { defineConfig, devices } from '@playwright/test';
 // CI (GitHub Actions): CI=true é definido automaticamente — usar path padrão do runner
 if (!process.env.CI) {
   process.env.PLAYWRIGHT_BROWSERS_PATH = '/var/www/html/data/mcp/playwright/browsers';
+}
+
+const projectRoot = process.cwd();
+const configuredStorageState = process.env.PLAYWRIGHT_STORAGE_STATE;
+const storageStatePath = configuredStorageState
+  ? path.resolve(process.cwd(), configuredStorageState)
+  : path.join(projectRoot, 'data/mcp/playwright/foursquare.storage-state.json');
+
+function getUsableStorageState() {
+  try {
+    const state = JSON.parse(fs.readFileSync(storageStatePath, 'utf8'));
+    const token = (state.cookies || []).find(cookie =>
+      cookie.name === 'oauth_token' && cookie.domain === 'localhost' && cookie.value
+    );
+
+    if (!token) return undefined;
+    if (Number.isFinite(token.expires) && token.expires !== -1 && token.expires <= Date.now() / 1000) {
+      return undefined;
+    }
+
+    return storageStatePath;
+  } catch {
+    return undefined;
+  }
+}
+
+const authStorageState = getUsableStorageState();
+if (!authStorageState) {
+  console.warn('Playwright auth state ausente ou expirado; testes que exigem sessão serão ignorados.');
 }
 
 export default defineConfig({
@@ -33,7 +64,7 @@ export default defineConfig({
     // Auth: oauth_token cookie captured by mcp-foursquare-auth-bootstrap.sh
     // Run bootstrap first if this file doesn't exist:
     //   ./scripts/mcp-foursquare-auth-bootstrap.sh
-    storageState: 'data/mcp/playwright/foursquare.storage-state.json',
+    storageState: authStorageState,
   },
 
   projects: [
