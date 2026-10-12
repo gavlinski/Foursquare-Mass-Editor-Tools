@@ -7,5 +7,11 @@ export async function skipIfUnauthenticated(page: Page): Promise<void> {
   }
 
   const session = await response.json();
-  test.skip(session.authenticated !== true, 'Requer token Foursquare válido; gere/renove o storage state para executar este teste.');
+  if (session.authenticated !== true) {
+    const message = 'Requer token Foursquare válido; gere/renove o storage state para executar este teste.';
+    if (process.env.CI) {
+      throw new Error(`CI exige uma sessão Foursquare válida. ${message}`);
+    }
+    test.skip(true, message);
+  }
 }

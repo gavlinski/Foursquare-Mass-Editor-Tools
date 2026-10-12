@@ -127,6 +127,82 @@ function formatarLogoRedeUrl(url) {
 	return url;
 }
 
+function validarIdRede(cId) {
+	return /^[a-f\d]{24}$/i.test(cId || "");
+}
+
+function obterItensRede(rede) {
+	if (!rede) return [];
+	if (Array.isArray(rede.items)) {
+		return rede.items.map(function(item) {
+			return { id: String(item.id || ""), name: String(item.name || ""), logo: String(item.logo || "") };
+		});
+	}
+	function lerLista(valor) {
+		if (Array.isArray(valor)) return valor;
+		if (typeof valor !== "string" || valor === "") return [];
+		try {
+			var parsed = JSON.parse(valor);
+			if (Array.isArray(parsed)) return parsed;
+		} catch(e) {}
+		return valor.split(",");
+	}
+	var ids = lerLista(rede.ids);
+	var nomes = lerLista(rede.nomes);
+	var logos = lerLista(rede.logos);
+	return ids.filter(Boolean).map(function(id, index) {
+		return { id: String(id), name: String(nomes[index] || ""), logo: String(logos[index] || "") };
+	});
+}
+
+function atualizarCamposRedes(i) {
+	redes[i] = new Rede(obterItensRede(redes[i]));
+	var items = redes[i].items;
+	if (dojo.byId("chid" + i)) dojo.byId("chid" + i).value = items.map(function(item) { return item.id; }).join(",");
+	if (dojo.byId("chna" + i)) dojo.byId("chna" + i).value = JSON.stringify(items.map(function(item) { return item.name; }));
+	if (dojo.byId("chic" + i)) dojo.byId("chic" + i).value = JSON.stringify(items.map(function(item) { return item.logo; }));
+}
+
+function urlLogoRedeSegura(url) {
+	var defaultLogo = "https://app.foursquare.com/img/categories_v2/none_bg_32.png";
+	if (typeof url !== "string" || url === "") return defaultLogo;
+	var link = document.createElement("a");
+	link.href = url;
+	return link.protocol === "https:" ? link.href : defaultLogo;
+}
+
+function renderizarIconeRede(elemento, i, item, permitirEdicao, opacity) {
+	while (elemento.firstChild) elemento.removeChild(elemento.firstChild);
+	var target = elemento;
+	var targetId = "chainImg" + i;
+	if (permitirEdicao) {
+		target = document.createElement("a");
+		target.id = "chainLnk" + i;
+		target.href = "#";
+		target.addEventListener("click", function(event) {
+			event.preventDefault();
+			editarRedes(i);
+		});
+		elemento.appendChild(target);
+		targetId = target.id;
+	}
+	var image = document.createElement("img");
+	image.id = "chainImg" + i;
+	image.alt = "Rede";
+	image.style.height = "22px";
+	image.style.width = "22px";
+	image.style.marginLeft = "0px";
+	image.style.opacity = String(opacity);
+	image.onerror = function() {
+		this.onerror = null;
+		this.src = "https://app.foursquare.com/img/categories_v2/none_bg_32.png";
+	};
+	image.src = urlLogoRedeSegura(item && item.logo ? formatarLogoRedeUrl(item.logo) : "");
+	target.appendChild(image);
+	var tooltip = item ? item.name : (permitirEdicao ? "Sem rede definida (clique para adicionar)" : "Sem rede definida");
+	createTooltip(targetId, "<span style=\"font-size: 12px\">" + escapeTooltipHtml(tooltip || "Sem rede definida") + "</span>");
+}
+
 function isRedesSelecionada() {
 	if (window.appBootstrap && typeof window.appBootstrap.editChains === "boolean") {
 		return window.appBootstrap.editChains;
@@ -136,7 +212,7 @@ function isRedesSelecionada() {
 }
 
 function buscarInfoRede(cId, i) {
-	if (!cId || cId.length < 10) return;
+	if (!validarIdRede(cId)) return;
 	if (redesInfoCache[cId]) {
 		aplicarInfoRedeNaLinha(cId, redesInfoCache[cId].nome, redesInfoCache[cId].logo, i);
 		return;
@@ -182,13 +258,12 @@ function buscarInfoRede(cId, i) {
 }
 
 function atualizarTooltipRedes(i, targetId) {
-	var nomesNode = dojo.byId("chna" + i);
-	var nomes = nomesNode && nomesNode.value ? nomesNode.value.split(",").join(", ") : "";
+	var nomes = obterItensRede(redes[i]).map(function(item) { return item.name; }).join(", ");
 	createTooltip(targetId || "chainLnk" + i, "<span style=\"font-size: 12px\">" + escapeTooltipHtml(nomes || "Sem rede definida") + "</span>");
 }
 
 function processarRedesVenue(venue, i) {
-	redes[i] = new Rede("", "", "");
+	redes[i] = new Rede([]);
 	if (!isRedesSelecionada()) {
 		if (dojo.byId("chid" + i)) dojo.byId("chid" + i).value = "";
 		if (dojo.byId("chna" + i)) dojo.byId("chna" + i).value = "";
@@ -220,18 +295,10 @@ function processarRedesVenue(venue, i) {
 				try { localStorage.setItem('redes_cache', JSON.stringify(redesInfoCache)); } catch(e) {}
 			}
 
-			redes[i].ids += cId + ",";
-			redes[i].nomes += cNome + ",";
-			redes[i].logos += cLogo + ",";
+			redes[i].items.push({ id: cId, name: cNome, logo: cLogo });
 		}
-		redes[i].ids = redes[i].ids.slice(0, -1);
-		redes[i].nomes = redes[i].nomes.slice(0, -1);
-		redes[i].logos = redes[i].logos.slice(0, -1);
 	}
-
-	if (dojo.byId("chid" + i)) dojo.byId("chid" + i).value = redes[i].ids;
-	if (dojo.byId("chna" + i)) dojo.byId("chna" + i).value = redes[i].nomes;
-	if (dojo.byId("chic" + i)) dojo.byId("chic" + i).value = redes[i].logos;
+	atualizarCamposRedes(i);
 }
 
 function atualizarIconeRede(i, permitirEdicao) {
@@ -244,21 +311,8 @@ function atualizarIconeRede(i, permitirEdicao) {
 	}
 
 	chainIconeElem.style.display = "inline";
-	if (redes[i] && redes[i].ids != "") {
-		var logoSrc = formatarLogoRedeUrl(redes[i].logos.split(",")[0]);
-		if (permitirEdicao) {
-			chainIconeElem.innerHTML = "<a id='chainLnk" + i + "' href='javascript:editarRedes(" + i + ")'><img id='chainImg" + i + "' src='" + logoSrc + "' style='height: 22px; width: 22px; margin-left: 0px' onerror=\"this.src='https://app.foursquare.com/img/categories_v2/none_bg_32.png'\"></a>";
-		} else {
-			chainIconeElem.innerHTML = "<img id='chainLnk" + i + "' src='" + logoSrc + "' style='height: 22px; width: 22px; margin-left: 0px' onerror=\"this.src='https://app.foursquare.com/img/categories_v2/none_bg_32.png'\">";
-		}
-		atualizarTooltipRedes(i);
-	} else if (permitirEdicao) {
-		chainIconeElem.innerHTML = "<a id='chainLnk" + i + "' href='javascript:editarRedes(" + i + ")'><img id='chainImg" + i + "' src='https://app.foursquare.com/img/categories_v2/none_bg_32.png' style='height: 22px; width: 22px; margin-left: 0px; opacity: 0.4;'></a>";
-		createTooltip("chainLnk" + i, "<span style=\"font-size: 12px\">Sem rede definida (clique para adicionar)</span>");
-	} else {
-		chainIconeElem.innerHTML = "<img id='chainLnk" + i + "' src='https://app.foursquare.com/img/categories_v2/none_bg_32.png' style='height: 22px; width: 22px; margin-left: 0px; opacity: 0.2;'>";
-		createTooltip("chainLnk" + i, "<span style=\"font-size: 12px\">Sem rede definida</span>");
-	}
+	var items = obterItensRede(redes[i]);
+	renderizarIconeRede(chainIconeElem, i, items[0] || null, permitirEdicao, items.length ? 1 : (permitirEdicao ? 0.4 : 0.2));
 }
 
 function aplicarInfoRedeNaLinha(cId, nome, logo, i) {
@@ -267,22 +321,16 @@ function aplicarInfoRedeNaLinha(cId, nome, logo, i) {
 	if (!chainImg) {
 		chainImg = dojo.byId("chainLnk" + i);
 	}
-	if (redes[i]) {
-		var ids = (redes[i].ids || "").split(",");
-		var chainIndex = ids.indexOf(cId);
-		if (chainIndex !== -1) {
-			var nomes = (redes[i].nomes || "").split(",");
-			var logos = (redes[i].logos || "").split(",");
-			nomes[chainIndex] = nome;
-			logos[chainIndex] = logo;
-			redes[i].nomes = nomes.join(",");
-			redes[i].logos = logos.join(",");
-			if (dojo.byId("chna" + i)) dojo.byId("chna" + i).value = redes[i].nomes;
-			if (dojo.byId("chic" + i)) dojo.byId("chic" + i).value = redes[i].logos;
-		}
+	var items = obterItensRede(redes[i]);
+	var chainIndex = items.findIndex(function(item) { return item.id === cId; });
+	if (chainIndex !== -1) {
+		items[chainIndex].name = nome;
+		items[chainIndex].logo = logo;
+		redes[i] = new Rede(items);
+		atualizarCamposRedes(i);
 	}
-	if (redes[i] && redes[i].ids && redes[i].ids.split(",")[0] === cId && chainImg && logo && logo.indexOf("none_bg_32.png") === -1) {
-		chainImg.src = logo;
+	if (items.length && items[0].id === cId && chainImg && logo && logo.indexOf("none_bg_32.png") === -1) {
+		chainImg.src = urlLogoRedeSegura(logo);
 		chainImg.style.opacity = "1";
 	}
 	atualizarTooltipRedes(i);
@@ -504,13 +552,8 @@ function desabilitarLinha(i) {
 				createTooltip("catImg" + i, "<span style=\"font-size: 12px\">" + dojo.byId("cna" + i).value.replace(/,/gi, ", ") + "</span>");
 			}
 			if (dojo.byId("chainIcone" + i)) {
-				if (dojo.byId("chid" + i) && dojo.byId("chid" + i).value != "") {
-					var logoSrc = dojo.byId("chic" + i).value.split(",")[0] || "https://app.foursquare.com/img/categories_v2/none_bg_32.png";
-					dojo.byId("chainIcone" + i).innerHTML = "<img id='chainImg" + i + "' src='" + logoSrc + "' style='height: 22px; width: 22px; margin-left: 0px' onerror=\"this.src='https://app.foursquare.com/img/categories_v2/none_bg_32.png'\">";
-					createTooltip("chainImg" + i, "<span style=\"font-size: 12px\">" + escapeTooltipHtml(dojo.byId("chna" + i).value.replace(/,/gi, ", ")) + "</span>");
-				} else {
-					dojo.byId("chainIcone" + i).innerHTML = "<img id='chainImg" + i + "' src='https://app.foursquare.com/img/categories_v2/none_bg_32.png' style='height: 22px; width: 22px; margin-left: 0px; opacity: 0.2;'>";
-				}
+				var chainItems = obterItensRede(redes[i]);
+				renderizarIconeRede(dojo.byId("chainIcone" + i), i, chainItems[0] || null, false, chainItems.length ? 1 : 0.2);
 			}
 		}
 	);
@@ -589,18 +632,14 @@ function xmlhttpRequest(metodo, endpoint, acao, dados, i) {
 						categorias[i].ids = document.forms[i]["categoryId"].value;
 						categorias[i].nomes = document.forms[i]["categoryName"].value;
 						categorias[i].icones = document.forms[i]["categoryIcon"].value;
-						if (redes[i] && document.forms[i]["venueChainId"]) {
-							redes[i].ids = document.forms[i]["venueChainId"].value;
-							redes[i].nomes = document.forms[i]["venueChainName"].value;
-							redes[i].logos = document.forms[i]["venueChainLogo"].value;
-						}
+						if (redes[i] && document.forms[i]["venueChainId"]) atualizarCamposRedes(i);
 						if (venuellOriginais[i] != document.forms[i]["venuell"].value)
 							venuellOriginais[i] = document.forms[i]["venuell"].value;
 						dica = "<span style=\"font-size: 12px\">Editada com sucesso</span>";
 						atualizarEditadas(i, false);
 						var campoRedesRelatorio = /** @type {HTMLInputElement|null} */ (document.getElementById("chna" + i));
 						var redesRelatorio = window.appBootstrap && window.appBootstrap.editChains && campoRedesRelatorio
-							? campoRedesRelatorio.value
+							? obterItensRede(redes[i]).map(function(item) { return item.name; }).join(", ")
 							: "";
 						var campoNomeRelatorio = /** @type {HTMLInputElement|null} */ (document.forms[i].elements.namedItem("name"));
 						relatorio.push(new Array(campoNomeRelatorio ? campoNomeRelatorio.value : "", "editada", getDataHora(), document.forms[i]["venue"].value, dojo.byId("cna" + i).value, dijit.byId("textareaComment").value, redesRelatorio));
@@ -708,9 +747,13 @@ function Categoria(ids, nomes, icones) {
 }
 
 function Rede(ids, nomes, logos) {
-	this.ids = ids || "";
-	this.nomes = nomes || "";
-	this.logos = logos || "";
+	this.items = Array.isArray(ids) ? ids.map(function(item) {
+		return { id: String(item.id || ""), name: String(item.name || ""), logo: String(item.logo || "") };
+	}) : obterItensRede({ ids: ids || "", nomes: nomes || "", logos: logos || "" });
+	Object.defineProperty(this, "ids", {
+		enumerable: false,
+		get: function() { return this.items.map(function(item) { return item.id; }).join(","); }
+	});
 }
 
 function nomeItemSelecionado(node) {
@@ -724,27 +767,32 @@ function obterIdPrimarioSelecionado(container, ids) {
 	var items = container.querySelectorAll(".selected-item");
 	var idsLista = ids.split(",");
 	for (var i = 0; i < items.length; i++) {
-		if (items[i].getAttribute("data-primary") === "true") return idsLista[i] || "";
+		if (items[i].getAttribute("data-primary") === "true") return items[i].getAttribute("data-item-id") || idsLista[i] || "";
 	}
-	return idsLista[0] || "";
+	return (items[0] && items[0].getAttribute("data-item-id")) || idsLista[0] || "";
 }
 
 function obterItensSelecionadosPrimariaPrimeiro(container, ids, icones) {
 	var items = container.querySelectorAll(".selected-item");
 	var idsLista = ids ? ids.split(",") : [];
 	var iconesLista = icones ? icones.split(",") : [];
-	var resultado = { nomes: [], ids: [], icones: [] };
+	var resultado = { nomes: [], ids: [], icones: [], items: [] };
 	var indicePrimario = 0;
 	for (var i = 0; i < items.length; i++) {
-		resultado.nomes.push(nomeItemSelecionado(items[i]));
-		resultado.ids.push(idsLista[i] || "");
-		resultado.icones.push(iconesLista[i] || "");
+		var id = items[i].getAttribute("data-item-id") || idsLista[i] || "";
+		var icone = items[i].getAttribute("data-item-icon") || iconesLista[i] || "";
+		var nome = nomeItemSelecionado(items[i]);
+		resultado.nomes.push(nome);
+		resultado.ids.push(id);
+		resultado.icones.push(icone);
+		resultado.items.push({ id: id, name: nome, logo: icone });
 		if (items[i].getAttribute("data-primary") === "true") indicePrimario = i;
 	}
 	if (indicePrimario > 0) {
 		resultado.nomes.unshift(resultado.nomes.splice(indicePrimario, 1)[0]);
 		resultado.ids.unshift(resultado.ids.splice(indicePrimario, 1)[0]);
 		resultado.icones.unshift(resultado.icones.splice(indicePrimario, 1)[0]);
+		resultado.items.unshift(resultado.items.splice(indicePrimario, 1)[0]);
 	}
 	return resultado;
 }
@@ -754,11 +802,13 @@ function criarItemSelecionado(container, id, index, nome, icone, tipo, adminId, 
 	item.id = id;
 	item.className = "categoria selected-item";
 	item.setAttribute("data-primary", primary ? "true" : "false");
+	item.setAttribute("data-item-id", adminId || "");
+	item.setAttribute("data-item-icon", icone || "");
 
 	var image = document.createElement("img");
 	image.className = "selected-item-icon";
 	image.alt = "";
-	image.src = icone || "https://app.foursquare.com/img/categories_v2/none_bg_32.png";
+	image.src = urlLogoRedeSegura(icone);
 	image.onerror = function() { this.src = "https://app.foursquare.com/img/categories_v2/none_bg_32.png"; };
 	item.appendChild(image);
 
@@ -1300,23 +1350,24 @@ function processarEdicaoCategorias() {
 	}
 }
 
-function atualizarRedes(nomes, ids, logos, primaryId) {
+function atualizarRedes(items, primaryId) {
 	var container = dojo.byId("chainsContainer");
 	if (!container) return;
-	var idsLista = ids ? ids.split(",") : [];
-	if (primaryId === undefined) primaryId = obterIdPrimarioSelecionado(container, dojo.byId("chainsIds").innerHTML);
-	if (idsLista.indexOf(primaryId) === -1) primaryId = idsLista[0] || "";
-	var logosLista = logos ? logos.split(",") : [];
+	items = (items || []).map(function(item) {
+		return { id: String(item.id || ""), name: String(item.name || ""), logo: String(item.logo || "") };
+	});
+	if (primaryId === undefined) primaryId = obterIdPrimarioSelecionado(container, "");
+	if (!items.some(function(item) { return item.id === primaryId; })) primaryId = items.length ? items[0].id : "";
 	container.innerHTML = "";
-	if (nomes && nomes.length > 0 && nomes[0] !== "") {
-		for (var j = 0; j < nomes.length; j++) {
-			criarItemSelecionado(container, "rede" + (j + 1), j + 1, nomes[j], logosLista[j], "rede", idsLista[j], idsLista[j] === primaryId);
+	if (items.length > 0) {
+		for (var j = 0; j < items.length; j++) {
+			criarItemSelecionado(container, "rede" + (j + 1), j + 1, items[j].name, items[j].logo, "rede", items[j].id, items[j].id === primaryId);
 		}
 	} else {
 		container.innerHTML = "<span class='chain-selection-empty'>Nenhuma rede selecionada</span>";
 	}
-	if (dojo.byId("chainsIds")) dojo.byId("chainsIds").innerHTML = ids || "";
-	if (dojo.byId("chainsLogos")) dojo.byId("chainsLogos").innerHTML = logos || "";
+	if (dojo.byId("chainsIds")) dojo.byId("chainsIds").textContent = JSON.stringify(items);
+	if (dojo.byId("chainsLogos")) dojo.byId("chainsLogos").textContent = "";
 }
 
 function configurarEdicaoMultiplaRedes(marcado) {
@@ -1348,15 +1399,8 @@ function configurarBuscaReativaRede() {
 }
 
 function editarRedes(i) {
-	var nomes = [];
-	var ids = "";
-	var logos = "";
-	if (dojo.byId("chid" + i) && dojo.byId("chid" + i).value != "") {
-		nomes = dojo.byId("chna" + i).value.split(",");
-		ids = dojo.byId("chid" + i).value;
-		logos = dojo.byId("chic" + i).value;
-	}
-	atualizarRedes(nomes, ids, logos, ids ? ids.split(",")[0] : "");
+	var items = obterItensRede(redes[i]);
+	atualizarRedes(items, items.length ? items[0].id : "");
 	dojo.byId("venueChainIndex").innerHTML = i;
 
 	var resContainer = dojo.byId("chainsResultsContainer");
@@ -1378,22 +1422,16 @@ function removerRede(index) {
 		clearTimeout(timerRede);
 	timerRede = setTimeout(function remover() {
 		var chainElements = dojo.query("#chainsContainer .categoria");
-		var currentIds = (dojo.byId("chainsIds") && dojo.byId("chainsIds").innerHTML) ? dojo.byId("chainsIds").innerHTML.split(",") : [];
-		var currentLogos = (dojo.byId("chainsLogos") && dojo.byId("chainsLogos").innerHTML) ? dojo.byId("chainsLogos").innerHTML.split(",") : [];
-		var currentNomes = [];
-		var primaryId = obterIdPrimarioSelecionado(dojo.byId("chainsContainer"), currentIds.join(","));
-		for (var c = 0; c < chainElements.length; c++) {
-			currentNomes.push(nomeItemSelecionado(chainElements[c]));
-		}
+		var selecionadas = obterItensSelecionadosPrimariaPrimeiro(dojo.byId("chainsContainer"));
+		var currentItems = selecionadas.items;
+		var primaryId = obterIdPrimarioSelecionado(dojo.byId("chainsContainer"), "");
 		var targetIdx = parseInt(index) - 1;
-		var removedName = currentNomes[targetIdx];
-		if (targetIdx >= 0 && targetIdx < currentIds.length) {
-			currentIds.splice(targetIdx, 1);
-			currentNomes.splice(targetIdx, 1);
-			currentLogos.splice(targetIdx, 1);
+		var removedName = currentItems[targetIdx] && currentItems[targetIdx].name;
+		if (targetIdx >= 0 && targetIdx < currentItems.length) {
+			currentItems.splice(targetIdx, 1);
 		}
-		if (currentIds.indexOf(primaryId) === -1) primaryId = currentIds[0] || "";
-		atualizarRedes(currentNomes, currentIds.join(","), currentLogos.join(","), primaryId);
+		if (!currentItems.some(function(item) { return item.id === primaryId; })) primaryId = currentItems.length ? currentItems[0].id : "";
+		atualizarRedes(currentItems, primaryId);
 		if (removedName) {
 			atualizarStatusBuscaRede('Rede "' + removedName + '" removida.', "success");
 		}
@@ -1403,19 +1441,14 @@ function removerRede(index) {
 function tornarRedePrimaria(index) {
 	if (timerRede)
 		clearTimeout(timerRede);
-	var chainElements = dojo.query("#chainsContainer .categoria");
-	var currentIds = (dojo.byId("chainsIds") && dojo.byId("chainsIds").innerHTML) ? dojo.byId("chainsIds").innerHTML.split(",") : [];
-	var currentLogos = (dojo.byId("chainsLogos") && dojo.byId("chainsLogos").innerHTML) ? dojo.byId("chainsLogos").innerHTML.split(",") : [];
-	var currentNomes = [];
-	for (var c = 0; c < chainElements.length; c++) {
-		currentNomes.push(nomeItemSelecionado(chainElements[c]));
-	}
+	var selecionadas = obterItensSelecionadosPrimariaPrimeiro(dojo.byId("chainsContainer"));
+	var currentItems = selecionadas.items;
 	var targetIdx = parseInt(index) - 1;
-	if (targetIdx >= 0 && targetIdx < currentIds.length) {
-		var primaryName = currentNomes[targetIdx];
-		var primaryId = currentIds[targetIdx];
-		var alreadyPrimary = obterIdPrimarioSelecionado(dojo.byId("chainsContainer"), currentIds.join(",")) === primaryId;
-		atualizarRedes(currentNomes, currentIds.join(","), currentLogos.join(","), primaryId);
+	if (targetIdx >= 0 && targetIdx < currentItems.length) {
+		var primaryName = currentItems[targetIdx].name;
+		var primaryId = currentItems[targetIdx].id;
+		var alreadyPrimary = obterIdPrimarioSelecionado(dojo.byId("chainsContainer"), "") === primaryId;
+		atualizarRedes(currentItems, primaryId);
 		var message = alreadyPrimary
 			? 'Rede "' + primaryName + '" já é a primária.'
 			: 'Rede "' + primaryName + '" definida como primária.';
@@ -1466,11 +1499,11 @@ function processarEdicaoRedes() {
 	var venueIndex, venueLoop;
 	var selecionadas = obterItensSelecionadosPrimariaPrimeiro(
 		dojo.byId("chainsContainer"),
-		dojo.byId("chainsIds") ? dojo.byId("chainsIds").innerHTML : "",
-		dojo.byId("chainsLogos") ? dojo.byId("chainsLogos").innerHTML : ""
+		"",
+		""
 	);
 	var ids = selecionadas.ids.join(",");
-	var logos = selecionadas.icones.join(",");
+	var items = selecionadas.items;
 
 	if (dijit.byId("editAllChainsCheckbox") && dijit.byId("editAllChainsCheckbox").checked) {
 		venueIndex = 0;
@@ -1480,26 +1513,14 @@ function processarEdicaoRedes() {
 		venueLoop = venueIndex;
 	}
 
-	var nomes = selecionadas.nomes.join(",");
-
 	for (var i = venueIndex; i <= venueLoop; i++) {
 		var aplicarEmVenueCompleta = !dijit.byId("editAllChainsCheckbox").checked || venuesComDadosCompletos.indexOf(i) !== -1;
 		if (document.forms[i] && dojo.query("input[name=selecao]")[i] && dojo.query("input[name=selecao]")[i].disabled != true && aplicarEmVenueCompleta) {
-			if (dojo.byId("chna" + i)) dojo.byId("chna" + i).value = nomes;
-			if (dojo.byId("chid" + i)) dojo.byId("chid" + i).value = ids;
-			if (dojo.byId("chic" + i)) dojo.byId("chic" + i).value = logos;
+			redes[i] = new Rede(items);
+			atualizarCamposRedes(i);
 
 			var chainIconeElem = dojo.byId("chainIcone" + i);
-			if (chainIconeElem) {
-				if (ids !== "") {
-					var logoSrc = logos.split(",")[0] || "https://app.foursquare.com/img/categories_v2/none_bg_32.png";
-					chainIconeElem.innerHTML = "<a id='chainLnk" + i + "' href='javascript:editarRedes(" + i + ")'><img id='chainImg" + i + "' src='" + logoSrc + "' style='height: 22px; width: 22px; margin-left: 0px' onerror=\"this.src='https://app.foursquare.com/img/categories_v2/none_bg_32.png'\"></a>";
-					createTooltip("chainLnk" + i, "<span style=\"font-size: 12px\">" + escapeTooltipHtml(nomes.replace(/,/gi, ", ")) + "</span>");
-				} else {
-					chainIconeElem.innerHTML = "<a id='chainLnk" + i + "' href='javascript:editarRedes(" + i + ")'><img id='chainImg" + i + "' src='https://app.foursquare.com/img/categories_v2/none_bg_32.png' style='height: 22px; width: 22px; margin-left: 0px; opacity: 0.4;'></a>";
-					createTooltip("chainLnk" + i, "<span style=\"font-size: 12px\">Sem rede definida (clique para adicionar)</span>");
-				}
-			}
+			if (chainIconeElem) renderizarIconeRede(chainIconeElem, i, items[0] || null, true, items.length ? 1 : 0.4);
 
 			// Compara com rede original do CSV
 			var indexChainId = csv[0].indexOf("venueChainId");
@@ -1551,14 +1572,6 @@ function processarEdicaoRedes() {
 				} else {
 					csv[parseInt(i) + 1][indexPrimaryChain] = '""';
 				}
-			}
-
-			if (redes[i]) {
-				redes[i].ids = ids;
-				redes[i].nomes = nomes;
-				redes[i].logos = logos;
-			} else {
-				redes[i] = new Rede(ids, nomes, logos);
 			}
 
 			dojo.byId("result" + i).innerHTML = "";
@@ -1713,26 +1726,18 @@ function mostrarMensagemBuscaRede(message, status) {
 }
 
 function adicionarRedeNaEdicao(id, nome, logo) {
-	var currentIds = (dojo.byId("chainsIds") && dojo.byId("chainsIds").innerHTML) ? dojo.byId("chainsIds").innerHTML.split(",") : [];
-	var currentLogos = (dojo.byId("chainsLogos") && dojo.byId("chainsLogos").innerHTML) ? dojo.byId("chainsLogos").innerHTML.split(",") : [];
-	var chainElements = dojo.query("#chainsContainer .categoria");
-	var currentNomes = [];
-	for (var c = 0; c < chainElements.length; c++) {
-		currentNomes.push(nomeItemSelecionado(chainElements[c]));
-	}
+	var currentItems = obterItensSelecionadosPrimariaPrimeiro(dojo.byId("chainsContainer")).items;
 
-	if (currentIds.indexOf(id) > -1) {
+	if (currentItems.some(function(item) { return item.id === id; })) {
 		atualizarStatusBuscaRede("Esta rede já está selecionada.", "error");
 		return "duplicate";
 	}
-	if (currentIds.length >= 3) {
+	if (currentItems.length >= 3) {
 		atualizarStatusBuscaRede("O limite de 3 redes foi atingido.", "error");
 		return "limit";
 	}
-	currentIds.push(id);
-	currentNomes.push(nome);
-	currentLogos.push(logo || "https://app.foursquare.com/img/categories_v2/none_bg_32.png");
-	atualizarRedes(currentNomes, currentIds.join(","), currentLogos.join(","));
+	currentItems.push({ id: id, name: nome, logo: logo || "https://app.foursquare.com/img/categories_v2/none_bg_32.png" });
+	atualizarRedes(currentItems);
 	atualizarStatusBuscaRede("Rede adicionada.", "success");
 
 	var resContainer = dojo.byId("chainsResultsContainer");
@@ -2393,7 +2398,7 @@ function restaurarEstadoEdicao(estado) {
 	csv = estado.csv || [];
 	if (!redesHabilitadas) removerColunasRedesDoCsv();
 	categorias = estado.categorias || [];
-	redes = redesHabilitadas ? (estado.redes || []) : [];
+	redes = redesHabilitadas ? (estado.redes || []).map(function(rede) { return new Rede(obterItensRede(rede)); }) : [];
 	venuesComDadosCompletos = estado.venuesComDadosCompletos || [];
 	linhasEditadas = estado.linhasEditadas || [];
 	venuellOriginais = estado.venuellOriginais || [];
@@ -2427,8 +2432,9 @@ function restaurarEstadoEdicao(estado) {
 		if (chainIcone && !redesHabilitadas) {
 			chainIcone.style.display = "none";
 			chainIcone.innerHTML = "";
-		} else if (row.chainHtml !== null && chainIcone) {
-			chainIcone.innerHTML = row.chainHtml;
+		} else if (chainIcone) {
+			var chainItems = obterItensRede(redes[i]);
+			renderizarIconeRede(chainIcone, i, chainItems[0] || null, true, chainItems.length ? 1 : 0.4);
 		}
 		dojo.byId("result" + i).innerHTML = row.resultHtml;
 
@@ -2437,7 +2443,10 @@ function restaurarEstadoEdicao(estado) {
 			createTooltip(categoryTarget, "<span style=\"font-size: 12px\">" + (dojo.byId("cna" + i).value || "").replace(/,/gi, ", ") + "</span>");
 		}
 		if (dojo.byId("venLnk" + i)) createTooltip("venLnk" + i, atualizarDicaVenue(i));
-		if (redesHabilitadas && dojo.byId("chainIcone" + i)) atualizarTooltipRedes(i);
+		if (redesHabilitadas && redes[i]) {
+			atualizarCamposRedes(i);
+			if (dojo.byId("chainIcone" + i)) atualizarTooltipRedes(i);
+		}
 	}
 
 	linhasSelecionadas = dojo.query("input[name=selecao]:checked");
@@ -3463,7 +3472,7 @@ dojo.addOnLoad(function inicializar() {
 			id: "menu2ItemChains",
 			disabled: !(window.appBootstrap && window.appBootstrap.editChains),
 			onClick: function() {
-				atualizarRedes([], "", "");
+				atualizarRedes([]);
 				if (dojo.byId("venueChainIndex")) dojo.byId("venueChainIndex").innerHTML = "0";
 				if (dojo.byId("chainsResultsContainer")) {
 					dojo.byId("chainsResultsContainer").innerHTML = "";

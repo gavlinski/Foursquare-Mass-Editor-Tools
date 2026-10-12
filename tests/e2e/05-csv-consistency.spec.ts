@@ -1,5 +1,6 @@
 import { test, expect, type Page } from '@playwright/test';
 import path from 'node:path';
+import { skipIfUnauthenticated } from './auth-session';
 
 type CsvHarnessWindow = Window & {
   dojo: {
@@ -27,7 +28,7 @@ type CsvHarnessWindow = Window & {
   DADOS_COMPLETOS: number;
   DADOS_PARCIAIS: number;
   categorias: Array<{ ids?: string }>;
-  redes: Array<{ ids: string; nomes?: string; logos?: string }>;
+  redes: Array<{ ids?: string; nomes?: string; logos?: string; items?: Array<{ id: string; name: string; logo: string }> }>;
   venuesComDadosCompletos: number[];
   linhasEditadas: number[];
   obterEstadoEdicaoDaNavegacao: () => {
@@ -39,7 +40,7 @@ type CsvHarnessWindow = Window & {
     modo: number;
     csv: string[][];
     categorias: Array<{ ids?: string }>;
-    redes: Array<{ ids: string; nomes?: string; logos?: string }>;
+    redes: Array<{ ids?: string; nomes?: string; logos?: string; items?: Array<{ id: string; name: string; logo: string }> }>;
     venuesComDadosCompletos: number[];
     linhasEditadas: number[];
     venuellOriginais: string[];
@@ -69,6 +70,10 @@ type CsvHarnessWindow = Window & {
   ) => string;
   anexarSufixoCsv: (venueIndex: number, completa: boolean) => void;
   processarRedesVenue: (venue: { venueChains?: Array<Record<string, unknown>> }, venueIndex: number) => void;
+  atualizarRedes: (items: Array<{ id: string; name: string; logo: string }>, primaryId?: string) => void;
+  obterItensSelecionadosPrimariaPrimeiro: (container: Element, ids?: string, icons?: string) => {
+    items: Array<{ id: string; name: string; logo: string }>;
+  };
   escapeTooltipHtml: (value: string) => string;
   atualizarIconeRede: (venueIndex: number, permitirEdicao: boolean) => void;
   buscarInfoRede: (chainId: string, venueIndex: number) => void;
@@ -307,6 +312,108 @@ test.describe('Consistência do CSV de venues', () => {
     expect(resultado.display).not.toContain('display: none');
   });
 
+  test('preserva nomes com vírgulas e marcação como registros estruturados no modal', async ({ page }) => {
+    await carregarLogicaCsv(page);
+
+    const resultado = await page.evaluate(({ chainId }) => {
+      const editor = window as unknown as CsvHarnessWindow;
+      const name = '<img src=x onerror=alert(1)>, "Rede Central"';
+      const logo = 'https://image.test/chain.png';
+      editor.redes = [];
+      editor.processarRedesVenue({
+        venueChains: [{
+          id: chainId,
+          bestName: { name },
+          logo: { prefix: 'https://image.test/', suffix: 'chain.png' }
+        }]
+      }, 0);
+      const loaded = editor.redes[0].items || [];
+      editor.atualizarRedes(loaded, chainId);
+      const selected = editor.obterItensSelecionadosPrimariaPrimeiro(
+        document.getElementById('chainsContainer')!,
+        '',
+        ''
+      );
+
+      return {
+        loaded,
+        selected: selected.items,
+        labelText: document.querySelector('#chainsContainer .selected-item-name')?.textContent,
+        injectedImage: Boolean(document.querySelector('#chainsContainer .selected-item-name img')),
+        serializedNames: (document.getElementById('chna0') as HTMLInputElement | null)?.value
+      };
+    }, { chainId });
+
+    expect(resultado.loaded).toEqual([{ id: chainId, name: '<img src=x onerror=alert(1)>, "Rede Central"', logo: 'https://image.test/32chain.png' }]);
+    expect(resultado.selected).toEqual(resultado.loaded);
+    expect(resultado.labelText).toBe('<img src=x onerror=alert(1)>, "Rede Central"');
+    expect(resultado.injectedImage).toBe(false);
+    expect(JSON.parse(resultado.serializedNames || '[]')).toEqual(['<img src=x onerror=alert(1)>, "Rede Central"']);
+  });
+
+  test('valida IDs CSV e escapa nome/logo externos ao atualizar o ícone', async ({ page }) => {
+    await page.setContent(`
+      <form>
+        <input name="venueChainId" value="${chainId}">
+        <input name="removeVenueChainIds" value="">
+        <input name="addVenueChainIds" value="">
+        <input name="primaryVenueChainId" value="">
+      </form>
+      <span id="chainIcone0"></span>
+    `);
+    await page.evaluate(() => {
+      const editor = window as unknown as {
+        dojo: { require: () => void; ready: (callback: () => void) => void; addOnLoad: () => void; byId: (id: string) => HTMLElement | null; cookie: () => string };
+        dijit: { byId: () => null };
+      };
+      editor.dojo = {
+        require: () => undefined,
+        ready: callback => callback(),
+        addOnLoad: () => undefined,
+        byId: id => document.getElementById(id),
+        cookie: () => ''
+      };
+      editor.dijit = { byId: () => null };
+    });
+    await page.addScriptTag({ path: path.resolve(process.cwd(), 'js/4sq_csv.js') });
+
+    const resultado = await page.evaluate(({ chainId }) => {
+      const editor = window as unknown as {
+        redes: Record<string, { nome: string; logo: string }>;
+        salvarRede: (index: number) => void;
+        createTooltip: (targetId: string, content: string) => void;
+        tooltipHtml?: string;
+      };
+      let xhrCalls = 0;
+      class FakeXhr {
+        open() { xhrCalls++; }
+        send() { xhrCalls++; }
+      }
+      window.XMLHttpRequest = FakeXhr as unknown as typeof XMLHttpRequest;
+      editor.redes[chainId] = {
+        nome: '<img src=x onerror=alert(1)> "Rede"',
+        logo: 'javascript:alert(1)'
+      };
+      editor.createTooltip = (_targetId, content) => { editor.tooltipHtml = content; };
+      editor.salvarRede(0);
+      const safeTooltip = editor.tooltipHtml;
+      const safeImageSrc = (document.querySelector('#chainIcone0 img') as HTMLImageElement).src;
+      (document.forms[0].elements.namedItem('venueChainId') as HTMLInputElement).value = 'bad-id"><img onerror=alert(1)>';
+      editor.salvarRede(0);
+      return {
+        safeTooltip,
+        safeImageSrc,
+        malformedImageSrc: (document.querySelector('#chainIcone0 img') as HTMLImageElement).src,
+        xhrCalls
+      };
+    }, { chainId });
+
+    expect(resultado.safeTooltip).toContain('&lt;img src=x onerror=alert(1)&gt; &quot;Rede&quot;');
+    expect(resultado.safeImageSrc).toBe('https://app.foursquare.com/img/categories_v2/none_bg_32.png');
+    expect(resultado.malformedImageSrc).toBe('https://app.foursquare.com/img/categories_v2/none_bg_32.png');
+    expect(resultado.xhrCalls).toBe(0);
+  });
+
   test('remove redes de um estado antigo restaurado com a opção desmarcada', async ({ page }) => {
     await carregarLogicaCsv(page);
 
@@ -467,6 +574,7 @@ test.describe('Consistência do CSV de venues', () => {
       return {
         restored: true,
         csv: editor.csv,
+        chainItems: editor.redes[0]?.items,
         dirtyRows: editor.linhasEditadas,
         saveDisabled: editor.__testWidgets.saveButton.disabled,
         markers: editor.__restoredMarkers
@@ -475,6 +583,7 @@ test.describe('Consistência do CSV de venues', () => {
 
     expect(resultado.restored).toBe(true);
     expect(resultado.csv[1][2]).toBe('"Cacau Show editado"');
+    expect(resultado.chainItems).toEqual([{ id: chainId, name: 'Cacau Show', logo: '' }]);
     expect(resultado.dirtyRows).toEqual([0]);
     expect(resultado.saveDisabled).toBe(false);
     expect(resultado.markers).toEqual([
@@ -492,5 +601,22 @@ test.describe('Consistência do CSV de venues', () => {
     });
 
     expect(resultado).toBe('&lt;img src=x onerror=alert(1)&gt; &amp; &quot;rede&quot;');
+  });
+
+  test('falha no CI quando a sessão autenticada não está válida', async () => {
+    const originalCi = process.env.CI;
+    process.env.CI = 'true';
+    const unauthenticatedPage = {
+      request: {
+        get: async () => ({ ok: () => true, json: async () => ({ authenticated: false }) })
+      }
+    } as unknown as Page;
+
+    try {
+      await expect(skipIfUnauthenticated(unauthenticatedPage)).rejects.toThrow('CI exige uma sessão Foursquare válida.');
+    } finally {
+      if (originalCi === undefined) delete process.env.CI;
+      else process.env.CI = originalCi;
+    }
   });
 });

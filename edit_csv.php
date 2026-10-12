@@ -331,22 +331,22 @@ foreach ($file as $f) {
 	}
 
 	if ($hasVenueChainId) {
-		$venueChainId = $f['venueChainId'];
+		$venueChainId = htmlspecialchars((string) $f['venueChainId'], ENT_QUOTES, 'UTF-8');
 		echo '<input type="text" dojoType="dijit.form.TextBox" name="venueChainId" maxlength="75" value="', $venueChainId, '" placeHolder="Rede(s)" style="width: 14em; margin-left: 5px;" readonly>', chr(10);
 	}
 
 	if ($hasPrimaryVenueChainId) {
-		$primaryVenueChainId = $f['primaryVenueChainId'];
+		$primaryVenueChainId = htmlspecialchars((string) $f['primaryVenueChainId'], ENT_QUOTES, 'UTF-8');
 		echo '<input type="text" dojoType="dijit.form.TextBox" name="primaryVenueChainId" maxlength="24" value="', $primaryVenueChainId, '" placeHolder="Rede Prim&aacute;ria" style="width: 14em; margin-left: 5px;" onchange="verificarAlteracao(this, ', $i - 1, ')">', chr(10);
 	}
 
 	if ($hasAddVenueChainIds) {
-		$addVenueChainIds = $f['addVenueChainIds'];
+		$addVenueChainIds = htmlspecialchars((string) $f['addVenueChainIds'], ENT_QUOTES, 'UTF-8');
 		echo '<input type="text" dojoType="dijit.form.TextBox" name="addVenueChainIds" maxlength="75" value="', $addVenueChainIds, '" placeHolder="Adicionar Rede(s)" style="width: 14em; margin-left: 5px;" onchange="verificarAlteracao(this, ', $i - 1, ')">', chr(10);
 	}
 
 	if ($hasRemoveVenueChainIds) {
-		$removeVenueChainIds = $f['removeVenueChainIds'];
+		$removeVenueChainIds = htmlspecialchars((string) $f['removeVenueChainIds'], ENT_QUOTES, 'UTF-8');
 		echo '<input type="text" dojoType="dijit.form.TextBox" name="removeVenueChainIds" maxlength="75" value="', $removeVenueChainIds, '" placeHolder="Remover Rede(s)" style="width: 14em; margin-left: 5px;" onchange="verificarAlteracao(this, ', $i - 1, ')">', chr(10);
 	}
 

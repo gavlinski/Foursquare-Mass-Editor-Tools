@@ -334,7 +334,7 @@ include_once __DIR__ . '/../includes/asset_helper.php';
         <div class="form-row">
             <div class="form-group" style="flex: 2;">
                 <label for="tokenInput">OAuth Token:</label>
-                <input type="text" id="tokenInput" class="form-input" value="AA03NTO2L4WELQX1TG3X4EBKGGX1K4GR1R5412ECCEYMIPCU" placeholder="Cole o token OAuth v2">
+                <input type="password" id="tokenInput" class="form-input" value="" placeholder="Cole o token OAuth v2" autocomplete="off">
             </div>
             <div class="form-group" style="flex: 1.2;">
                 <label for="venueIdInput">Venue ID de Teste:</label>

@@ -352,11 +352,48 @@ function formatarLogoRede(logoObj) {
 	return prefix + "32" + suffix;
 }
 
+function escapeChainTooltipHtml(value) {
+	var replacements = { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" };
+	return String(value).replace(/[&<>"']/g, function(character) {
+		return replacements[character];
+	});
+}
+
+function validarIdRede(chainId) {
+	return /^[a-f\d]{24}$/i.test(chainId || "");
+}
+
+function urlLogoRedeSegura(url) {
+	var defaultLogo = "https://app.foursquare.com/img/categories_v2/none_bg_32.png";
+	if (typeof url !== "string" || url === "") return defaultLogo;
+	var link = document.createElement("a");
+	link.href = url;
+	return link.protocol === "https:" ? link.href : defaultLogo;
+}
+
+function renderizarIconeRede(elemento, imageId, logoUrl, tooltipHtml, opacity) {
+	while (elemento.firstChild) elemento.removeChild(elemento.firstChild);
+	var imagem = document.createElement("img");
+	imagem.id = imageId;
+	imagem.alt = "Rede";
+	imagem.style.height = "22px";
+	imagem.style.width = "22px";
+	imagem.style.marginLeft = "0px";
+	imagem.style.opacity = String(opacity);
+	imagem.onerror = function() {
+		this.onerror = null;
+		this.src = "https://app.foursquare.com/img/categories_v2/none_bg_32.png";
+	};
+	imagem.src = urlLogoRedeSegura(logoUrl);
+	elemento.appendChild(imagem);
+	createTooltip(imageId, "<span style=\"font-size: 12px\">" + escapeChainTooltipHtml(tooltipHtml) + "</span>");
+}
+
 function buscarRedeIndividual(chainId, linhaIndex) {
-	if (!chainId || chainId.length < 10) return;
+	if (!validarIdRede(chainId)) return;
 	var defaultLogo = "https://app.foursquare.com/img/categories_v2/none_bg_32.png";
 	var xhr = new XMLHttpRequest();
-	xhr.open("GET", "https://api.foursquare.com/v2/chains/" + chainId + "?oauth_token=" + oauth_token + "&v=" + DATA_VERSIONAMENTO, true);
+	xhr.open("GET", "https://api.foursquare.com/v2/chains/" + encodeURIComponent(chainId) + "?oauth_token=" + encodeURIComponent(oauth_token) + "&v=" + DATA_VERSIONAMENTO, true);
 	xhr.onreadystatechange = function() {
 		if (xhr.readyState === 4) {
 			if (xhr.status === 200) {
@@ -367,9 +404,9 @@ function buscarRedeIndividual(chainId, linhaIndex) {
 						var logoUrl = formatarLogoRede(vc.logo);
 						var nome = (vc.bestName && vc.bestName.name) ? vc.bestName.name : vc.id;
 						redes[chainId] = { nome: nome, logo: logoUrl };
-						if (dojo.byId("chainIcone" + linhaIndex)) {
-							dojo.byId("chainIcone" + linhaIndex).innerHTML = "<img id=\"chainImg" + linhaIndex + "\" src='" + logoUrl + "' style='height: 22px; width: 22px; margin-left: 0px' onerror=\"this.src='" + defaultLogo + "'\">";
-							createTooltip("chainImg" + linhaIndex, "<span style=\"font-size: 12px\">" + nome + "</span>");
+						var chainIcon = dojo.byId("chainIcone" + linhaIndex);
+						if (chainIcon) {
+							renderizarIconeRede(chainIcon, "chainImg" + linhaIndex, logoUrl, nome || chainId, 1);
 						}
 					}
 				} catch(e) {
@@ -411,20 +448,18 @@ function salvarRede(i) {
 		}
 	}
 
+	chainIds = chainIds.map(function(id) { return id.trim(); }).filter(validarIdRede);
 	var activeChainId = chainIds[0] || "";
 	var chainIconeElem = dojo.byId("chainIcone" + i);
 	if (!chainIconeElem) return;
 
 	if (activeChainId && activeChainId in redes) {
-		chainIconeElem.innerHTML = "<img id=\"chainImg" + i + "\" src='" + redes[activeChainId].logo + "' style='height: 22px; width: 22px; margin-left: 0px' onerror=\"this.src='" + defaultLogo + "'\">";
-		createTooltip("chainImg" + i, "<span style=\"font-size: 12px\">" + redes[activeChainId].nome + "</span>");
+		renderizarIconeRede(chainIconeElem, "chainImg" + i, redes[activeChainId].logo, redes[activeChainId].nome || activeChainId, 1);
 	} else if (activeChainId) {
-		chainIconeElem.innerHTML = "<img id=\"chainImg" + i + "\" src='" + defaultLogo + "' style='height: 22px; width: 22px; margin-left: 0px; opacity: 0.7;'>";
-		createTooltip("chainImg" + i, "<span style=\"font-size: 12px\">Buscando rede: " + activeChainId + "...</span>");
+		renderizarIconeRede(chainIconeElem, "chainImg" + i, defaultLogo, "Buscando rede: " + activeChainId + "...", 0.7);
 		buscarRedeIndividual(activeChainId, i);
 	} else {
-		chainIconeElem.innerHTML = "<img id=\"chainImg" + i + "\" src='" + defaultLogo + "' style='height: 22px; width: 22px; margin-left: 0px; opacity: 0.3;'>";
-		createTooltip("chainImg" + i, "<span style=\"font-size: 12px\">Sem rede</span>");
+		renderizarIconeRede(chainIconeElem, "chainImg" + i, defaultLogo, "Sem rede", 0.3);
 	}
 }
 
