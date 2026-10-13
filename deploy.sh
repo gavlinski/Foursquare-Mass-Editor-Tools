@@ -52,7 +52,17 @@ fi
 
 # Verifica se está na branch correta
 CURRENT_BRANCH=$(git branch --show-current)
-if [ "$CURRENT_BRANCH" != "$BRANCH" ]; then
+IS_TAG_DEPLOY=false
+if git show-ref --verify --quiet "refs/tags/${BRANCH}"; then
+    IS_TAG_DEPLOY=true
+    TAG_COMMIT=$(git rev-parse "refs/tags/${BRANCH}^{commit}")
+    CURRENT_COMMIT=$(git rev-parse HEAD)
+    if [ "$CURRENT_COMMIT" != "$TAG_COMMIT" ]; then
+        echo -e "${RED}❌ HEAD não corresponde à tag '${BRANCH}'.${NC}"
+        exit 1
+    fi
+    echo -e "${GREEN}✅ Checkout da tag '${BRANCH}' validado${NC}"
+elif [ "$CURRENT_BRANCH" != "$BRANCH" ]; then
     echo -e "${RED}❌ Você está na branch '${CURRENT_BRANCH}', mas o deploy é da '${BRANCH}'.${NC}"
     if [ "$IS_CI_ENVIRONMENT" = "true" ]; then
         echo -e "${YELLOW}🤖 Ambiente CI: fazendo checkout automaticamente para '${BRANCH}'${NC}"
@@ -77,22 +87,32 @@ if ! git diff-index --quiet HEAD --; then
 fi
 
 echo -e "${BLUE}🔍 Verificando status do repositório...${NC}"
-git fetch origin
+if [ "$IS_TAG_DEPLOY" = "true" ]; then
+    git fetch origin "refs/tags/${BRANCH}:refs/tags/${BRANCH}"
+    LOCAL=$(git rev-parse HEAD)
+    REMOTE=$(git rev-parse "refs/tags/${BRANCH}^{commit}")
+    if [ "$LOCAL" != "$REMOTE" ]; then
+        echo -e "${RED}❌ O checkout local não corresponde à tag remota '${BRANCH}'.${NC}"
+        exit 1
+    fi
+else
+    git fetch origin
 
-# Verifica se está atualizado com origin
-LOCAL=$(git rev-parse @)
-REMOTE=$(git rev-parse @{u})
+    # Verifica se está atualizado com origin
+    LOCAL=$(git rev-parse @)
+    REMOTE=$(git rev-parse @{u})
 
-if [ "$LOCAL" != "$REMOTE" ]; then
-    echo -e "${YELLOW}⚠️  Branch local não está sincronizada com origin.${NC}"
-    if [ "$IS_CI_ENVIRONMENT" = "true" ]; then
-        echo -e "${YELLOW}🤖 Ambiente CI: fazendo pull automaticamente${NC}"
-        git pull origin "$BRANCH"
-    else
-        echo -e "${YELLOW}Deseja fazer pull antes do deploy? (s/n)${NC}"
-        read -r response
-        if [[ "$response" =~ ^[Ss]$ ]]; then
+    if [ "$LOCAL" != "$REMOTE" ]; then
+        echo -e "${YELLOW}⚠️  Branch local não está sincronizada com origin.${NC}"
+        if [ "$IS_CI_ENVIRONMENT" = "true" ]; then
+            echo -e "${YELLOW}🤖 Ambiente CI: fazendo pull automaticamente${NC}"
             git pull origin "$BRANCH"
+        else
+            echo -e "${YELLOW}Deseja fazer pull antes do deploy? (s/n)${NC}"
+            read -r response
+            if [[ "$response" =~ ^[Ss]$ ]]; then
+                git pull origin "$BRANCH"
+            fi
         fi
     fi
 fi
@@ -103,7 +123,7 @@ echo -e "${YELLOW}🚀 Pronto para fazer deploy para PRODUÇÃO${NC}"
 echo -e "${CYAN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
 echo -e "   Servidor: ${GREEN}${PRODUCTION_SERVER}${NC}"
 echo -e "   Usuário: ${GREEN}${PRODUCTION_USER}${NC}"
-echo -e "   Branch: ${GREEN}${BRANCH}${NC}"
+echo -e "   Ref: ${GREEN}${BRANCH}${NC}"
 echo -e "   Commit: ${GREEN}$(git log -1 --pretty=format:'%h - %s')${NC}"
 echo -e "${CYAN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
 echo -e "${RED}⚠️  ATENÇÃO: Este deploy afetará o site em produção!${NC}"
@@ -225,9 +245,14 @@ $SSH_CMD "${PRODUCTION_USER}@${PRODUCTION_SERVER}" << EOF
     fi
     
     echo "📥 Atualizando código via Git..."
-    git fetch origin
-    git checkout ${BRANCH}
-    git pull origin ${BRANCH}
+    if [ "${IS_TAG_DEPLOY}" = "true" ]; then
+        git fetch origin "refs/tags/${BRANCH}:refs/tags/${BRANCH}"
+        git checkout --detach "refs/tags/${BRANCH}"
+    else
+        git fetch origin
+        git checkout ${BRANCH}
+        git pull origin ${BRANCH}
+    fi
 
     echo "🔎 Validando fallback local do Dojo (js/dojo, js/dijit, js/dojox)..."
     if [ ! -f "js/dojo/dojo.js" ] || [ ! -f "js/dijit/themes/tundra/tundra.css" ] || [ ! -f "js/dojox/form/Uploader.js" ]; then
