@@ -88,7 +88,7 @@ fi
 
 echo -e "${BLUE}🔍 Verificando status do repositório...${NC}"
 if [ "$IS_TAG_DEPLOY" = "true" ]; then
-    git fetch origin "refs/tags/${BRANCH}:refs/tags/${BRANCH}"
+    git fetch origin "+refs/tags/${BRANCH}:refs/tags/${BRANCH}"
     LOCAL=$(git rev-parse HEAD)
     REMOTE=$(git rev-parse "refs/tags/${BRANCH}^{commit}")
     if [ "$LOCAL" != "$REMOTE" ]; then
@@ -246,7 +246,7 @@ $SSH_CMD "${PRODUCTION_USER}@${PRODUCTION_SERVER}" << EOF
     
     echo "📥 Atualizando código via Git..."
     if [ "${IS_TAG_DEPLOY}" = "true" ]; then
-        git fetch origin "refs/tags/${BRANCH}:refs/tags/${BRANCH}"
+        git fetch origin "+refs/tags/${BRANCH}:refs/tags/${BRANCH}"
         git checkout --detach "refs/tags/${BRANCH}"
     else
         git fetch origin
