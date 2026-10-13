@@ -1,17 +1,17 @@
 # Foursquare Mass Editor Tools (Elio Tools)
 
-**Version 3.3.1** - Chains and Map Interaction Hotfixes
+**Version 3.3.2** - Deploy, Security, and Chains Fixes
 
 A comprehensive collection of **Superuser Tools** for Foursquare venues mass/bulk editing and searching, powered by the Foursquare API v2. This project has been **completely modernized** with a hybrid architecture combining modern PHP 8.1 features with legacy compatibility.
 
-## 🚀 Version 3.3.1 Highlights
+## 🚀 Version 3.3.2 Highlights
 
 - ✅ **Chains** can be searched, assigned, reordered, and submitted with venue edits
 - ✅ Chain IDs and edit operations are included in CSV exports when selected
 - ✅ Partial and complete venue data stay aligned after reloads and CSV export
 - ✅ Bulk edits apply to selected venues and can prefill values shared by those venues
 - ✅ Session test fixtures are isolated from real authentication sessions
-- ✅ Version 3.3.1 includes follow-up fixes to chain search and map interaction
+- ✅ Version 3.3.2 fixes tag deployment, adds Copilot security hooks, and corrects chain search eligibility
 
 ## 🎯 Key Features
 
@@ -30,7 +30,7 @@ A comprehensive collection of **Superuser Tools** for Foursquare venues mass/bul
 - 📍 Google Maps integration with location markers
 - 🔍 Advanced search using Foursquare API
 
-### Current Capabilities (v3.3.1)
+### Current Capabilities (v3.3.2)
 - 🔐 **OAuth2 Authentication** with automatic token refresh
 - 📊 **Session Status Bar** with real-time monitoring
 - 🧹 **Cache Management** with automatic cleanup

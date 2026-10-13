@@ -1,5 +1,14 @@
 # Changelog
 
+## Version 3.3.2 (2026-10-13)
+
+**Deploy and Security:**
+- Fixed tag deployment by allowing the fetched tag reference to be updated locally.
+- Added Copilot hooks for command safety warnings and commit secret scanning, with automated tests.
+
+**Chains Search:**
+- Required Placemaker level 9 for the Chains search API and updated the related regression coverage.
+
 ## Version 3.3.1 (2026-10-13)
 
 **Hotfixes:**
