@@ -1,5 +1,13 @@
 # Changelog
 
+## Version 3.3.1 (2026-10-13)
+
+**Hotfixes:**
+- Improved chain search API error handling and refreshed tooltips after chain updates.
+- Refined map interaction by preventing map icons from capturing clicks and layering the resize handle correctly.
+- Updated chain and CSV E2E coverage for the current editing function parameters.
+- Removed an unsupported Playwright MCP configuration option.
+
 ## Version 3.3.0 (2026-10-12)
 
 **Chains:**
