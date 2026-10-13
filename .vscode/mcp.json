@@ -9,8 +9,6 @@
         "--ignore-https-errors",
         "--output-dir",
         "/var/www/html/debug/mcp-artifacts",
-        "--output-mode",
-        "file",
         "--viewport-size",
         "1440x900"
       ],

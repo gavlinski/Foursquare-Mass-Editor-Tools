@@ -41,5 +41,4 @@ exec npx @playwright/mcp@latest \
     --cdp-endpoint "$WS_URL" \
     --ignore-https-errors \
     --output-dir /var/www/html/debug/mcp-artifacts \
-    --output-mode file \
     --viewport-size 1440x900
