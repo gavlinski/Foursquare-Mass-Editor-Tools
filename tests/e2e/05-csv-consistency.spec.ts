@@ -157,8 +157,8 @@ async function prepararBuscaRede(page: Page, superuserLevel: number) {
 }
 
 test.describe('Consistência do CSV de venues', () => {
-  test('usa chains/search e a resposta legada para placemakers nível 8 ou maior', async ({ page }) => {
-    await prepararBuscaRede(page, 8);
+  test('usa chains/search e a resposta legada para placemakers nível 9 ou maior', async ({ page }) => {
+    await prepararBuscaRede(page, 9);
     const requestUrls: string[] = [];
     await page.route('https://api.foursquare.com/v2/**', async route => {
       requestUrls.push(route.request().url());
@@ -188,8 +188,8 @@ test.describe('Consistência do CSV de venues', () => {
     expect(new URL(requestUrls[0]).searchParams.get('query')).toBe('cacau');
   });
 
-  test('usa autocomplete e groups.venueChains para placemakers abaixo do nível 8', async ({ page }) => {
-    await prepararBuscaRede(page, 7);
+  test('usa autocomplete e groups.venueChains para placemakers abaixo do nível 9', async ({ page }) => {
+    await prepararBuscaRede(page, 8);
     const requestUrls: string[] = [];
     await page.route('https://api.foursquare.com/v2/**', async route => {
       requestUrls.push(route.request().url());

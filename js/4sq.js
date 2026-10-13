@@ -1692,7 +1692,7 @@ function buscarRedePeloNome(query, sequencia) {
 	var xhr = new XMLHttpRequest();
 	xhrBuscaRede = xhr;
 	var endpoint;
-	if (obterNivelPlacemaker() >= 8) {
+	if (obterNivelPlacemaker() >= 9) {
 		endpoint = "https://api.foursquare.com/v2/chains/search?query=" + encodeURIComponent(query) +
 			"&oauth_token=" + encodeURIComponent(token) + "&v=" + DATA_VERSIONAMENTO;
 	} else {
