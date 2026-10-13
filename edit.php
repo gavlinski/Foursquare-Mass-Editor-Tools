@@ -33,6 +33,8 @@ use ElioTools\Security\SessionManager;
 $sessionManager = new SessionManager();
 $sessionManager->start();
 $oauthToken = $sessionManager->getAccessToken();
+$userData = $sessionManager->get('user_data');
+$superuserLevel = is_array($userData) && isset($userData['superuser']) ? (int) $userData['superuser'] : null;
 
 if ($oauthToken && ($sessionManager->get('file') != null)) {
     $file = $sessionManager->get('file');
@@ -150,6 +152,7 @@ body.loading #listContainer {
 window.appBootstrap = window.appBootstrap || {};
 window.appBootstrap.oauthToken = <?php echo json_encode($oauthToken, JSON_UNESCAPED_SLASHES); ?>;
 window.appBootstrap.editChains = <?php echo $editChains ? 'true' : 'false'; ?>;
+window.appBootstrap.superuserLevel = <?php echo json_encode($superuserLevel); ?>;
 </script>
 <script src="js/google-maps-config.php?v=5.0.1" defer></script>
 <?php script_versioned('js/google-maps.js', ['defer' => 'defer']); ?>

@@ -13,6 +13,7 @@ dojo.require("dojo.cookie");
 dojo.require("dijit.form.Select");
 
 var DATA_VERSIONAMENTO = "20250401";
+var CHAIN_AUTOCOMPLETE_VERSION = "20261006";
 var MESES = new Array("01", "02", "03", "04", "05", "06", "07", "08", "09", "10", "11", "12");
 
 // Utilitários de logging (isLocalhost, debugLog, debugInfo) são providos por session-manager.js
@@ -96,12 +97,35 @@ var xhrBuscaRede;
 var sequenciaBuscaRede = 0;
 
 var redesInfoCache = {};
+var wsidBuscaRede = "";
 try {
 	var savedRedesCache = localStorage.getItem('redes_cache');
 	if (savedRedesCache) redesInfoCache = JSON.parse(savedRedesCache);
 } catch(e) {}
 
 var pendingChainRequests = {};
+
+function obterWsidBuscaRede() {
+	if (wsidBuscaRede) return wsidBuscaRede;
+	var caracteres = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+	var bytes = new Uint8Array(30);
+	if (window.crypto && window.crypto.getRandomValues) {
+		window.crypto.getRandomValues(bytes);
+	} else {
+		for (var i = 0; i < bytes.length; i++) bytes[i] = Math.floor(Math.random() * 256);
+	}
+	for (var j = 0; j < bytes.length; j++) wsidBuscaRede += caracteres.charAt(bytes[j] % caracteres.length);
+	return wsidBuscaRede;
+}
+
+function obterNivelPlacemaker() {
+	var nivel = window.appBootstrap && window.appBootstrap.superuserLevel;
+	if ((nivel === undefined || nivel === null) && window.sessionManager && window.sessionManager.userInfo) {
+		nivel = window.sessionManager.userInfo.superuser_level;
+	}
+	var nivelNumerico = parseInt(nivel, 10);
+	return isNaN(nivelNumerico) ? 0 : nivelNumerico;
+}
 
 function formatarLogoRede(logoObj) {
 	var defaultLogo = "https://app.foursquare.com/img/categories_v2/none_bg_32.png";
@@ -171,6 +195,11 @@ function urlLogoRedeSegura(url) {
 	return link.protocol === "https:" ? link.href : defaultLogo;
 }
 
+function nomeRedeTooltip(item) {
+	var nome = item && typeof item.name === "string" ? item.name.trim() : "";
+	return nome || "Nome da rede indisponível";
+}
+
 function renderizarIconeRede(elemento, i, item, permitirEdicao, opacity) {
 	while (elemento.firstChild) elemento.removeChild(elemento.firstChild);
 	var target = elemento;
@@ -199,7 +228,7 @@ function renderizarIconeRede(elemento, i, item, permitirEdicao, opacity) {
 	};
 	image.src = urlLogoRedeSegura(item && item.logo ? formatarLogoRedeUrl(item.logo) : "");
 	target.appendChild(image);
-	var tooltip = item ? item.name : (permitirEdicao ? "Sem rede definida (clique para adicionar)" : "Sem rede definida");
+	var tooltip = item ? nomeRedeTooltip(item) : (permitirEdicao ? "Sem rede definida (clique para adicionar)" : "Sem rede definida");
 	createTooltip(targetId, "<span style=\"font-size: 12px\">" + escapeTooltipHtml(tooltip || "Sem rede definida") + "</span>");
 }
 
@@ -269,7 +298,7 @@ function buscarInfoRede(cId, i) {
 }
 
 function atualizarTooltipRedes(i, targetId) {
-	var nomes = obterItensRede(redes[i]).map(function(item) { return item.name; }).join(", ");
+	var nomes = obterItensRede(redes[i]).map(nomeRedeTooltip).join(", ");
 	createTooltip(targetId || "chainLnk" + i, "<span style=\"font-size: 12px\">" + escapeTooltipHtml(nomes || "Sem rede definida") + "</span>");
 }
 
@@ -297,7 +326,6 @@ function processarRedesVenue(venue, i) {
 					cNome = redesInfoCache[cId].nome;
 					cLogo = redesInfoCache[cId].logo;
 				} else {
-					cNome = cNome || "Rede (" + cId.substr(0, 8) + "...)";
 					cLogo = cLogo || "https://app.foursquare.com/img/categories_v2/none_bg_32.png";
 					buscarInfoRede(cId, i);
 				}
@@ -1663,16 +1691,30 @@ function buscarRedePeloNome(query, sequencia) {
 	mostrarMensagemBuscaRede("Buscando redes...", "muted");
 	var xhr = new XMLHttpRequest();
 	xhrBuscaRede = xhr;
-	xhr.open("GET", "https://api.foursquare.com/v2/chains/search?query=" + encodeURIComponent(query) + "&oauth_token=" + token + "&v=" + DATA_VERSIONAMENTO, true);
+	var endpoint;
+	if (obterNivelPlacemaker() >= 8) {
+		endpoint = "https://api.foursquare.com/v2/chains/search?query=" + encodeURIComponent(query) +
+			"&oauth_token=" + encodeURIComponent(token) + "&v=" + DATA_VERSIONAMENTO;
+	} else {
+		endpoint = "https://api.foursquare.com/v2/search/autocomplete?locale=pt&explicit-lang=false&v=" + CHAIN_AUTOCOMPLETE_VERSION +
+			"&query=" + encodeURIComponent(query) + "&group=venuechains&wsid=" + obterWsidBuscaRede() + "&oauth_token=" + encodeURIComponent(token);
+	}
+	xhr.open("GET", endpoint, true);
 	xhr.onreadystatechange = function() {
 		if (xhr.readyState !== 4 || sequencia !== sequenciaBuscaRede) return;
 		xhrBuscaRede = null;
 		if (xhr.status === 200) {
 			try {
 				var resp = JSON.parse(xhr.responseText);
-				if (resp.response && resp.response.results && resp.response.results.length > 0) {
+				var response = resp.response || {};
+				var results = Array.isArray(response.results) ? response.results : [];
+				if (!results.length && Array.isArray(response.groups)) {
+					var chainGroup = response.groups.filter(function(group) { return group.type === "venueChains"; })[0];
+					results = chainGroup && Array.isArray(chainGroup.items) ? chainGroup.items : [];
+				}
+				if (results.length > 0) {
 					resultsContainer.innerHTML = "";
-					resp.response.results.forEach(function(r) {
+					results.forEach(function(r) {
 						var logo = formatarLogoRede(r.logo);
 						var nome = (r.bestName && r.bestName.name) ? r.bestName.name : r.id;
 						var item = document.createElement("button");
@@ -1695,18 +1737,22 @@ function buscarRedePeloNome(query, sequencia) {
 						details.appendChild(name);
 						details.appendChild(identity);
 						main.appendChild(details);
-						var resultCount = document.createElement("div");
-						resultCount.className = "chain-search-result-count visual-item-right";
-						var count = r.count || 0;
-						var countries = r.countries || 1;
-						var countLabel = document.createElement("div");
-						countLabel.textContent = count + (count === 1 ? " local" : " locais");
-						var countriesLabel = document.createElement("div");
-						countriesLabel.textContent = countries + (countries === 1 ? " país" : " países");
-						resultCount.appendChild(countLabel);
-						resultCount.appendChild(countriesLabel);
 						item.appendChild(main);
-						item.appendChild(resultCount);
+						if (typeof r.count === "number" || typeof r.countries === "number") {
+							var resultCount = document.createElement("div");
+							resultCount.className = "chain-search-result-count visual-item-right";
+							if (typeof r.count === "number") {
+								var countLabel = document.createElement("div");
+								countLabel.textContent = r.count + (r.count === 1 ? " local" : " locais");
+								resultCount.appendChild(countLabel);
+							}
+							if (typeof r.countries === "number") {
+								var countriesLabel = document.createElement("div");
+								countriesLabel.textContent = r.countries + (r.countries === 1 ? " país" : " países");
+								resultCount.appendChild(countriesLabel);
+							}
+							item.appendChild(resultCount);
+						}
 						resultsContainer.appendChild(item);
 						dojo.connect(item, "onclick", function() {
 							adicionarRedeNaEdicao(r.id, nome, logo);

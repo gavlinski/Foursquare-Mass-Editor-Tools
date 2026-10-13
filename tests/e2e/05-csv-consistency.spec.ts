@@ -11,6 +11,7 @@ type CsvHarnessWindow = Window & {
     byId: (id: string) => HTMLElement | null;
     hasClass: (element: Element, className: string) => boolean;
     addClass: (element: Element, className: string) => void;
+    connect: () => void;
   };
   dijit: {
     byId: (id: string) => {
@@ -20,7 +21,8 @@ type CsvHarnessWindow = Window & {
       setAttribute: (name: string, value: unknown) => void;
     } | null;
   };
-  appBootstrap: { editChains: boolean };
+  appBootstrap: { editChains: boolean; oauthToken?: string; superuserLevel?: number };
+  sessionManager?: { userInfo?: { superuser_level?: number } };
   debugLog: (...values: unknown[]) => void;
   createTooltip: (...values: unknown[]) => void;
   csv: string[][];
@@ -61,7 +63,8 @@ type CsvHarnessWindow = Window & {
   montarArvore: (categories: unknown) => void;
   debugInfo: (...values: unknown[]) => void;
   googleMaps: { map: object; updateMarkers: (locations: Array<[string, number, number]>) => void };
-  __testWidgets: Record<string, { checked?: boolean; disabled?: boolean; hide?: () => void; set: (name: string, value: unknown) => void; setAttribute: (name: string, value: unknown) => void }>;
+  __testWidgets: Record<string, { checked?: boolean; disabled?: boolean; hide?: () => void; get?: (name: string) => string; set: (name: string, value: unknown) => void; setAttribute: (name: string, value: unknown) => void }>;
+  buscarRedePeloNome: (query: string) => void;
   __restoredMarkers?: Array<[string, number, number]>;
   montarPrefixoLinhaCsv: (
     venueId: string,
@@ -102,7 +105,8 @@ async function carregarLogicaCsv(page: Page) {
       query: selector => Array.from(document.querySelectorAll(selector)),
       byId: id => document.getElementById(id),
       hasClass: (element, className) => element.classList.contains(className),
-      addClass: (element, className) => element.classList.add(className)
+      addClass: (element, className) => element.classList.add(className),
+      connect: () => undefined
     };
     editor.__testWidgets = {
       saveButton: { disabled: true, set: (_name, value) => { editor.__testWidgets.saveButton.disabled = Boolean(value); }, setAttribute: (_name, value) => { editor.__testWidgets.saveButton.disabled = Boolean(value); } },
@@ -136,7 +140,89 @@ function colunasCompletas(): string[] {
   ];
 }
 
+async function prepararBuscaRede(page: Page, superuserLevel: number) {
+  await carregarLogicaCsv(page);
+  await page.evaluate(level => {
+    const editor = window as unknown as CsvHarnessWindow;
+    document.body.insertAdjacentHTML('beforeend', '<div id="chainsResultsContainer"></div>');
+    editor.appBootstrap.oauthToken = 'test-token';
+    editor.appBootstrap.superuserLevel = level;
+    editor.sessionManager = { userInfo: { superuser_level: level } };
+    editor.__testWidgets.inputChainSearch = {
+      get: () => 'cacau',
+      set: () => undefined,
+      setAttribute: () => undefined
+    };
+  }, superuserLevel);
+}
+
 test.describe('Consistência do CSV de venues', () => {
+  test('usa chains/search e a resposta legada para placemakers nível 8 ou maior', async ({ page }) => {
+    await prepararBuscaRede(page, 8);
+    const requestUrls: string[] = [];
+    await page.route('https://api.foursquare.com/v2/**', async route => {
+      requestUrls.push(route.request().url());
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        headers: { 'access-control-allow-origin': '*' },
+        body: JSON.stringify({
+          response: {
+            results: [{
+              id: chainId,
+              bestName: { name: 'Cacau Show' },
+              logo: { prefix: 'https://fastly.4sqi.net/img/general/', suffix: '/chain.png' },
+              count: 12,
+              countries: 2
+            }]
+          }
+        })
+      });
+    });
+
+    await page.evaluate(() => (window as unknown as CsvHarnessWindow).buscarRedePeloNome('cacau'));
+
+    await expect(page.locator('.chain-search-result-name')).toHaveText(['Cacau Show']);
+    await expect(page.locator('.chain-search-result-count')).toContainText('12 locais');
+    expect(new URL(requestUrls[0]).pathname).toBe('/v2/chains/search');
+    expect(new URL(requestUrls[0]).searchParams.get('query')).toBe('cacau');
+  });
+
+  test('usa autocomplete e groups.venueChains para placemakers abaixo do nível 8', async ({ page }) => {
+    await prepararBuscaRede(page, 7);
+    const requestUrls: string[] = [];
+    await page.route('https://api.foursquare.com/v2/**', async route => {
+      requestUrls.push(route.request().url());
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        headers: { 'access-control-allow-origin': '*' },
+        body: JSON.stringify({
+          response: {
+            groups: [{
+              type: 'venueChains',
+              items: [{
+                id: chainId,
+                bestName: { name: 'Cacau Show' },
+                logo: { prefix: 'https://fastly.4sqi.net/img/general/', suffix: '/chain.png' }
+              }]
+            }]
+          }
+        })
+      });
+    });
+
+    await page.evaluate(() => (window as unknown as CsvHarnessWindow).buscarRedePeloNome('cacau'));
+
+    await expect(page.locator('.chain-search-result-name')).toHaveText(['Cacau Show']);
+    await expect(page.locator('.chain-search-result-count')).toHaveCount(0);
+    const requestUrl = new URL(requestUrls[0]);
+    expect(requestUrl.pathname).toBe('/v2/search/autocomplete');
+    expect(requestUrl.searchParams.get('query')).toBe('cacau');
+    expect(requestUrl.searchParams.get('group')).toBe('venuechains');
+    expect(requestUrl.searchParams.get('wsid')).toMatch(/^[A-Z0-9]{30}$/);
+  });
+
   test('página de debug renderiza dados remotos de Chains como texto', async ({ page }) => {
     const venueName = '<img id="xss-probe" src=x onerror="window.__xssTriggered=true"> Venue';
     const city = '<svg id="xss-svg" onload="window.__xssTriggered=true"></svg>';
@@ -602,6 +688,39 @@ test.describe('Consistência do CSV de venues', () => {
     expect(resultado.row[resultado.header.indexOf('venueChainId')]).toBe(`"${chainId}"`);
     expect(resultado.header).toContain('primaryVenueChainId');
     expect(resultado.display).not.toContain('display: none');
+  });
+
+  test('usa texto explicativo na tooltip quando o nome da rede está ausente', async ({ page }) => {
+    await carregarLogicaCsv(page);
+
+    const resultado = await page.evaluate(({ chainId }) => {
+      const editor = window as unknown as CsvHarnessWindow & {
+        atualizarTooltipRedes: (venueIndex: number) => void;
+      };
+      const tooltips: string[] = [];
+      let chamadasBuscaRede = 0;
+      editor.createTooltip = (_targetId, content) => { tooltips.push(content); };
+      editor.buscarInfoRede = () => { chamadasBuscaRede++; };
+      editor.redes = [];
+
+      editor.processarRedesVenue({ venueChains: [{ id: chainId }] }, 0);
+      editor.atualizarIconeRede(0, true);
+      const tooltipInicial = tooltips[tooltips.length - 1] || '';
+      editor.atualizarTooltipRedes(0);
+
+      return {
+        chamadasBuscaRede,
+        nomeArmazenado: editor.redes[0].items?.[0]?.name,
+        tooltipInicial,
+        tooltipAtualizada: tooltips[tooltips.length - 1] || ''
+      };
+    }, { chainId });
+
+    expect(resultado.chamadasBuscaRede).toBe(1);
+    expect(resultado.nomeArmazenado).toBe('');
+    expect(resultado.tooltipInicial).toContain('Nome da rede indisponível');
+    expect(resultado.tooltipAtualizada).toContain('Nome da rede indisponível');
+    expect(resultado.tooltipInicial).not.toContain(chainId.slice(0, 8));
   });
 
   test('preserva nomes com vírgulas e marcação como registros estruturados no modal', async ({ page }) => {
