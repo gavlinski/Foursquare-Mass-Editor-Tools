@@ -83,7 +83,7 @@ git push origin refactor-ia
 # Aguarda ~10-15 min (deploy automático)
 ```
 
-Branches `release/*` e pull requests para esses branches executam lint, testes, E2E e build, mas não fazem deploy. Pull requests para `main` e `refactor-ia` também executam E2E. O deploy automático continua restrito a push em `main`, `refactor-ia`, tags `v*` ou execução manual de deploy. Enviar uma tag `v*` publica a GitHub Release e também aciona o deploy de produção.
+Branches `release/*` e pull requests para esses branches executam lint, testes, E2E e build, mas não fazem deploy. Pull requests para `main` e `refactor-ia` também executam E2E. O deploy automático continua restrito a push em `main`, `refactor-ia`, tags `v*` ou execução manual de deploy. Enviar uma tag `v*` publica a GitHub Release e também aciona o deploy de produção; nesse caso, o script valida e aplica o commit da tag em checkout destacado, sem exigir upstream de branch.
 
 **Pipeline**:
 ```
@@ -99,7 +99,7 @@ GitHub Actions (deploy.yml)
 ├──> Job 4: Build & Minify (3-4 min)
 │   ├─> BUILD_SOURCE=ci bash build.sh
 │   └─> Upload artifacts (7 dias retenção)
-├─> Job 5: Deploy (somente main/refactor-ia, tags v*, ou dispatch)
+├─> Job 5: Deploy (main/refactor-ia por branch; tags v* pelo commit marcado; ou dispatch)
     ├─> Download artifacts
     ├─> SSH com DEPLOY_SSH_KEY secret
     └─> Executa deploy.sh (modo não-interativo)

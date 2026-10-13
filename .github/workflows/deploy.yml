@@ -335,7 +335,7 @@ jobs:
           GOOGLE_MAPS_GEOCODING_KEY: ${{ secrets.GOOGLE_MAPS_GEOCODING_KEY }}
           APP_URL: ${{ env.PRODUCTION_URL }}
         run: |
-          echo "🚀 Deploying branch: ${DEPLOY_BRANCH}"
+          echo "🚀 Deploying ref: ${DEPLOY_BRANCH}"
           
           # CRITICAL: Copy build artifacts to server BEFORE running deploy.sh
           # This ensures build-info.json and minified files are available for Docker build
@@ -414,7 +414,7 @@ jobs:
           echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
           echo "✅ Deployment completed successfully!"
           echo "🌐 URL: ${{ env.PRODUCTION_URL }}"
-          echo "📋 Branch: ${{ github.ref_name }}"
+          echo "📋 Ref: ${{ github.ref_name }}"
           echo "📝 Commit: ${{ github.sha }}"
           echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 
