@@ -24,7 +24,7 @@ type CsvHarnessWindow = Window & {
   appBootstrap: { editChains: boolean; oauthToken?: string; superuserLevel?: number };
   sessionManager?: { userInfo?: { superuser_level?: number } };
   debugLog: (...values: unknown[]) => void;
-  createTooltip: (...values: unknown[]) => void;
+  createTooltip: (targetId: string, content: string) => void;
   csv: string[][];
   modo: number;
   DADOS_COMPLETOS: number;

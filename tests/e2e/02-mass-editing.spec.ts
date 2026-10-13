@@ -108,7 +108,7 @@ test.describe('Edição em Massa', () => {
 
     await page.evaluate(() => {
       editarRedes(0);
-      atualizarRedes([], '', '');
+      atualizarRedes([], '');
       adicionarRedeNaEdicao('0123456789abcdef01234567', 'Rede de teste', '');
     });
     await expect(page.locator('#chainSearchStatus')).toHaveText('Rede adicionada.');
