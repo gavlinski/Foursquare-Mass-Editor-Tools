@@ -100,6 +100,7 @@ class GoogleMaps {
                     center: center,
                     zoom: mapZoom,
                     disableDefaultUI: true,
+                    clickableIcons: false,
                     mapId: this.config.mapId,
                     mapTypeId: google.maps.MapTypeId.ROADMAP,
                     mapTypeControl: false,
