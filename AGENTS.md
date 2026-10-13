@@ -36,6 +36,7 @@ App is served at `https://localhost/4sqmet/`.
 composer install           # PHP dependencies
 npx playwright test        # E2E regression suite (see playwright-regression skill)
 npx playwright test tests/e2e/01-session-auth.spec.ts   # single flow
+npm run test:hooks         # Copilot hook contract and scanner tests
 ```
 
 There is no PHP unit test suite yet — validate PHP changes with `php -l <file>` and by exercising the relevant `debug/` tool.
@@ -62,6 +63,7 @@ Deeper, task-triggered knowledge lives in `.github/skills/*/SKILL.md`. Load the 
 - Always guard `setcookie()` calls with `headers_sent()` and set `secure`/`httponly`/`samesite=Strict`.
 - Never create ad-hoc debug/test scripts in the repo root — use and extend the consolidated tools in `debug/` (`debug-tools` skill).
 - Treat any OWASP Top 10 class of issue (injection, broken auth, sensitive data exposure, etc.) as a blocker, not a follow-up.
+- Repository Copilot hooks are advisory; preserve deploy workflows, never log matched credentials, and run `npm run test:hooks` when changing them.
 
 ## Deployment
 

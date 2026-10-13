@@ -26,6 +26,15 @@ VS Code loads these automatically for matching files — read them directly if y
 - `.github/instructions/php-modern.instructions.md` — `src/**/*.php`
 - `.github/instructions/dojo-widgets.instructions.md` — `edit.php`, `main.php`, `load.php`
 - `.github/instructions/javascript-conventions.instructions.md` — `js/**/*.js`
+- `.github/instructions/hooks.instructions.md` defines conventions for `.github/hooks/**` and `tests/hooks/**`.
+
+## Local Copilot hooks
+
+- `.github/hooks/tool-guardian.json` runs a shell-command guardian in warning mode by default; block mode is opt-in by changing `TOOL_GUARD_MODE` to `block`.
+- The guardian checks destructive removal of critical paths, `git reset --hard`, forced `git clean`, and force-push. It intentionally permits normal deploy operations such as `git checkout`, `git pull`, `docker rm`, and image pruning.
+- `.github/hooks/secrets-scanner.json` warns before `git commit` when high-confidence credential patterns appear in the commit command or tracked working-tree diff. It compares against `HEAD` without mutating the index and excludes the Playwright storage-state file; it does not cover every secret format or all Git invocation styles.
+- Both hooks are advisory by default. The scanner is intentionally not a commit blocker because its tracked-diff superset may warn about files outside a path-limited commit. Neither hook replaces CI or GitHub-side controls.
+- Run `npm run test:hooks` after changing hook behavior. Script tests validate the contract, not host discovery. Copilot CLI repository-hook discovery is documented; actual runtime execution still needs an authenticated smoke test, and VS Code Chat support must be confirmed separately.
 
 ## Skills index (`.github/skills/`)
 

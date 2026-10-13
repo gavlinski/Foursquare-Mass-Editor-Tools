@@ -28,12 +28,14 @@ concurrency:
   group: cicd-${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
+permissions:
+  contents: read
+
 env:
   PHP_VERSION: '8.1'
   NODE_VERSION: '18'
   DEPLOY_HOST: ${{ vars.DEPLOY_HOST }}
   PRODUCTION_DOMAIN: '4sq.eliotools.site'
-  PRODUCTION_URL: ${{ secrets.APP_URL }}
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true  # Opt-in antes do forced rollout em 02/06/2026
 
 jobs:
@@ -47,10 +49,10 @@ jobs:
     
     steps:
       - name: 📥 Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
       
       - name: 🐘 Setup PHP ${{ env.PHP_VERSION }}
-        uses: shivammathur/setup-php@v2
+        uses: shivammathur/setup-php@eb7c497e18156a6bbabfef1d3a82760b9eda3962 # v2.40.0
         with:
           php-version: ${{ env.PHP_VERSION }}
           extensions: mbstring, xml, curl, zip
@@ -76,10 +78,10 @@ jobs:
     
     steps:
       - name: 📥 Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
       
       - name: 🐘 Setup PHP ${{ env.PHP_VERSION }}
-        uses: shivammathur/setup-php@v2
+        uses: shivammathur/setup-php@eb7c497e18156a6bbabfef1d3a82760b9eda3962 # v2.40.0
         with:
           php-version: ${{ env.PHP_VERSION }}
           extensions: mbstring, xml, curl, zip
@@ -87,6 +89,14 @@ jobs:
       
       - name: 📦 Install dependencies
         run: composer install --no-interaction --prefer-dist
+
+      - name: 📦 Setup Node.js ${{ env.NODE_VERSION }}
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: 🛡️ Run Copilot hook tests
+        run: npm run test:hooks
       
       - name: 🧪 Run PHPUnit tests
         run: |
@@ -114,10 +124,10 @@ jobs:
 
     steps:
       - name: 📥 Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
 
       - name: 📦 Setup Node.js ${{ env.NODE_VERSION }}
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: 'npm'
@@ -145,14 +155,20 @@ jobs:
           docker run -d \
             --name foursquare-e2e-app \
             -p 80:80 -p 443:443 \
-            -e FOURSQUARE_CLIENT_KEY=${{ secrets.FOURSQUARE_CLIENT_KEY }} \
-            -e FOURSQUARE_CLIENT_SECRET=${{ secrets.FOURSQUARE_CLIENT_SECRET }} \
-            -e FOURSQUARE_REDIRECT_URI=${{ secrets.FOURSQUARE_REDIRECT_URI }} \
-            -e GOOGLE_MAPS_API_KEY=${{ secrets.GOOGLE_MAPS_API_KEY }} \
-            -e GOOGLE_MAPS_MAP_ID=${{ secrets.GOOGLE_MAPS_MAP_ID }} \
+            -e FOURSQUARE_CLIENT_KEY \
+            -e FOURSQUARE_CLIENT_SECRET \
+            -e FOURSQUARE_REDIRECT_URI \
+            -e GOOGLE_MAPS_API_KEY \
+            -e GOOGLE_MAPS_MAP_ID \
             -e APP_ENV=development \
             -e APP_URL=https://localhost \
             foursquare-e2e
+        env:
+          FOURSQUARE_CLIENT_KEY: ${{ secrets.FOURSQUARE_CLIENT_KEY }}
+          FOURSQUARE_CLIENT_SECRET: ${{ secrets.FOURSQUARE_CLIENT_SECRET }}
+          FOURSQUARE_REDIRECT_URI: ${{ secrets.FOURSQUARE_REDIRECT_URI }}
+          GOOGLE_MAPS_API_KEY: ${{ secrets.GOOGLE_MAPS_API_KEY }}
+          GOOGLE_MAPS_MAP_ID: ${{ secrets.GOOGLE_MAPS_MAP_ID }}
 
       - name: ⏳ Aguardar aplicação inicializar
         run: |
@@ -196,7 +212,7 @@ jobs:
         run: npx playwright test
 
       - name: 📊 Upload relatório HTML do Playwright
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         if: always()
         with:
           name: playwright-report
@@ -204,7 +220,7 @@ jobs:
           retention-days: 14
 
       - name: 📸 Upload artefatos de falha
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         if: failure()
         with:
           name: test-results
@@ -229,12 +245,12 @@ jobs:
     
     steps:
       - name: 📥 Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
         with:
           fetch-depth: 0  # Fetch all history and tags for git describe
       
       - name: 📦 Setup Node.js ${{ env.NODE_VERSION }}
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: 'npm'
@@ -255,7 +271,7 @@ jobs:
           echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
       
       - name: 📤 Upload build artifacts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
           name: minified-assets
           path: |
@@ -273,6 +289,9 @@ jobs:
   deploy:
     name: 🚀 Deploy to Production
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      deployments: write
     needs: build
     if: |
       (github.event_name == 'push' && (github.ref == 'refs/heads/refactor-ia' || github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/v'))) ||
@@ -280,34 +299,37 @@ jobs:
     environment:
       name: production
       url: https://${{ env.PRODUCTION_DOMAIN }}/4sqmet/
+    env:
+      PRODUCTION_URL: ${{ secrets.APP_URL }}
     
     steps:
       - name: 📥 Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
         with:
           fetch-depth: 0  # Fetch all history for proper git operations
       
       - name: 📦 Download build artifacts
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
         with:
           name: minified-assets
           path: .  # Download para raiz, mantendo estrutura original (js/*.min.js e build-info.json)
       
       - name: 🔐 Setup SSH Key
-        uses: webfactory/ssh-agent@v0.9.1
+        uses: webfactory/ssh-agent@a6f90b1f127823b31d4d4a8d96047790581349bd # v0.9.1
         with:
           ssh-private-key: ${{ secrets.DEPLOY_SSH_KEY }}
       
       - name: 📝 Add server to known_hosts
         run: |
           mkdir -p ~/.ssh
-          ssh-keyscan -H ${{ env.DEPLOY_HOST }} >> ~/.ssh/known_hosts
+          ssh-keyscan -H "$DEPLOY_HOST" >> ~/.ssh/known_hosts
 
       - name: 🔎 Validate Dojo local fallback on server
         env:
           DEPLOY_USER: ${{ secrets.DEPLOY_USER }}
+          DEPLOY_HOST: ${{ env.DEPLOY_HOST }}
         run: |
-          ssh -o StrictHostKeyChecking=no -o BatchMode=yes ${DEPLOY_USER}@${{ env.DEPLOY_HOST }} << 'EOF'
+          ssh -o BatchMode=yes "${DEPLOY_USER}@${DEPLOY_HOST}" << 'EOF'
             set -e
             cd /var/www/4sqmet
 
@@ -345,7 +367,7 @@ jobs:
           if [ -f "build-info.json" ]; then
             scp -o StrictHostKeyChecking=no -o BatchMode=yes \
               build-info.json \
-              ${DEPLOY_USER}@${DEPLOY_HOST}:/var/www/4sqmet/
+              "${DEPLOY_USER}@${DEPLOY_HOST}:/var/www/4sqmet/"
             echo "✅ build-info.json copied"
           else
             echo "⚠️  build-info.json not found - will use defaults"
@@ -355,7 +377,7 @@ jobs:
           if ls js/*.min.js 1> /dev/null 2>&1; then
             scp -o StrictHostKeyChecking=no -o BatchMode=yes \
               js/*.min.js js/*.min.js.map \
-              ${DEPLOY_USER}@${DEPLOY_HOST}:/var/www/4sqmet/js/
+              "${DEPLOY_USER}@${DEPLOY_HOST}:/var/www/4sqmet/js/"
             echo "✅ Minified assets copied"
           else
             echo "⚠️  Minified assets not found"
@@ -377,7 +399,7 @@ jobs:
           while [ $RETRY_COUNT -lt $MAX_RETRIES ]; do
             echo "🔄 Tentativa $((RETRY_COUNT + 1))/$MAX_RETRIES..."
             
-            HTTPS_CODE=$(curl -s -o /dev/null -w "%{http_code}" --max-time 10 ${{ env.PRODUCTION_URL }}/ || echo "000")
+            HTTPS_CODE=$(curl -s -o /dev/null -w "%{http_code}" --max-time 10 "${PRODUCTION_URL%/}/" || echo "000")
             echo "   HTTPS Status: ${HTTPS_CODE}"
             
             if [ "$HTTPS_CODE" = "200" ] || [ "$HTTPS_CODE" = "302" ]; then
@@ -396,7 +418,7 @@ jobs:
           echo "❌ Site health check failed after $MAX_RETRIES attempts"
           echo "📊 Diagnóstico:"
           echo "   - Tentando HTTPS novamente para diagnóstico..."
-          HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" --max-time 10 https://${{ env.PRODUCTION_DOMAIN }}/ || echo "000")
+          HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" --max-time 10 "https://${PRODUCTION_DOMAIN}/" || echo "000")
           echo "   - HTTPS Status: ${HTTP_CODE}"
           
           if [ "$HTTP_CODE" = "200" ] || [ "$HTTP_CODE" = "302" ]; then
@@ -413,7 +435,7 @@ jobs:
         run: |
           echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
           echo "✅ Deployment completed successfully!"
-          echo "🌐 URL: ${{ env.PRODUCTION_URL }}"
+          echo "🌐 URL: ${PRODUCTION_URL}"
           echo "📋 Ref: ${{ github.ref_name }}"
           echo "📝 Commit: ${{ github.sha }}"
           echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
@@ -431,7 +453,7 @@ jobs:
     
     steps:
       - name: 📥 Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
         with:
           fetch-depth: 0
       
@@ -454,7 +476,7 @@ jobs:
           echo "changelog_file=CHANGELOG.txt" >> $GITHUB_OUTPUT
       
       - name: 📤 Create GitHub Release
-        uses: softprops/action-gh-release@v1
+        uses: softprops/action-gh-release@3bb12739c298aeb8a4eeaf626c5b8d85266b0e65 # v2.6.2
         with:
           name: Release ${{ github.ref_name }}
           body_path: CHANGELOG.txt
@@ -473,26 +495,30 @@ jobs:
   rollback:
     name: ⏪ Rollback Deployment
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      deployments: write
     if: github.event_name == 'workflow_dispatch' && github.event.inputs.action == 'rollback'
     environment:
       name: production
     
     steps:
       - name: 🔐 Setup SSH Key
-        uses: webfactory/ssh-agent@v0.9.1
+        uses: webfactory/ssh-agent@a6f90b1f127823b31d4d4a8d96047790581349bd # v0.9.1
         with:
           ssh-private-key: ${{ secrets.DEPLOY_SSH_KEY }}
 
       - name: 📝 Add server to known_hosts
         run: |
           mkdir -p ~/.ssh
-          ssh-keyscan -H ${{ env.DEPLOY_HOST }} >> ~/.ssh/known_hosts
+          ssh-keyscan -H "$DEPLOY_HOST" >> ~/.ssh/known_hosts
       
       - name: ⏪ Execute rollback
         env:
           DEPLOY_USER: ${{ secrets.DEPLOY_USER }}
+          DEPLOY_HOST: ${{ env.DEPLOY_HOST }}
         run: |
-          ssh ${DEPLOY_USER}@${{ env.DEPLOY_HOST }} << 'EOF'
+          ssh "${DEPLOY_USER}@${DEPLOY_HOST}" << 'EOF'
             set -e
             BACKUP_DIR="/var/backups/4sqmet"
             PRODUCTION_PATH="/var/www/4sqmet"

@@ -7,6 +7,7 @@
     "build:prod": "NODE_ENV=production bash build.sh",
     "minify": "npm run minify:js",
     "test": "playwright test",
+    "test:hooks": "node --test tests/hooks/*.test.js",
     "test:headed": "xvfb-run -a playwright test --headed",
     "test:ui": "bash -c 'PLAYWRIGHT_BROWSERS_PATH=/var/www/html/data/mcp/playwright/browsers playwright test --ui --ui-host=0.0.0.0 --ui-port=41428 & PID=$!; for i in {1..20}; do curl -sf http://localhost:41428 >/dev/null 2>&1 && break || sleep 0.3; done; echo Abra no browser: http://localhost:41428; ${BROWSER:-echo} http://localhost:41428; wait $PID'",
     "test:report": "playwright show-report --host 0.0.0.0",
