@@ -723,6 +723,7 @@ a:hover {
 	/* Google Maps v3.32+ gerencia redimensionamento automaticamente */
 	resize: both;
 	overflow: auto;
+	z-index: 0;
 }
 .hoverInfoTip {
     background: #eee;
