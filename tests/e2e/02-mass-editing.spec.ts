@@ -1,6 +1,17 @@
 import { test, expect } from '@playwright/test';
 import { skipIfUnauthenticated } from './auth-session';
 
+declare const process: { env: { TEST_VENUE_ID?: string } };
+
+declare global {
+  interface Window {
+    editarRedes(index: number): void;
+    atualizarRedes(items: Array<{ id: string; name: string; logo: string }>, primaryId?: string): void;
+    adicionarRedeNaEdicao(id: string, nome: string, logo: string): void;
+    showDialogEditField(field: string): void;
+  }
+}
+
 type AccordionPane = { domNode: HTMLElement };
 type EditorWidget = {
   get(name: string): string;
@@ -36,6 +47,26 @@ async function abrirPainelDeIds(page: import('@playwright/test').Page) {
   await expect(page.locator('#textarea_ids')).toBeVisible({ timeout: 10_000 });
 }
 
+async function abrirAjuda(page: import('@playwright/test').Page, linkId: string) {
+  const painelAberto = await page.evaluate((id) => {
+    const accordion = (window as EditorWindow).dijit?.byId('accordion');
+    const painel = accordion?.getChildren().find(child => child.domNode.querySelector(`#${id}`));
+    if (!accordion || !painel) return false;
+    accordion.selectChild(painel, false);
+    return true;
+  }, linkId);
+
+  expect(painelAberto).toBe(true);
+  const link = page.locator(`#${linkId}`);
+  await expect(link).toBeVisible();
+  await link.click();
+
+  const dialog = page.locator('.dijitDialog:visible').last();
+  const content = dialog.locator('.dijitDialogPaneContent');
+  await expect(content).toBeVisible();
+  return { dialog, content };
+}
+
 /**
  * Regressão 2: Edição em Massa
  *
@@ -54,6 +85,39 @@ test.describe('Edição em Massa', () => {
     // Botão Continuar — Dojo converte <button dojoType="dijit.form.Button"> em <span role="button">
     // por isso 'button:has-text()' não funciona; usar getByRole que respeita ARIA roles
     await expect(page.getByRole('button', { name: /Continuar/i }).filter({ visible: true }).first()).toBeVisible();
+  });
+
+  test('main.php exibe ajudas coerentes com os formatos atuais', async ({ page }) => {
+    await skipIfUnauthenticated(page);
+    await page.goto('/4sqmet/main.php');
+
+    const ajudas = [
+      {
+        linkId: 'dlg_csv',
+        textos: ['venueChainId', 'primaryVenueChainId', 'addVenueChainIds', 'removeVenueChainIds', 'somente leitura', 'Exemplo de arquivo CSV']
+      },
+      {
+        linkId: 'dlg_txt',
+        textos: ['4c701c87f23c76b0c5abe685', 'venue/94562', '4sqmap']
+      },
+      {
+        linkId: 'dlg_lks',
+        textos: ['acessível sem login', '/venue/...', '4sqstat.com']
+      },
+      {
+        linkId: 'dlg_ids',
+        textos: ['4000 caracteres', '24 caracteres hexadecimais', '5-6 dígitos numéricos']
+      }
+    ];
+
+    for (const ajuda of ajudas) {
+      const { dialog, content } = await abrirAjuda(page, ajuda.linkId);
+      for (const texto of ajuda.textos) {
+        await expect(content).toContainText(texto);
+      }
+      await dialog.locator('.dijitDialogCloseIcon').click();
+      await expect(dialog).toBeHidden();
+    }
   });
 
   test('main.php exibe checkboxes de seleção de campos', async ({ page }) => {
@@ -107,9 +171,10 @@ test.describe('Edição em Massa', () => {
     await expect(page.locator('#chainIcone0')).toBeVisible();
 
     await page.evaluate(() => {
-      editarRedes(0);
-      atualizarRedes([], '');
-      adicionarRedeNaEdicao('0123456789abcdef01234567', 'Rede de teste', '');
+      const editorWindow = window as EditorWindow;
+      editorWindow.editarRedes(0);
+      editorWindow.atualizarRedes([], '');
+      editorWindow.adicionarRedeNaEdicao('0123456789abcdef01234567', 'Rede de teste', '');
     });
     await expect(page.locator('#chainSearchStatus')).toHaveText('Rede adicionada.');
   });
@@ -150,7 +215,7 @@ test.describe('Edição em Massa', () => {
       editorWindow.dijit?.byId('selectEditField')?.set('value', 'address');
       const checkbox = document.querySelector<HTMLInputElement>('input[name="selecao"]');
       if (checkbox) editorWindow.dijit?.getEnclosingWidget(checkbox)?.set('checked', true);
-      showDialogEditField('address');
+      editorWindow.showDialogEditField('address');
     });
     await expect.poll(() => page.evaluate(() =>
       (window as EditorWindow).dijit?.byId('inputEditField')?.get('value')
