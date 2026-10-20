@@ -14,7 +14,7 @@ npm install --silent
 echo "🔧 Minificando JavaScript..."
 
 # Array de arquivos
-FILES="4sq 4sq_csv main session-manager google-maps"
+FILES="4sq 4sq_csv fsq-autocomplete main session-manager google-maps"
 
 for FILE in $FILES; do
     printf "⚙️  Minificando: %s.js\n" "$FILE"

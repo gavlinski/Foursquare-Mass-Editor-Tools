@@ -119,13 +119,19 @@ a:hover {
 }
 .toolcontainer > .row > .urlinputlabel,
 .toolcontainer > .row > .queryinputlabel,
-.toolcontainer > .row > .categoryidcomboboxlabel,
-.toolcontainer > .row > .limitcomboboxlabel {
+.toolcontainer > .row > .categoryidcomboboxlabel {
 	float: left;
 	width: 80px;
 	padding-left: 5px;
 	padding-top: 9px;
 	padding-right: 5px;
+}
+.toolcontainer > .row > .limitcomboboxlabel {
+	float: left;
+	width: 44px;
+	padding-left: 5px;
+	padding-top: 9px;
+	padding-right: 6px;
 }
 .toolcontainer > .row > .urlinput,
 .toolcontainer > .row > .queryinput,
@@ -155,10 +161,10 @@ a:hover {
 }
 .toolcontainer > .row > .llinputlabel {
 	float: left;
-	width: 39px;
-	padding-left: 1px;
+	width: 45px;
+	padding-left: 4px;
 	padding-top: 9px;
-	padding-right: 4px;
+	padding-right: 8px;
 }
 .toolcontainer > .row > .categoryidcombobox > .combobox > .dijitTextBox {
 	width: 299px;
@@ -167,23 +173,22 @@ a:hover {
 .toolcontainer > .row > .radiuscomboboxlabel {
 	float: left;
 	width: 8px;
-	padding-left: 1px;
+	padding-left: 4px;
 	padding-top: 9px;
-	padding-right: 35px;
+	padding-right: 30px;
 }
 .toolcontainer > .row > .radiuscombobox > .comboboxes .dijitSelectLabel,
 .toolcontainer > .row > .intentcombobox > .comboboxes .dijitSelectLabel,
 .toolcontainer > .row > .limitcombobox > .comboboxes .dijitSelectLabel {
-	width: 87px;
 	overflow: hidden;
 	margin-top: 3px;
 }
 .toolcontainer > .row > .intentcomboboxlabel {
 	float: left;
 	width: 53px;
-	padding-left: 0;
+	padding-left: 4px;
 	padding-top: 9px;
-	padding-right: 7px;
+	padding-right: 10px;
 }
 .dijitButton.continue .dijitButtonNode {
 	margin-left: -3px;
@@ -588,6 +593,9 @@ a:hover {
 	background: #fff;
 	overflow-y: auto;
 	display: none;
+}
+#dlg_cats #categorySearchResults {
+	max-height: 160px;
 }
 .chain-search-result-item {
 	display: flex;
@@ -1220,4 +1228,3 @@ button#session-close-btn {
    As variantes de botão (solid, outline, thick, inverted, gradient)
    e variantes de conteúdo (v1-v8) estão definidas lá.
    =================================================================== */
-

@@ -11,7 +11,7 @@ declare(strict_types=1);
  * @package    Foursquare-Mass-Editor-Tools
  * @author     Elio Gavlinski <gavlinski@gmail.com>
  * @copyright  Copyleft (c) 2012-2026
- * @version    3.3.0
+ * @version    3.4.0
  * @link       https://github.com/gavlinski/Foursquare-Mass-Editor-Tools/blob/master/main.php
  * @since      File available since Release 1.5
  * @license    GPLv3 <http://www.gnu.org/licenses/gpl.txt>
@@ -36,11 +36,11 @@ use ElioTools\Config\AppConfig;
 
 // Lê versão dinamicamente do build-info.json (gerado a cada build/CI)
 $_versionFile = __DIR__ . '/build-info.json';
-$VERSAO = '3.3.2'; // fallback para ambiente sem build
+$VERSAO = '3.4.0'; // fallback para ambiente sem build
 if (file_exists($_versionFile)) {
     $_buildData = @json_decode(@file_get_contents($_versionFile), true);
     if (!empty($_buildData['version'])) {
-		// Extrai apenas a parte SemVer (ex: "v3.3.2-1-g590b203" → "3.3.2")
+		// Extrai apenas a parte SemVer (ex: "v3.4.0-1-g590b203" → "3.4.0")
         if (preg_match('/^v?(\d+\.\d+\.\d+)/', $_buildData['version'], $_m)) {
             $VERSAO = $_m[1];
         }
@@ -133,6 +133,9 @@ if (preg_match('~/index\.php(?:\?|$)~i', $httpReferer) === 1) {
 </script>
 <?php dojo_script(['parseOnLoad' => true]); ?>
 <?php script_versioned('js/session-manager.js'); ?>
+<script src="js/google-maps-config.php?v=5.0.1" defer></script>
+<?php script_versioned('js/google-maps.js', ['defer' => 'defer']); ?>
+<?php script_versioned('js/fsq-autocomplete.js'); ?>
 <?php script_versioned('js/main.js'); ?>
 <script>
     // Remove o fragmento #_=_ adicionado por alguns provedores OAuth
@@ -448,7 +451,7 @@ if ((isset($_COOKIE['name'])) && (strlen($_COOKIE['name']) > 0))
 				<section class="toolcontainer">
 					<div class="row">
 						<div class="urlinputlabel"><label for="pagina"><a id="dlg_lks" href="javascript:showDialogLks();">Endere&ccedil;o</a>:</label></div>
-						<div class="urlinput"><input type="text" id="pagina" name="pagina" required="true" dojoType="dijit.form.ValidationTextBox" trim="true" style="width: 50.2em; margin-bottom: 3px"/></div>
+						<div class="urlinput"><input type="text" id="pagina" name="pagina" required="true" dojoType="dijit.form.ValidationTextBox" trim="true" placeholder="Link da p&aacute;gina com os IDs dos locais" style="width: 50.2em; margin-bottom: 3px"/></div>
 					</div>
 					<div class="row">
 						<div class="fieldslabel"><label for="campos2">Campos:</label></div>
@@ -538,6 +541,107 @@ if ((isset($_COOKIE['name'])) && (strlen($_COOKIE['name']) > 0))
 				<button dojoType="dijit.form.Button" type="submit" class="continue">
 					Continuar
 				</button>
+			</div>
+		</div>
+		<div id="paneDentro" dojoType="dijit.layout.ContentPane" title="Importar locais dentro de outro local" style="height: 166px;">
+			<div dojoType="dijit.form.Form" enctype="multipart/form-data" accept-charset="utf-8" id="f_dentro" jsId="f_dentro" action="children.php" method="post">
+				<section class="toolcontainer">
+					<div class="row">
+						<div class="queryinputlabel"><label for="parentSearchMain"><a id="dlg_dentro" href="javascript:showDialogDentro();">Dentro</a>:</label></div>
+						<div class="queryinput" style="position: relative; padding-bottom: 8px;">
+							<input type="text" id="parentSearchMain" dojoType="dijit.form.TextBox" autocomplete="off" placeHolder="Nome, ID ou link do local pai" style="width: 301px; box-sizing: border-box;">
+							<input type="hidden" id="parentIdMain" name="parentId" value="">
+							<div id="parentSearchMainResults" class="chain-search-results visual-results-list" style="display: none; position: absolute; z-index: 1000; width: 340px; max-height: 260px; overflow-y: auto; background: #fff; border: 1px solid #ccc;"></div>
+							<div id="parentSearchMainStatus" style="display: none; font-size: 11px; color: #888;"></div>
+						</div>
+						<div class="llinputlabel"><label for="ll5"><a href="https://docs.foursquare.com/developer/reference/place-search" target="_blank">Regi&atilde;o</a>:</label></div>
+						<div class="llinput"><input type="text" id="ll5" name="ll" required="false" dojoType="dijit.form.ValidationTextBox" trim="true" placeHolder="Lat,Lng ou Cidade" style="width: 283px"/></div>
+					</div>
+					<div class="row">
+						<div class="fieldslabel"><label for="campos5">Campos:</label></div>
+						<div class="checkboxes">
+							<div class="checkbox" style="width: 6.8em;">
+								<input id="nome5" name="campos5[]" dojoType="dijit.form.CheckBox" value="nome">
+								<label for="nome5">Nome</label>
+							</div>
+							<div class="checkbox" style="width: 6.8em;">
+								<input id="endereco5" name="campos5[]" dojoType="dijit.form.CheckBox" value="endereco">
+								<label for="endereco5">Endere&ccedil;o</label>
+							</div>
+							<div class="checkbox" style="width: 9.5em;">
+								<input id="ruatransversal5" name="campos5[]" dojoType="dijit.form.CheckBox" value="ruatransversal">
+								<label for="ruatransversal5">Rua transversal</label>
+							</div>
+							<div class="checkbox" style="width: 5.5em;">
+								<input id="bairro5" name="campos5[]" dojoType="dijit.form.CheckBox" value="bairro" disabled>
+								<label for="bairro5">Bairro</label>
+							</div>
+							<div class="checkbox" style="width: 7em;">
+								<input id="cidade5" name="campos5[]" dojoType="dijit.form.CheckBox" value="cidade">
+								<label for="cidade5">Cidade</label>
+							</div>
+							<div class="checkbox" style="width: 7em;">
+								<input id="estado5" name="campos5[]" dojoType="dijit.form.CheckBox" value="estado">
+								<label for="estado5">Estado</label>
+							</div>
+							<div class="checkbox" style="width: 7.5em;">
+								<input id="codigopostal5" name="campos5[]" dojoType="dijit.form.CheckBox" value="codigopostal">
+								<label for="codigopostal5">C&oacute;digo postal</label>
+							</div>
+							<br>
+							<div class="checkbox" style="width: 6.8em;">
+								<input id="dentro5" name="campos5[]" dojoType="dijit.form.CheckBox" value="dentro" disabled>
+								<label for="dentro5">Dentro</label>
+							</div>
+							<div class="checkbox" style="width: 6.8em;">
+								<input id="telefone5" name="campos5[]" dojoType="dijit.form.CheckBox" value="telefone">
+								<label for="telefone5">Telefone</label>
+							</div>
+							<div class="checkbox" style="width: 9.5em;">
+								<input id="sitedaweb5" name="campos5[]" dojoType="dijit.form.CheckBox" value="sitedaweb">
+								<label for="sitedaweb5">Site da web</label>
+							</div>
+							<div class="checkbox" style="width: 5.5em;">
+								<input id="twitter5" name="campos5[]" dojoType="dijit.form.CheckBox" value="twitter">
+								<label for="twitter5">Twitter</label>
+							</div>
+							<div class="checkbox" style="width: 7em;">
+								<input id="facebook5" name="campos5[]" dojoType="dijit.form.CheckBox" value="facebook">
+								<label for="facebook5">Facebook</label>
+							</div>
+							<div class="checkbox" style="width: 7em;">
+								<input id="instagram5" name="campos5[]" dojoType="dijit.form.CheckBox" value="instagram" disabled>
+								<label for="instagram5">Instagram</label>
+							</div>
+							<div class="checkbox" style="width: 7.5em;">
+								<input id="latlng5" name="campos5[]" dojoType="dijit.form.CheckBox" value="latlng">
+								<label for="latlng5">Lat/Lng</label>
+							</div>
+							<br>
+							<div class="checkbox" style="width: 6.8em;">
+								<input id="descricao5" name="campos5[]" dojoType="dijit.form.CheckBox" value="descricao" disabled>
+								<label for="descricao5">Descri&ccedil;&atilde;o</label>
+							</div>
+							<div class="checkbox" style="width: 6.8em;">
+								<input id="menu5" name="campos5[]" dojoType="dijit.form.CheckBox" value="menu" disabled>
+								<label for="menu5">Menu</label>
+							</div>
+							<div class="checkbox" style="width: 9.5em;">
+								<input id="redes5" name="campos5[]" dojoType="dijit.form.CheckBox" value="redes">
+								<label for="redes5">Redes</label>
+							</div>
+							<div class="checkbox" style="width: 9.5em;">
+								<input id="horas5" name="campos5[]" dojoType="dijit.form.CheckBox" value="horas" disabled>
+								<label for="horas5">Horas</label>
+							</div>
+						</div>
+					</div>
+				</section>
+				<div>
+					<button dojoType="dijit.form.Button" type="submit" class="continue">
+						Continuar
+					</button>
+				</div>
 			</div>
 		</div>
 		<div dojoType="dijit.layout.ContentPane" title="Informar IDs ou URLs dos locais">
@@ -637,61 +741,19 @@ if ((isset($_COOKIE['name'])) && (strlen($_COOKIE['name']) > 0))
 				</button>
 			</div>
 		</div>
-		<div dojoType="dijit.layout.ContentPane" title="Pesquisar locais" selected="true">
+		<div dojoType="dijit.layout.ContentPane" title="Pesquisar locais" selected="true" style="height: 199px;">
 			<div dojoType="dijit.form.Form" enctype="multipart/form-data" accodigopostalt-charset="utf-8" id="f_src" jsId="f_src" action="search.php" method="post">
 				<input type="hidden" id="oauth_token_scr" name="oauth_token" value="<?= $oauth_token ?>"/>
 				<section class="toolcontainer">
 					<div class="row">
 						<div class="queryinputlabel"><label for="query"><a href="https://docs.foursquare.com/developer/reference/place-search" target="_blank">Consulta</a>:</label></div>
-						<div class="queryinput"><input type="text" id="query" name="query" required="false" dojoType="dijit.form.ValidationTextBox" trim="true" style="width: 299px"></div>
-						<div class="llinputlabel"><label for="ll"><a href="https://docs.foursquare.com/developer/reference/place-search" target="_blank">Local</a>:</label></div>
-						<div class="llinput"><input type="text" id="ll" name="ll" required="false" dojoType="dijit.form.ValidationTextBox" trim="true" style="width: 296px"/></div>
-					</div>
-					<div class="row">
-						<div class="categoryidcomboboxlabel"><label for="categoryId"><a href="https://docs.foursquare.com/developer/reference/place-search" target="_blank">Categoria</a>:</label></div>
-						<div class="categoryidcombobox">
-							<div class="combobox">
-								<select data-dojo-id="categoryId" name="categoryId" id="categoryId" data-dojo-type="dijit/form/FilteringSelect" data-dojo-props='queryExpr:"*${0}*",highlightMatch:"all",autoComplete:false,required:false'>
-<?php
-	$options = '									<option value=""></option>
-	';
-	if ($categories_loaded) {
-		$categories_names = array();
-		$addCategoryNames = function ($categoriesAtLevel) use (&$addCategoryNames, &$categories_names) {
-			foreach ($categoriesAtLevel as $categoryOption) {
-				if (isset($categoryOption->id) && isset($categoryOption->name)) {
-					$categories_names[$categoryOption->id] = $categoryOption->name;
-				}
-				if (property_exists($categoryOption, "categories") && is_array($categoryOption->categories)) {
-					$addCategoryNames($categoryOption->categories);
-				}
-			}
-		};
-
-		foreach ($categories->response->categories as $category) {
-			if (property_exists($category, "categories") && is_array($category->categories)) {
-				$addCategoryNames($category->categories);
-			}
-		}
-
-		asort($categories_names);
-		foreach ($categories_names as $key => $val) {
-			$options .=
-	'									<option value="' . $key . '">' . $val . '</option>
-	';
-		}
-	}
-
-	echo $options;
-?>
-								</select>
-							</div>
-						</div>
-
+						<div class="queryinput"><input type="text" id="query" name="query" required="false" dojoType="dijit.form.ValidationTextBox" trim="true" style="width: 220px"/></div>
+						<div class="llinputlabel"><label for="ll"><a href="https://docs.foursquare.com/developer/reference/place-search" target="_blank">Regi&atilde;o</a>:</label></div>
+						<div class="llinput"><input type="text" id="ll" name="ll" required="false" dojoType="dijit.form.ValidationTextBox" trim="true" placeHolder="Lat,Lng ou Cidade" style="width: 235px"/></div>
 						<div class="radiuscomboboxlabel"><label for="radius"><a href="https://docs.foursquare.com/developer/reference/place-search" target="_blank">Raio</a>:</label></div>
 						<div class="radiuscombobox">
 							<div class="comboboxes">
-								<select data-dojo-id="radius" name="radius" id="radius" data-dojo-type="dijit/form/Select">
+								<select data-dojo-id="radius" name="radius" id="radius" style="width: 70px;" data-dojo-type="dijit/form/Select">
 									<option value="">Padr&atilde;o</option>
 									<option value="50">50 m</option>
 									<option value="100">100 m</option>
@@ -705,10 +767,22 @@ if ((isset($_COOKIE['name'])) && (strlen($_COOKIE['name']) > 0))
 								</select>
 							</div>
 						</div>
+					</div>
+					<div class="row">
+						<div class="categoryidcomboboxlabel"><label for="categorySearchMain"><a href="https://docs.foursquare.com/developer/reference/place-search" target="_blank">Categoria</a>:</label></div>
+						<div class="categoryidcombobox">
+							<div class="combobox" style="position: relative;">
+								<input type="text" id="categorySearchMain" dojoType="dijit.form.TextBox" autocomplete="off" placeHolder="Digite para buscar uma categoria..." style="width: 368px; box-sizing: border-box;">
+								<input type="hidden" id="categoryId" name="categoryId" value="">
+								<div id="categorySearchMainResults" class="chain-search-results visual-results-list" style="display: none; position: absolute; z-index: 1000; width: 350px; max-height: 266px; overflow-y: auto; background: #fff; border: 1px solid #ccc;"></div>
+								<div id="categorySearchMainStatus" style="font-size: 11px; color: #888;"></div>
+							</div>
+						</div>
+
 						<div class="intentcomboboxlabel"><label for="intent"><a href="https://docs.foursquare.com/developer/reference/place-search" target="_blank">Inten&ccedil;&atilde;o</a>:</label></div>
 						<div class="intentcombobox">
 							<div class="comboboxes">
-								<select data-dojo-id="intent" name="intent" id="intent" data-dojo-type="dijit/form/Select">
+								<select data-dojo-id="intent" name="intent" id="intent" style="width: 78px;" data-dojo-type="dijit/form/Select">
 									<option value="checkin">checkin</option>
 									<option value="browse">browse</option>
 									<option value="global">global</option>
@@ -716,12 +790,10 @@ if ((isset($_COOKIE['name'])) && (strlen($_COOKIE['name']) > 0))
 								</select>
 							</div>
 						</div>
-					</div>
-					<div class="row">
 						<div class="limitcomboboxlabel"><label for="limit"><a href="https://docs.foursquare.com/developer/reference/place-search" target="_blank">Limite</a>:</label></div>
 						<div class="limitcombobox">
 							<div class="comboboxes">
-								<select data-dojo-id="limit" name="limit" id="limit" id="intent" style="margin-bottom: 3px" data-dojo-type="dijit/form/Select">
+								<select data-dojo-id="limit" name="limit" id="limit" style="width: 58px; margin-bottom: 3px;" data-dojo-type="dijit/form/Select">
 									<option value="10">10</option>
 									<option value="25">25</option>
 									<option value="50" selected="selected">50</option>

@@ -2,13 +2,24 @@
 /**
  * Teste Detalhado de Geocodificação
  * 
- * Mostra a resposta completa da API do Google Maps para diagnóstico
+ * Testa a geocodificação Foursquare com fallback Google e expõe diagnóstico opcional.
  */
+
+header('Cache-Control: no-store, no-cache, must-revalidate, max-age=0');
+header('Pragma: no-cache');
+header('Expires: 0');
+if (session_status() !== PHP_SESSION_ACTIVE) {
+    session_start();
+}
 
 echo "<!DOCTYPE html>\n";
 echo "<html>\n<head>\n";
 echo "<meta charset='utf-8'>\n";
 echo "<title>Debug Geocodificação</title>\n";
+echo "<script>window.debugLog=window.debugLog||function(){};window.debugInfo=window.debugInfo||function(){};window.isLocalhost=function(){return true;};</script>\n";
+echo "<script src='../js/google-maps-config.php?v=5.0.1'></script>\n";
+echo "<script src='../js/google-maps.js'></script>\n";
+echo "<script src='../js/fsq-autocomplete.js'></script>\n";
 echo "<style>
     body { font-family: Arial, sans-serif; padding: 20px; background: #f5f5f5; }
     .section { 
@@ -39,41 +50,71 @@ echo "<style>
 </style>\n";
 echo "</head>\n<body>\n";
 
-echo "<h1>🔍 Debug Detalhado - Geocodificação Google Maps</h1>\n";
+echo "<h1>🔍 Debug Detalhado - Geocodificação</h1>\n";
 
 // Carrega configurações
 $mapsConfig = include __DIR__ . '/../includes/google_maps_config.php';
 
-// Usa API Key de Geocoding server-side se disponível, senão tenta a chave JavaScript
-$apiKey = $mapsConfig['google_maps_geocoding_key'] ?? $mapsConfig['google_maps_api_key'] ?? 'SUA_GOOGLE_MAPS_API_KEY_AQUI';
-$keyType = isset($mapsConfig['google_maps_geocoding_key']) ? 'Geocoding (Server-Side)' : 'JavaScript (Fallback)';
+// O teste normal replica o caminho da aplicação, usando Geocoding via JavaScript API.
+$browserApiKey = $mapsConfig['google_maps_api_key'] ?? null;
+$browserKeyConfigured = $browserApiKey && $browserApiKey !== 'YOUR_GOOGLE_MAPS_API_KEY' && $browserApiKey !== 'SUA_GOOGLE_MAPS_API_KEY_AQUI';
+$oauthToken = $_SESSION['oauth_token'] ?? ($_COOKIE['oauth_token'] ?? '');
+$canGeocode = $oauthToken !== '' || $browserKeyConfigured;
+$apiKey = $mapsConfig['google_maps_geocoding_key'] ?? null;
+$keyType = $apiKey ? 'Geocoding (Server-Side)' : 'não configurada';
 
 echo "<div class='section'>\n";
 echo "<h2>1. Configuração</h2>\n";
-echo "<strong>Tipo de Key:</strong> " . $keyType . "<br>\n";
-echo "<strong>API Key:</strong> " . substr($apiKey, 0, 15) . "..." . substr($apiKey, -10) . "<br>\n";
+echo "<strong>Foursquare OAuth:</strong> " . ($oauthToken ? "<span class='status-ok'>sessão autenticada</span>" : "<span class='status-error'>sem sessão autenticada</span>") . "<br>\n";
+echo "<strong>Google Maps (fallback):</strong> " . ($browserKeyConfigured ? "<span class='status-ok'>configurada</span>" : "<span class='status-error'>não configurada</span>") . "<br>\n";
+echo "<strong>Chave server-side (teste opcional):</strong> " . $keyType . "<br>\n";
 echo "<strong>Language:</strong> " . ($mapsConfig['geocoding']['language'] ?? 'pt-BR') . "<br>\n";
 echo "<strong>Region:</strong> " . ($mapsConfig['geocoding']['region'] ?? 'BR') . "<br>\n";
-
-// Aviso se estiver usando chave JavaScript como fallback
-if (!isset($mapsConfig['google_maps_geocoding_key'])) {
-    echo "<div class='warning' style='margin-top: 15px;'>\n";
-    echo "⚠️ <strong>Atenção:</strong> Usando chave JavaScript como fallback.<br>\n";
-    echo "Esta chave tem restrições de HTTP referrers e <strong>não funcionará</strong> para geocodificação server-side.<br>\n";
-    echo "<br><strong>Solução:</strong><br>\n";
-    echo "1. Configure <code>GOOGLE_MAPS_GEOCODING_KEY</code> no arquivo <code>.env</code><br>\n";
-    echo "2. Use uma API Key com restrição de <strong>IP addresses</strong> (não HTTP referrers)<br>\n";
-    echo "3. Veja documentação completa em: <a href='../docs/GEOCODING_SETUP.md' target='_blank'>docs/GEOCODING_SETUP.md</a>\n";
-    echo "</div>\n";
+if ($apiKey) {
+    echo "<a href='?server_test=1'>Executar também o teste server-side (cURL)</a><br>\n";
 }
 echo "</div>\n";
 
-// Teste direto com cURL
+if (!$canGeocode) {
+    echo "<div class='warning' style='margin-top: 15px;'>\n";
+    echo "⚠️ Autentique-se para usar a geocodificação do Foursquare ou configure <strong>GOOGLE_MAPS_API_KEY</strong> para o fallback Google.<br>\n";
+    echo "Veja <a href='../docs/GEOCODING_SETUP.md' target='_blank'>docs/GEOCODING_SETUP.md</a>.\n";
+    echo "</div>\n";
+}
+
+echo "<div class='section'>\n";
+echo "<h2>2. Teste de geocodificação no navegador</h2>\n";
+echo "<p>Este teste usa primeiro <code>geo/geocode</code> do Foursquare com a sessão autenticada e o Google Maps JavaScript Geocoder como fallback.</p>\n";
+echo "<label for='geocodeAddress'>Cidade ou endereço:</label> ";
+echo "<input id='geocodeAddress' type='text' value='Canoas, RS' style='width: min(420px, 70%); padding: 8px;'> ";
+echo "<button id='geocodeButton' type='button' style='padding: 8px 14px;'>Geocodificar</button>\n";
+echo "<p id='geocodeStatus' role='status' aria-live='polite'></p>\n";
+echo "<strong>Resultado:</strong><pre id='geocodeResult'>Aguardando requisição.</pre>\n";
+echo "</div>\n";
+echo "<script>\n";
+echo "document.getElementById('geocodeButton').addEventListener('click', function() {\n";
+echo "  var address = document.getElementById('geocodeAddress').value.trim();\n";
+echo "  var status = document.getElementById('geocodeStatus');\n";
+echo "  var result = document.getElementById('geocodeResult');\n";
+echo "  if (!address) { status.textContent = 'Informe uma cidade ou endereço.'; return; }\n";
+echo "  this.disabled = true; status.textContent = 'Consultando geocodificação...'; result.textContent = '';\n";
+echo "  fsqObterLl(address, " . json_encode($oauthToken, JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT) . ").then(function(ll) {\n";
+echo "    status.textContent = 'Geocodificação concluída.';\n";
+echo "    result.textContent = JSON.stringify({status: 'OK', address: address, ll: ll}, null, 2);\n";
+echo "  }).catch(function(error) {\n";
+echo "    status.textContent = 'A requisição falhou.';\n";
+echo "    result.textContent = JSON.stringify({status: 'ERROR', address: address, error: error.message}, null, 2);\n";
+echo "  }).finally(function() { document.getElementById('geocodeButton').disabled = false; });\n";
+echo "});\n";
+echo "</script>\n";
+
+// O teste cURL é mantido apenas como diagnóstico separado da chave server-side.
+if ($apiKey && isset($_GET['server_test']) && $_GET['server_test'] === '1') {
 $endereco = "Canoas, RS";
 $enderecoEncoded = str_replace(" ", "+", $endereco);
 
 echo "<div class='section'>\n";
-echo "<h2>2. Teste Direto com a API</h2>\n";
+echo "<h2>3. Teste server-side opcional (cURL)</h2>\n";
 echo "<strong>Endereço:</strong> $endereco<br>\n";
 
 $geoapi = "https://maps.googleapis.com/maps/api/geocode/json";
@@ -124,6 +165,12 @@ if ($response) {
             echo "<strong>Mensagem de Erro:</strong><br>\n";
             echo htmlspecialchars($json->error_message);
             echo "</div>\n";
+            if (strpos($json->error_message, 'empty referer') !== false) {
+                echo "<div class='warning'>\n";
+                echo "<strong>Diagnóstico:</strong> esta chamada foi feita pelo servidor e não envia HTTP Referer. Inclua o IP público de saída mostrado pelo Google nas restrições de IP da chave server-side, e confirme que a chave não está restrita por HTTP referrers.<br>\n";
+                echo "A busca pela interface principal geocodifica no navegador com a chave JavaScript autorizada para o domínio.\n";
+                echo "</div>\n";
+            }
         }
         
         // Explica os status codes
@@ -143,6 +190,7 @@ if ($response) {
                     echo "&nbsp;&nbsp;- Se a API de Geocoding está habilitada no projeto<br>\n";
                     echo "&nbsp;&nbsp;- Se a API Key tem permissão para usar Geocoding API<br>\n";
                     echo "&nbsp;&nbsp;- Restrições de domínio/IP/aplicativo na API Key<br>\n";
+                    echo "&nbsp;&nbsp;- Para esta chamada server-side, use restrição por IP e autorize o IP público de saída (não HTTP referrers)<br>\n";
                     echo "• Configure em: <a href='https://console.cloud.google.com/google/maps-apis/credentials' target='_blank'>Google Cloud Console - Credentials</a><br>\n";
                     break;
                 case "INVALID_REQUEST":
@@ -183,6 +231,7 @@ if ($response) {
 }
 
 echo "</div>\n";
+}
 
 // Links úteis
 echo "<div class='section'>\n";

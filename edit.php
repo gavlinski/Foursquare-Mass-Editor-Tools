@@ -11,7 +11,7 @@ declare(strict_types=1);
  * @package    Foursquare-Mass-Editor-Tools
  * @author     Elio Gavlinski <gavlinski@gmail.com>
  * @copyright  Copyleft (c) 2011-2026
- * @version    3.3.1
+ * @version    3.4.0
  * @link       https://github.com/gavlinski/Foursquare-Mass-Editor-Tools/blob/master/edit.php
  * @since      File available since Release 0.5
  * @license    GPLv3 <http://www.gnu.org/licenses/gpl.txt>
@@ -156,6 +156,7 @@ window.appBootstrap.superuserLevel = <?php echo json_encode($superuserLevel); ?>
 </script>
 <script src="js/google-maps-config.php?v=5.0.1" defer></script>
 <?php script_versioned('js/google-maps.js', ['defer' => 'defer']); ?>
+<?php script_versioned('js/fsq-autocomplete.js'); ?>
 <?php script_versioned('js/4sq.js', ['defer' => 'defer']); ?>
 </head>
 <body class="tundra loading">
@@ -274,7 +275,7 @@ $configCampos = [
     'city' => ['width' => 7, 'maxlength' => 31, 'placeholder' => 'Cidade', 'name_ptbr' => 'Cidade'],
     'state' => ['width' => 2.5, 'maxlength' => 30, 'placeholder' => 'UF', 'name_ptbr' => 'UF'],
     'zip' => ['width' => 6, 'maxlength' => 13, 'placeholder' => 'Código postal', 'name_ptbr' => 'Código postal'],
-    'parentId' => ['width' => 14, 'maxlength' => 24, 'placeholder' => 'Dentro', 'name_ptbr' => 'Dentro'],
+    'parentId' => ['width' => 14, 'maxlength' => 200, 'placeholder' => 'Dentro (nome, ID ou link)', 'name_ptbr' => 'Dentro'],
     'phone' => ['width' => 7, 'maxlength' => 21, 'placeholder' => 'Telefone', 'name_ptbr' => 'Telefone'],
     'url' => ['width' => 8, 'maxlength' => 256, 'placeholder' => 'Website', 'name_ptbr' => 'Website'],
     'twitter' => ['width' => 7, 'maxlength' => 51, 'placeholder' => 'Twitter', 'name_ptbr' => 'Twitter'],
@@ -412,8 +413,9 @@ foreach ($file as $f) {
         <div id="catsContainer" class="category-selection-area"></div>
         <div id="treeContainer"></div>
         <div class="category-search-section">
-            <label for="categorySearchWidget" class="category-search-label">Buscar categoria:</label>
-            <div id="categorySearchMountPoint" class="category-search-input"></div>
+            <label for="categorySearchInput" class="category-search-label">Buscar categoria:</label>
+            <input type="text" id="categorySearchInput" dojoType="dijit.form.TextBox" autocomplete="off" placeHolder="Digite para buscar uma categoria..." style="width: 100%; box-sizing: border-box;">
+            <div id="categorySearchResults" class="chain-search-results visual-results-list" style="display: none;"></div>
             <div id="categorySearchStatus" class="category-search-status" role="status" aria-live="polite"></div>
         </div>
 	<span class="checkbox">
@@ -437,7 +439,7 @@ foreach ($file as $f) {
         <div id="chainsContainer" class="chain-selection-area"></div>
         <div class="chain-search-section">
             <label for="inputChainSearch" class="chain-search-label">Buscar rede ou digitar ID:</label>
-            <input type="text" id="inputChainSearch" dojoType="dijit.form.TextBox" style="width: 100%; box-sizing: border-box;" placeHolder="Ex: Cacau Show, Starbucks ou ID...">
+            <input type="text" id="inputChainSearch" dojoType="dijit.form.TextBox" style="width: 100%; box-sizing: border-box;" placeHolder="Ex.: Cacau Show, Starbucks ou ID...">
 		</div>
         <div id="chainsResultsContainer" class="chain-search-results visual-results-list"></div>
         <div id="chainSearchStatus" class="chain-search-status" role="status" aria-live="polite"></div>
@@ -495,6 +497,7 @@ id="saveProgress">
 <!-- Janela de Digitacao de Comentario -->
 <div id="dlg_comment" data-dojo-type="dijit.Dialog" data-dojo-props="title:'Coment&aacute;rios'" style="display:none; width: 356px;">
 	<div class="dijitDialogPaneContentArea">
+		<label for="textareaComment" style="display: block; margin-bottom: 4px; font-weight: bold;">Coment&aacute;rios</label>
 		<textarea id="textareaComment" name="textareaComment" data-dojo-type="dijit/form/Textarea" maxLength="200" trim="true"></textarea>
 	</div>
 	<div class="dijitDialogPaneActionBar">

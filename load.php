@@ -11,7 +11,7 @@ declare(strict_types=1);
  * @package    Foursquare-Mass-Editor-Tools
  * @author     Elio Gavlinski <gavlinski@gmail.com>
  * @copyright  Copyleft (c) 2011-2026
- * @version    3.3.0
+ * @version    3.4.0
  * @link       https://github.com/gavlinski/Foursquare-Mass-Editor-Tools/blob/master/load.php
  * @since      File available since Release 1.1
  * @license    GPLv3 <http://www.gnu.org/licenses/gpl.txt>
@@ -66,7 +66,7 @@ if (!$sessionManager->getAccessToken()) {
 <meta http-equiv="cache-control" content="no-cache">
 <meta http-equiv="pragma" content="no-cache">
 <?php
-define("VERSION", "Venues Loader 3.3.0");
+define("VERSION", "Venues Loader 3.4.0");
 
 // Captura tag <link> e CSS dinâmico do ProgressBar
 ob_start();
@@ -286,8 +286,35 @@ function filtrarArrayPorId(array $array): array
 }
 
 /**
- * Valida e processa venues de diferentes fontes
+ * Divide linhas de entrada que podem conter vários IDs ou URLs de venues.
  * 
+ * @param array $lines Linhas de IDs ou URLs de venues
+ * @return array Entradas individuais para validação
+ */
+function dividirEntradasVenues(array $lines): array
+{
+    $entries = [];
+
+    foreach ($lines as $line) {
+        $line = trim((string)$line);
+        if ($line === '') {
+            continue;
+        }
+
+        $tokens = preg_split('/[\s,;]+/', $line, -1, PREG_SPLIT_NO_EMPTY);
+        if ($tokens !== false) {
+            foreach ($tokens as $token) {
+                $entries[] = $token;
+            }
+        }
+    }
+
+    return $entries;
+}
+
+/**
+ * Valida e processa venues de diferentes fontes
+ *
  * Processa arquivos ou listas contendo IDs/URLs de venues nos formatos:
  * - IDs puros (24 chars hex)
  * - URLs do Foursquare (*.foursquare.com/venue/* ou /v/*)
@@ -356,24 +383,20 @@ function validarVenues(array $lines): array|false
         $_SESSION["venuesIds"] = $venuesIds;
         return array_values(array_unique($processedUrls));
         
-    } else if (count($lines) > 500) {
-        // Limite da API
-        $p->hide();
-        echo ERRO01;
-        exit;
-        
     } else {
         // Processamento de IDs/URLs diretos
-        $size = count($lines);
+        $entries = dividirEntradasVenues($lines);
+        if (count($entries) > 500) {
+            // Limite da API
+            $p->hide();
+            echo ERRO01;
+            exit;
+        }
+
+        $size = count($entries);
         $processedUrls = [];
         
-        foreach ($lines as $line) {
-            $line = trim((string)$line);
-            
-            if (empty($line)) {
-                continue;
-            }
-            
+        foreach ($entries as $line) {
             // Remove sufixos comuns de URLs do Foursquare
             $line = preg_replace('/\/(edit_history|edit|history)\/?$/', '', $line);
             
