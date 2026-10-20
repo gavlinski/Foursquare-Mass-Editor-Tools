@@ -338,7 +338,7 @@ include_once __DIR__ . '/../includes/asset_helper.php';
             </div>
             <div class="form-group" style="flex: 1.2;">
                 <label for="venueIdInput">Venue ID de Teste:</label>
-                <input type="text" id="venueIdInput" class="form-input" value="5a21c1b48173cb3fac7fc609" placeholder="Ex: 5a21c1b48173cb3fac7fc609">
+                <input type="text" id="venueIdInput" class="form-input" value="5a21c1b48173cb3fac7fc609" placeholder="Ex.: 5a21c1b48173cb3fac7fc609">
             </div>
             <div style="margin-top: 22px;">
                 <button type="button" class="btn btn-primary" onclick="carregarDadosLocal()">Carregar Dados do Local</button>
@@ -372,7 +372,7 @@ include_once __DIR__ . '/../includes/asset_helper.php';
             <div class="form-group" style="margin-bottom: 12px;">
                 <label>Pesquisar termo para carregar na lista:</label>
                 <div style="display: flex; gap: 8px;">
-                    <input type="text" id="opt1Query" class="form-input" value="Cacau" placeholder="Ex: Cacau, Starbucks, McDonald" style="flex: 1;">
+                    <input type="text" id="opt1Query" class="form-input" value="Cacau" placeholder="Ex.: Cacau, Starbucks, McDonald's" style="flex: 1;">
                     <button type="button" class="btn btn-secondary" onclick="buscarParaFilteringSelect()">Buscar</button>
                 </div>
             </div>
