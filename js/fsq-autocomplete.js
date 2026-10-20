@@ -1,10 +1,24 @@
 /**
- * Autocomplete compartilhado (main.php e edit.php) baseado em
+ * Locale e autocomplete compartilhados (main.php, edit.php e editores CSV) baseado em
  * https://api.foursquare.com/v2/search/autocomplete
  */
 var FSQ_AUTOCOMPLETE_VERSION = "20261016";
 var FSQ_DEFAULT_ICON = "https://app.foursquare.com/img/categories_v2/none_bg_32.png";
 var fsqWsid = "";
+
+function fsqObterLocale() {
+	var idioma = (navigator.languages && navigator.languages[0]) || navigator.language || navigator.userLanguage || "pt";
+	var correspondencia = String(idioma).match(/^[a-z]{2,3}/i);
+	return correspondencia ? correspondencia[0].toLowerCase() : "pt";
+}
+
+function fsqObterChaveCategorias() {
+	return "categorias_" + fsqObterLocale();
+}
+
+function fsqObterCookieCategorias() {
+	return "data_categorias_" + fsqObterLocale();
+}
 
 function fsqObterWsid() {
 	if (fsqWsid) return fsqWsid;
@@ -25,7 +39,7 @@ function fsqExtrairIdLocal(texto) {
 }
 
 function fsqMontarUrlAutocomplete(query, token, params) {
-	var url = "https://api.foursquare.com/v2/search/autocomplete?locale=pt&explicit-lang=false&v=" + FSQ_AUTOCOMPLETE_VERSION +
+	var url = "https://api.foursquare.com/v2/search/autocomplete?locale=" + encodeURIComponent(fsqObterLocale()) + "&explicit-lang=false&v=" + FSQ_AUTOCOMPLETE_VERSION +
 		"&query=" + encodeURIComponent(query);
 	Object.keys(params || {}).forEach(function(chave) {
 		if (params[chave] !== undefined && params[chave] !== null && params[chave] !== "")
@@ -36,7 +50,7 @@ function fsqMontarUrlAutocomplete(query, token, params) {
 
 function fsqMontarUrlGeocode(query, token) {
 	var params = {
-		locale: "pt",
+		locale: fsqObterLocale(),
 		"explicit-lang": "false",
 		v: FSQ_AUTOCOMPLETE_VERSION,
 		query: query,

@@ -56,6 +56,7 @@ include 'includes/app_credentials.php';
 <?php 
 dojo_script(['parseOnLoad' => true]);
 script_versioned('js/session-manager.js');
+script_versioned('js/fsq-autocomplete.js');
 script_versioned('js/4sq_csv.js');
 ?>
 </head>

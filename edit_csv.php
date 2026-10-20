@@ -55,6 +55,7 @@ include 'includes/app_credentials.php';
 <link rel="stylesheet" type="text/css" href="includes/session-status-bar-variants.css?v=<?php echo time(); ?>">
 <?php dojo_script(['parseOnLoad' => true]); ?>
 <?php script_versioned('js/session-manager.js'); ?>
+<?php script_versioned('js/fsq-autocomplete.js'); ?>
 <?php script_versioned('js/4sq_csv.js'); ?>
 </head>
 <body class="tundra">

@@ -45,6 +45,8 @@ O CSV inclui `venueChainId` apenas quando Redes foi selecionado. Quando disponí
 
 A busca de categorias da página principal e da modal de edição usa `search/autocomplete` através de `js/fsq-autocomplete.js`, em vez de depender da correspondência textual do widget Dijit. A modal mantém feedback de adição, duplicata e limite de três categorias; preserve os textos de status específicos da página principal ao alterar o helper compartilhado.
 
+Os GETs de categorias enviam a subtag primária do idioma preferido do navegador (por exemplo, `pt-BR` → `pt`) e mantêm caches separados por idioma. A API `users/self` não fornece uma preferência de locale do perfil.
+
 Na edição, o campo Facebook exibe `contact.facebookUsername` quando presente e usa `contact.facebook` como fallback. Antes de salvar, prefixos como `facebook.com/` e `https://` são removidos; o payload atual continua usando `facebookUrl`.
 
 As regressões de UI ficam em `tests/e2e/02-mass-editing.spec.ts`; os cenários de alinhamento, recarga e seleção condicional estão em `tests/e2e/05-csv-consistency.spec.ts`.

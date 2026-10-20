@@ -705,10 +705,10 @@ function xmlhttpRequest(metodo, endpoint, acao, dados, i) {
 				} else if (resposta.response.categories != undefined) {
 					montarArvore(resposta);
 					debugInfo("Categorias recuperadas!");
-					localStorage.setItem("categorias", JSON.stringify(resposta));
+					localStorage.setItem(fsqObterChaveCategorias(), JSON.stringify(resposta));
 					var d = new Date();
 					d.setHours(0, 0, 0, 0);
-					dojo.cookie("data_categorias", d, { expires: 1 });
+					dojo.cookie(fsqObterCookieCategorias(), d, { expires: 1 });
 				}
 			} else {
 				clearTimeout(xmlhttpTimeout);
@@ -1185,7 +1185,7 @@ function editarCategorias(i) {
 
 	if (!hasTreeWidget) {
 		debugLog('🌳 Árvore de categorias não existe ou está vazia, verificando cache...');
-		var cachedCategories = localStorage.getItem('categorias');
+		var cachedCategories = localStorage.getItem(fsqObterChaveCategorias());
 		if (cachedCategories) {
 			try {
 				var resposta = JSON.parse(cachedCategories);
@@ -2558,7 +2558,7 @@ function restaurarEstadoEdicao(estado) {
 		dijit.byId("menuItemExportarRelatorio").setAttribute("disabled", relatorio.length === 0);
 	}
 	if (modo === DADOS_COMPLETOS) {
-		var categoriasSalvas = localStorage.getItem("categorias");
+		var categoriasSalvas = localStorage.getItem(fsqObterChaveCategorias());
 		if (categoriasSalvas) {
 			try {
 				montarArvore(JSON.parse(categoriasSalvas));
@@ -2626,10 +2626,10 @@ function carregarDadosVenues() {
 		}
 		var d = new Date();
 		d.setHours(0, 0, 0, 0);
-		if ((!localStorage.getItem('categorias')) || (d > dojo.cookie("data_categorias")))
+		if ((!localStorage.getItem(fsqObterChaveCategorias())) || (d > dojo.cookie(fsqObterCookieCategorias())))
 			carregarListaCategorias();
 		else {
-			var resposta = JSON.parse(localStorage.getItem('categorias'));
+			var resposta = JSON.parse(localStorage.getItem(fsqObterChaveCategorias()));
 			montarArvore(resposta);
 			debugInfo("Categorias recuperadas do localStorage!");
 		}
@@ -2956,10 +2956,10 @@ function executarRecarregamento(excluirIndice) {
 	// Carrega categorias se necessário (habilita edição)
 	var d = new Date();
 	d.setHours(0, 0, 0, 0);
-	if ((!localStorage.getItem('categorias')) || (d > dojo.cookie("data_categorias"))) {
+	if ((!localStorage.getItem(fsqObterChaveCategorias())) || (d > dojo.cookie(fsqObterCookieCategorias()))) {
 		carregarListaCategorias();
 	} else {
-		var resposta = JSON.parse(localStorage.getItem('categorias'));
+		var resposta = JSON.parse(localStorage.getItem(fsqObterChaveCategorias()));
 		montarArvore(resposta);
 		debugInfo("Categorias recuperadas do localStorage!");
 	}
@@ -3281,7 +3281,7 @@ function carregarListaCategorias() {
 		return handleMissingOauthToken("carregar as categorias");
 
 	debugInfo("Recuperando dados das categorias...");
-	xmlhttpRequest("GET", "https://api.foursquare.com/v2/venues/categories" + "?oauth_token=" + token + "&v=" + DATA_VERSIONAMENTO, "load", null, null);
+	xmlhttpRequest("GET", "https://api.foursquare.com/v2/venues/categories" + "?oauth_token=" + token + "&v=" + DATA_VERSIONAMENTO + "&locale=" + encodeURIComponent(fsqObterLocale()), "load", null, null);
 }
 
 var STR_PAD_LEFT = 1;

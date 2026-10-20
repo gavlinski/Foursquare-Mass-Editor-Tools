@@ -149,7 +149,8 @@ if (preg_match('~/index\.php(?:\?|$)~i', $httpReferer) === 1) {
     }
 </script>
 <?php
-$cache_file = "/tmp/cache-" . md5($_SERVER['REQUEST_URI']);
+$categoryLocale = obterLocaleCategorias();
+$cache_file = "/tmp/cache-" . md5($_SERVER['REQUEST_URI'] . '|' . $categoryLocale);
 if (file_exists($cache_file) && (filemtime($cache_file) > (time() - 3600 * 12))) {
 	// Cache file is less than 12 hours old. 
 	// Don't bother refreshing, just use the file as-is.
@@ -158,7 +159,7 @@ if (file_exists($cache_file) && (filemtime($cache_file) > (time() - 3600 * 12)))
 	$categories_loaded = true;
 } else {
 	// Our cache is out-of-date, so load the data from our remote server.
-	$response = carregarListaCategorias();
+	$response = carregarListaCategorias($categoryLocale);
 	if (empty($response)) {
 		$categories = new stdClass();
 		$categories->meta = "";
@@ -169,23 +170,43 @@ if (file_exists($cache_file) && (filemtime($cache_file) > (time() - 3600 * 12)))
 		// JSON data is valid so save it over our cache for next time.
 		$categories_loaded = true;
 		file_put_contents($cache_file, $response, LOCK_EX);
-		setLocalCache("categorias", $response);
+		setLocalCache("categorias_" . $categoryLocale, $response);
 	} else {
 		// JSON data is invalid so delete it and clear cache.
 		$categories_loaded = false;
 		if (file_exists($cache_file))
 			unlink($cache_file);
-		removeLocalCache("categorias");
+		removeLocalCache("categorias_" . $categoryLocale);
 	}
 }
 
-function carregarListaCategorias() {
+function obterLocaleCategorias(): string {
+	$acceptLanguage = $_SERVER['HTTP_ACCEPT_LANGUAGE'] ?? '';
+	$localePreferido = 'pt';
+	$qualidadePreferida = -1.0;
+
+	foreach (explode(',', $acceptLanguage) as $idiomaAceito) {
+		if (!preg_match('/^\s*([a-z]{2,3})(?:-[a-z0-9]{2,8})*(?:\s*;\s*q=([0-9.]+))?/i', $idiomaAceito, $correspondencia)) {
+			continue;
+		}
+
+		$qualidade = isset($correspondencia[2]) ? (float) $correspondencia[2] : 1.0;
+		if ($qualidade > $qualidadePreferida && $qualidade > 0) {
+			$localePreferido = strtolower($correspondencia[1]);
+			$qualidadePreferida = $qualidade;
+		}
+	}
+
+	return $localePreferido;
+}
+
+function carregarListaCategorias(string $locale) {
 	try {
 		/*** Set client key and secret ***/
 		$config = new AppConfig();
 
 		/*** Load the Foursquare API library ***/
-		$foursquare = new FoursquareApi($config->get('client_key'), $config->get('client_secret'));
+		$foursquare = new FoursquareApi($config->get('client_key'), $config->get('client_secret'), '', 'v2', $locale);
 		
 		// Obtém token da sessão
 		$sessionManager = new SessionManager();
