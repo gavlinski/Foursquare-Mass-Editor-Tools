@@ -1,5 +1,12 @@
 # Changelog
 
+## Unreleased
+
+- **Search and import:** Added category autocomplete using the Foursquare API on the main page and in the edit modal, plus a new "Importar locais dentro de outro local" workflow for importing venue children. The parent-place field accepts autocomplete names, IDs, and links, while import form entries support lists of IDs/URLs separated by whitespace, commas, or semicolons.
+- **Region and geocoding:** City/address conversion now uses Foursquare `geo/geocode` first and Google Maps JavaScript Geocoder as a browser-side fallback. Parent-place autocomplete sends a typed region through `near` (or coordinates through `ll`) and no longer applies `supervenueOnly=true`, which could omit relevant results such as SERPRO in Porto Alegre. Search-panel state is restored on return from editing.
+- **Editing feedback:** Facebook input strips common URL/domain prefixes before saving and displays `contact.facebookUsername` when available, falling back to the Facebook ID. Comments dialogs show descriptive action titles, affected-place counts, and a "Comentários" label; save titles now count pending field edits before confirmation. Category and chain status messages include selected names and report duplicate/limit outcomes.
+- **Geocoding diagnostics:** Debug pages now exercise the same browser-side geocoding helper as the application, and parent autocomplete errors display API status and detail.
+
 ## Version 3.3.2 (2026-10-13)
 
 **Deploy and Security:**

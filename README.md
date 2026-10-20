@@ -1,17 +1,16 @@
 # Foursquare Mass Editor Tools (Elio Tools)
 
-**Version 3.3.2** - Deploy, Security, and Chains Fixes
+**Version 3.4.0** - Venue Search and Editing Improvements
 
 A comprehensive collection of **Superuser Tools** for Foursquare venues mass/bulk editing and searching, powered by the Foursquare API v2. This project has been **completely modernized** with a hybrid architecture combining modern PHP 8.1 features with legacy compatibility.
 
-## 🚀 Version 3.3.2 Highlights
+## 🚀 Version 3.4.0 Highlights
 
-- ✅ **Chains** can be searched, assigned, reordered, and submitted with venue edits
-- ✅ Chain IDs and edit operations are included in CSV exports when selected
-- ✅ Partial and complete venue data stay aligned after reloads and CSV export
-- ✅ Bulk edits apply to selected venues and can prefill values shared by those venues
-- ✅ Session test fixtures are isolated from real authentication sessions
-- ✅ Version 3.3.2 fixes tag deployment, adds Copilot security hooks, and corrects chain search eligibility
+- ✅ Search categories using API autocomplete, including accent-insensitive matches and category icons
+- ✅ Import venues contained within a parent venue, with parent-place autocomplete and region-aware results
+- ✅ Convert city/address regions using Foursquare geocoding, with Google Maps as a browser-side fallback
+- ✅ Display Facebook usernames when available and normalize accidental Facebook URL prefixes before saving
+- ✅ Confirm edits and flags with descriptive dialogs and accurate affected-place counts
 
 ## 🎯 Key Features
 
@@ -19,18 +18,19 @@ A comprehensive collection of **Superuser Tools** for Foursquare venues mass/bul
 - 📄 Import full data from UTF-8 CSV files
 - 🌐 Import venues from public web pages
 - ✏️ Manually enter venue IDs or URLs
+- 🏬 Import venues located inside another place (such as a shopping mall or airport)
 - 🔗 URL parameter support: `load.php?venues=id1,id2,id3`
 - 📊 Export to CSV, URLs only, or editing reports
 
 ### Editing Capabilities
 - ✏️ Mass editing of almost all venue fields
-- 🏷️ Category management with hierarchical tree view
+- 🏷️ Category management with hierarchical tree and API autocomplete search
 - 🏢 Chain search, assignment, primary selection, and editing
 - 🚩 All types of venue flagging
 - 📍 Google Maps integration with location markers
 - 🔍 Advanced search using Foursquare API
 
-### Current Capabilities (v3.3.2)
+### Current Capabilities (v3.4.0)
 - 🔐 **OAuth2 Authentication** with automatic token refresh
 - 📊 **Session Status Bar** with real-time monitoring
 - 🧹 **Cache Management** with automatic cleanup
@@ -58,6 +58,7 @@ src/
 js/
 ├── session-manager.js    # Modern ES6 session handling  
 ├── 4sq.js               # Core venue manipulation (legacy)
+├── fsq-autocomplete.js  # Shared category/parent-place autocomplete and geocoding
 └── main.js              # Main interface logic
 
 includes/
@@ -208,7 +209,7 @@ For Dojo source/fallback diagnostics, use `debug/test_dojo_cdn.php`.
 
 ## 📝 Migration Notes
 
-This version represents a **hybrid modernization** while maintaining backward compatibility in core workflows. See [docs/migration/MIGRATION.md](docs/migration/MIGRATION.md) for detailed migration information.
+This version continues the **hybrid modernization** while maintaining backward compatibility in core workflows. See [docs/migration/MIGRATION.md](docs/migration/MIGRATION.md) for detailed migration information.
 
 ### Breaking Changes
 - Minimum PHP version: 8.1+
