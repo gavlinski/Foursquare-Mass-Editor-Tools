@@ -176,7 +176,7 @@ test.describe('Edição em Massa', () => {
       editorWindow.atualizarRedes([], '');
       editorWindow.adicionarRedeNaEdicao('0123456789abcdef01234567', 'Rede de teste', '');
     });
-    await expect(page.locator('#chainSearchStatus')).toHaveText('Rede adicionada.');
+    await expect(page.locator('#chainSearchStatus')).toHaveText('Rede "Rede de teste" adicionada.');
   });
 
   test('edit.php - sinalização de alteração em campo', async ({ page }) => {
