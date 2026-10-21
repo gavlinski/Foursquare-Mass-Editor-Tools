@@ -1,4 +1,4 @@
-FROM php:8.1-apache
+FROM php:8.5-apache
 
 # Build argument para diferenciar desenvolvimento e produção
 ARG BUILD_ENV=production

@@ -208,7 +208,7 @@ if (!isset($_SESSION['regenerated'])) {
 
 ### Configuração de Desenvolvimento
 ```dockerfile
-FROM php:8.1-apache
+FROM php:8.5-apache
 RUN docker-php-ext-install pdo pdo_mysql
 COPY . /var/www/html/
 EXPOSE 80

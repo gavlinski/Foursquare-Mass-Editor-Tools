@@ -4,7 +4,7 @@
 
 ## Architecture at a glance
 
-- **Backend**: PHP 8.1, hybrid — modern PSR-4 in `src/` (`ElioTools\Config`, `ElioTools\Security`, `ElioTools\Api`) + legacy procedural PHP in the repo root (`edit.php`, `load.php`, `main.php`, `index.php`).
+- **Backend**: PHP 8.5, hybrid — modern PSR-4 in `src/` (`ElioTools\Config`, `ElioTools\Security`, `ElioTools\Api`) + legacy procedural PHP in the repo root (`edit.php`, `load.php`, `main.php`, `index.php`).
 - **Frontend**: Dojo Toolkit v1.8 widgets + ES6 JavaScript (`js/`).
 - **API**: Foursquare API v2, OAuth2.
 - **Infra**: Docker + Apache 2.4 + Composer.

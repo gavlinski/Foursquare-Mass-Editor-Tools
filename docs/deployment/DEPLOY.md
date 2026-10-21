@@ -143,7 +143,7 @@ Actions → CI/CD Pipeline → Run workflow → Select branch
 │   ┌────────────────────────────────┐       │
 │   │  Docker Container              │       │
 │   │  ┌──────────────────────────┐  │       │
-│   │  │  Apache 2.4 + PHP 8.1   │  │       │
+│   │  │  Apache 2.4 + PHP 8.5   │  │       │
 │   │  │  • mod_rewrite          │  │       │
 │   │  │  • mod_ssl              │  │       │
 │   │  │  • mod_deflate          │  │       │

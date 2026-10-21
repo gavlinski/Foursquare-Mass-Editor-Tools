@@ -6,7 +6,7 @@ This file is the canonical, tool-agnostic entry point for AI coding agents worki
 
 Foursquare Mass Editor Tools ("Elio Tools") is a PHP/Dojo web app for bulk editing Foursquare venues via the Foursquare API v2.
 
-- **Backend**: PHP 8.1, hybrid architecture — modern PSR-4 code in `src/` (`ElioTools\Config`, `ElioTools\Security`, `ElioTools\Api`) + legacy procedural PHP 5.4+ in the repo root (`edit.php`, `load.php`, `main.php`, `children.php`, `index.php`).
+- **Backend**: PHP 8.5, hybrid architecture — modern PSR-4 code in `src/` (`ElioTools\Config`, `ElioTools\Security`, `ElioTools\Api`) + legacy procedural PHP 5.4+ in the repo root (`edit.php`, `load.php`, `main.php`, `children.php`, `index.php`).
 - **Frontend**: Dojo Toolkit v1.8 (legacy widgets) + ES6 JavaScript (`js/session-manager.js`, `js/fsq-autocomplete.js`, and friends).
 - **API**: Foursquare API v2, OAuth2.
 - **Infra**: Docker + Apache 2.4 + Composer.

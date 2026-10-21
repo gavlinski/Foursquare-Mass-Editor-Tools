@@ -4,7 +4,7 @@ applyTo: "src/**/*.php"
 
 # Modern PHP conventions (src/, PSR-4)
 
-Code under `src/` is the modern, PSR-4-autoloaded half of the hybrid architecture (`ElioTools\*` namespaces: `Config`, `Security`, `Api`). Unlike the legacy root files, this code should use current PHP 8.1 idioms.
+Code under `src/` is the modern, PSR-4-autoloaded half of the hybrid architecture (`ElioTools\*` namespaces: `Config`, `Security`, `Api`). Unlike the legacy root files, this code should use current PHP 8.5 idioms.
 
 ```php
 <?php

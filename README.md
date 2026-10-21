@@ -2,7 +2,7 @@
 
 **Version 3.4.0** - Venue Search and Editing Improvements
 
-A comprehensive collection of **Superuser Tools** for Foursquare venues mass/bulk editing and searching, powered by the Foursquare API v2. This project has been **completely modernized** with a hybrid architecture combining modern PHP 8.1 features with legacy compatibility.
+A comprehensive collection of **Superuser Tools** for Foursquare venues mass/bulk editing and searching, powered by the Foursquare API v2. This project has been **completely modernized** with a hybrid architecture combining modern PHP 8.5 features with legacy compatibility.
 
 ## 🚀 Version 3.4.0 Highlights
 
@@ -43,7 +43,7 @@ For the complete release history, see [CHANGELOG.md](CHANGELOG.md).
 ## 🏗️ Architecture
 
 ### Modern Stack
-- **Backend**: PHP 8.1 with strict typing and PSR-4 autoloading
+- **Backend**: PHP 8.5 with strict typing and PSR-4 autoloading
 - **Frontend**: ES6 JavaScript + Dojo Toolkit v1.8.14 (hybrid approach)
 - **API**: Foursquare API v2 with OAuth2 authentication
 - **Infrastructure**: Docker + Apache 2.4 + Composer
@@ -167,7 +167,7 @@ DOJO_FORCE_FALLBACK="false"
 3. Allow application access to your Foursquare account
 
 ### For Development
-- PHP 8.1+
+- PHP 8.5+
 - Composer 2.x
 - Docker (optional but recommended)
 - Git
@@ -279,7 +279,7 @@ curl -k "https://localhost/debug/debug_session.php?mode=debug"
 
 ### Migration Status
 
-⚠️ **Migration in Progress**: The codebase is currently being modernized from PHP 5.4 to PHP 8.1 with Google Maps API integration. Some features may be in transition.
+The original migration from PHP 5.4 to PHP 8.1 is complete; the application runtime now targets PHP 8.5. Google Maps modernization and broader PSR-4 migration continue as separate work.
 
 **Completed**:
 

@@ -1,5 +1,7 @@
 # 🚀 Estratégia de Deployment e Migração
 
+> **Nota de contexto:** este documento registra opções analisadas durante a migração inicial e não descreve o estado atual da produção. O servidor atual executa a aplicação em Docker, construída a partir do `Dockerfile` (PHP 8.5). Para o fluxo vigente, consulte [DEPLOY.md](DEPLOY.md) e [../BUILD_AND_DEPLOY.md](../BUILD_AND_DEPLOY.md).
+
 ## 📋 Contexto do Ambiente Atual
 
 ### Infraestrutura Existente

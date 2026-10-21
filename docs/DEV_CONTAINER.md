@@ -22,7 +22,7 @@
 
 Dev Containers é uma especificação do VS Code que permite abrir um projeto **diretamente dentro de um container Docker**, usando-o como ambiente de desenvolvimento completo. O VS Code conecta ao container via SSH e executa extensões, terminal e IntelliSense dentro dele — não na máquina host.
 
-No contexto deste projeto, o container já é a imagem `php:8.1-apache` que serve a aplicação em produção. Ao usar Dev Containers, você desenvolve **na mesma imagem que roda em produção**, eliminando discrepâncias de ambiente.
+No contexto deste projeto, o container já é a imagem `php:8.5-apache` que serve a aplicação em produção. Ao usar Dev Containers, você desenvolve **na mesma imagem que roda em produção**, eliminando discrepâncias de ambiente.
 
 ---
 
@@ -32,7 +32,7 @@ No contexto deste projeto, o container já é a imagem `php:8.1-apache` que serv
 
 | Aspecto | Desenvolvimento externo (`./dev.sh`) | Dev Container (VS Code) |
 |--------|--------------------------------------|-------------------------|
-| **IntelliSense PHP** | Depende do PHP instalado localmente | PHP 8.1 do container — autocomplete preciso |
+| **IntelliSense PHP** | Depende do PHP instalado localmente | PHP 8.5 do container — autocomplete preciso |
 | **npm / build** | Requer Node.js instalado localmente | Node.js v18 incluído na feature do container |
 | **Inicialização** | `./dev.sh run` manual | VS Code inicia container automaticamente |
 | **Docker visível** | OrbStack/Docker Desktop necessário na tela | Apenas serviço de background — sem janela |
@@ -93,7 +93,7 @@ Cmd+Shift+P → "Dev Containers: Reopen in Container"
 
 O VS Code irá:
 1. Construir a imagem Docker com `BUILD_ENV=development`
-2. Subir o container com Apache + PHP 8.1
+2. Subir o container com Apache + PHP 8.5
 3. Executar o `postCreateCommand` (cria symlink, instala Composer, configura `.env`)
 4. Reconectar o editor ao container
 
@@ -331,7 +331,7 @@ scripts/
 ├── devcontainer-setup.sh      # Inicialização (postCreateCommand)
 └── dev-internal.sh            # Gerenciamento do container por dentro
 
-Dockerfile                     # Imagem base (php:8.1-apache), usada tanto pelo
+Dockerfile                     # Imagem base (php:8.5-apache), usada tanto pelo
                                # Dev Container quanto pelo ./dev.sh
 apache-config.conf             # Config Apache para desenvolvimento (/4sqmet/)
 ssl/
@@ -368,7 +368,7 @@ Isso garante que:
 
 | Extensão | Obrigatória | Descrição |
 |----------|-------------|-----------|
-| `bmewburn.vscode-intelephense-client` | ✅ Sim | IntelliSense PHP com PHP 8.1 do container |
+| `bmewburn.vscode-intelephense-client` | ✅ Sim | IntelliSense PHP com PHP 8.5 do container |
 | `eamodio.gitlens` | ⬜ Opcional | Histórico Git inline, blame, comparação de branches |
 
 Para remover o GitLens se não quiser, basta removê-lo das extensões do VS Code normalmente — não afeta o funcionamento do ambiente.

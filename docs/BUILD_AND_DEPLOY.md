@@ -476,14 +476,14 @@ git push origin refactor-ia
 Job 1: Lint & Validation (2-3 min)
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 ✓ Checkout code
-✓ Setup PHP 8.1
+✓ Setup PHP 8.5
 ✓ Install Composer
 ✓ PHP Syntax Check (todos os .php)
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 Job 2: Tests (2-3 min)
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-✓ Setup PHP 8.1
+✓ Setup PHP 8.5
 ✓ Run PHPUnit (quando implementado)
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━

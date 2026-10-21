@@ -32,7 +32,7 @@ permissions:
   contents: read
 
 env:
-  PHP_VERSION: '8.1'
+  PHP_VERSION: '8.5'
   NODE_VERSION: '18'
   DEPLOY_HOST: ${{ vars.DEPLOY_HOST }}
   PRODUCTION_DOMAIN: '4sq.eliotools.site'

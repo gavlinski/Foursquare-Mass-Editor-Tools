@@ -3,7 +3,7 @@
     "description": "Foursquare Mass Editor Tools",
     "type": "project",
     "require": {
-        "php": ">=8.1",
+        "php": ">=8.5",
         "monolog/monolog": "^3.0",
         "vlucas/phpdotenv": "^5.5",
         "guzzlehttp/guzzle": "^7.0"
