@@ -35,6 +35,7 @@ type CsvHarnessWindow = Window & {
   pendingChainRequests: Record<string, number[]>;
   venuesComDadosCompletos: number[];
   linhasEditadas: number[];
+  marcarLinhaEditada: (index: number) => void;
   obterEstadoEdicaoDaNavegacao: () => {
     version: number;
     venueIds: string[];
@@ -884,6 +885,56 @@ test.describe('Consistência do CSV de venues', () => {
     expect(resultado.chains).toEqual([]);
     expect(resultado.display).toContain('display: none');
     expect(resultado.chainHtml).toBe('');
+  });
+
+  test('não restaura snapshot sem edições após recarregar o navegador', async ({ page }) => {
+    await carregarLogicaCsv(page);
+
+    const resultado = await page.evaluate(({ partialVenueId, completeVenueId }) => {
+      const editor = window as unknown as CsvHarnessWindow;
+      const armazenamento = new Map<string, string>([[
+        'fmet:editor-state',
+        JSON.stringify({
+          version: 1,
+          venueIds: [partialVenueId, completeVenueId],
+          editChains: true,
+          linhasEditadas: []
+        })
+      ]]);
+      Object.defineProperty(window, 'sessionStorage', {
+        configurable: true,
+        value: {
+          getItem: (key: string) => armazenamento.get(key) || null,
+          removeItem: (key: string) => armazenamento.delete(key)
+        }
+      });
+      Object.defineProperty(window.performance, 'getEntriesByType', {
+        configurable: true,
+        value: () => [{ type: 'reload' }]
+      });
+
+      const estado = editor.obterEstadoEdicaoDaNavegacao();
+      const snapshotLimpoDescartado = !armazenamento.has('fmet:editor-state');
+      editor.marcarLinhaEditada(0);
+      armazenamento.set('fmet:editor-state', JSON.stringify({
+        version: 1,
+        venueIds: [partialVenueId, completeVenueId],
+        editChains: true,
+        linhasEditadas: [0]
+      }));
+      const estadoComEdicoes = editor.obterEstadoEdicaoDaNavegacao();
+      return {
+        estado,
+        snapshotLimpoDescartado,
+        salvarDesabilitado: editor.__testWidgets.saveButton.disabled,
+        edicoesPendentesRestauradas: estadoComEdicoes?.linhasEditadas
+      };
+    }, { partialVenueId, completeVenueId });
+
+    expect(resultado.estado).toBeNull();
+    expect(resultado.salvarDesabilitado).toBe(false);
+    expect(resultado.snapshotLimpoDescartado).toBe(true);
+    expect(resultado.edicoesPendentesRestauradas).toEqual([0]);
   });
 
   test('mantém a rede primária fora das adições e inclui secundárias e terciárias', async ({ page }) => {

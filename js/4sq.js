@@ -2420,9 +2420,11 @@ function obterEstadoEdicaoDaNavegacao() {
 		? window.performance.getEntriesByType("navigation")
 		: [];
 	var navigationType = entradas.length > 0 ? entradas[0].type : "";
-	var deveRestaurar = navigationType === "back_forward" || navigationType === "reload";
+	var ehReload = navigationType === "reload";
+	var deveRestaurar = navigationType === "back_forward" || ehReload;
 	if (!deveRestaurar && window.performance && window.performance.navigation) {
-		deveRestaurar = window.performance.navigation.type === 1 || window.performance.navigation.type === 2;
+		ehReload = window.performance.navigation.type === 1;
+		deveRestaurar = ehReload || window.performance.navigation.type === 2;
 	}
 
 	try {
@@ -2434,6 +2436,10 @@ function obterEstadoEdicaoDaNavegacao() {
 		var estado = JSON.parse(salvo);
 		if (estado.version !== 1 || JSON.stringify(estado.venueIds) !== JSON.stringify(obterIdsDasVenues()) ||
 			estado.editChains !== !!(window.appBootstrap && window.appBootstrap.editChains)) {
+			sessionStorage.removeItem(chaveEstadoEdicao);
+			return null;
+		}
+		if (ehReload && (!estado.linhasEditadas || estado.linhasEditadas.length === 0)) {
 			sessionStorage.removeItem(chaveEstadoEdicao);
 			return null;
 		}
