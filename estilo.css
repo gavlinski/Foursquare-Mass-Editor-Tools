@@ -40,8 +40,57 @@ a:hover {
 	text-decoration: underline;
 	font-weight: bold;
 }
+a[href="https://github.com/sponsors/gavlinski"] {
+	position: relative;
+	display: inline-block;
+	color: #bf3989;
+}
+a[href="https://github.com/sponsors/gavlinski"] svg {
+	transition: opacity 0.15s ease;
+}
+a[href="https://github.com/sponsors/gavlinski"]::after {
+	content: "\2665";
+	position: absolute;
+	top: 50%;
+	left: 50%;
+	font-size: 16px;
+	line-height: 1;
+	opacity: 0;
+	pointer-events: none;
+	transform: translate(-50%, -50%) scale(0.9);
+	transform-origin: center;
+	transition: opacity 0.15s ease;
+}
+a[href="https://github.com/sponsors/gavlinski"]:hover::after,
+a[href="https://github.com/sponsors/gavlinski"]:focus-visible::after {
+	opacity: 1;
+}
+a[href="https://github.com/sponsors/gavlinski"]:hover svg,
+a[href="https://github.com/sponsors/gavlinski"]:focus-visible svg {
+	opacity: 0;
+}
+a[href="https://github.com/sponsors/gavlinski"]:hover::after,
+a[href="https://github.com/sponsors/gavlinski"]:focus-visible::after {
+	animation: github-sponsor-heartbeat 1s ease-in-out infinite;
+}
+@keyframes github-sponsor-heartbeat {
+	0%, 100% { transform: translate(-50%, -50%) scale(0.9); }
+	35% { transform: translate(-50%, -50%) scale(1.02); }
+	55% { transform: translate(-50%, -50%) scale(0.88); }
+	75% { transform: translate(-50%, -50%) scale(1); }
+}
+@media (prefers-reduced-motion: reduce) {
+	a[href="https://github.com/sponsors/gavlinski"]::after {
+		transition: none;
+	}
+	a[href="https://github.com/sponsors/gavlinski"]:hover::after,
+	a[href="https://github.com/sponsors/gavlinski"]:focus-visible::after {
+		animation: none;
+		transform: translate(-50%, -50%) scale(0.9);
+	}
+}
 #intro, #options, #links {
-	width: 776px;
+	width: 786px;
 }
 #fixedlinks {
 	margin-top: 12px;
@@ -68,10 +117,10 @@ a:hover {
 	display: inline-flex;
 }
 .toolcontainer {
-	min-width: 759px;
+	min-width: 763px;
 	background-color: #f9f9f9;
 	border: 1px solid #cccccc;
-	margin-bottom: 8px;
+	margin: 3px 0px 8px 3px;
 	display: table;
 	min-height: 0;
 	padding: 5px 0px 0px 3px;
@@ -192,9 +241,9 @@ a:hover {
 	padding-top: 9px;
 	padding-right: 10px;
 }
-.dijitButton.continue .dijitButtonNode {
+/* .dijitButton.continue .dijitButtonNode {
 	margin-left: -3px;
-}
+} */
 .dijitSelect .dijitButtonText {
 	text-align: left;
 }

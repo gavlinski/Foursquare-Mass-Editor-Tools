@@ -341,6 +341,7 @@ if ((isset($_COOKIE['name'])) && (strlen($_COOKIE['name']) > 0))
 	echo "<p>Ol&aacute;, " . rawurldecode($_COOKIE['name']) . "!</p>";
 ?>
 	<p>Este aplicativo usa a API do Foursquare&reg;, mas n&atilde;o &eacute; endossado ou certificado pelo Foursquare Labs, Inc. Todos os logos do Foursquare&reg; e marcas registradas exibidas neste aplicativo s&atilde;o de propriedade do Foursquare Labs, Inc.</p>
+	<p>Se desejar apoiar financeiramente este projeto, sua contribui&ccedil;&atilde;o ser&aacute; muito bem-vinda. <a type="button" href="https://github.com/sponsors/gavlinski" target="_blank" rel="noopener noreferrer" title="Contribua pelo GitHub Sponsors" aria-label="Apoie financeiramente este projeto pelo GitHub Sponsors"><svg data-component="Octicon" aria-hidden="true" focusable="false" class="octicon octicon-heart" viewBox="0 0 16 16" width="16" height="16" fill="currentColor" display="inline-block" overflow="visible" style="vertical-align: text-bottom;"><path d="m8 14.25.345.666a.75.75 0 0 1-.69 0l-.008-.004-.018-.01a7.152 7.152 0 0 1-.31-.17 22.055 22.055 0 0 1-3.434-2.414C2.045 10.731 0 8.35 0 5.5 0 2.836 2.086 1 4.25 1 5.797 1 7.153 1.802 8 3.02 8.847 1.802 10.203 1 11.75 1 13.914 1 16 2.836 16 5.5c0 2.85-2.045 5.231-3.885 6.818a22.066 22.066 0 0 1-3.744 2.584l-.018.01-.006.003h-.002ZM4.25 2.5c-1.336 0-2.75 1.164-2.75 3 0 2.15 1.58 4.144 3.365 5.682A20.58 20.58 0 0 0 8 13.393a20.58 20.58 0 0 0 3.135-2.211C12.92 9.644 14.5 7.65 14.5 5.5c0-1.836-1.414-3-2.75-3-1.373 0-2.609.986-3.029 2.456a.749.749 0 0 1-1.442 0C6.859 3.486 5.623 2.5 4.25 2.5Z"></path></svg></a>
 </article>
 <article id="options">
 	<div id="accordion" dojoType="dijit.layout.AccordionContainer" doLayout="false">
@@ -472,7 +473,7 @@ if ((isset($_COOKIE['name'])) && (strlen($_COOKIE['name']) > 0))
 				<section class="toolcontainer">
 					<div class="row">
 						<div class="urlinputlabel"><label for="pagina"><a id="dlg_lks" href="javascript:showDialogLks();">Endere&ccedil;o</a>:</label></div>
-						<div class="urlinput"><input type="text" id="pagina" name="pagina" required="true" dojoType="dijit.form.ValidationTextBox" trim="true" placeholder="Link da p&aacute;gina com os IDs dos locais" style="width: 50.2em; margin-bottom: 3px"/></div>
+						<div class="urlinput"><input type="text" id="pagina" name="pagina" required="true" dojoType="dijit.form.ValidationTextBox" trim="true" placeholder="Link da p&aacute;gina com os IDs dos locais" style="width: 658px; margin-bottom: 3px"/></div>
 					</div>
 					<div class="row">
 						<div class="fieldslabel"><label for="campos2">Campos:</label></div>
@@ -564,19 +565,19 @@ if ((isset($_COOKIE['name'])) && (strlen($_COOKIE['name']) > 0))
 				</button>
 			</div>
 		</div>
-		<div id="paneDentro" dojoType="dijit.layout.ContentPane" title="Importar locais dentro de outro local" style="height: 166px;">
+		<div id="paneDentro" dojoType="dijit.layout.ContentPane" title="Importar locais dentro de outro local" style="height: 174px;">
 			<div dojoType="dijit.form.Form" enctype="multipart/form-data" accept-charset="utf-8" id="f_dentro" jsId="f_dentro" action="children.php" method="post">
 				<section class="toolcontainer">
 					<div class="row">
 						<div class="queryinputlabel"><label for="parentSearchMain"><a id="dlg_dentro" href="javascript:showDialogDentro();">Dentro</a>:</label></div>
 						<div class="queryinput" style="position: relative; padding-bottom: 8px;">
-							<input type="text" id="parentSearchMain" dojoType="dijit.form.TextBox" autocomplete="off" placeHolder="Nome, ID ou link do local pai" style="width: 301px; box-sizing: border-box;">
+							<input type="text" id="parentSearchMain" dojoType="dijit.form.TextBox" autocomplete="off" placeHolder="Nome, ID ou link do local pai" style="width: 302px; box-sizing: border-box;">
 							<input type="hidden" id="parentIdMain" name="parentId" value="">
 							<div id="parentSearchMainResults" class="chain-search-results visual-results-list" style="display: none; position: absolute; z-index: 1000; width: 340px; max-height: 260px; overflow-y: auto; background: #fff; border: 1px solid #ccc;"></div>
 							<div id="parentSearchMainStatus" style="display: none; font-size: 11px; color: #888;"></div>
 						</div>
 						<div class="llinputlabel"><label for="ll5"><a href="https://docs.foursquare.com/developer/reference/place-search" target="_blank">Regi&atilde;o</a>:</label></div>
-						<div class="llinput"><input type="text" id="ll5" name="ll" required="false" dojoType="dijit.form.ValidationTextBox" trim="true" placeHolder="Lat,Lng ou Cidade" style="width: 283px"/></div>
+						<div class="llinput"><input type="text" id="ll5" name="ll" required="false" dojoType="dijit.form.ValidationTextBox" trim="true" placeHolder="Lat,Lng ou Cidade" style="width: 286px"/></div>
 					</div>
 					<div class="row">
 						<div class="fieldslabel"><label for="campos5">Campos:</label></div>
@@ -670,7 +671,7 @@ if ((isset($_COOKIE['name'])) && (strlen($_COOKIE['name']) > 0))
 				<section class="toolcontainer">
 					<div class="row">
 						<div class="urlstextarealabel"><label for="textarea_ids"><a id="dlg_ids" href="javascript:showDialogIds();">IDs ou URLs</a>:</label></div>
-						<div class="urlstextarea"><textarea id="textarea_ids" name="textarea" dojoType="dijit.form.SimpleTextarea" maxLength="4000" trim="true" style="font-family: 'Courier New', monospace; font-size: 13px; resize: none; width: 647px; height: 59px;"></textarea></div>
+						<div class="urlstextarea"><textarea id="textarea_ids" name="textarea" dojoType="dijit.form.SimpleTextarea" maxLength="4000" trim="true" style="font-family: 'Courier New', monospace; font-size: 13px; resize: none; width: 653px; height: 59px;"></textarea></div>
 					</div>
 					<div class="row">
 						<div class="fieldslabel"><label for="campos3">Campos:</label></div>
@@ -762,7 +763,7 @@ if ((isset($_COOKIE['name'])) && (strlen($_COOKIE['name']) > 0))
 				</button>
 			</div>
 		</div>
-		<div dojoType="dijit.layout.ContentPane" title="Pesquisar locais" selected="true" style="height: 199px;">
+		<div dojoType="dijit.layout.ContentPane" title="Pesquisar locais" selected="true" style="height: 206px;">
 			<div dojoType="dijit.form.Form" enctype="multipart/form-data" accodigopostalt-charset="utf-8" id="f_src" jsId="f_src" action="search.php" method="post">
 				<input type="hidden" id="oauth_token_scr" name="oauth_token" value="<?= $oauth_token ?>"/>
 				<section class="toolcontainer">
@@ -770,7 +771,7 @@ if ((isset($_COOKIE['name'])) && (strlen($_COOKIE['name']) > 0))
 						<div class="queryinputlabel"><label for="query"><a href="https://docs.foursquare.com/developer/reference/place-search" target="_blank">Consulta</a>:</label></div>
 						<div class="queryinput"><input type="text" id="query" name="query" required="false" dojoType="dijit.form.ValidationTextBox" trim="true" style="width: 220px"/></div>
 						<div class="llinputlabel"><label for="ll"><a href="https://docs.foursquare.com/developer/reference/place-search" target="_blank">Regi&atilde;o</a>:</label></div>
-						<div class="llinput"><input type="text" id="ll" name="ll" required="false" dojoType="dijit.form.ValidationTextBox" trim="true" placeHolder="Lat,Lng ou Cidade" style="width: 235px"/></div>
+						<div class="llinput"><input type="text" id="ll" name="ll" required="false" dojoType="dijit.form.ValidationTextBox" trim="true" placeHolder="Lat,Lng ou Cidade" style="width: 239px"/></div>
 						<div class="radiuscomboboxlabel"><label for="radius"><a href="https://docs.foursquare.com/developer/reference/place-search" target="_blank">Raio</a>:</label></div>
 						<div class="radiuscombobox">
 							<div class="comboboxes">
@@ -803,7 +804,7 @@ if ((isset($_COOKIE['name'])) && (strlen($_COOKIE['name']) > 0))
 						<div class="intentcomboboxlabel"><label for="intent"><a href="https://docs.foursquare.com/developer/reference/place-search" target="_blank">Inten&ccedil;&atilde;o</a>:</label></div>
 						<div class="intentcombobox">
 							<div class="comboboxes">
-								<select data-dojo-id="intent" name="intent" id="intent" style="width: 78px;" data-dojo-type="dijit/form/Select">
+								<select data-dojo-id="intent" name="intent" id="intent" style="width: 82px;" data-dojo-type="dijit/form/Select">
 									<option value="checkin">checkin</option>
 									<option value="browse">browse</option>
 									<option value="global">global</option>
