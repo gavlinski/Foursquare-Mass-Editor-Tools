@@ -577,6 +577,7 @@ a[href="https://github.com/sponsors/gavlinski"]:focus-visible::after {
 }
 .category-selection-empty,
 .chain-selection-empty {
+	margin: auto 0;
 	color: #64748b;
 	font-size: 12px;
 }
