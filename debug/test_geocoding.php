@@ -24,6 +24,7 @@ require_once __DIR__ . '/../includes/asset_helper.php';
 <html lang="pt-BR">
 <head>
     <meta charset="utf-8">
+    <link rel="stylesheet" href="../fonts/inter.css">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Teste de Geocodificação</title>
     <script>
@@ -35,7 +36,7 @@ require_once __DIR__ . '/../includes/asset_helper.php';
     <?php script_versioned('../js/google-maps.js'); ?>
     <?php script_versioned('../js/fsq-autocomplete.js'); ?>
     <style>
-        body { font-family: Arial, sans-serif; padding: 20px; background: #f5f5f5; color: #333; }
+        body { font-family: "Inter", -apple-system, BlinkMacSystemFont, Helvetica, Arial, sans-serif; padding: 20px; background: #f5f5f5; color: #333; }
         main { max-width: 900px; margin: 0 auto; }
         h1 { color: #667eea; }
         .section, .test-case {

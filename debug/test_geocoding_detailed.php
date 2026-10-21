@@ -15,13 +15,14 @@ if (session_status() !== PHP_SESSION_ACTIVE) {
 echo "<!DOCTYPE html>\n";
 echo "<html>\n<head>\n";
 echo "<meta charset='utf-8'>\n";
+echo "<link rel='stylesheet' href='../fonts/inter.css'>\n";
 echo "<title>Debug Geocodificação</title>\n";
 echo "<script>window.debugLog=window.debugLog||function(){};window.debugInfo=window.debugInfo||function(){};window.isLocalhost=function(){return true;};</script>\n";
 echo "<script src='../js/google-maps-config.php?v=5.0.1'></script>\n";
 echo "<script src='../js/google-maps.js'></script>\n";
 echo "<script src='../js/fsq-autocomplete.js'></script>\n";
 echo "<style>
-    body { font-family: Arial, sans-serif; padding: 20px; background: #f5f5f5; }
+    body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, Helvetica, Arial, sans-serif; padding: 20px; background: #f5f5f5; }
     .section { 
         margin: 20px 0; 
         padding: 20px; 

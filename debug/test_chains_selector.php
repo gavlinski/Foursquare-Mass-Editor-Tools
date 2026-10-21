@@ -23,7 +23,7 @@ include_once __DIR__ . '/../includes/asset_helper.php';
         }
 
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            font-family: "Inter", -apple-system, BlinkMacSystemFont, Helvetica, Arial, sans-serif;
             background: #f3f5f9;
             color: #2f3a45;
             margin: 0;

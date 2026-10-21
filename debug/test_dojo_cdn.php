@@ -94,13 +94,14 @@ foreach ($googleStaticChecks as $label => $candidates) {
 <html lang="pt-BR">
 <head>
     <meta charset="utf-8">
+    <link rel="stylesheet" href="../fonts/inter.css">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Diagnóstico Dojo (Google + Local) - Foursquare Mass Editor</title>
     <?php dojo_script(['parseOnLoad' => true, 'isDebug' => true]); ?>
     <?php dojo_theme('tundra'); ?>
     <style>
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            font-family: "Inter", -apple-system, BlinkMacSystemFont, Helvetica, Arial, sans-serif;
             padding: 30px;
             background: #f5f7fa;
             color: #2c3e50;

@@ -13,12 +13,12 @@ header('Expires: 0');
     <link rel="stylesheet" type="text/css" href="../includes/session-status-bar-variants.css?v=<?php echo time(); ?>">
     <style>
         :root {
-            --system-font: system-ui, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            --system-font: "Inter", -apple-system, BlinkMacSystemFont, Helvetica, Arial, sans-serif;
         }
         
         body {
             padding: 80px 20px 20px;
-            font-family: var(--system-font);
+            font-family: "Inter", -apple-system, BlinkMacSystemFont, Helvetica, Arial, sans-serif;
             background: #f5f5f5;
         }
         .test-wrapper {

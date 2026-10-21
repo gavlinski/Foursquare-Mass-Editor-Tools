@@ -24,6 +24,7 @@ require_once __DIR__ . '/analytics.php';
 <head>
 <title>Política de Privacidade - Elio Tools</title>
 <meta charset="utf-8">
+<link rel="stylesheet" href="fonts/inter.css">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="description" content="Política de Privacidade do Foursquare Mass Editor Tools - Como coletamos, usamos e protegemos seus dados.">
 <link rel="shortcut icon" href="favicon.ico" type="image/x-icon">
@@ -75,7 +76,7 @@ require_once __DIR__ . '/analytics.php';
 }
 
 body {
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+    font-family: "Inter", -apple-system, BlinkMacSystemFont, Helvetica, Arial, sans-serif;
     min-height: 100vh;
     background: var(--bg-primary);
     color: var(--text-primary);

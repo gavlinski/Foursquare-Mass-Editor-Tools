@@ -281,7 +281,7 @@ function removeLocalCache($key) {
 
 .loading-text {
     color: white;
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    font-family: "Inter", -apple-system, BlinkMacSystemFont, Helvetica, Arial, sans-serif;
     font-size: 18px;
     font-weight: 500;
     margin-top: 20px;
@@ -290,7 +290,7 @@ function removeLocalCache($key) {
 
 .loading-subtext {
     color: rgba(255, 255, 255, 0.8);
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    font-family: "Inter", -apple-system, BlinkMacSystemFont, Helvetica, Arial, sans-serif;
     font-size: 14px;
     margin-top: 8px;
 }
@@ -670,7 +670,7 @@ if ((isset($_COOKIE['name'])) && (strlen($_COOKIE['name']) > 0))
 				<section class="toolcontainer">
 					<div class="row">
 						<div class="urlstextarealabel"><label for="textarea_ids"><a id="dlg_ids" href="javascript:showDialogIds();">IDs ou URLs</a>:</label></div>
-						<div class="urlstextarea"><textarea id="textarea_ids" name="textarea" dojoType="dijit.form.SimpleTextarea" maxLength="4000" trim="true" style="font-family: Arial, Helvetica, Verdana, sans-serif; font-size: 13px; resize: none; width: 647px; height: 59px;"></textarea></div>
+						<div class="urlstextarea"><textarea id="textarea_ids" name="textarea" dojoType="dijit.form.SimpleTextarea" maxLength="4000" trim="true" style="font-family: 'Courier New', monospace; font-size: 13px; resize: none; width: 647px; height: 59px;"></textarea></div>
 					</div>
 					<div class="row">
 						<div class="fieldslabel"><label for="campos3">Campos:</label></div>

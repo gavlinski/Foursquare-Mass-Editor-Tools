@@ -46,6 +46,7 @@ Load the matching `SKILL.md` before working in its area:
 - **ci-cd-configuration** — GitHub Actions secrets vs. repository variables
 - **devcontainer-setup** — VS Code Dev Container config and troubleshooting
 - **debug-tools** — consolidated debug/index.php interface
+- **debug/test_fixedtray_layout.php** — compare current and dynamic venue editor action-bar positioning
 - **scroll-preservation** — sessionStorage scroll restore pattern in debug/index.php
 - **session-management** — OAuth2 flow, session-manager.js, system info modal
 - **version-info** — version.php dual HTML/JSON endpoint, build-info.json, badges

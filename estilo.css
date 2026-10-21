@@ -1,9 +1,11 @@
+@import url("fonts/inter.css");
+
 :root {
-	--system-font: system-ui, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+	--system-font: "Inter", -apple-system, BlinkMacSystemFont, Helvetica, Arial, sans-serif;
 }
 
 body, html {
-	font-family: Arial, Helvetica, Verdana, sans-serif;
+	font-family: "Inter", -apple-system, BlinkMacSystemFont, Helvetica, Arial, sans-serif;
 	font-size: 13px;
 	color: #4E595D;
 }
@@ -288,7 +290,7 @@ a:hover {
 	max-width: calc(100vw - 80px);
 	height: auto;
 	min-height: 58px;
-	max-height: 70vh;
+	max-height: calc(70vh - var(--fixedtray-height, 38px));
 	
 	/* Estilo visual original */
 	display: block;
@@ -304,11 +306,16 @@ a:hover {
 	/* Layout e overflow para scroll sincronizado */
 	overflow-x: auto; /* Scroll horizontal quando necessário */
 	overflow-y: auto; /* Scroll vertical quando necessário */
-	padding: 10px 10px 1px 10px;
+	padding: 10px 10px 1px;
 	
 	/* Resize properties - apenas horizontal */
 	resize: horizontal;
 	position: relative;
+}
+
+#fixedtray-slot {
+	position: relative;
+	height: var(--fixedtray-height, 38px);
 }
 
 #listContainer .row {
@@ -368,6 +375,16 @@ a:hover {
 	margin-right: -2px;
 	margin-top: 0;
 	position: static;
+}
+
+#listContainer span[id^="info"] {
+	box-sizing: border-box;
+	display: flex;
+	flex: 0 0 var(--venue-number-width, 36px);
+	width: var(--venue-number-width, 36px);
+	align-items: center;
+	justify-content: center;
+	white-space: nowrap;
 }
 
 /* Ajustar espaçamento dos spans de informação */
@@ -762,7 +779,7 @@ a:hover {
 	height: 36px;
 	background: linear-gradient(135deg, #f94877, #8b5cf6);
 	font-size: 15px;
-	font-family: Arial, Helvetica, Verdana, sans-serif;
+	font-family: "Inter", -apple-system, BlinkMacSystemFont, Helvetica, Arial, sans-serif;
 }
 
 .foursquare-marker:hover {
@@ -787,10 +804,18 @@ a:hover {
 #fixedtray {
 	position: fixed;
 	left: 0;
-	bottom: 0;
-	display: block;
+	bottom: 8px;
+	display: flow-root;
 	background: rgba(255, 255, 255, 0.9);
 	padding: 5px;
+	transition: transform 140ms ease-out;
+}
+
+#fixedtray.is-in-flow {
+	position: absolute;
+	left: 0;
+	bottom: 0;
+	margin-left: -8px;
 }
 
 /* Session Status Bar - Botões de Ação */
@@ -802,7 +827,7 @@ button.session-btn,
 	box-sizing: border-box;
 	color: #FFFFFF;
 	cursor: pointer;
-	font-family: var(--system-font);
+	font-family: "Inter", -apple-system, BlinkMacSystemFont, Helvetica, Arial, sans-serif;
 	outline: none;
 	user-select: none;
 	-webkit-user-select: none;
@@ -996,21 +1021,6 @@ button#session-close-btn {
 	}
 }
 
-/* Para telas muito grandes */
-@media (min-width: 1600px) {
-	#session-status-bar > div {
-		max-width: 1400px;
-		margin: 0 auto;
-		padding: 0 20px;
-	}
-}
-
-@media (min-width: 1400px) {
-	#session-status-bar > div {
-		padding: 0 15px;
-	}
-}
-
 /* ===== COMPATIBILIDADE DOJO BÁSICA ===== */
 
 /* Widgets Dojo básicos */
@@ -1076,12 +1086,6 @@ button#session-close-btn {
 /* Garantir que a barra de scroll horizontal apareça quando necessário */
 #listContainer::-webkit-scrollbar-corner {
 	background: transparent;
-}
-
-@media (min-width: 1920px) {
-	#session-status-bar > div {
-		padding: 0 60px;
-	}
 }
 
 /* Efeitos de interação */
@@ -1155,7 +1159,7 @@ button#session-close-btn {
     padding: 6px 0; /* Padrão para font-size 12px */
     border-bottom: 1px solid #dee2e6;
     box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-    font-family: var(--system-font);
+    font-family: "Inter", -apple-system, BlinkMacSystemFont, Helvetica, Arial, sans-serif;
     display: none;
     transition: all 0.3s ease;
 }
@@ -1212,7 +1216,7 @@ button#session-close-btn {
     border-radius: 20px;
     box-shadow: 0 2px 8px rgba(0,0,0,0.2);
     cursor: pointer;
-    font-family: var(--system-font);
+    font-family: "Inter", -apple-system, BlinkMacSystemFont, Helvetica, Arial, sans-serif;
     font-size: 13px;
     font-weight: 500;
     z-index: 9999;

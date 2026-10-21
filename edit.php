@@ -103,7 +103,7 @@ include_once 'includes/asset_helper.php';
 
 .loading-text {
     color: white;
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    font-family: "Inter", -apple-system, BlinkMacSystemFont, Helvetica, Arial, sans-serif;
     font-size: 18px;
     font-weight: 500;
     margin-top: 20px;
@@ -112,7 +112,7 @@ include_once 'includes/asset_helper.php';
 
 .loading-subtext {
     color: rgba(255, 255, 255, 0.8);
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    font-family: "Inter", -apple-system, BlinkMacSystemFont, Helvetica, Arial, sans-serif;
     font-size: 14px;
     margin-top: 8px;
 }
@@ -144,6 +144,10 @@ body.loading header,
 body.loading article,
 body.loading #listContainer {
     visibility: hidden;
+}
+
+#listContainer {
+    margin-bottom: 0;
 }
 </style>
 <?php dojo_script(['parseOnLoad' => true]); ?>
@@ -184,7 +188,11 @@ window.appBootstrap.superuserLevel = <?php echo json_encode($superuserLevel); ?>
 	<div id="mapa"></div>
 </article>
 <article>
-<div id="listContainer">
+<?php
+$venueCount = count($file);
+$venueNumberWidth = $venueCount < 10 ? 16 : ($venueCount < 100 ? 26 : 36);
+?>
+<div id="listContainer" style="--venue-number-width: <?php echo $venueNumberWidth; ?>px;">
 <?php
 $totalCampos = 0;
 
@@ -306,9 +314,9 @@ foreach ($file as $f) {
         echo '<span id="info' . ($i - 1) . '"><a id="venLnk' . ($i - 1) . '" href="' . htmlspecialchars($venueLink, ENT_QUOTES, 'UTF-8') . '" target="_blank" style="margin-left: 5px; margin-right: 5px; vertical-align: -1px;">';
         
         // Formatação do número baseado na quantidade total
-        if (count($file) < 10) {
+        if ($venueCount < 10) {
             echo $i;
-        } else if (count($file) < 100) {
+        } else if ($venueCount < 100) {
             echo str_pad((string)$i, 2, "0", STR_PAD_LEFT);
         } else {
             echo str_pad((string)$i, 3, "0", STR_PAD_LEFT);
@@ -397,15 +405,14 @@ foreach ($file as $f) {
 }
 ?>
 </div>
-</article>
-<!-- Botoes Salvar, Voltar e Mais -->
-<article>
+<div id="fixedtray-slot">
 	<div id="fixedtray">
         <button id="saveButton" dojoType="dijit.form.Button" type="submit" name="saveButton" onclick="javascript:showDialogComment(this.name)" style="float: left; padding-right: 3px;" disabled>Salvar</button>
         <button id="reloadButton" dojoType="dijit.form.Button" type="button" onclick="recarregarDadosVenues()" name="reloadButton" style="float: left; padding-right: 3px;" disabled>Recarregar</button>
         <button id="backButton" dojoType="dijit.form.Button" type="button" onclick="location.href='main.php'" name="backButton" style="float: left; padding-right: 3px;">Voltar</button>
 		<div id="dropdownButtonContainer" style="float: left"></div>
 	</div>
+</div>
 </article>
 <!-- Janela de Edicao das Categorias -->
 <div data-dojo-type="dijit.Dialog" id="dlg_cats" class="category-editor-dialog" data-dojo-props='title:"Categorias"' style="display:none; width: 440px; max-width: calc(100vw - 24px);">
@@ -568,6 +575,80 @@ document.addEventListener('DOMContentLoaded', function() {
     // Aguarda Dojo + carregamento inicial dos venues
     if (typeof dojo !== 'undefined' && dojo.ready) {
         dojo.ready(function() {
+            const fixedTray = document.getElementById('fixedtray');
+            const fixedTraySlot = document.getElementById('fixedtray-slot');
+            const listContainer = document.getElementById('listContainer');
+
+            if (fixedTray && fixedTraySlot && listContainer) {
+                let trayUpdateScheduled = false;
+
+                function setFixedTrayAnchored(anchored) {
+                    if (fixedTray.classList.contains('is-in-flow') === anchored) {
+                        return;
+                    }
+
+                    const previousTop = fixedTray.getBoundingClientRect().top;
+                    fixedTray.classList.toggle('is-in-flow', anchored);
+                    fixedTray.style.transition = 'none';
+                    fixedTray.style.transform = 'none';
+
+                    const nextTop = fixedTray.getBoundingClientRect().top;
+                    const offset = previousTop - nextTop;
+                    fixedTray.style.transform = 'translateY(' + offset + 'px)';
+                    fixedTray.getBoundingClientRect();
+
+                    window.requestAnimationFrame(function() {
+                        fixedTray.style.transition = '';
+                        fixedTray.style.transform = '';
+                    });
+                }
+
+                function updateFixedTrayPosition() {
+                    const trayHeight = Math.ceil(fixedTray.getBoundingClientRect().height);
+                    fixedTraySlot.style.height = trayHeight + 'px';
+                    listContainer.style.setProperty('--fixedtray-height', trayHeight + 'px');
+
+                    const rows = listContainer.querySelectorAll('.row');
+                    const lastRow = rows[rows.length - 1];
+
+                    if (!lastRow) {
+                        setFixedTrayAnchored(true);
+                        return;
+                    }
+                    const listBounds = listContainer.getBoundingClientRect();
+                    const lastRowBounds = lastRow.getBoundingClientRect();
+                    const availableBottom = window.innerHeight - trayHeight - 8;
+                    const lastRowIsVisible = lastRowBounds.top >= listBounds.top - 2
+                        && lastRowBounds.bottom <= listBounds.bottom + 2
+                        && lastRowBounds.bottom <= availableBottom;
+
+                    setFixedTrayAnchored(lastRowIsVisible);
+                }
+
+                function scheduleFixedTrayUpdate() {
+                    if (trayUpdateScheduled) {
+                        return;
+                    }
+
+                    trayUpdateScheduled = true;
+                    window.requestAnimationFrame(function() {
+                        trayUpdateScheduled = false;
+                        updateFixedTrayPosition();
+                    });
+                }
+
+                window.addEventListener('resize', scheduleFixedTrayUpdate);
+                window.addEventListener('scroll', scheduleFixedTrayUpdate, { passive: true });
+                listContainer.addEventListener('scroll', scheduleFixedTrayUpdate, { passive: true });
+                if (typeof ResizeObserver !== 'undefined') {
+                    new ResizeObserver(scheduleFixedTrayUpdate).observe(fixedTray);
+                }
+                if (document.fonts && document.fonts.ready) {
+                    document.fonts.ready.then(scheduleFixedTrayUpdate);
+                }
+                scheduleFixedTrayUpdate();
+            }
+
             // Aguarda carregamento dos dados dos venues (função do 4sq.js)
             var checkInterval = setInterval(function() {
                 // Verifica se os dados foram carregados (ao menos o primeiro venue)

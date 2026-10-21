@@ -259,6 +259,7 @@ if ($token) {
 <head>
 <title>Elio Tools - Foursquare Mass Editor</title>
 <meta charset="utf-8">
+<link rel="stylesheet" href="fonts/inter.css">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="description" content="Ferramenta para edição em massa de locais no Foursquare. Criada para placemakers para facilitar a visualização, importação, edição e sinalização de dados de múltiplos locais.">
 <link rel="shortcut icon" href="favicon.ico" type="image/x-icon">
@@ -308,7 +309,7 @@ if ($token) {
 }
 
 body {
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+    font-family: "Inter", -apple-system, BlinkMacSystemFont, Helvetica, Arial, sans-serif;
     min-height: 100vh;
     background: var(--bg-primary);
     color: var(--text-primary);

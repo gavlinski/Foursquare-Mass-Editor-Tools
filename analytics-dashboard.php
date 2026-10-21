@@ -224,6 +224,7 @@ if ($pdo) {
 <head>
 <title>Analytics Dashboard - Elio Tools</title>
 <meta charset="utf-8">
+<link rel="stylesheet" href="fonts/inter.css">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <link rel="shortcut icon" href="favicon.ico" type="image/x-icon">
 <style>
@@ -266,7 +267,7 @@ if ($pdo) {
 }
 
 body {
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    font-family: "Inter", -apple-system, BlinkMacSystemFont, Helvetica, Arial, sans-serif;
     min-height: 100vh;
     background: var(--bg-primary);
     color: var(--text-primary);

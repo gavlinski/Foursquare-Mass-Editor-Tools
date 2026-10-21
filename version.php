@@ -95,11 +95,12 @@ header('Content-Type: text/html; charset=utf-8');
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
+    <link rel="stylesheet" href="fonts/inter.css">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Versão e Build - Foursquare Mass Editor</title>
     <style>
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            font-family: "Inter", -apple-system, BlinkMacSystemFont, Helvetica, Arial, sans-serif;
             padding: 30px;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: #2c3e50;
