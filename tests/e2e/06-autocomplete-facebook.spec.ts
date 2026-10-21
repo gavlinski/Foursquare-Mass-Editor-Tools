@@ -203,7 +203,7 @@ test.describe('Utilitários (sem sessão)', () => {
         this.onreadystatechange?.();
       }
     }
-    const obterLl = carregarFuncao< (texto: string) => Promise<string> >(
+    const obterLl = carregarFuncao< (texto: string, token?: string) => Promise<string> >(
       'fsq-autocomplete.js',
       'fsqObterLl',
       ['fsqLlCache', 'window', 'fsqGeocodificarPorApi'],
