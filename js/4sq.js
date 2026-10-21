@@ -3558,7 +3558,17 @@ dojo.addOnLoad(function inicializar() {
 			id: "menu2ItemCategories",
 			onClick: function() {
 				atualizarCategorias([], "", "");
+				var linhasSelecionadasCategorias = dojo.query("input[name=selecao]:checked");
+				var indiceVenueContexto = linhasSelecionadasCategorias.length
+					? parseInt(dijit.byId(linhasSelecionadasCategorias[0].id).value, 10)
+					: 0;
+				dojo.byId("venueIndex").innerHTML = indiceVenueContexto;
 				dijit.byId("dlg_cats").show();
+				inicializarBuscaCategorias();
+				var categoriaInput = dijit.byId("categorySearchInput");
+				if (categoriaInput) categoriaInput.set("value", "");
+				if (categorySearchWidget) categorySearchWidget.limpar();
+				atualizarStatusBuscaCategoria("", "");
 
 				// Habilita checkbox apenas se houver 2+ venues com dados completos
 				var totalComDadosCompletos = contarVenuesComDadosCompletos();

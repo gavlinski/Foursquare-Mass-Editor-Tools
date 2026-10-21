@@ -619,7 +619,13 @@ test.describe('Edit: modal, Facebook, Dentro e categorias', () => {
     await resultadoPai.click();
     await expect(dentro).toHaveValue('5a177d2ce1f0aa75261b40b6');
 
-    // Categorias: busca da modal usa o autocomplete da API
+    // Edição múltipla: abrir pelo menu também inicializa a busca de categorias
+    await page.evaluate(() => (window as any).dijit.byId('menu2ItemCategories').onClick());
+    await page.locator('#categorySearchInput').fill('acai');
+    await expect(page.locator('#categorySearchResults button').first()).toContainText('Casa de Açaí');
+    await page.evaluate(() => (window as any).dijit.byId('dlg_cats').hide());
+
+    // Categorias: busca da modal de edição por local usa o autocomplete da API
     await page.evaluate(() => (window as any).editarCategorias(0));
     await page.locator('#categorySearchInput').fill('acai');
     await expect(page.locator('#categorySearchResults button').first()).toContainText('Casa de Açaí');
