@@ -12,6 +12,7 @@ type CsvHarnessWindow = Window & {
     hasClass: (element: Element, className: string) => boolean;
     addClass: (element: Element, className: string) => void;
     connect: () => void;
+    cookie: (name: string, value?: string, options?: { expires?: number }) => string | undefined;
   };
   dijit: {
     byId: (id: string) => {
@@ -107,7 +108,8 @@ async function carregarLogicaCsv(page: Page) {
       byId: id => document.getElementById(id),
       hasClass: (element, className) => element.classList.contains(className),
       addClass: (element, className) => element.classList.add(className),
-      connect: () => undefined
+      connect: () => undefined,
+      cookie: () => undefined
     };
     editor.__testWidgets = {
       saveButton: { disabled: true, set: (_name, value) => { editor.__testWidgets.saveButton.disabled = Boolean(value); }, setAttribute: (_name, value) => { editor.__testWidgets.saveButton.disabled = Boolean(value); } },
@@ -132,6 +134,7 @@ async function carregarLogicaCsv(page: Page) {
     editor.createTooltip = () => undefined;
     editor.setupVerticalNavigation = () => undefined;
   });
+  await page.addScriptTag({ path: path.resolve(process.cwd(), 'js/fsq-autocomplete.js') });
 }
 
 function colunasCompletas(): string[] {

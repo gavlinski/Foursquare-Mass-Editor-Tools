@@ -209,14 +209,16 @@ test.describe('Utilitários (sem sessão)', () => {
       ['fsqLlCache', 'window', 'fsqGeocodificarPorApi'],
       [{}, {}, () => Promise.resolve('-30.03306,-51.23')]
     );
+    const obterLocale = extrairFuncao('fsq-autocomplete.js', 'fsqObterLocale');
     const montarGeocodeUrl = extrairFuncao('fsq-autocomplete.js', 'fsqMontarUrlGeocode');
     const geocodificar = extrairFuncao('fsq-autocomplete.js', 'fsqGeocodificarPorApi');
     const chamadaApi = new Function(
+      'navigator',
       'FSQ_AUTOCOMPLETE_VERSION',
       'fsqObterWsid',
       'XMLHttpRequest',
-      `${montarGeocodeUrl}\n${geocodificar}\nreturn fsqGeocodificarPorApi;`
-    )('20261016', () => 'TESTWSID', MockXhr);
+      `${obterLocale}\n${montarGeocodeUrl}\n${geocodificar}\nreturn fsqGeocodificarPorApi;`
+    )({ languages: ['pt-BR'] }, '20261016', () => 'TESTWSID', MockXhr);
     await expect(chamadaApi('Porto Alegre, RS', 'test-token')).resolves.toBe('-30.03306,-51.23');
     const parametros = new URL(urlChamada).searchParams;
     expect(new URL(urlChamada).pathname).toBe('/v2/geo/geocode');
