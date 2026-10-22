@@ -265,11 +265,14 @@ dojo.addOnLoad(function() {
 	var form_ids = dijit.byId("f_ids");
 	var textarea_ids = dijit.byId("textarea_ids");
 	dojo.connect(form_ids, "onSubmit", function(e) {
+		var locaisInformados = textarea_ids.get("value") || "";
 		if (form_ids.validate()) {
-			if (textarea_ids.value == "") {
+			if (locaisInformados.trim() == "") {
 				e.preventDefault();
-				alert("Informe pelo menos um local");
+				textarea_ids.set("value", "");
+				alert("Informe pelo menos um ID ou URL de local antes de continuar.");
 				textarea_ids.focus();
+				locaisInformados = "";
 			//} else if (dojo.query('input:checked', 'f_ids').length == 0) {
 				//e.preventDefault();
 				//alert("Selecione pelo menos um dos campos");
@@ -281,7 +284,7 @@ dojo.addOnLoad(function() {
 			e.preventDefault();
 		}
 		//dojo.cookie("pagina", "", { expires: 15 });
-		dojo.cookie("textarea", dijit.byId("textarea_ids").value, { expires: 15 });
+		dojo.cookie("textarea", locaisInformados, { expires: 15 });
 		var campos3 = dijit.byId("nome3").checked + "." + dijit.byId("endereco3").checked + "." + dijit.byId("ruatransversal3").checked + "." + dijit.byId("bairro3").checked + "." + dijit.byId("cidade3").checked + "." + dijit.byId("estado3").checked + "." + dijit.byId("codigopostal3").checked + "." + dijit.byId("dentro3").checked + "." + dijit.byId("telefone3").checked + "." + dijit.byId("sitedaweb3").checked + "." + dijit.byId("twitter3").checked + "." + dijit.byId("facebook3").checked + "." + dijit.byId("instagram3").checked + "." + dijit.byId("latlng3").checked + "." + dijit.byId("descricao3").checked + "." + dijit.byId("menu3").checked + "." + dijit.byId("redes3").checked + "." + dijit.byId("horas3").checked;
 		dojo.cookie("campos", campos3, { expires: 15 });
 		dojo.cookie("accordion", dijit.byId("accordion").selectedChildWidget.id, { expires: 15 });
@@ -437,7 +440,8 @@ dojo.ready(function() {
 		//dojo.byId("name").innerText = dojo.cookie("name");
 		if (dojo.cookie("pagina") != "undefined")
 			dijit.byId("pagina").attr("value", dojo.cookie("pagina"));
-		dijit.byId("textarea_ids").attr("value", dojo.cookie("textarea"));
+		var textareaCookie = dojo.cookie("textarea");
+		dijit.byId("textarea_ids").set("value", textareaCookie && textareaCookie !== "undefined" ? textareaCookie : "");
 		dojo.attr(dijit.byId("pagina").textbox, "autocomplete", "on");
 		dojo.attr(dijit.byId("ll").textbox, "autocomplete", "on");
 		//dojo.attr(dijit.byId("near").textbox, "autocomplete", "on");
