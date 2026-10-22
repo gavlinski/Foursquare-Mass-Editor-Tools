@@ -2439,10 +2439,6 @@ function obterEstadoEdicaoDaNavegacao() {
 			sessionStorage.removeItem(chaveEstadoEdicao);
 			return null;
 		}
-		if (ehReload && (!estado.linhasEditadas || estado.linhasEditadas.length === 0)) {
-			sessionStorage.removeItem(chaveEstadoEdicao);
-			return null;
-		}
 		return estado;
 	} catch (error) {
 		return null;

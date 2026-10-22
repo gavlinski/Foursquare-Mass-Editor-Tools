@@ -41,6 +41,7 @@ type CsvHarnessWindow = Window & {
     version: number;
     venueIds: string[];
     editChains: boolean;
+    linhasEditadas?: number[];
   } | null;
   restaurarEstadoEdicao: (state: {
     modo: number;
@@ -890,7 +891,7 @@ test.describe('Consistência do CSV de venues', () => {
     expect(resultado.chainHtml).toBe('');
   });
 
-  test('não restaura snapshot sem edições após recarregar o navegador', async ({ page }) => {
+  test('restaura snapshot sem edições após recarregar o navegador', async ({ page }) => {
     await carregarLogicaCsv(page);
 
     const resultado = await page.evaluate(({ partialVenueId, completeVenueId }) => {
@@ -917,7 +918,7 @@ test.describe('Consistência do CSV de venues', () => {
       });
 
       const estado = editor.obterEstadoEdicaoDaNavegacao();
-      const snapshotLimpoDescartado = !armazenamento.has('fmet:editor-state');
+      const snapshotSemEdicoesMantido = armazenamento.has('fmet:editor-state');
       editor.marcarLinhaEditada(0);
       armazenamento.set('fmet:editor-state', JSON.stringify({
         version: 1,
@@ -928,15 +929,15 @@ test.describe('Consistência do CSV de venues', () => {
       const estadoComEdicoes = editor.obterEstadoEdicaoDaNavegacao();
       return {
         estado,
-        snapshotLimpoDescartado,
+        snapshotSemEdicoesMantido,
         salvarDesabilitado: editor.__testWidgets.saveButton.disabled,
         edicoesPendentesRestauradas: estadoComEdicoes?.linhasEditadas
       };
     }, { partialVenueId, completeVenueId });
 
-    expect(resultado.estado).toBeNull();
+    expect(resultado.estado?.linhasEditadas).toEqual([]);
     expect(resultado.salvarDesabilitado).toBe(false);
-    expect(resultado.snapshotLimpoDescartado).toBe(true);
+    expect(resultado.snapshotSemEdicoesMantido).toBe(true);
     expect(resultado.edicoesPendentesRestauradas).toEqual([0]);
   });
 
