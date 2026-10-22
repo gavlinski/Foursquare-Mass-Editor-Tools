@@ -377,11 +377,13 @@ a[href="https://github.com/sponsors/gavlinski"]:focus-visible::after {
 }
 
 @media (max-height: 600px) {
-	body.csv-edit-page {
+	body.csv-edit-page,
+	body.csv-flag-page {
 		margin-bottom: 4px;
 	}
 
-	body.csv-edit-page #fixedtray:not(.is-in-flow) {
+	body.csv-edit-page #fixedtray:not(.is-in-flow),
+	body.csv-flag-page #fixedtray:not(.is-in-flow) {
 		bottom: 4px;
 	}
 }
