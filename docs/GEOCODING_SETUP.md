@@ -14,6 +14,11 @@ e Geocoding, com o domínio da aplicação permitido nas restrições de HTTP re
 Não use essa chave em chamadas PHP/cURL. O fluxo principal é browser-side e não
 requer uma `GOOGLE_MAPS_GEOCODING_KEY`.
 
+As credenciais locais podem ser fornecidas por `includes/google_maps_credentials.php`.
+Se esse arquivo estiver ausente (por exemplo, em um checkout limpo ou no CI), a
+aplicação carrega `includes/google_maps_credentials.php.example`, que lê as
+credenciais do ambiente e usa placeholders quando elas não estão configuradas.
+
 O erro `REQUEST_DENIED` com `empty referer` ocorre em chamadas server-side, que não
 enviam o Referer do navegador. A ferramenta opcional
 `debug/test_geocoding_detailed.php?server_test=1` ainda pode testar esse fluxo

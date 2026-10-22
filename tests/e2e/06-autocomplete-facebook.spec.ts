@@ -302,6 +302,15 @@ test.describe('Main: autocompletes e aba "dentro"', () => {
       await route.fulfill({ json: categoriasAutocomplete });
     });
     await page.goto('/4sqmet/main.php');
+    await page.waitForFunction(() => Boolean((window as any).dijit?.byId('accordion')));
+    await page.evaluate(() => {
+      const w = window as any;
+      const accordion = w.dijit.byId('accordion');
+      const pane = accordion.getChildren().find((child: any) =>
+        child.domNode.querySelector('#categorySearchMain')
+      );
+      accordion.selectChild(pane, false);
+    });
     await page.locator('#categorySearchMain').fill('acai');
     const resultado = page.locator('#categorySearchMainResults button').first();
     await expect(resultado).toContainText('Casa de Açaí');
