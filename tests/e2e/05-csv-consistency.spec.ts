@@ -1107,7 +1107,12 @@ test.describe('Consistência do CSV de venues', () => {
     process.env.CI = 'true';
     const unauthenticatedPage = {
       request: {
-        get: async () => ({ ok: () => true, json: async () => ({ authenticated: false }) })
+        get: async () => ({
+          ok: () => true,
+          status: () => 200,
+          headers: () => ({ 'content-type': 'application/json' }),
+          text: async () => JSON.stringify({ authenticated: false })
+        })
       }
     } as unknown as Page;
 

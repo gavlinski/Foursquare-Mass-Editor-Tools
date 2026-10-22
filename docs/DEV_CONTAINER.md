@@ -24,6 +24,10 @@ Dev Containers é uma especificação do VS Code que permite abrir um projeto **
 
 No contexto deste projeto, o container já é a imagem `php:8.5-apache` que serve a aplicação em produção. Ao usar Dev Containers, você desenvolve **na mesma imagem que roda em produção**, eliminando discrepâncias de ambiente.
 
+### Diagnósticos PHP 8.5
+
+O Dockerfile carrega `docker/php-runtime.ini`: mantém `E_ALL` e registra erros no log do container, mas desativa sua exibição nas respostas HTTP. Isso evita que avisos de compatibilidade, como depreciações da biblioteca Foursquare legada, corrompam respostas JSON ou HTML. Consulte os logs com `./scripts/dev-internal.sh logs`.
+
 ---
 
 ## Vantagens para este projeto

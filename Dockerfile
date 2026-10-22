@@ -22,6 +22,9 @@ RUN apt-get update \
 # Instala Composer
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
+# Keep PHP diagnostics in container logs instead of HTTP response bodies.
+COPY docker/php-runtime.ini /usr/local/etc/php/conf.d/99-elio-tools.ini
+
 # Ativa módulos do Apache necessários
 RUN a2enmod rewrite headers deflate expires ssl
 
