@@ -362,9 +362,28 @@ a[href="https://github.com/sponsors/gavlinski"]:focus-visible::after {
 	position: relative;
 }
 
+#listContainer.csv-tray-managed {
+	margin-bottom: 0;
+	max-height: min(calc(70vh - var(--fixedtray-height, 38px)), var(--csv-tray-fit-height, 100vh));
+}
+
+#listContainer.csv-tray-managed.csv-tray-anchored {
+	margin-bottom: 0;
+}
+
 #fixedtray-slot {
 	position: relative;
 	height: var(--fixedtray-height, 38px);
+}
+
+@media (max-height: 600px) {
+	body.csv-edit-page {
+		margin-bottom: 4px;
+	}
+
+	body.csv-edit-page #fixedtray:not(.is-in-flow) {
+		bottom: 4px;
+	}
 }
 
 #listContainer .row {
