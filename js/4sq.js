@@ -387,7 +387,7 @@ var totalSelecionadas = 0;
 var failedRequests = {};
 var totalParaSinalizar = 0;
 var totalSinalizadas = 0;
-var linhaVenueComMaisCheckins = 0;
+var linhaVenueComMaisCheckins = -1;
 
 var totalProgresso = 0;
 var totalTimeout = 0;
@@ -491,7 +491,7 @@ function atualizarSinalizadas(i, timeout) {
 		else
 			title += " sinalizados com sucesso";
 		dijit.byId("dlg_save").set("title", title);
-		if (timeout == false)
+		if (timeout == false && linhaVenueComMaisCheckins !== -1)
 			dijit.byId(dojo.query("input[name=selecao]")[linhaVenueComMaisCheckins].id).setChecked(false);
 		if (dojo.query("input[name=selecao]:enabled").length == 0)
 			dijit.byId("menuSelecionar").setAttribute('disabled', true);
@@ -3196,6 +3196,7 @@ function sinalizarVenues(problema) {
 	if (!token)
 		return handleMissingOauthToken("sinalizar os locais");
 
+	linhaVenueComMaisCheckins = -1;
 	//dojo.query("input[name=selecao]:checked").forEach("console.log(dijit.byId(item.id).value)");
 	linhasSelecionadas = dojo.query("input[name=selecao]:checked");
 	totalSinalizadas = 0;
