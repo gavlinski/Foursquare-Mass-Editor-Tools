@@ -3481,7 +3481,7 @@ dojo.addOnLoad(function inicializar() {
 	/*** Modal de Exportação de URLs ***/
 	dlg_export_urls = new dijit.Dialog({
 		title: "Exportar URLs",
-		style: "width: 600px"
+		style: "width: calc(100vw - 56px); max-width: 560px;"
 	});
 
 	/*** Modal de Exportação de URL Direta ***/
@@ -4087,26 +4087,26 @@ function showDialogExportUrls() {
 	// Cria o conteúdo da modal
 	var dialogContent = '<div style="padding: 10px;">' +
 		'<p style="margin-top: 0;"><strong>Escolha o formato de exportação:</strong></p>' +
-		'<div style="margin: 10px 0 20px 0;">' +
-			'<div style="margin: 5px 0;">' +
+		'<div style="margin: 4px 0 8px 0;">' +
+			'<div style="margin: 3px 0;">' +
 				'<input type="radio" name="formatoExport" id="radioCanonica" value="' + FORMATO_CANONICA + '" ' +
 					(formatoAtual === FORMATO_CANONICA ? 'checked' : '') + '> ' +
 				'<label for="radioCanonica">' +
 					'URL Canônica (compartilhável)' +
 				'</label>' +
 			'</div>' +
-			'<div style="margin: 5px 0;">' +
+			'<div style="margin: 3px 0;">' +
 				'<input type="radio" name="formatoExport" id="radioPadrao" value="' + FORMATO_PADRAO + '" ' +
 					(formatoAtual === FORMATO_PADRAO ? 'checked' : '') + '> ' +
 				'<label for="radioPadrao">URL Padrão (curta)</label>' +
 			'</div>' +
-			'<div style="margin: 5px 0;">' +
+			'<div style="margin: 3px 0;">' +
 				'<input type="radio" name="formatoExport" id="radioIds" value="' + FORMATO_IDS + '"> ' +
 				'<label for="radioIds">Somente IDs (24 caracteres)</label>' +
 			'</div>' +
 		'</div>' +
 		'<p style="margin-bottom: 5px;">Lista de URLs dos ' + textoLocais + (totalSelecionadas > 0 ? ' selecionados' : '') + ':</p>' +
-		'<textarea id="exportUrlsTextarea" readonly style="width: 100%; height: 300px; font-family: monospace; font-size: 12px; padding: 8px; box-sizing: border-box; resize: vertical;">' + urlList + '</textarea>' +
+		'<textarea id="exportUrlsTextarea" readonly style="width: 100%; height: 240px; max-height: calc(100vh - 300px); min-height: 32px; font-family: monospace; font-size: 12px; padding: 8px; box-sizing: border-box; resize: vertical;">' + urlList + '</textarea>' +
 		'<div style="text-align: right; margin-top: 10px;">' +
 		'<button id="btnSaveUrls" dojoType="dijit.form.Button">Salvar</button>' +
 		'<button id="btnCopyUrls" dojoType="dijit.form.Button">Copiar</button>' +
