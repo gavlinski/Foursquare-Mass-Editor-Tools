@@ -284,6 +284,51 @@ test.describe('Edição em Massa', () => {
     // Verificar sinalização de alteração pendente (verificação relaxada)
     const count = await page.locator('.alterado, .changed, [class*="modified"], .row-modified').count();
     expect(count).toBeGreaterThanOrEqual(0);
+
+    const linhasEditadas = await page.evaluate(() =>
+      (window as Window & { linhasEditadas?: number[] }).linhasEditadas?.length ?? 0
+    );
+    expect(linhasEditadas).toBeGreaterThan(0);
+
+    let promptDuranteRecarga = false;
+    const capturarPromptDeRecarga = async (dialog: import('@playwright/test').Dialog) => {
+      promptDuranteRecarga = true;
+      await dialog.accept();
+    };
+    page.on('dialog', capturarPromptDeRecarga);
+    await page.evaluate(() => document.dispatchEvent(new KeyboardEvent('keydown', {
+      key: 'r',
+      ctrlKey: true,
+      bubbles: true,
+    })));
+    await page.reload();
+    page.off('dialog', capturarPromptDeRecarga);
+    expect(promptDuranteRecarga).toBe(false);
+    await expect.poll(() => page.evaluate(() =>
+      (window as Window & { linhasEditadas?: number[] }).linhasEditadas?.length ?? 0
+    )).toBeGreaterThan(0);
+
+    const promptAoVoltarNoHistorico = page.waitForEvent('dialog');
+    const voltarNoHistorico = page.goBack();
+    const dialogHistorico = await promptAoVoltarNoHistorico;
+    expect(dialogHistorico.type()).toBe('beforeunload');
+    await dialogHistorico.accept();
+    await voltarNoHistorico;
+    await expect(page).toHaveURL(/main\.php/);
+
+    await page.goForward();
+    await expect(page).toHaveURL(/edit\.php/);
+    await expect.poll(() => page.evaluate(() =>
+      (window as Window & { linhasEditadas?: number[] }).linhasEditadas?.length ?? 0
+    )).toBeGreaterThan(0);
+
+    const promptAoVoltar = page.waitForEvent('dialog');
+    const clickVoltar = page.getByRole('button', { name: 'Voltar' }).click();
+    const dialog = await promptAoVoltar;
+    expect(dialog.type()).toBe('beforeunload');
+    await dialog.accept();
+    await clickVoltar;
+    await expect(page).toHaveURL(/main\.php/);
   });
 
 });

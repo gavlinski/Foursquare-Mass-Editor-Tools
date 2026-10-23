@@ -3876,10 +3876,24 @@ function deCode(str) {
 	return convertstr;
 }
 
-window.onbeforeunload = function() {
-	if (linhasEditadas.length > 0)
-		return deCode("As altera&#231;&#245;es ser&#227;o perdidas se voc&#234; sair desta p&#225;gina sem clicar no bot&#227;o Salvar.");
-}
+var recargaSolicitadaPorAtalho = false;
+window.addEventListener("keydown", function(event) {
+	if (event.key === "F5" || ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === "r")) {
+		recargaSolicitadaPorAtalho = true;
+		window.setTimeout(function() {
+			recargaSolicitadaPorAtalho = false;
+		}, 1000);
+	}
+});
+
+window.addEventListener("beforeunload", function(event) {
+	if (linhasEditadas.length === 0 || recargaSolicitadaPorAtalho) return;
+
+	var mensagem = deCode("As altera&#231;&#245;es ser&#227;o perdidas se voc&#234; sair desta p&#225;gina sem clicar no bot&#227;o Salvar.");
+	event.preventDefault();
+	event.returnValue = mensagem;
+	return mensagem;
+});
 
 function showDialogGuia() {
 	// set the content of the dialog:
