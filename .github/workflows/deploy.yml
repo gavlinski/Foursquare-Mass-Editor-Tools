@@ -94,6 +94,12 @@ jobs:
         with:
           node-version: ${{ env.NODE_VERSION }}
 
+      - name: 🔒 Audit dependencies (Composer + npm)
+        run: |
+          composer audit
+          npm ci --ignore-scripts
+          npm audit --audit-level=high
+
       - name: 🛡️ Run Copilot hook tests
         run: npm run test:hooks
       
