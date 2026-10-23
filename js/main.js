@@ -106,17 +106,30 @@ function configurarBuscaLocalPai() {
 		minLength: 3,
 		getToken: obterTokenPagina,
 		extraParams: function() {
-			var regiao = (dijit.byId("ll5").get("value") || dojo.cookie("coordinates") || "").trim();
-			if (!regiao) throw new Error("Para buscar um local pai, informe coordenadas (latitude,longitude) ou uma cidade no campo Região.");
-			var parametros = { m: "foursquare", group: "unified", isMobile: "false", limit: 20 };
-			if (/^-?\d+(?:\.\d+)?\s*,\s*-?\d+(?:\.\d+)?$/.test(regiao)) {
-				return fsqObterLl(regiao, obterTokenPagina()).then(function(ll) {
-					parametros.ll = ll;
-					return parametros;
-				});
-			}
-			parametros.near = regiao;
-			return parametros;
+			var campoRegiao = dijit.byId("ll5");
+			var cookie = dojo.cookie("coordinates");
+			var regiao = (campoRegiao.get("value") || (cookie && cookie !== "undefined" ? cookie : "")).trim();
+			// Sem região nem cookie, usa o último check-in do perfil, como em "Pesquisar locais"
+			var obterRegiao = regiao ? Promise.resolve(regiao) : fsqObterLlPerfil(obterTokenPagina()).then(function(ll) {
+				if (ll) dojo.cookie("coordinates", ll, { expires: 1 });
+				return ll;
+			});
+			return obterRegiao.then(function(regiaoFinal) {
+				if (!regiaoFinal) {
+					ctrl.mensagem("Informe a Região para buscar.", "error");
+					return null;
+				}
+				if (!campoRegiao.get("value")) campoRegiao.set("value", regiaoFinal);
+				var parametros = { m: "foursquare", group: "unified", isMobile: "false", limit: 20 };
+				if (/^-?\d+(?:\.\d+)?\s*,\s*-?\d+(?:\.\d+)?$/.test(regiaoFinal)) {
+					return fsqObterLl(regiaoFinal, obterTokenPagina()).then(function(ll) {
+						parametros.ll = ll;
+						return parametros;
+					});
+				}
+				parametros.near = regiaoFinal;
+				return parametros;
+			});
 		},
 		parse: fsqNormalizarLocais,
 		emptyMessage: "Nenhum local encontrado.",
@@ -554,7 +567,7 @@ function showDialogLks() {
 
 function showDialogDentro() {
 	// set the content of the dialog:
-	dlg_dentro.attr("content", "Informe o local pai (<i>parent</i>) para carregar todos os sublocais (<i>children</i>) que est&atilde;o dentro deste local. O local pode ser selecionado a partir de uma pesquisa ou colando diretamente a URL.</p><p>Preencha as coordenadas da regi&atilde;o ou nome da cidade correspondente caso a busca pelo local pai via geolocaliza&ccedil;&atilde;o n&atilde;o retorne os resultados desejados.</p><p><b>Exemplos v&aacute;lidos:</b></p><p style='font-family: courier, monospace;'>https://app.foursquare.com/v/parkshoppingcanoas/5a177d2ce1f0aa75261b40b6<br>5a177d2ce1f0aa75261b40b6<br>ParkShoppingCanoas</p>");
+	dlg_dentro.attr("content", "Informe o local pai (parent) para carregar todos os sublocais (children) que est&atilde;o dentro deste local. O local pode ser selecionado a partir de uma pesquisa ou colando diretamente a URL.</p><p>Preencha as coordenadas da regi&atilde;o ou nome da cidade correspondente caso a busca pelo local pai via geolocaliza&ccedil;&atilde;o n&atilde;o retorne os resultados desejados.</p><p><b>Exemplos v&aacute;lidos:</b></p><p style='font-family: courier, monospace;'>https://app.foursquare.com/v/parkshoppingcanoas/5a177d2ce1f0aa75261b40b6<br>5a177d2ce1f0aa75261b40b6<br>ParkShoppingCanoas</p>");
 	dlg_dentro.show();
 }
 
