@@ -295,7 +295,9 @@ function fsqAnexarAutocomplete(opts) {
 		if (!token) { mensagem("Sessão sem token de acesso.", "error"); return; }
 		var minha = ++sequencia;
 		mensagem("Buscando...", "muted");
-		Promise.resolve(opts.extraParams ? opts.extraParams() : {}).then(function(extras) {
+		Promise.resolve().then(function() {
+			return opts.extraParams ? opts.extraParams() : {};
+		}).then(function(extras) {
 			if (minha !== sequencia) return;
 			if (extras === null) { limpar(); return; }
 			var params = Object.assign({ group: opts.group }, extras);
@@ -361,6 +363,35 @@ function fsqAnexarAutocomplete(opts) {
 }
 
 var fsqLlCache = {};
+var fsqPerfilLlPromise = null;
+
+// Coordenadas do último check-in do usuário logado (mesma origem do cookie "coordinates")
+function fsqObterLlPerfil(token) {
+	if (fsqPerfilLlPromise) return fsqPerfilLlPromise;
+	fsqPerfilLlPromise = new Promise(function(resolve) {
+		var req = new XMLHttpRequest();
+		req.open("GET", "https://api.foursquare.com/v2/users/self/checkins?limit=1&v=" + FSQ_AUTOCOMPLETE_VERSION +
+			"&oauth_token=" + encodeURIComponent(token), true);
+		req.onreadystatechange = function() {
+			if (req.readyState !== 4) return;
+			var ll = "";
+			try {
+				var venue = JSON.parse(req.responseText).response.checkins.items[0].venue;
+				if (Number.isFinite(Number(venue.location.lat)) && Number.isFinite(Number(venue.location.lng)))
+					ll = Number(venue.location.lat) + "," + Number(venue.location.lng);
+			} catch (error) {
+				ll = "";
+			}
+			resolve(ll);
+		};
+		req.onerror = function() { resolve(""); };
+		req.send();
+	}).then(function(ll) {
+		if (!ll) fsqPerfilLlPromise = null;
+		return ll;
+	});
+	return fsqPerfilLlPromise;
+}
 
 function fsqObterLl(texto, token) {
 	texto = String(texto || "").trim();

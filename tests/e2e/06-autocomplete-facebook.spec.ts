@@ -459,6 +459,59 @@ test.describe('Main: autocompletes e aba "dentro"', () => {
     expect(parametros.get('supervenueOnly')).toBeNull();
   });
 
+  test('busca Dentro sem região usa as coordenadas do último check-in do perfil', async ({ page }) => {
+    await skipIfUnauthenticated(page);
+    let urlChamada = '';
+    await page.route('**/v2/users/self/checkins**', async route => {
+      await route.fulfill({
+        json: { meta: { code: 200 }, response: { checkins: { items: [{ venue: { location: { lat: -29.914254, lng: -51.165327 } } }] } } }
+      });
+    });
+    await page.route('**/v2/search/autocomplete**', async route => {
+      urlChamada = route.request().url();
+      await route.fulfill({ json: locaisAutocomplete });
+    });
+    await page.goto('/4sqmet/main.php');
+    await page.context().clearCookies({ name: 'coordinates' });
+    await page.waitForFunction(() => Boolean((window as any).dijit?.byId('accordion')));
+    await page.evaluate(() => {
+      const w = window as any;
+      w.dijit.byId('accordion').selectChild(w.dijit.byId('paneDentro'), false);
+      w.dijit.byId('ll5').set('value', '');
+    });
+    await page.locator('#parentSearchMain').fill('park');
+
+    await expect(page.locator('#parentSearchMainResults button').first()).toContainText('ParkShoppingCanoas');
+    await expect(page.locator('#ll5')).toHaveValue('-29.914254,-51.165327');
+    expect(urlChamada).toContain('ll=-29.914254%2C-51.165327');
+  });
+
+  test('busca Dentro sem região e sem coordenadas no perfil mostra aviso curto', async ({ page }) => {
+    await skipIfUnauthenticated(page);
+    let requisicoes = 0;
+    await page.route('**/v2/users/self/checkins**', async route => {
+      await route.fulfill({ json: { meta: { code: 200 }, response: { checkins: { items: [] } } } });
+    });
+    await page.route('**/v2/search/autocomplete**', async route => {
+      requisicoes++;
+      await route.fulfill({ json: locaisAutocomplete });
+    });
+    await page.goto('/4sqmet/main.php');
+    await page.context().clearCookies({ name: 'coordinates' });
+    await page.waitForFunction(() => Boolean((window as any).dijit?.byId('accordion')));
+    await page.evaluate(() => {
+      const w = window as any;
+      w.dijit.byId('accordion').selectChild(w.dijit.byId('paneDentro'), false);
+      w.dijit.byId('ll5').set('value', '');
+    });
+    await page.locator('#parentSearchMain').fill('park');
+
+    const status = page.locator('#parentSearchMainStatus');
+    await expect(status).toHaveText('Informe a Região para buscar.');
+    await expect(status).toHaveCSS('height', '18px');
+    expect(requisicoes).toBe(0);
+  });
+
   test('restaura os dados do painel Dentro ao voltar da edição', async ({ page }) => {
     await skipIfUnauthenticated(page);
     await page.route('**/4sqmet/children.php', async route => {
