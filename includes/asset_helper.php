@@ -428,6 +428,8 @@ function dojo_theme($theme = 'tundra') {
     } else {
         echo sprintf('<link rel="stylesheet" type="text/css" href="%s">' . PHP_EOL, $url);
     }
+
+    echo '<style>.tundra .dijitMenuItem { font-family: var(--system-font); }</style>' . PHP_EOL;
     
     // Injeta CSS dinâmico do ProgressBar
     dojo_progressbar_css($theme);
@@ -478,4 +480,3 @@ function dojo_progressbar_css($theme = 'tundra') {
     echo '}' . PHP_EOL;
     echo '</style>' . PHP_EOL;
 }
-

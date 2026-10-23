@@ -86,7 +86,6 @@ var categorias = [];
 var redes = [];
 var store = {};
 var categorySearchWidget = null;
-var categorySearchStore = null;
 var categorySearchItems = [];
 var categoryPaths = {};
 
@@ -388,7 +387,7 @@ var totalSelecionadas = 0;
 var failedRequests = {};
 var totalParaSinalizar = 0;
 var totalSinalizadas = 0;
-var linhaVenueComMaisCheckins = 0;
+var linhaVenueComMaisCheckins = -1;
 
 var totalProgresso = 0;
 var totalTimeout = 0;
@@ -448,21 +447,23 @@ function atualizarEditadas(i, timeout) {
 	var editadas = linhasEditadas.length - totalTimeout;
 	dijit.byId("saveProgress").update({maximum: totalParaSalvar, progress: totalEditadas});
 	if (editadas > 1)
-		dijit.byId("dlg_save").set("title", "Salvando " + editadas + " venues...");
+		dijit.byId("dlg_save").set("title", "Salvando " + editadas + " locais...");
 	else if (editadas == 1)
-		dijit.byId("dlg_save").set("title", "Salvando 1 venue...");
+		dijit.byId("dlg_save").set("title", "Salvando 1 local...");
 	else if (editadas == 0) {
 		dijit.byId("saveButton").setAttribute('disabled', false);
 		dijit.byId("reloadButton").setAttribute('disabled', false);
-		var title = totalProgresso + " de " + totalEditadas + " venue";
+		var title = totalProgresso + " de " + totalEditadas + " loca";
 		if (totalEditadas > 1)
-			title += "s";
-		if (totalProgresso == 0)
-			title += " editadas";
-		else if (totalProgresso == 1)
-			title += " editada com sucesso";
+			title += "is";
 		else
-			title += " editadas com sucesso";
+			title += "l";
+		if (totalProgresso == 0)
+			title += " editados";
+		else if (totalProgresso == 1)
+			title += " editado com sucesso";
+		else
+			title += " editados com sucesso";
 		dijit.byId("dlg_save").set("title", title);
 		timer = setTimeout(function fecharPbSalvar() {
 			dijit.byId("dlg_save").hide();
@@ -477,22 +478,20 @@ function atualizarSinalizadas(i, timeout) {
 	var selecionadas = linhasSelecionadas.length - totalTimeout;
 	dijit.byId("saveProgress").update({maximum: totalParaSinalizar, progress: totalSinalizadas});
 	if (selecionadas > 1)
-		dijit.byId("dlg_save").set("title", "Sinalizando " + selecionadas + " venues...");
+		dijit.byId("dlg_save").set("title", "Sinalizando " + selecionadas + " locais...");
 	else if (selecionadas == 1)
-		dijit.byId("dlg_save").set("title", "Sinalizando 1 venue...");
+		dijit.byId("dlg_save").set("title", "Sinalizando 1 local...");
 	else if (selecionadas == 0) {
 		dijit.byId("menuSinalizar").setAttribute('disabled', false);
-		var title = totalProgresso + " de " + totalSinalizadas + " venue";
-		if (totalSinalizadas > 1)
-			title += "s";
+		var title = totalProgresso + " de " + totalSinalizadas + (totalSinalizadas > 1 ? " locais" : " local");
 		if (totalProgresso == 0)
-			title += " sinalizadas";
+			title += " sinalizados";
 		else if (totalProgresso == 1)
-			title += " sinalizada com sucesso";
+			title += " sinalizado com sucesso";
 		else
-			title += " sinalizadas com sucesso";
+			title += " sinalizados com sucesso";
 		dijit.byId("dlg_save").set("title", title);
-		if (timeout == false)
+		if (timeout == false && linhaVenueComMaisCheckins !== -1)
 			dijit.byId(dojo.query("input[name=selecao]")[linhaVenueComMaisCheckins].id).setChecked(false);
 		if (dojo.query("input[name=selecao]:enabled").length == 0)
 			dijit.byId("menuSelecionar").setAttribute('disabled', true);
@@ -706,10 +705,10 @@ function xmlhttpRequest(metodo, endpoint, acao, dados, i) {
 				} else if (resposta.response.categories != undefined) {
 					montarArvore(resposta);
 					debugInfo("Categorias recuperadas!");
-					localStorage.setItem("categorias", JSON.stringify(resposta));
+					localStorage.setItem(fsqObterChaveCategorias(), JSON.stringify(resposta));
 					var d = new Date();
 					d.setHours(0, 0, 0, 0);
-					dojo.cookie("data_categorias", d, { expires: 1 });
+					dojo.cookie(fsqObterCookieCategorias(), d, { expires: 1 });
 				}
 			} else {
 				clearTimeout(xmlhttpTimeout);
@@ -958,83 +957,129 @@ function atualizarBuscaCategorias(categoriasArvore) {
 		return a.name.localeCompare(b.name);
 	});
 	categorySearchItems = items;
+}
 
-	categorySearchStore = new dojo.data.ItemFileReadStore({
-		data: {
-			identifier: "id",
-			label: "name",
-			items: items
-		}
-	});
-	if (categorySearchWidget) {
-		categorySearchWidget.set("store", categorySearchStore);
-		categorySearchWidget.reset();
-	}
+function obterLlVenueEmEdicao() {
+	var indice = parseInt(dojo.byId("venueIndex").innerHTML, 10);
+	var form = document.forms[indice];
+	var ll = form && form["venuell"] ? form["venuell"].value.replace(/ /g, "") : "";
+	return /^-?\d+(\.\d+)?,-?\d+(\.\d+)?$/.test(ll) && ll !== "0.0,0.0" ? ll : "";
 }
 
 function inicializarBuscaCategorias() {
 	if (categorySearchWidget) return;
-	if (!categorySearchStore) {
-		categorySearchStore = new dojo.data.ItemFileReadStore({
-			data: { identifier: "id", label: "name", items: [] }
-		});
-	}
-
-	categorySearchWidget = new dijit.form.FilteringSelect({
-		id: "categorySearchWidget",
-		name: "categorySearch",
-		store: categorySearchStore,
-		searchAttr: "name",
-		queryExpr: "*${0}*",
-		highlightMatch: "all",
-		autoComplete: false,
-		required: false,
-		placeHolder: "Digite para buscar uma categoria...",
-		style: "width: 100%;",
-		onChange: function(value) {
-			if (!value || !categorySearchStore) return;
-			categorySearchStore.fetchItemByIdentity({
-				identity: value,
-				onItem: function(item) {
-					if (!item) {
-						atualizarStatusBuscaCategoria("Selecione uma categoria da lista.", "error");
-						return;
-					}
-						processarCategoriaBusca(
-							categorySearchStore.getValue(item, "id"),
-							categorySearchStore.getLabel(item),
-							categorySearchStore.getValue(item, "icon"),
-							true
-						);
-					categorySearchWidget.set("value", "");
-				}
-			});
+	var inputWidget = dijit.byId("categorySearchInput");
+	var input = inputWidget ? inputWidget.focusNode : dojo.byId("categorySearchInput");
+	var results = dojo.byId("categorySearchResults");
+	if (!input || !results) return;
+	categorySearchWidget = fsqAnexarAutocomplete({
+		input: input,
+		results: results,
+		status: dojo.byId("categorySearchStatus"),
+		statusClass: "category-search-status",
+		group: "categories",
+		getToken: getOauthToken,
+		extraParams: function() {
+			return {
+				ll: obterLlVenueEmEdicao(),
+				includePrivateCategories: "true",
+				filterTopLevelCats: "false"
+			};
+		},
+		parse: fsqNormalizarCategorias,
+		emptyMessage: "Nenhuma categoria encontrada.",
+		preserveStatusOnSelect: true,
+		onSelect: function(item) {
+			processarCategoriaBusca(item.id, item.name, item.icon, true);
+			if (inputWidget) inputWidget.set("value", "");
+			else input.value = "";
+			categorySearchWidget.cancelar();
 		}
-	}, "categorySearchMountPoint");
-	categorySearchWidget.startup();
-	categorySearchWidget.textbox.addEventListener("blur", function(event) {
-		var termo = event.target.value.trim().toLocaleLowerCase();
-		if (!termo) return;
-		var categoria = categorySearchItems.filter(function(item) {
-			return item.name.trim().toLocaleLowerCase() === termo;
-		})[0];
-		if (!categoria) return;
-
-		processarCategoriaBusca(categoria.id, categoria.name, categoria.icon);
-		categorySearchWidget.set("value", "");
 	});
 }
 
+var parentSearchWidget = null;
+var parentSearchInput = null;
+
+function obterLlLinha(indice) {
+	var form = document.forms[indice];
+	var ll = form && form["venuell"] ? form["venuell"].value.replace(/ /g, "") : "";
+	return /^-?\d+(\.\d+)?,-?\d+(\.\d+)?$/.test(ll) && ll !== "0.0,0.0" ? ll : "";
+}
+
+function indiceLinhaDoInput(input) {
+	var form = input.form;
+	for (var i = 0; i < document.forms.length; i++) {
+		if (document.forms[i] === form) return i;
+	}
+	return -1;
+}
+
+function definirParentIdNaLinha(input, id, nome) {
+	var widget = dijit.getEnclosingWidget(input);
+	if (widget && typeof widget.set === "function") widget.set("value", id);
+	else {
+		input.value = id;
+		if (typeof input.onchange === "function") input.onchange();
+	}
+	if (nome) input.title = nome;
+}
+
+function inicializarBuscaParent() {
+	if (parentSearchWidget) return;
+	var results = document.createElement("div");
+	results.id = "parentSearchResults";
+	results.className = "chain-search-results visual-results-list";
+	results.style.cssText = "display: none; position: absolute; z-index: 1000; width: 340px; max-height: 320px; overflow-y: auto; background: #fff; border: 1px solid #ccc;";
+	var status = document.createElement("div");
+	status.id = "parentSearchStatus";
+	status.style.cssText = "display: none;";
+	document.body.appendChild(results);
+	parentSearchWidget = fsqAnexarAutocomplete({
+		input: null,
+		results: results,
+		getToken: getOauthToken,
+		group: "",
+		minLength: 3,
+		onIdOrUrl: function(id) { definirParentIdNaLinha(parentSearchInput, id); },
+		extraParams: function() {
+			var indice = indiceLinhaDoInput(parentSearchInput);
+			return { ll: obterLlLinha(indice), m: "foursquare", group: "unified", isMobile: "false", limit: 20 };
+		},
+		parse: fsqNormalizarLocais,
+		emptyMessage: "Nenhum local encontrado.",
+		onSelect: function(item) { definirParentIdNaLinha(parentSearchInput, item.id, item.name); }
+	});
+	document.addEventListener("input", function(event) {
+		var alvo = event.target;
+		if (!alvo || alvo.name !== "parentId" || alvo.type !== "text") return;
+		parentSearchInput = alvo;
+		parentSearchWidget.definirInput(alvo);
+		var rect = alvo.getBoundingClientRect();
+		results.style.left = (rect.left + window.pageXOffset) + "px";
+		results.style.top = (rect.bottom + window.pageYOffset) + "px";
+		parentSearchWidget.agendar();
+	});
+	document.addEventListener("click", function(event) {
+		if (!results.contains(event.target) && event.target !== parentSearchInput) parentSearchWidget.limpar();
+	});
+}
+
+dojo.addOnLoad(inicializarBuscaParent);
+
 function processarCategoriaBusca(id, nome, icone, focarArvore) {
 	var result = adicionarCategoriaSelecionada(id, nome, icone);
-	if (result === "added") {
-		atualizarStatusBuscaCategoria("Categoria adicionada.", "success");
-		if (focarArvore) selecionarCategoriaNaArvore(id);
-	} else if (result === "duplicate") {
+	mostrarStatusSelecaoCategoria(result, nome);
+	if (focarArvore && result !== "limit") selecionarCategoriaNaArvore(id);
+}
+
+function mostrarStatusSelecaoCategoria(result, nome) {
+	if (result === "duplicate") {
 		atualizarStatusBuscaCategoria("Esta categoria já está selecionada.", "error");
-		if (focarArvore) selecionarCategoriaNaArvore(id);
-	} else {
+	} else if (result === "limit") {
 		atualizarStatusBuscaCategoria("O limite de 3 categorias foi atingido.", "error");
+	} else if (result === "added") {
+		atualizarStatusBuscaCategoria('Categoria "' + nome + '" adicionada.', "success");
 	}
 }
 
@@ -1043,6 +1088,7 @@ function atualizarStatusBuscaCategoria(message, status) {
 	if (!statusNode) return;
 	statusNode.textContent = message || "";
 	statusNode.className = "category-search-status" + (status ? " is-" + status : "");
+	statusNode.style.display = message ? "block" : "none";
 }
 
 function selecionarCategoriaNaArvore(id) {
@@ -1139,7 +1185,7 @@ function editarCategorias(i) {
 
 	if (!hasTreeWidget) {
 		debugLog('🌳 Árvore de categorias não existe ou está vazia, verificando cache...');
-		var cachedCategories = localStorage.getItem('categorias');
+		var cachedCategories = localStorage.getItem(fsqObterChaveCategorias());
 		if (cachedCategories) {
 			try {
 				var resposta = JSON.parse(cachedCategories);
@@ -1160,8 +1206,9 @@ function editarCategorias(i) {
 
 	dijit.byId("dlg_cats").show();
 	inicializarBuscaCategorias();
-	if (categorySearchStore) categorySearchWidget.set("store", categorySearchStore);
-	categorySearchWidget.set("value", "");
+	var categoriaInput = dijit.byId("categorySearchInput");
+	if (categoriaInput) categoriaInput.set("value", "");
+	if (categorySearchWidget) categorySearchWidget.limpar();
 	atualizarStatusBuscaCategoria("", "");
 
 	// Habilita checkbox apenas se houver 2+ venues com dados completos
@@ -1795,7 +1842,7 @@ function adicionarRedeNaEdicao(id, nome, logo) {
 	}
 	currentItems.push({ id: id, name: nome, logo: logo || "https://app.foursquare.com/img/categories_v2/none_bg_32.png" });
 	atualizarRedes(currentItems);
-	atualizarStatusBuscaRede("Rede adicionada.", "success");
+	atualizarStatusBuscaRede('Rede "' + nome + '" adicionada.', "success");
 
 	var resContainer = dojo.byId("chainsResultsContainer");
 	if (resContainer) resContainer.style.display = "none";
@@ -2094,12 +2141,11 @@ function atualizarTabela(venue, i) {
 				linha += '&&"' + venue.contact.twitter + '"';
 				break;
 			case "facebook":
-				document.forms[i]["facebook"].value = venue.contact.facebook;
-				if (venue.contact.facebook !== undefined) {
-					var facebookWidget = dijit.byId(dojo.query("input[name=facebook]")[i].id);
-					if (facebookWidget) facebookWidget.set("value", venue.contact.facebook || "");
-				}
-				linha += '&&"' + venue.contact.facebook + '"';
+				var facebookValue = obterFacebookDaVenue(venue.contact);
+				document.forms[i]["facebook"].value = facebookValue;
+				var facebookWidget = dijit.byId(dojo.query("input[name=facebook]")[i].id);
+				if (facebookWidget) facebookWidget.set("value", facebookValue);
+				linha += '&&"' + facebookValue + '"';
 				break;
 			case "instagram":
 				document.forms[i]["instagram"].value = venue.contact.instagram;
@@ -2240,7 +2286,7 @@ function atualizarTabela(venue, i) {
 	}
 
 	window.locais[i] = [(i + 1) + ". " + venue.name, venue.location.lat, venue.location.lng];
-	debugInfo("Venue " + i + " recuperada!");
+	debugInfo("Local " + i + " recuperado!");
 
 	// Atualiza marcadores no mapa quando venue é carregada
 	if (window.googleMaps && window.googleMaps.map) {
@@ -2348,16 +2394,13 @@ function montarArvore(resposta) {
 
 function treeOnClick(item) {
 	if (item.root) return false;
+	var nome = store.getLabel(item);
 	var result = adicionarCategoriaSelecionada(
 		store.getValue(item, "id"),
-		store.getLabel(item),
+		nome,
 		store.getValue(item, "icon")
 	);
-	if (result === "limit") {
-		atualizarStatusBuscaCategoria("O limite de 3 categorias foi atingido.", "error");
-		return false;
-	}
-	if (result === "duplicate") return false;
+	mostrarStatusSelecaoCategoria(result, nome);
 	return result === "added";
 }
 
@@ -2377,9 +2420,11 @@ function obterEstadoEdicaoDaNavegacao() {
 		? window.performance.getEntriesByType("navigation")
 		: [];
 	var navigationType = entradas.length > 0 ? entradas[0].type : "";
-	var deveRestaurar = navigationType === "back_forward" || navigationType === "reload";
+	var ehReload = navigationType === "reload";
+	var deveRestaurar = navigationType === "back_forward" || ehReload;
 	if (!deveRestaurar && window.performance && window.performance.navigation) {
-		deveRestaurar = window.performance.navigation.type === 1 || window.performance.navigation.type === 2;
+		ehReload = window.performance.navigation.type === 1;
+		deveRestaurar = ehReload || window.performance.navigation.type === 2;
 	}
 
 	try {
@@ -2515,7 +2560,7 @@ function restaurarEstadoEdicao(estado) {
 		dijit.byId("menuItemExportarRelatorio").setAttribute("disabled", relatorio.length === 0);
 	}
 	if (modo === DADOS_COMPLETOS) {
-		var categoriasSalvas = localStorage.getItem("categorias");
+		var categoriasSalvas = localStorage.getItem(fsqObterChaveCategorias());
 		if (categoriasSalvas) {
 			try {
 				montarArvore(JSON.parse(categoriasSalvas));
@@ -2583,10 +2628,10 @@ function carregarDadosVenues() {
 		}
 		var d = new Date();
 		d.setHours(0, 0, 0, 0);
-		if ((!localStorage.getItem('categorias')) || (d > dojo.cookie("data_categorias")))
+		if ((!localStorage.getItem(fsqObterChaveCategorias())) || (d > dojo.cookie(fsqObterCookieCategorias())))
 			carregarListaCategorias();
 		else {
-			var resposta = JSON.parse(localStorage.getItem('categorias'));
+			var resposta = JSON.parse(localStorage.getItem(fsqObterChaveCategorias()));
 			montarArvore(resposta);
 			debugInfo("Categorias recuperadas do localStorage!");
 		}
@@ -2847,7 +2892,7 @@ function executarRecarregamento(excluirIndice) {
 				venuesParaRecarregar.push(venueIndex);
 			}
 		});
-		debugInfo("Recarregando " + venuesParaRecarregar.length + " venue" + (venuesParaRecarregar.length > 1 ? "s" : "") + " selecionada" + (venuesParaRecarregar.length > 1 ? "s" : "") + "...");
+		debugInfo("Recarregando " + venuesParaRecarregar.length + " loca" + (venuesParaRecarregar.length > 1 ? "is" : "l") + " selecionado" + (venuesParaRecarregar.length > 1 ? "s" : "") + "...");
 	} else {
 		// Recarrega todas
 		for (var i = 0; i < document.forms.length; i++) {
@@ -2857,8 +2902,8 @@ function executarRecarregamento(excluirIndice) {
 			}
 		}
 		var mensagemLog = excluirIndice !== undefined
-			? "Recarregando " + venuesParaRecarregar.length + " venue" + (venuesParaRecarregar.length > 1 ? "s" : "") + " (exceto a venue de origem)..."
-			: "Recarregando todas as " + venuesParaRecarregar.length + " venues...";
+			? "Recarregando " + venuesParaRecarregar.length + " loca" + (venuesParaRecarregar.length > 1 ? "is" : "l") + " (exceto o local de origem)..."
+			: "Recarregando todos os " + venuesParaRecarregar.length + " locais...";
 		debugInfo(mensagemLog);
 	}
 
@@ -2877,7 +2922,7 @@ function executarRecarregamento(excluirIndice) {
 	var totalParaRecarregar = venuesParaRecarregar.length;
 	dijit.byId("saveProgress").update({maximum: totalParaRecarregar, progress: 0});
 
-	var tituloModal = "Recarregando " + totalParaRecarregar + " venue" + (totalParaRecarregar > 1 ? "s" : "") + "...";
+	var tituloModal = "Recarregando " + totalParaRecarregar + " loca" + (totalParaRecarregar > 1 ? "is" : "l") + "...";
 	dijit.byId("dlg_save").set("title", tituloModal);
 	dijit.byId("dlg_save").show();
 
@@ -2913,10 +2958,10 @@ function executarRecarregamento(excluirIndice) {
 	// Carrega categorias se necessário (habilita edição)
 	var d = new Date();
 	d.setHours(0, 0, 0, 0);
-	if ((!localStorage.getItem('categorias')) || (d > dojo.cookie("data_categorias"))) {
+	if ((!localStorage.getItem(fsqObterChaveCategorias())) || (d > dojo.cookie(fsqObterCookieCategorias()))) {
 		carregarListaCategorias();
 	} else {
-		var resposta = JSON.parse(localStorage.getItem('categorias'));
+		var resposta = JSON.parse(localStorage.getItem(fsqObterChaveCategorias()));
 		montarArvore(resposta);
 		debugInfo("Categorias recuperadas do localStorage!");
 	}
@@ -3003,7 +3048,7 @@ function salvarVenues() {
 	totalProgresso = 0;
 	totalTimeout = 0;
 	dijit.byId("saveProgress").update({maximum: totalParaSalvar, progress: totalEditadas});
-	(totalParaSalvar > 1) ? dijit.byId("dlg_save").set("title", "Salvando " + totalParaSalvar + " venues...") : dijit.byId("dlg_save").set("title", "Salvando 1 venue...");
+	(totalParaSalvar > 1) ? dijit.byId("dlg_save").set("title", "Salvando " + totalParaSalvar + " locais...") : dijit.byId("dlg_save").set("title", "Salvando 1 local...");
 	dijit.byId("dlg_save").show();
 	dijit.byId("saveButton").setAttribute("disabled", true);
 	dijit.byId("reloadButton").setAttribute("disabled", true);
@@ -3020,7 +3065,8 @@ function salvarVenues() {
 				if ((['name', 'address', 'crossStreet', 'neighborhood', 'city', 'state', 'zip', 'parentId', 'phone', 'url', 'twitter', 'instagram'].indexOf(elementName) > -1) && (dojo.query("input[name=" + elementName + "]")[i].disabled != true) && (document.forms[i][elementName].readOnly == false))
 					dados += "&" + elementName + "=" + encodeURIComponent(document.forms[i].elements[j].value);
 				else if (elementName == "facebook") {
-					var facebookUsername = document.forms[i].elements[j].value;
+					var facebookUsername = normalizarFacebook(document.forms[i].elements[j].value);
+					document.forms[i].elements[j].value = facebookUsername;
 					if ((facebookUsername != null) && (facebookUsername != ""))
 						dados += "&facebookUrl=" + encodeURIComponent("facebook.com/" + facebookUsername);
 				} else if ((elementName == "description") && (document.forms[i]["description"].readOnly == false)) {
@@ -3150,6 +3196,7 @@ function sinalizarVenues(problema) {
 	if (!token)
 		return handleMissingOauthToken("sinalizar os locais");
 
+	linhaVenueComMaisCheckins = -1;
 	//dojo.query("input[name=selecao]:checked").forEach("console.log(dijit.byId(item.id).value)");
 	linhasSelecionadas = dojo.query("input[name=selecao]:checked");
 	totalSinalizadas = 0;
@@ -3177,7 +3224,7 @@ function sinalizarVenues(problema) {
 	totalProgresso = 0;
 	totalTimeout = 0;
 	dijit.byId("saveProgress").update({maximum: totalParaSinalizar, progress: totalSinalizadas});
-	(totalParaSinalizar > 1) ? dijit.byId("dlg_save").set("title", "Sinalizando " + totalParaSinalizar + " venues...") : dijit.byId("dlg_save").set("title", "Sinalizando 1 venue...");
+	(totalParaSinalizar > 1) ? dijit.byId("dlg_save").set("title", "Sinalizando " + totalParaSinalizar + " locais...") : dijit.byId("dlg_save").set("title", "Sinalizando 1 local...");
 	dijit.byId("dlg_save").show();
 	dijit.byId("menuSinalizar").setAttribute("disabled", true);
 	debugInfo("Enviando dados...");
@@ -3237,7 +3284,7 @@ function carregarListaCategorias() {
 		return handleMissingOauthToken("carregar as categorias");
 
 	debugInfo("Recuperando dados das categorias...");
-	xmlhttpRequest("GET", "https://api.foursquare.com/v2/venues/categories" + "?oauth_token=" + token + "&v=" + DATA_VERSIONAMENTO, "load", null, null);
+	xmlhttpRequest("GET", "https://api.foursquare.com/v2/venues/categories" + "?oauth_token=" + token + "&v=" + DATA_VERSIONAMENTO + "&locale=" + encodeURIComponent(fsqObterLocale()), "load", null, null);
 }
 
 var STR_PAD_LEFT = 1;
@@ -3431,7 +3478,7 @@ dojo.addOnLoad(function inicializar() {
 	/*** Modal de Exportação de URLs ***/
 	dlg_export_urls = new dijit.Dialog({
 		title: "Exportar URLs",
-		style: "width: 600px"
+		style: "width: calc(100vw - 56px); max-width: 560px;"
 	});
 
 	/*** Modal de Exportação de URL Direta ***/
@@ -3508,7 +3555,17 @@ dojo.addOnLoad(function inicializar() {
 			id: "menu2ItemCategories",
 			onClick: function() {
 				atualizarCategorias([], "", "");
+				var linhasSelecionadasCategorias = dojo.query("input[name=selecao]:checked");
+				var indiceVenueContexto = linhasSelecionadasCategorias.length
+					? parseInt(dijit.byId(linhasSelecionadasCategorias[0].id).value, 10)
+					: 0;
+				dojo.byId("venueIndex").innerHTML = indiceVenueContexto;
 				dijit.byId("dlg_cats").show();
+				inicializarBuscaCategorias();
+				var categoriaInput = dijit.byId("categorySearchInput");
+				if (categoriaInput) categoriaInput.set("value", "");
+				if (categorySearchWidget) categorySearchWidget.limpar();
+				atualizarStatusBuscaCategoria("", "");
 
 				// Habilita checkbox apenas se houver 2+ venues com dados completos
 				var totalComDadosCompletos = contarVenuesComDadosCompletos();
@@ -3826,15 +3883,56 @@ window.onbeforeunload = function() {
 
 function showDialogGuia() {
 	// set the content of the dialog:
-	dlg_guia.attr("content", "<ul style='width: 415px; padding-left: 18px; margin-top: -10px'><li><p>Use sempre a ortografia, acentua&ccedil;&atilde;o e as letras mai&uacute;sculas e min&uacute;sculas corretas.</p></li><li><p>Em redes ou franquias, n&atilde;o &eacute; preciso adicionar um sufixo de local. Portanto, pode deixar &quot;Subway&quot; ou &quot;Loja Americanas&quot; (em vez de &quot;Subway - Ponta Verde&quot; ou &quot;Lojas Americanas - Iguatemi&quot;).</p></li><li><p>Os nomes dos locais devem respeitar a grafia original da marca sem abrevia&ccedil;&otilde;es (principalmente nomes de empresas).</p></li><li><p>Sempre use abrevia&ccedil;&otilde;es nos endere&ccedil;os: &quot;Av.&quot; em vez de &quot;Avenida&quot;, &quot;R.&quot; em vez de &quot;Rua&quot;, etc., observando as <a href='http://www.buscacep.correios.com.br' target='_blank'>diretrizes postais locais</a>.</p></li><li><p>O preenchimento da Rua transversal &eacute; opcional no Brasil.</p></li><li>Na Rua transversal tamb&eacute;m podem ser inclu&iacute;dos:<ul style='padding-left: 18px; margin-top: 4px'><li>Complemento, ponto de refer&ecirc;ncia ou via de acesso (quando relevante)</li><li>Bloco, piso, loja ou setor (para sublocais)</li><li>Regi&atilde;o Administrativa (RA) considerada bairro do Distrito Federal</li></ul></li><li><p>Os nomes de Estados devem ser abreviados: &quot;RJ&quot; em vez de &quot;Rio de Janeiro&quot;.</p></li><li><p>Em caso de d&uacute;vida sobre a cria&ccedil;&atilde;o e edi&ccedil;&atilde;o de locais no Foursquare&reg;, consulte as <a href='https://pt.foursquare.com/info/houserules' target='_blank'>regras da casa</a> e as <a href='https://support.foursquare.com/hc/en-us/sections/21181966510620-General-Swarm-Q-A' target='_blank'>perguntas frequentes sobre o Swarm</a>.</p></li></ul>");
+	dlg_guia.attr("content", "<ul style='width: 415px; padding-left: 18px; margin-top: -10px'><li><p>Use sempre a ortografia, acentua&ccedil;&atilde;o e as letras mai&uacute;sculas e min&uacute;sculas corretas.</p></li><li><p>Em redes ou franquias, n&atilde;o &eacute; preciso adicionar um sufixo de local. Portanto, pode deixar &quot;Subway&quot; ou &quot;Lojas Americanas&quot; (em vez de &quot;Subway - Ponta Verde&quot; ou &quot;Lojas Americanas - Iguatemi&quot;).</p></li><li><p>Os nomes dos locais devem respeitar a grafia original da marca sem abrevia&ccedil;&otilde;es (principalmente nomes de empresas).</p></li><li><p>Sempre use abrevia&ccedil;&otilde;es nos endere&ccedil;os: &quot;Av.&quot; em vez de &quot;Avenida&quot;, &quot;R.&quot; em vez de &quot;Rua&quot;, etc., observando as <a href='http://www.buscacep.correios.com.br' target='_blank'>diretrizes postais locais</a>.</p></li><li><p>O preenchimento da Rua transversal &eacute; opcional no Brasil.</p></li><li>Na Rua transversal tamb&eacute;m podem ser inclu&iacute;dos:<ul style='padding-left: 18px; margin-top: 4px'><li>Complemento, ponto de refer&ecirc;ncia ou via de acesso (quando relevante)</li><li>Bloco, piso, loja ou setor (para sublocais)</li><li>Regi&atilde;o Administrativa (RA) considerada bairro do Distrito Federal</li></ul></li><li><p>Os nomes de Estados devem ser abreviados: &quot;RJ&quot; em vez de &quot;Rio de Janeiro&quot;.</p></li><li><p>Em caso de d&uacute;vida sobre a cria&ccedil;&atilde;o e edi&ccedil;&atilde;o de locais no Foursquare&reg;, consulte as <a href='https://pt.foursquare.com/info/houserules' target='_blank'>regras da casa</a> e as <a href='https://support.foursquare.com/hc/en-us/sections/21181966510620-General-Swarm-Q-A' target='_blank'>perguntas frequentes sobre o Swarm</a>.</p></li></ul>");
 	dlg_guia.show();
 	dlg_guia.attr("style", "width: 455px;");
+}
+
+function obterTituloModalComentario(caller) {
+	if (caller == "saveButton") {
+		var qtdSalvar = linhasEditadas.length;
+		return "Salvar alterações em " + qtdSalvar + (qtdSalvar == 1 ? " local" : " locais");
+	}
+	var qtdSelecionadas = dojo.query("input[name=selecao]:checked").length;
+	if (caller == "duplicate") {
+		var qtdDuplicadas = Math.max(qtdSelecionadas - 1, 0);
+		return "Sinalizar local com " + qtdDuplicadas + (qtdDuplicadas == 1 ? " duplicada" : " duplicadas");
+	}
+	return "Sinalizar " + qtdSelecionadas + (qtdSelecionadas == 1 ? " local" : " locais") + " como \"" + caller + "\"";
+}
+
+function sincronizarAlteracoesPendentes() {
+	for (var i = 0; i < document.forms.length; i++) {
+		var elementos = document.forms[i].elements;
+		for (var j = 0; j < elementos.length; j++) {
+			var campo = elementos[j];
+			if ((campo.type !== "text" && campo.tagName !== "TEXTAREA") ||
+				csv[0].indexOf(campo.name) === -1)
+				continue;
+			verificarAlteracao(campo, i);
+		}
+	}
+}
+
+function normalizarFacebook(valor) {
+	var v = (valor == null ? "" : String(valor)).trim();
+	v = v.replace(/^(?:https?:)?\/\//i, "").replace(/^(?:www\.|m\.|mbasic\.|web\.)/i, "").replace(/^(?:facebook\.com|fb\.com)(?:\/|$)/i, "");
+	v = v.replace(/^@+/, "").replace(/[?#].*$/, "").replace(/\/+$/, "");
+	return v.trim();
+}
+
+function obterFacebookDaVenue(contact) {
+	if (!contact) return "";
+	return contact.facebookUsername || contact.facebook || "";
 }
 
 function showDialogComment(caller, comment) {
 	for (i = 0; i < document.forms.length; i++)
 		dojo.byId("result" + i).innerHTML = "";
+	if (caller == "saveButton")
+		sincronizarAlteracoesPendentes();
 	if (((caller == "saveButton") && (linhasEditadas.length > 0)) || (caller != "saveButton")) {
+		dijit.byId('dlg_comment').set("title", obterTituloModalComentario(caller));
 		dijit.byId('dlg_comment').show();
 		if (typeof(comment) == "undefined")
 			var comment = "";
@@ -3986,26 +4084,26 @@ function showDialogExportUrls() {
 	// Cria o conteúdo da modal
 	var dialogContent = '<div style="padding: 10px;">' +
 		'<p style="margin-top: 0;"><strong>Escolha o formato de exportação:</strong></p>' +
-		'<div style="margin: 10px 0 20px 0;">' +
-			'<div style="margin: 5px 0;">' +
+		'<div style="margin: 4px 0 8px 0;">' +
+			'<div style="margin: 3px 0;">' +
 				'<input type="radio" name="formatoExport" id="radioCanonica" value="' + FORMATO_CANONICA + '" ' +
 					(formatoAtual === FORMATO_CANONICA ? 'checked' : '') + '> ' +
 				'<label for="radioCanonica">' +
 					'URL Canônica (compartilhável)' +
 				'</label>' +
 			'</div>' +
-			'<div style="margin: 5px 0;">' +
+			'<div style="margin: 3px 0;">' +
 				'<input type="radio" name="formatoExport" id="radioPadrao" value="' + FORMATO_PADRAO + '" ' +
 					(formatoAtual === FORMATO_PADRAO ? 'checked' : '') + '> ' +
 				'<label for="radioPadrao">URL Padrão (curta)</label>' +
 			'</div>' +
-			'<div style="margin: 5px 0;">' +
+			'<div style="margin: 3px 0;">' +
 				'<input type="radio" name="formatoExport" id="radioIds" value="' + FORMATO_IDS + '"> ' +
 				'<label for="radioIds">Somente IDs (24 caracteres)</label>' +
 			'</div>' +
 		'</div>' +
 		'<p style="margin-bottom: 5px;">Lista de URLs dos ' + textoLocais + (totalSelecionadas > 0 ? ' selecionados' : '') + ':</p>' +
-		'<textarea id="exportUrlsTextarea" readonly style="width: 100%; height: 300px; font-family: monospace; font-size: 12px; padding: 8px; box-sizing: border-box; resize: vertical;">' + urlList + '</textarea>' +
+		'<textarea id="exportUrlsTextarea" readonly style="width: 100%; height: 240px; max-height: calc(100vh - 300px); min-height: 32px; font-family: monospace; font-size: 12px; padding: 8px; box-sizing: border-box; resize: vertical;">' + urlList + '</textarea>' +
 		'<div style="text-align: right; margin-top: 10px;">' +
 		'<button id="btnSaveUrls" dojoType="dijit.form.Button">Salvar</button>' +
 		'<button id="btnCopyUrls" dojoType="dijit.form.Button">Copiar</button>' +
@@ -4490,6 +4588,26 @@ function setupVerticalNavigation() {
 }
 
 function verificarAlteracao(textbox, i) {
+	if (textbox.name == "parentId") {
+		var textoParent = String(textbox.value || "").trim();
+		var idParent = fsqExtrairIdLocal(textoParent);
+		var originalParent = csv[i + 1][csv[0].indexOf("parentId")];
+		originalParent = typeof originalParent === "string" ? originalParent.replace(/^"|"$/g, "") : (originalParent || "");
+		// Texto livre (busca) sem seleção não é um ID: restaura o valor anterior
+		var novoParent = textoParent === "" ? "" : (/^[0-9a-f]{24}$/i.test(textoParent) ? textoParent : idParent);
+		if (novoParent !== textoParent) {
+			if (!novoParent && textoParent !== "") novoParent = originalParent;
+			if (typeof textbox.set === "function") textbox.set("value", novoParent, false);
+			else textbox.value = novoParent;
+		}
+	}
+	if (textbox.name == "facebook") {
+		var facebookLimpo = normalizarFacebook(textbox.value);
+		if (facebookLimpo !== textbox.value) {
+			if (typeof textbox.set === "function") textbox.set("value", facebookLimpo, false);
+			else textbox.value = facebookLimpo;
+		}
+	}
 	var index = csv[0].indexOf(textbox.name);
 	// Obtém o valor original, removendo aspas se existirem
 	var valorOriginal = csv[i + 1][index];

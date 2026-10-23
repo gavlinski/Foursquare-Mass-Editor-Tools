@@ -13,27 +13,155 @@ dojo.require("dojox.image");
 
 // Utilitários de logging (isLocalhost, debugLog, debugInfo) são providos por session-manager.js
 
-function configurarBuscaCategoriaPrincipal() {
-	var widget = dijit.byId("categoryId");
-	if (!widget || !widget.textbox || widget._exactCategoryBlurBound) return;
-	widget._exactCategoryBlurBound = true;
-	widget.set("required", false);
-	widget.textbox.addEventListener("blur", function() {
-		var termo = (widget.get("displayedValue") || "").trim().toLocaleLowerCase();
-		if (!termo) return;
+function obterTokenPagina() {
+	var campo = dojo.byId("oauth_token_scr");
+	return campo ? campo.value : "";
+}
 
-		var termoEscapado = termo.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-		var correspondencias = widget.store.query({
-			name: new RegExp("^" + termoEscapado + "$", "i")
-		});
-		if (correspondencias.length === 1) {
-			widget.set("value", correspondencias[0].id);
+var camposImportarDentro = ["nome", "endereco", "ruatransversal", "bairro", "cidade", "estado", "codigopostal", "dentro", "telefone", "sitedaweb", "twitter", "facebook", "instagram", "latlng", "descricao", "menu", "redes", "horas"];
+
+function posicionarResultadosAutocomplete(input, results, anchor, matchAnchorWidth) {
+	document.body.appendChild(results);
+	results.style.position = "fixed";
+	results.style.zIndex = "10000";
+	results.style.margin = "2px 0 0 0";
+	results.style.boxSizing = "border-box";
+
+	function atualizarPosicao() {
+		var rect = (anchor || input).getBoundingClientRect();
+		var larguraViewport = document.documentElement.clientWidth;
+		var alturaViewport = window.innerHeight || document.documentElement.clientHeight;
+		var largura = matchAnchorWidth ? rect.width : Math.min(340, larguraViewport - 16);
+		var abaixo = alturaViewport - rect.bottom - 8;
+		var acima = rect.top - 8;
+		var abrirAcima = abaixo < 120 && acima > abaixo;
+		var disponivel = Math.max(0, (abrirAcima ? acima : abaixo) - 2);
+		var alturaConteudo = results.style.display !== "none" ? results.scrollHeight : 266;
+		var altura = Math.min(266, disponivel, alturaConteudo || 266);
+		var esquerda = Math.max(8, Math.min(rect.left, larguraViewport - largura - 8));
+
+		results.style.width = largura + "px";
+		results.style.maxHeight = altura + "px";
+		results.style.left = esquerda + "px";
+		results.style.top = (abrirAcima ? Math.max(4, rect.top - altura - 4) : rect.bottom) + "px";
+	}
+
+	input.addEventListener("focus", atualizarPosicao);
+	input.addEventListener("input", atualizarPosicao);
+	window.addEventListener("resize", atualizarPosicao);
+	window.addEventListener("scroll", atualizarPosicao, true);
+	new MutationObserver(atualizarPosicao).observe(results, { childList: true });
+	atualizarPosicao();
+}
+
+function configurarBuscaCategoriaPrincipal() {
+	var widget = dijit.byId("categorySearchMain");
+	var input = widget ? widget.focusNode : dojo.byId("categorySearchMain");
+	if (!input || input._fsqBound) return;
+	input._fsqBound = true;
+	var results = dojo.byId("categorySearchMainResults");
+	posicionarResultadosAutocomplete(input, results, widget ? widget.domNode : input, true);
+	var hidden = dojo.byId("categoryId");
+	var ctrl = fsqAnexarAutocomplete({
+		input: input,
+		results: results,
+		status: dojo.byId("categorySearchMainStatus"),
+		statusClass: "",
+		group: "categories",
+		getToken: obterTokenPagina,
+		extraParams: function() {
+			return fsqObterLl(dijit.byId("ll").get("value") || dojo.cookie("coordinates"), obterTokenPagina()).then(function(ll) {
+				return { ll: ll, includePrivateCategories: "true", filterTopLevelCats: "false" };
+			});
+		},
+		parse: fsqNormalizarCategorias,
+		emptyMessage: "Nenhuma categoria encontrada.",
+		onSelect: function(item) {
+			hidden.value = item.id;
+			if (widget) widget.set("value", item.name);
+			else input.value = item.name;
+		}
+	});
+	// Editar o texto invalida a categoria selecionada
+	input.addEventListener("input", function() { hidden.value = ""; });
+	document.addEventListener("click", function(event) {
+		if (event.target !== input && !results.contains(event.target)) ctrl.limpar();
+	});
+}
+
+function configurarBuscaLocalPai() {
+	var widget = dijit.byId("parentSearchMain");
+	var input = widget ? widget.focusNode : dojo.byId("parentSearchMain");
+	if (!input || input._fsqBound) return;
+	input._fsqBound = true;
+	var results = dojo.byId("parentSearchMainResults");
+	posicionarResultadosAutocomplete(input, results, widget ? widget.domNode : input, !!widget);
+	var hidden = dojo.byId("parentIdMain");
+	var ctrl = fsqAnexarAutocomplete({
+		input: input,
+		results: results,
+		status: dojo.byId("parentSearchMainStatus"),
+		statusClass: "",
+		group: "",
+		minLength: 3,
+		getToken: obterTokenPagina,
+		extraParams: function() {
+			var regiao = (dijit.byId("ll5").get("value") || dojo.cookie("coordinates") || "").trim();
+			if (!regiao) throw new Error("Para buscar um local pai, informe coordenadas (latitude,longitude) ou uma cidade no campo Região.");
+			var parametros = { m: "foursquare", group: "unified", isMobile: "false", limit: 20 };
+			if (/^-?\d+(?:\.\d+)?\s*,\s*-?\d+(?:\.\d+)?$/.test(regiao)) {
+				return fsqObterLl(regiao, obterTokenPagina()).then(function(ll) {
+					parametros.ll = ll;
+					return parametros;
+				});
+			}
+			parametros.near = regiao;
+			return parametros;
+		},
+		parse: fsqNormalizarLocais,
+		emptyMessage: "Nenhum local encontrado.",
+		onIdOrUrl: function(id, isCurrent) {
+			var textoBusca = input.value.trim();
+			ctrl.mensagem("Validando o local informado...", "muted");
+			return fsqBuscarLocalPorId(id, obterTokenPagina()).then(function(local) {
+				if (!isCurrent() || input.value.trim() !== textoBusca) return;
+				hidden.value = local.id;
+				if (widget) widget.set("value", local.id);
+				else input.value = local.id;
+				ctrl.mensagem('Local "' + local.name + '" selecionado.', "success");
+			});
+		},
+		onSelect: function(item) {
+			hidden.value = item.id;
+			if (widget) widget.set("value", item.name);
+			else input.value = item.name;
+		},
+		selectionMessage: function(item) {
+			return 'Local com ID "' + item.id + '" selecionado.';
+		},
+		onError: function(error) {
+			ctrl.mensagem("Não foi possível validar o local informado.", "error");
+			window.alert(error.message || "Não foi possível validar o local informado.");
+		}
+	});
+	input.addEventListener("input", function() {
+		hidden.value = "";
+		ctrl.mensagem("", "");
+	});
+	document.addEventListener("click", function(event) {
+		if (event.target !== input && !results.contains(event.target)) {
+			ctrl.limpar();
+			if (!hidden.value) {
+				ctrl.cancelar();
+				ctrl.mensagem("", "");
+			}
 		}
 	});
 }
 
 dojo.addOnLoad(function() {
 	configurarBuscaCategoriaPrincipal();
+	configurarBuscaLocalPai();
 	// Preload de imagens do tema (Dojo carregará automaticamente quando necessário)
 	// dojox.image.preload(["js/dijit/themes/tundra/images/progressBarFull.png", "js/dijit/themes/tundra/images/progressBarAnim.gif"]);
 	
@@ -42,29 +170,20 @@ dojo.addOnLoad(function() {
 		style: "width: 570px"
 	});
 	var arquivo_csv = dojo.byId("arquivo_csv");
-	var arquivo_nome = dojo.cookie("arquivo_csv_nome") || ""; // Restaura do cookie se existir
-	var arquivo_csv_data = null; // Guarda dados do arquivo selecionado
+	var arquivo_csv_data = null;
 	var uploader_csv = dijit.byId("uploader_csv");
 	var form_csv = dijit.byId("f_csv");
 	dojo.connect(uploader_csv, "onChange", function (data) {
-		arquivo_csv.innerHTML = data[0].name + " (" + Math.ceil(data[0].size * .001) + " kB)";
-		arquivo_nome = data[0].name;
-		arquivo_csv_data = data[0]; // Salva dados para restaurar depois
-		// Salva em cookie para persistir após navegação
-		dojo.cookie("arquivo_csv_nome", data[0].name, { expires: 1 });
-		dojo.cookie("arquivo_csv_size", data[0].size, { expires: 1 });
-		debugLog("💾 Arquivo CSV salvo em cookie: " + data[0].name);
+		arquivo_csv.textContent = data[0].name + " (" + Math.ceil(data[0].size * .001) + " kB)";
+		arquivo_csv_data = data[0];
 	});
 	dojo.connect(form_csv, "onSubmit", function(e) {
 		if (form_csv.validate()) {
-			// Verifica se arquivo foi selecionado ou restaurado
-			var nomeArquivo = arquivo_nome || window.arquivo_csv_nome_global || "";
-			
-			if (arquivo_csv.innerHTML === "Nenhum arquivo selecionado") {
+			if (!arquivo_csv_data) {
 				e.preventDefault();
 				alert("O arquivo precisa ser escolhido");
 				uploader_csv.inputNode.focus();
-			} else if (nomeArquivo && nomeArquivo.split('.').pop() != "csv") {
+			} else if (arquivo_csv_data.name.split('.').pop() != "csv") {
 				e.preventDefault();
 				alert("O arquivo deve ser do tipo CSV");
 				uploader_csv.inputNode.focus();
@@ -84,20 +203,16 @@ dojo.addOnLoad(function() {
 		style: "width: 590px"
 	});
 	var arquivo_txt = dojo.byId("arquivo_txt");
-	var arquivo_txt_data = null; // Guarda dados do arquivo selecionado
+	var arquivo_txt_data = null;
 	var uploader_txt = dijit.byId("uploader_txt");
 	var form_txt = dijit.byId("f_txt");
 	dojo.connect(uploader_txt, "onChange", function (data) {
-		arquivo_txt.innerHTML = data[0].name + " (" + Math.ceil(data[0].size * .001) + " kB)";
-		arquivo_txt_data = data[0]; // Salva dados para restaurar depois
-		// Salva em cookie para persistir após navegação
-		dojo.cookie("arquivo_txt_nome", data[0].name, { expires: 1 });
-		dojo.cookie("arquivo_txt_size", data[0].size, { expires: 1 });
-		debugLog("💾 Arquivo TXT salvo em cookie: " + data[0].name);
+		arquivo_txt.textContent = data[0].name + " (" + Math.ceil(data[0].size * .001) + " kB)";
+		arquivo_txt_data = data[0];
 	});
 	dojo.connect(form_txt, "onSubmit", function(e) {
 		if (form_txt.validate()) {
-			if (arquivo_txt.innerHTML === "Nenhum arquivo selecionado") {
+			if (!arquivo_txt_data) {
 				e.preventDefault();
 				alert("O arquivo precisa ser escolhido");
 				uploader_txt.inputNode.focus();
@@ -150,11 +265,14 @@ dojo.addOnLoad(function() {
 	var form_ids = dijit.byId("f_ids");
 	var textarea_ids = dijit.byId("textarea_ids");
 	dojo.connect(form_ids, "onSubmit", function(e) {
+		var locaisInformados = textarea_ids.get("value") || "";
 		if (form_ids.validate()) {
-			if (textarea_ids.value == "") {
+			if (locaisInformados.trim() == "") {
 				e.preventDefault();
-				alert("Informe pelo menos um local");
+				textarea_ids.set("value", "");
+				alert("Informe pelo menos um ID ou URL de local antes de continuar.");
 				textarea_ids.focus();
+				locaisInformados = "";
 			//} else if (dojo.query('input:checked', 'f_ids').length == 0) {
 				//e.preventDefault();
 				//alert("Selecione pelo menos um dos campos");
@@ -166,15 +284,33 @@ dojo.addOnLoad(function() {
 			e.preventDefault();
 		}
 		//dojo.cookie("pagina", "", { expires: 15 });
-		dojo.cookie("textarea", dijit.byId("textarea_ids").value, { expires: 15 });
+		dojo.cookie("textarea", locaisInformados, { expires: 15 });
 		var campos3 = dijit.byId("nome3").checked + "." + dijit.byId("endereco3").checked + "." + dijit.byId("ruatransversal3").checked + "." + dijit.byId("bairro3").checked + "." + dijit.byId("cidade3").checked + "." + dijit.byId("estado3").checked + "." + dijit.byId("codigopostal3").checked + "." + dijit.byId("dentro3").checked + "." + dijit.byId("telefone3").checked + "." + dijit.byId("sitedaweb3").checked + "." + dijit.byId("twitter3").checked + "." + dijit.byId("facebook3").checked + "." + dijit.byId("instagram3").checked + "." + dijit.byId("latlng3").checked + "." + dijit.byId("descricao3").checked + "." + dijit.byId("menu3").checked + "." + dijit.byId("redes3").checked + "." + dijit.byId("horas3").checked;
 		dojo.cookie("campos", campos3, { expires: 15 });
 		dojo.cookie("accordion", dijit.byId("accordion").selectedChildWidget.id, { expires: 15 });
 	});
 	
 	var form_src = dijit.byId("f_src");
-	var oauth_src = dojo.byId("oauth_token_src");
 	var ll_src = dijit.byId("ll");
+	function prepararCookiesBusca() {
+		var campos4 = dijit.byId("nome4").checked + "." + dijit.byId("endereco4").checked + "." + dijit.byId("ruatransversal4").checked + ".";
+		(dijit.byId("bairro4").disabled) ? campos4 += "false." : campos4 += dijit.byId("bairro4").checked + ".";
+		campos4 += dijit.byId("cidade4").checked + "." + dijit.byId("estado4").checked + "." + dijit.byId("codigopostal4").checked + ".";
+		(dijit.byId("dentro4").disabled) ? campos4 += "false." : campos4 += dijit.byId("dentro4").checked + ".";
+		campos4 += dijit.byId("telefone4").checked + "." + dijit.byId("sitedaweb4").checked + "." + dijit.byId("twitter4").checked + "." + dijit.byId("facebook4").checked + ".";
+		(dijit.byId("instagram4").disabled) ? campos4 += "false." : campos4 += dijit.byId("instagram4").checked + ".";
+		campos4 += dijit.byId("latlng4").checked + ".";
+		(dijit.byId("descricao4").disabled) ? campos4 += "false." : campos4 += dijit.byId("descricao4").checked + ".";
+		(dijit.byId("menu4").disabled) ? campos4 += "false." : campos4 += dijit.byId("menu4").checked + ".";
+		campos4 += dijit.byId("redes4").checked + ".";
+		(dijit.byId("horas4").disabled) ? campos4 += "false." : campos4 += dijit.byId("horas4").checked;
+
+		var categoryWidget = dijit.byId("categorySearchMain");
+		var search = [dijit.byId("query").value, dijit.byId("ll").value, dojo.byId("categoryId").value, dijit.byId("radius").value, dijit.byId("intent").value, dijit.byId("limit").value, categoryWidget ? categoryWidget.get("value") : ""];
+		dojo.cookie("search", JSON.stringify(search), { expires: 15 });
+		dojo.cookie("campos", campos4, { expires: 15 });
+		dojo.cookie("accordion", dijit.byId("accordion").selectedChildWidget.id, { expires: 15 });
+	}
 	dojo.connect(form_src, "onSubmit", function(e) {
 		// Se campo ll estiver vazio, preenche com coordenadas do último check-in
 		if (ll_src.value == "" || ll_src.value.trim() == "") {
@@ -192,107 +328,120 @@ dojo.addOnLoad(function() {
 				return;
 			}
 		}
+
+		if (!form_src.validate()) {
+			e.preventDefault();
+			return;
+		}
+
+		var coordenadas = ll_src.value.trim().match(/^(-?\d+(?:\.\d+)?)\s*,\s*(-?\d+(?:\.\d+)?)$/);
+		if (!coordenadas) {
+			e.preventDefault();
+			dijit.byId("radius").set("value", dijit.byId("radius").value || "5000");
+			var botaoPesquisa = form_src.domNode.querySelector('button[type="submit"]');
+			if (botaoPesquisa) botaoPesquisa.disabled = true;
+			fsqObterLl(ll_src.value, obterTokenPagina()).then(function(llConvertido) {
+				if (!llConvertido) throw new Error("O endereço não foi convertido em coordenadas.");
+				ll_src.set("value", llConvertido);
+				prepararCookiesBusca();
+				form_src.domNode.submit();
+			}).catch(function(error) {
+				console.error("❌ Erro ao converter Local em coordenadas:", error);
+				alert(error.message || "Não foi possível converter o Local em coordenadas.");
+				if (botaoPesquisa) botaoPesquisa.disabled = false;
+			});
+			return;
+		}
 		
 		// Preenche radius com valor padrão se estiver vazio
 		if (!dijit.byId("radius").value || dijit.byId("radius").value == "") {
 			dijit.byId("radius").attr("value", "5000");
 		}
-		
-		if (form_src.validate()) {
-			//} else if (dojo.query('input:checked', 'f_src').length == 0) {
-				//e.preventDefault();
-				//alert("Selecione pelo menos um dos campos");
-				//dijit.byId("nome4").focus();
-			//} else {
-				//alert("Ready to submit data: " + dojo.toJson(form_src.attr("value")));
-			//}
-		} else {
-			e.preventDefault();
-		}
-		var campos4 = dijit.byId("nome4").checked + "." + dijit.byId("endereco4").checked + "." + dijit.byId("ruatransversal4").checked + ".";
-		(dijit.byId("bairro4").disabled) ? campos4 += "false." : campos4 += dijit.byId("bairro4").checked + ".";
-		campos4 += dijit.byId("cidade4").checked + "." + dijit.byId("estado4").checked + "." + dijit.byId("codigopostal4").checked + ".";
-		(dijit.byId("dentro4").disabled) ? campos4 += "false." : campos4 += dijit.byId("dentro4").checked + ".";
-		campos4 += dijit.byId("telefone4").checked + "." + dijit.byId("sitedaweb4").checked + "." + dijit.byId("twitter4").checked + "." + dijit.byId("facebook4").checked + ".";
-		//(dijit.byId("facebook4").disabled) ? campos4 += "false." : campos4 += dijit.byId("facebook4").checked + ".";
-		(dijit.byId("instagram4").disabled) ? campos4 += "false." : campos4 += dijit.byId("instagram4").checked + ".";
-		campos4 += dijit.byId("latlng4").checked + ".";
-		(dijit.byId("descricao4").disabled) ? campos4 += "false." : campos4 += dijit.byId("descricao4").checked + ".";
-		(dijit.byId("menu4").disabled) ? campos4 += "false." : campos4 += dijit.byId("menu4").checked + ".";
-		campos4 += dijit.byId("redes4").checked + ".";
-		(dijit.byId("horas4").disabled) ? campos4 += "false." : campos4 += dijit.byId("horas4").checked;
-		
-		var search = [dijit.byId("query").value, dijit.byId("ll").value, dijit.byId("categoryId").value, dijit.byId("radius").value, dijit.byId("intent").value, dijit.byId("limit").value];
-		dojo.cookie("search", JSON.stringify(search), { expires: 15 });
-		dojo.cookie("campos", campos4, { expires: 15 });
-		dojo.cookie("accordion", dijit.byId("accordion").selectedChildWidget.id, { expires: 15 });
+		prepararCookiesBusca();
+	});
 
+		dlg_lks = new dijit.Dialog({
+		title: "Endere&ccedil;o de uma p&aacute;gina web",
+		style: "width: 650px"
+	});
+	dlg_dentro = new dijit.Dialog({
+		title: "Nome, ID ou link do local pai",
+		style: "width: 650px"
+	});
+	var form_dentro = dijit.byId("f_dentro");
+	var ll_dentro = dijit.byId("ll5");
+
+	function salvarEstadoImportarDentro() {
+		var campos = {};
+		camposImportarDentro.forEach(function(nome) {
+			var widget = dijit.byId(nome + "5");
+			campos[nome] = Boolean(widget && !widget.disabled && widget.checked);
+		});
+		var estado = {
+			parentId: dojo.byId("parentIdMain").value,
+			parentText: dijit.byId("parentSearchMain").get("value"),
+			ll: ll_dentro.get("value"),
+			campos: campos
+		};
+		dojo.cookie("importar_dentro", JSON.stringify(estado), { expires: 15 });
+	}
+
+	dojo.connect(form_dentro, "onSubmit", function(e) {
+		if (!dojo.byId("parentIdMain").value) {
+			e.preventDefault();
+			alert("Selecione na lista o local onde os demais est\u00e3o localizados (ou informe o ID/link).");
+			dojo.byId("parentSearchMain").focus();
+			return;
+		}
+		if (ll_dentro.get("value").trim() == "") {
+			var coordenadas = dojo.cookie("coordinates");
+			if (coordenadas && coordenadas !== "undefined" && coordenadas.trim() !== "") {
+				ll_dentro.set("value", coordenadas);
+			} else {
+				e.preventDefault();
+				alert("O campo Coordenadas \u00e9 obrigat\u00f3rio. Informe lat,lng (ex: -29.93,-51.16) ou uma cidade.");
+				ll_dentro.focus();
+				return;
+			}
+		}
+		var campos5 = camposImportarDentro.map(function(nome) {
+			var widget = dijit.byId(nome + "5");
+			return widget.disabled ? "false" : String(widget.checked);
+		}).join(".");
+		salvarEstadoImportarDentro();
+		dojo.cookie("campos", campos5, { expires: 15 });
+		dojo.cookie("accordion", dijit.byId("accordion").selectedChildWidget.id, { expires: 15 });
+	});
+
+	function limparCookiesDeUpload() {
+		dojo.cookie("arquivo_csv_nome", null, { expires: -1 });
+		dojo.cookie("arquivo_csv_size", null, { expires: -1 });
+		dojo.cookie("arquivo_txt_nome", null, { expires: -1 });
+		dojo.cookie("arquivo_txt_size", null, { expires: -1 });
+	}
+
+	limparCookiesDeUpload();
+	window.addEventListener("pageshow", function(event) {
+		if (!event.persisted) return;
+
+		arquivo_csv_data = null;
+		arquivo_txt_data = null;
+		uploader_csv.reset();
+		uploader_txt.reset();
+		arquivo_csv.textContent = "Nenhum arquivo selecionado";
+		arquivo_txt.textContent = "Nenhum arquivo selecionado";
+		limparCookiesDeUpload();
 	});
 });
 
 dojo.ready(function() {
 	setTimeout(function() {
-		// Detecta tipo de navegação usando API moderna (com fallback para deprecated)
-		var isBackNavigation = false;
-		var navEntries = performance.getEntriesByType('navigation');
-		
-		if (navEntries && navEntries.length > 0) {
-			// API moderna: type pode ser "navigate", "reload", "back_forward", "prerender"
-			isBackNavigation = (navEntries[0].type === 'back_forward');
-			debugLog("🔍 Tipo de navegação (moderna):", navEntries[0].type);
-		} else if (performance.navigation) {
-			// Fallback para API deprecated: 0=normal, 1=reload, 2=back/forward
-			isBackNavigation = (performance.navigation.type === 2);
-			debugLog("🔍 Tipo de navegação (deprecated):", performance.navigation.type);
-		}
-		try {
-			var referrerUrl = new URL(document.referrer);
-			if (referrerUrl.origin === window.location.origin && /\/edit\.php$/.test(referrerUrl.pathname)) {
-				isBackNavigation = true;
-			}
-		} catch (error) {}
-		
-		// Se for reload (F5) ou navegação normal, limpa os cookies de arquivo
-		if (!isBackNavigation) {
-			debugLog("🔄 Refresh detectado - limpando cookies de arquivo");
-			dojo.cookie("arquivo_csv_nome", null, { expires: -1 });
-			dojo.cookie("arquivo_csv_size", null, { expires: -1 });
-			dojo.cookie("arquivo_txt_nome", null, { expires: -1 });
-			dojo.cookie("arquivo_txt_size", null, { expires: -1 });
-		} else {
-			debugLog("⬅️ Navegação Voltar detectada - restaurando arquivos");
-			
-			// Restaura informação do arquivo CSV se existir cookie
-			var csvNome = dojo.cookie("arquivo_csv_nome");
-			var csvSize = dojo.cookie("arquivo_csv_size");
-			if (csvNome && csvSize) {
-				var arquivo_csv = dojo.byId("arquivo_csv");
-				if (arquivo_csv) {
-					arquivo_csv.innerHTML = csvNome + " (" + Math.ceil(csvSize * .001) + " kB)";
-					// Atualiza também a variável arquivo_nome para permitir validação
-					window.arquivo_csv_nome_global = csvNome;
-					debugLog("📋 Arquivo CSV restaurado do cookie: " + csvNome);
-				}
-			}
-			
-			// Restaura informação do arquivo TXT se existir cookie
-			var txtNome = dojo.cookie("arquivo_txt_nome");
-			var txtSize = dojo.cookie("arquivo_txt_size");
-			if (txtNome && txtSize) {
-				var arquivo_txt = dojo.byId("arquivo_txt");
-				if (arquivo_txt) {
-					arquivo_txt.innerHTML = txtNome + " (" + Math.ceil(txtSize * .001) + " kB)";
-					// Atualiza também a variável arquivo_txt para permitir validação
-					window.arquivo_txt_nome_global = txtNome;
-					debugLog("📋 Arquivo TXT restaurado do cookie: " + txtNome);
-				}
-			}
-		}
-				//if ((dojo.cookie("name") != null) && (dojo.cookie("name") != "undefined"))
-			//dojo.byId("name").innerText = dojo.cookie("name");
+		//if ((dojo.cookie("name") != null) && (dojo.cookie("name") != "undefined"))
+		//dojo.byId("name").innerText = dojo.cookie("name");
 		if (dojo.cookie("pagina") != "undefined")
 			dijit.byId("pagina").attr("value", dojo.cookie("pagina"));
-		dijit.byId("textarea_ids").attr("value", dojo.cookie("textarea"));
+		var textareaCookie = dojo.cookie("textarea");
+		dijit.byId("textarea_ids").set("value", textareaCookie && textareaCookie !== "undefined" ? textareaCookie : "");
 		dojo.attr(dijit.byId("pagina").textbox, "autocomplete", "on");
 		dojo.attr(dijit.byId("ll").textbox, "autocomplete", "on");
 		//dojo.attr(dijit.byId("near").textbox, "autocomplete", "on");
@@ -300,7 +449,7 @@ dojo.ready(function() {
 		if (dojo.cookie("campos") != undefined) {
 			var campos = dojo.cookie("campos").split(".");
 			//console.debug(campos);
-			for (i = 1; i < 5; i++) {
+			for (i = 1; i < 6; i++) {
 				dijit.byId("nome" + i).attr("checked", (campos[0] === 'true'));
 				dijit.byId("endereco" + i).attr("checked", (campos[1] === 'true'));
 				dijit.byId("ruatransversal" + i).attr("checked", (campos[2] === 'true'));
@@ -323,7 +472,7 @@ dojo.ready(function() {
 			}
 			dijit.byId("accordion").selectChild(dojo.cookie("accordion"), false);
 		} else {
-			for (i = 1; i < 5; i++) {
+			for (i = 1; i < 6; i++) {
 				dijit.byId("nome" + i).attr("checked", true);
 				dijit.byId("endereco" + i).attr("checked", true);
 				dijit.byId("ruatransversal" + i).attr("checked", true);
@@ -340,12 +489,36 @@ dojo.ready(function() {
 			var search = JSON.parse(dojo.cookie("search"));
 			dijit.byId("query").attr("value", search[0]);
 			dijit.byId("ll").attr("value", search[1]);
-			dijit.byId("categoryId").attr("value", search[2]);
+			dojo.byId("categoryId").value = search[2] || "";
+			var categoryWidget = dijit.byId("categorySearchMain");
+			if (categoryWidget) categoryWidget.set("value", search[2] ? (search[6] || "") : "");
 			dijit.byId("radius").attr("value", search[3]);
 			dijit.byId("intent").attr("value", search[4]);
 			dijit.byId("limit").attr("value", search[5]);
 		} else {
 			dijit.byId("ll").attr("value", dojo.cookie("coordinates"));
+		}
+		var estadoDentroCookie = dojo.cookie("importar_dentro");
+		if (estadoDentroCookie) {
+			try {
+				var estadoDentro = JSON.parse(estadoDentroCookie);
+				var parentWidget = dijit.byId("parentSearchMain");
+				var parentIdInput = dojo.byId("parentIdMain");
+				if (parentWidget) parentWidget.set("value", estadoDentro.parentText || "");
+				if (parentIdInput) parentIdInput.value = estadoDentro.parentId || "";
+				if (estadoDentro.ll !== undefined) dijit.byId("ll5").set("value", estadoDentro.ll || "");
+				if (estadoDentro.campos) {
+					camposImportarDentro.forEach(function(nome) {
+						var widget = dijit.byId(nome + "5");
+						if (widget && !widget.disabled && Object.prototype.hasOwnProperty.call(estadoDentro.campos, nome)) {
+							widget.set("checked", Boolean(estadoDentro.campos[nome]));
+						}
+					});
+				}
+			} catch (error) {
+				console.error("❌ Não foi possível restaurar os dados do painel de importação de locais internos:", error);
+				dojo.cookie("importar_dentro", null, { expires: -1 });
+			}
 		}
 	});
 }, 0);
@@ -379,8 +552,14 @@ function showDialogLks() {
 	dlg_lks.show();
 }
 
+function showDialogDentro() {
+	// set the content of the dialog:
+	dlg_dentro.attr("content", "Informe o local pai (<i>parent</i>) para carregar todos os sublocais (<i>children</i>) que est&atilde;o dentro deste local. O local pode ser selecionado a partir de uma pesquisa ou colando diretamente a URL.</p><p>Preencha as coordenadas da regi&atilde;o ou nome da cidade correspondente caso a busca pelo local pai via geolocaliza&ccedil;&atilde;o n&atilde;o retorne os resultados desejados.</p><p><b>Exemplos v&aacute;lidos:</b></p><p style='font-family: courier, monospace;'>https://app.foursquare.com/v/parkshoppingcanoas/5a177d2ce1f0aa75261b40b6<br>5a177d2ce1f0aa75261b40b6<br>ParkShoppingCanoas</p>");
+	dlg_dentro.show();
+}
+
 function showDialogIds() {
 	// set the content of the dialog:
-	dlg_ids.attr("content", "O conte&uacute;do copiado e colado deve conter os identificadores de cada local a ser editado. Acima de 4000 caracteres, utilize a ferramenta de <b>&quot;Importar lista de um arquivo de texto simples&quot;</b>.</p><p>Os seguintes formatos s&atilde;o aceitos:</p><ul><li><b>IDs dos locais:</b> 24 caracteres hexadecimais ou 5-6 d&iacute;gitos num&eacute;ricos</li><li><b>URLs completas:</b> diversos formatos de URLs do Foursquare</li></ul><p><b>Exemplos v&aacute;lidos:</b></p><p style='font-family: courier, monospace;'>https://app.foursquare.com/venue/banco-do-brasil/4c701c87f23c76b0c5abe685<br>https://pt.foursquare.com/v/banco-do-brasil/4d7a895be8b7a1cdb4e3991f/<br>https://app.foursquare.com/share/venue/4d5bec09524fa35d1cdd4335<br>https://foursquare.com/v/4eadbb7902d5cf33fa8cf19e/edit<br>https://foursquare.com/venue/94562<br>4c701c87f23c76b0c5abe685</p>");
+	dlg_ids.attr("content", "O conte&uacute;do copiado e colado deve conter os identificadores de cada local a ser editado. Informe um local por linha ou separe v&aacute;rios por espa&ccedil;os, v&iacute;rgulas ou ponto e v&iacute;rgula. Acima de 4000 caracteres, utilize a ferramenta de <b>&quot;Importar lista de um arquivo de texto simples&quot;</b>.</p><p>Os seguintes formatos s&atilde;o aceitos:</p><ul><li><b>IDs dos locais:</b> 24 caracteres hexadecimais ou 5-6 d&iacute;gitos num&eacute;ricos</li><li><b>URLs completas:</b> diversos formatos de URLs do Foursquare</li></ul><p><b>Exemplos v&aacute;lidos:</b></p><p style='font-family: courier, monospace;'>https://app.foursquare.com/venue/banco-do-brasil/4c701c87f23c76b0c5abe685<br>https://pt.foursquare.com/v/banco-do-brasil/4d7a895be8b7a1cdb4e3991f/<br>https://app.foursquare.com/share/venue/4d5bec09524fa35d1cdd4335<br>https://foursquare.com/v/4eadbb7902d5cf33fa8cf19e/edit<br>https://foursquare.com/venue/94562<br>4c701c87f23c76b0c5abe685</p>");
 	dlg_ids.show();
 }

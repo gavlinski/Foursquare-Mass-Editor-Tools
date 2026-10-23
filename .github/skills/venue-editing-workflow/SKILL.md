@@ -8,13 +8,15 @@ description: Documenta o fluxo central do produto — Import → Load → Edit �
 ## Process Flow
 
 ```
-1. Import  → CSV upload (load_csv.php) ou busca por coordenadas (search.php)
+1. Import  → CSV upload (load_csv.php), busca por coordenadas (search.php), IDs/URLs (load.php) ou locais-filhos (children.php)
 2. Load    → Busca dados da venue na API (load.php)
 3. Edit    → Interface de edição em massa (edit.php, widgets Dojo)
 4. Save    → Chamadas em lote à API (js/4sq.js → xmlhttpRequest())
 ```
 
 Também suportado: `load.php?venues=id1,id2,id3` para carregar venues diretamente por ID via URL.
+
+A aba "Importar locais dentro de outro local" usa `GET /v2/venues/{id}/children`. O campo de local pai aceita busca por nome via `search/autocomplete`, além de ID ou link; informe também uma região como coordenadas ou cidade para restringir/ordenar resultados conforme suportado pela API. O helper compartilhado `js/fsq-autocomplete.js` fornece autocomplete e geocodificação ao frontend.
 
 ## Editable Fields
 
@@ -38,6 +40,14 @@ Com Redes selecionado, `processarRedesVenue()` lê `venueChains` da resposta da 
 No salvamento, `salvarVenues()` envia pelo endpoint `proposeedit` os parâmetros `primaryVenueChainId`, `addVenueChainIds` e `removeVenueChainIds`, somente quando há mudanças. O comportamento desses parâmetros foi testado na API v2, embora não esteja documentado na referência pública da API. Não inferir sucesso apenas pela presença dos parâmetros no payload: verificar status e resultado da API ao validar alterações.
 
 O CSV inclui `venueChainId` apenas quando Redes foi selecionado. Quando disponível, os campos de proposta são `primaryVenueChainId`, `addVenueChainIds` e `removeVenueChainIds`. `normalizarCsv()` deve manter cabeçalho e linhas alinhados nos modos parcial e completo, inclusive após recarga.
+
+## Category Search and Facebook
+
+A busca de categorias da página principal e da modal de edição usa `search/autocomplete` através de `js/fsq-autocomplete.js`, em vez de depender da correspondência textual do widget Dijit. A modal mantém feedback de adição, duplicata e limite de três categorias; preserve os textos de status específicos da página principal ao alterar o helper compartilhado.
+
+Os GETs de categorias enviam a subtag primária do idioma preferido do navegador (por exemplo, `pt-BR` → `pt`) e mantêm caches separados por idioma. A API `users/self` não fornece uma preferência de locale do perfil.
+
+Na edição, o campo Facebook exibe `contact.facebookUsername` quando presente e usa `contact.facebook` como fallback. Antes de salvar, prefixos como `facebook.com/` e `https://` são removidos; o payload atual continua usando `facebookUrl`.
 
 As regressões de UI ficam em `tests/e2e/02-mass-editing.spec.ts`; os cenários de alinhamento, recarga e seleção condicional estão em `tests/e2e/05-csv-consistency.spec.ts`.
 

@@ -1,5 +1,48 @@
 # Changelog
 
+## Version 3.4.0 (2026-10-22)
+
+**UI and Typography:**
+- Standardized application typography with locally hosted Inter, including Dijit menu items.
+- Anchored floating header controls to screen corners on wide displays.
+- Kept the editor action tray fixed when lists overflow and positioned it below shorter lists.
+- Improved tray transitions, spacing, and alignment while scrolling.
+- Reserved responsive widths for venue numbers to keep editor fields aligned.
+
+**Search and Import:**
+- Added Foursquare category autocomplete to the main page and edit modal.
+- Added import of venues located inside a parent place.
+- Added parent-place autocomplete with support for names, IDs, and links.
+- Accepted lists of venue IDs and URLs separated by whitespace, commas, or semicolons.
+
+**Region and Geocoding:**
+- Used Foursquare `geo/geocode` for city and address conversion, with Google Maps as a browser-side fallback.
+- Passed typed regions through `near` and coordinates through `ll` in parent-place searches.
+- Removed `supervenueOnly=true`, which could omit relevant results.
+- Restored search-panel state when returning from editing.
+
+**Editing Feedback:**
+- Normalized Facebook URLs before saving and preferred `contact.facebookUsername` when available.
+- Added descriptive comment-dialog titles, affected-place counts, and a "Comentários" label.
+- Included pending field-edit counts in save confirmations.
+- Improved category and chain messages with selected names and duplicate/limit feedback.
+
+**Geocoding Diagnostics:**
+- Updated debug pages to use the same browser-side geocoding helper as the application.
+- Added API status and detail to parent-autocomplete error messages.
+
+**PHP 8.5 Migration:**
+- Updated the Docker image, Dev Container, Composer platform requirement, and CI to PHP 8.5.
+- Kept PHP diagnostics in container logs without injecting deprecation notices into HTTP responses.
+- Verified valid JSON and HTML responses and passing E2E regression tests on PHP 8.5.
+
+**Bug Fixes:**
+- Hardened CSV/TXT upload handling and cookie preservation.
+- Prevented venue searches without a location ID.
+- Corrected CSV editor tray positioning and snapshot restoration.
+- Fixed flag selection when choosing the venue with the most check-ins.
+- Refined dialog sizing and styling.
+
 ## Version 3.3.2 (2026-10-13)
 
 **Deploy and Security:**

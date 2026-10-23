@@ -1,9 +1,11 @@
+@import url("fonts/inter.css");
+
 :root {
-	--system-font: system-ui, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+	--system-font: "Inter", -apple-system, BlinkMacSystemFont, Helvetica, Arial, sans-serif;
 }
 
 body, html {
-	font-family: Arial, Helvetica, Verdana, sans-serif;
+	font-family: "Inter", -apple-system, BlinkMacSystemFont, Helvetica, Arial, sans-serif;
 	font-size: 13px;
 	color: #4E595D;
 }
@@ -38,8 +40,33 @@ a:hover {
 	text-decoration: underline;
 	font-weight: bold;
 }
+a[href="https://github.com/sponsors/gavlinski"] {
+	display: inline-block;
+	color: #bf3989;
+}
+a[href="https://github.com/sponsors/gavlinski"] svg {
+	transform-box: fill-box;
+	transform-origin: center;
+}
+a[href="https://github.com/sponsors/gavlinski"]:hover svg,
+a[href="https://github.com/sponsors/gavlinski"]:focus-visible svg {
+	animation: github-sponsor-heartbeat 1s ease-in-out infinite;
+}
+@keyframes github-sponsor-heartbeat {
+	0%, 100% { transform: scale(1); }
+	35% { transform: scale(1.12); }
+	55% { transform: scale(1.04); }
+	75% { transform: scale(1.1); }
+}
+@media (prefers-reduced-motion: reduce) {
+	a[href="https://github.com/sponsors/gavlinski"]:hover svg,
+	a[href="https://github.com/sponsors/gavlinski"]:focus-visible svg {
+		animation: none;
+		transform: none;
+	}
+}
 #intro, #options, #links {
-	width: 776px;
+	width: 786px;
 }
 #fixedlinks {
 	margin-top: 12px;
@@ -66,10 +93,10 @@ a:hover {
 	display: inline-flex;
 }
 .toolcontainer {
-	min-width: 759px;
+	min-width: 763px;
 	background-color: #f9f9f9;
 	border: 1px solid #cccccc;
-	margin-bottom: 8px;
+	margin: 3px 0px 8px 3px;
 	display: table;
 	min-height: 0;
 	padding: 5px 0px 0px 3px;
@@ -119,13 +146,19 @@ a:hover {
 }
 .toolcontainer > .row > .urlinputlabel,
 .toolcontainer > .row > .queryinputlabel,
-.toolcontainer > .row > .categoryidcomboboxlabel,
-.toolcontainer > .row > .limitcomboboxlabel {
+.toolcontainer > .row > .categoryidcomboboxlabel {
 	float: left;
 	width: 80px;
 	padding-left: 5px;
 	padding-top: 9px;
 	padding-right: 5px;
+}
+.toolcontainer > .row > .limitcomboboxlabel {
+	float: left;
+	width: 44px;
+	padding-left: 5px;
+	padding-top: 9px;
+	padding-right: 6px;
 }
 .toolcontainer > .row > .urlinput,
 .toolcontainer > .row > .queryinput,
@@ -155,10 +188,10 @@ a:hover {
 }
 .toolcontainer > .row > .llinputlabel {
 	float: left;
-	width: 39px;
-	padding-left: 1px;
+	width: 45px;
+	padding-left: 4px;
 	padding-top: 9px;
-	padding-right: 4px;
+	padding-right: 8px;
 }
 .toolcontainer > .row > .categoryidcombobox > .combobox > .dijitTextBox {
 	width: 299px;
@@ -167,27 +200,26 @@ a:hover {
 .toolcontainer > .row > .radiuscomboboxlabel {
 	float: left;
 	width: 8px;
-	padding-left: 1px;
+	padding-left: 4px;
 	padding-top: 9px;
-	padding-right: 35px;
+	padding-right: 30px;
 }
 .toolcontainer > .row > .radiuscombobox > .comboboxes .dijitSelectLabel,
 .toolcontainer > .row > .intentcombobox > .comboboxes .dijitSelectLabel,
 .toolcontainer > .row > .limitcombobox > .comboboxes .dijitSelectLabel {
-	width: 87px;
 	overflow: hidden;
 	margin-top: 3px;
 }
 .toolcontainer > .row > .intentcomboboxlabel {
 	float: left;
 	width: 53px;
-	padding-left: 0;
+	padding-left: 4px;
 	padding-top: 9px;
-	padding-right: 7px;
+	padding-right: 10px;
 }
-.dijitButton.continue .dijitButtonNode {
+/* .dijitButton.continue .dijitButtonNode {
 	margin-left: -3px;
-}
+} */
 .dijitSelect .dijitButtonText {
 	text-align: left;
 }
@@ -283,7 +315,7 @@ a:hover {
 	max-width: calc(100vw - 80px);
 	height: auto;
 	min-height: 58px;
-	max-height: 70vh;
+	max-height: calc(70vh - var(--fixedtray-height, 38px));
 	
 	/* Estilo visual original */
 	display: block;
@@ -299,11 +331,37 @@ a:hover {
 	/* Layout e overflow para scroll sincronizado */
 	overflow-x: auto; /* Scroll horizontal quando necessário */
 	overflow-y: auto; /* Scroll vertical quando necessário */
-	padding: 10px 10px 1px 10px;
+	padding: 10px 10px 1px;
 	
 	/* Resize properties - apenas horizontal */
 	resize: horizontal;
 	position: relative;
+}
+
+#listContainer.csv-tray-managed {
+	margin-bottom: 0;
+	max-height: min(calc(70vh - var(--fixedtray-height, 38px)), var(--csv-tray-fit-height, 100vh));
+}
+
+#listContainer.csv-tray-managed.csv-tray-anchored {
+	margin-bottom: 0;
+}
+
+#fixedtray-slot {
+	position: relative;
+	height: var(--fixedtray-height, 38px);
+}
+
+@media (max-height: 600px) {
+	body.csv-edit-page,
+	body.csv-flag-page {
+		margin-bottom: 4px;
+	}
+
+	body.csv-edit-page #fixedtray:not(.is-in-flow),
+	body.csv-flag-page #fixedtray:not(.is-in-flow) {
+		bottom: 4px;
+	}
 }
 
 #listContainer .row {
@@ -363,6 +421,16 @@ a:hover {
 	margin-right: -2px;
 	margin-top: 0;
 	position: static;
+}
+
+#listContainer span[id^="info"] {
+	box-sizing: border-box;
+	display: flex;
+	flex: 0 0 var(--venue-number-width, 36px);
+	width: var(--venue-number-width, 36px);
+	align-items: center;
+	justify-content: center;
+	white-space: nowrap;
 }
 
 /* Ajustar espaçamento dos spans de informação */
@@ -506,6 +574,7 @@ a:hover {
 }
 .category-selection-empty,
 .chain-selection-empty {
+	margin: auto 0;
 	color: #64748b;
 	font-size: 12px;
 }
@@ -588,6 +657,9 @@ a:hover {
 	background: #fff;
 	overflow-y: auto;
 	display: none;
+}
+#dlg_cats #categorySearchResults {
+	max-height: 160px;
 }
 .chain-search-result-item {
 	display: flex;
@@ -754,7 +826,7 @@ a:hover {
 	height: 36px;
 	background: linear-gradient(135deg, #f94877, #8b5cf6);
 	font-size: 15px;
-	font-family: Arial, Helvetica, Verdana, sans-serif;
+	font-family: "Inter", -apple-system, BlinkMacSystemFont, Helvetica, Arial, sans-serif;
 }
 
 .foursquare-marker:hover {
@@ -779,10 +851,18 @@ a:hover {
 #fixedtray {
 	position: fixed;
 	left: 0;
-	bottom: 0;
-	display: block;
+	bottom: 8px;
+	display: flow-root;
 	background: rgba(255, 255, 255, 0.9);
 	padding: 5px;
+	transition: transform 140ms ease-out;
+}
+
+#fixedtray.is-in-flow {
+	position: absolute;
+	left: 0;
+	bottom: 0;
+	margin-left: -8px;
 }
 
 /* Session Status Bar - Botões de Ação */
@@ -794,7 +874,7 @@ button.session-btn,
 	box-sizing: border-box;
 	color: #FFFFFF;
 	cursor: pointer;
-	font-family: var(--system-font);
+	font-family: "Inter", -apple-system, BlinkMacSystemFont, Helvetica, Arial, sans-serif;
 	outline: none;
 	user-select: none;
 	-webkit-user-select: none;
@@ -988,21 +1068,6 @@ button#session-close-btn {
 	}
 }
 
-/* Para telas muito grandes */
-@media (min-width: 1600px) {
-	#session-status-bar > div {
-		max-width: 1400px;
-		margin: 0 auto;
-		padding: 0 20px;
-	}
-}
-
-@media (min-width: 1400px) {
-	#session-status-bar > div {
-		padding: 0 15px;
-	}
-}
-
 /* ===== COMPATIBILIDADE DOJO BÁSICA ===== */
 
 /* Widgets Dojo básicos */
@@ -1068,12 +1133,6 @@ button#session-close-btn {
 /* Garantir que a barra de scroll horizontal apareça quando necessário */
 #listContainer::-webkit-scrollbar-corner {
 	background: transparent;
-}
-
-@media (min-width: 1920px) {
-	#session-status-bar > div {
-		padding: 0 60px;
-	}
 }
 
 /* Efeitos de interação */
@@ -1147,7 +1206,7 @@ button#session-close-btn {
     padding: 6px 0; /* Padrão para font-size 12px */
     border-bottom: 1px solid #dee2e6;
     box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-    font-family: var(--system-font);
+    font-family: "Inter", -apple-system, BlinkMacSystemFont, Helvetica, Arial, sans-serif;
     display: none;
     transition: all 0.3s ease;
 }
@@ -1204,7 +1263,7 @@ button#session-close-btn {
     border-radius: 20px;
     box-shadow: 0 2px 8px rgba(0,0,0,0.2);
     cursor: pointer;
-    font-family: var(--system-font);
+    font-family: "Inter", -apple-system, BlinkMacSystemFont, Helvetica, Arial, sans-serif;
     font-size: 13px;
     font-weight: 500;
     z-index: 9999;
@@ -1220,4 +1279,3 @@ button#session-close-btn {
    As variantes de botão (solid, outline, thick, inverted, gradient)
    e variantes de conteúdo (v1-v8) estão definidas lá.
    =================================================================== */
-

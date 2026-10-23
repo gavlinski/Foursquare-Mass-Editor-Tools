@@ -50,8 +50,8 @@ env:
 env:
   # ✅ Correto - Variables para config pública
   DEPLOY_HOST: ${{ vars.DEPLOY_HOST }}
-  PHP_VERSION: '8.1'
-  NODE_VERSION: '18'
+  PHP_VERSION: '8.5'
+  NODE_VERSION: '24'
 ```
 
 ### Variables Necessários (1 total)
@@ -82,8 +82,8 @@ jobs:
 env:
   DEPLOY_HOST: ${{ vars.DEPLOY_HOST }}       # De vars
   PRODUCTION_URL: ${{ secrets.APP_URL }}    # De secret
-  PHP_VERSION: '8.1'                        # Hardcoded (versionado)
-  NODE_VERSION: '18'                        # Hardcoded (versionado)
+  PHP_VERSION: '8.5'                        # Hardcoded (versionado)
+  NODE_VERSION: '24'                        # Hardcoded (versionado)
 
 jobs:
   deploy:

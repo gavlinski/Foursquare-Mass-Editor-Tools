@@ -109,10 +109,10 @@ function xmlhttpRequest(metodo, endpoint, acao, dados, i, callbacks) {
 					atualizarCategorias();
 					atualizarRedes();
 					atualizarWidgetsDijit(); // Atualiza widgets para ocultar placeholders					debugInfo("Categorias recuperadas!");
-					localStorage.setItem("categorias", JSON.stringify(resposta));
+					localStorage.setItem(fsqObterChaveCategorias(), JSON.stringify(resposta));
 					var d = new Date();
 					d.setHours(0, 0, 0, 0);
-					dojo.cookie("data_categorias", d, { expires: 1 });
+					dojo.cookie(fsqObterCookieCategorias(), d, { expires: 1 });
 				}
 			} else if (xmlhttp.status == 400) {
 				clearTimeout(xmlhttpTimeout);
@@ -593,7 +593,7 @@ function sinalizarVenues(problema) {
 
 function carregarListaCategorias() {
 	debugInfo("Recuperando dados das categorias...");
-	xmlhttpRequest("GET", "https://api.foursquare.com/v2/venues/categories" + "?oauth_token=" + oauth_token + "&v=" + DATA_VERSIONAMENTO, null, null);
+	xmlhttpRequest("GET", "https://api.foursquare.com/v2/venues/categories" + "?oauth_token=" + oauth_token + "&v=" + DATA_VERSIONAMENTO + "&locale=" + encodeURIComponent(fsqObterLocale()), null, null);
 }
 
 var STR_PAD_LEFT = 1;
@@ -825,10 +825,10 @@ dojo.addOnLoad(function() {
 	if (dojo.query('#icone0').length != 0) {
 		var d = new Date();
 		d.setHours(0, 0, 0, 0);
-		if ((!localStorage.getItem('categorias')) || (d > dojo.cookie("data_categorias")))
+		if ((!localStorage.getItem(fsqObterChaveCategorias())) || (d > dojo.cookie(fsqObterCookieCategorias())))
 			carregarListaCategorias();
 		else {
-			var resposta = JSON.parse(localStorage.getItem('categorias'));
+			var resposta = JSON.parse(localStorage.getItem(fsqObterChaveCategorias()));
 			montarTabela(resposta);
 			atualizarCategorias();
 			atualizarWidgetsDijit(); // Atualiza widgets para ocultar placeholders
@@ -840,7 +840,7 @@ dojo.addOnLoad(function() {
 
 function showDialogGuia() {
 	// set the content of the dialog:
-	dlg_guia.attr("content", "<ul style='width: 415px; padding-left: 18px; margin-top: -10px'><li><p>Use sempre a ortografia, acentua&ccedil;&atilde;o e as letras mai&uacute;sculas e min&uacute;sculas corretas.</p></li><li><p>Em redes ou franquias, n&atilde;o &eacute; preciso adicionar um sufixo de local. Portanto, pode deixar &quot;Subway&quot; ou &quot;Loja Americanas&quot; (em vez de &quot;Subway - Ponta Verde&quot; ou &quot;Lojas Americanas - Iguatemi&quot;).</p></li><li><p>Os nomes dos locais devem respeitar a grafia original da marca sem abrevia&ccedil;&otilde;es (principalmente nomes de empresas).</p></li><li><p>Sempre use abrevia&ccedil;&otilde;es nos endere&ccedil;os: &quot;Av.&quot; em vez de &quot;Avenida&quot;, &quot;R.&quot; em vez de &quot;Rua&quot;, etc., observando as <a href='http://www.buscacep.correios.com.br' target='_blank'>diretrizes postais locais</a>.</p></li><li><p>O preenchimento da Rua transversal &eacute; opcional no Brasil.</p></li><li>Na Rua transversal tamb&eacute;m podem ser inclu&iacute;dos:<ul style='padding-left: 18px; margin-top: 4px'><li>Complemento, ponto de refer&ecirc;ncia ou via de acesso (quando relevante)</li><li>Bloco, piso, loja ou setor (para sublocais)</li><li>Regi&atilde;o Administrativa (RA) considerada bairro do Distrito Federal</li></ul></li><li><p>Os nomes de Estados devem ser abreviados: &quot;RJ&quot; em vez de &quot;Rio de Janeiro&quot;.</p></li><li><p>Em caso de d&uacute;vida sobre a cria&ccedil;&atilde;o e edi&ccedil;&atilde;o de locais no Foursquare&reg;, consulte as <a href='https://pt.foursquare.com/info/houserules' target='_blank'>regras da casa</a> e as <a href='https://support.foursquare.com/hc/en-us/sections/21181966510620-General-Swarm-Q-A' target='_blank'>perguntas frequentes sobre o Swarm</a>.</p></li></ul>");
+	dlg_guia.attr("content", "<ul style='width: 415px; padding-left: 18px; margin-top: -10px'><li><p>Use sempre a ortografia, acentua&ccedil;&atilde;o e as letras mai&uacute;sculas e min&uacute;sculas corretas.</p></li><li><p>Em redes ou franquias, n&atilde;o &eacute; preciso adicionar um sufixo de local. Portanto, pode deixar &quot;Subway&quot; ou &quot;Lojas Americanas&quot; (em vez de &quot;Subway - Ponta Verde&quot; ou &quot;Lojas Americanas - Iguatemi&quot;).</p></li><li><p>Os nomes dos locais devem respeitar a grafia original da marca sem abrevia&ccedil;&otilde;es (principalmente nomes de empresas).</p></li><li><p>Sempre use abrevia&ccedil;&otilde;es nos endere&ccedil;os: &quot;Av.&quot; em vez de &quot;Avenida&quot;, &quot;R.&quot; em vez de &quot;Rua&quot;, etc., observando as <a href='http://www.buscacep.correios.com.br' target='_blank'>diretrizes postais locais</a>.</p></li><li><p>O preenchimento da Rua transversal &eacute; opcional no Brasil.</p></li><li>Na Rua transversal tamb&eacute;m podem ser inclu&iacute;dos:<ul style='padding-left: 18px; margin-top: 4px'><li>Complemento, ponto de refer&ecirc;ncia ou via de acesso (quando relevante)</li><li>Bloco, piso, loja ou setor (para sublocais)</li><li>Regi&atilde;o Administrativa (RA) considerada bairro do Distrito Federal</li></ul></li><li><p>Os nomes de Estados devem ser abreviados: &quot;RJ&quot; em vez de &quot;Rio de Janeiro&quot;.</p></li><li><p>Em caso de d&uacute;vida sobre a cria&ccedil;&atilde;o e edi&ccedil;&atilde;o de locais no Foursquare&reg;, consulte as <a href='https://pt.foursquare.com/info/houserules' target='_blank'>regras da casa</a> e as <a href='https://support.foursquare.com/hc/en-us/sections/21181966510620-General-Swarm-Q-A' target='_blank'>perguntas frequentes sobre o Swarm</a>.</p></li></ul>");
 	dlg_guia.show();
 	dlg_guia.attr("style", "width: 455px;");
 }

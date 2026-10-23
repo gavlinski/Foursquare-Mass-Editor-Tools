@@ -34,6 +34,7 @@ test.describe('Sessão e Autenticação', () => {
     await skipIfUnauthenticated(page);
     const response = await page.request.get('/4sqmet/session_status.php');
     expect(response.status()).toBe(200);
+    expect(response.headers()['content-type']).toContain('application/json');
     const body = await response.json();
     expect(body.authenticated).toBe(true);
   });

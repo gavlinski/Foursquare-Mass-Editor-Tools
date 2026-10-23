@@ -248,12 +248,14 @@ Isso elimina o alerta `AH00558: Could not reliably determine the server's fully 
    └─ Se NÃO → Build via Docker node:22-alpine
 
 2. Instala dependências (terser)
-     "build_source": "local",
+
+3. Minifica os seis scripts JavaScript:
    - 4sq.js → 4sq.min.js
+   - 4sq_csv.js → 4sq_csv.min.js
+   - fsq-autocomplete.js → fsq-autocomplete.min.js
    - main.js → main.min.js
    - session-manager.js → session-manager.min.js
    - google-maps.js → google-maps.min.js
-   - 4sq_csv.js → 4sq_csv.min.js
 
 4. Gera source maps (*.min.js.map)
 
@@ -262,8 +264,8 @@ Isso elimina o alerta `AH00558: Could not reliably determine the server's fully 
      "build_date": "2026-03-05T00:29:50Z",
      "commit_hash": "ddcf206...",
      "branch": "refactor-ia",
-     "version": "4SQMET-02_03_00-117-gddcf206",
-     "built_with": "docker" ou "local",
+     "version": "v3.4.0",
+     "build_source": "local",
      "environment": "production"
    }
 ```
@@ -474,14 +476,14 @@ git push origin refactor-ia
 Job 1: Lint & Validation (2-3 min)
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 ✓ Checkout code
-✓ Setup PHP 8.1
+✓ Setup PHP 8.5
 ✓ Install Composer
 ✓ PHP Syntax Check (todos os .php)
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 Job 2: Tests (2-3 min)
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-✓ Setup PHP 8.1
+✓ Setup PHP 8.5
 ✓ Run PHPUnit (quando implementado)
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -518,9 +520,9 @@ Todos os jobs que precisam de informações Git devem usar `fetch-depth: 0`:
 
 **Por quê?**
 - Sem isso, apenas o último commit é baixado (shallow checkout)
-- `git describe --tags` não encontra tags → retorna apenas hash curto
-- Versão fica "abc123" em vez de "4SQMET-02_03_00-117-gabc123"
-- Build-info.json com dados incompletos
+- `git describe --tags` pode não encontrar tags e retornar apenas o hash curto
+- O build usa `package.json` como fallback e mantém `v3.4.0`; sem histórico/tag completos, não acrescenta o sufixo de commit
+- O hash e o branch atuais ainda são registrados no `build-info.json`
 
 **Características:**
 - ✅ **Totalmente automático** após push
@@ -598,26 +600,26 @@ git push       # Push primeiro!
 
 ## 🐛 Troubleshooting
 
-### Problema: Versão mostra apenas commit hash curto no CI/CD (ex: "7a693ca" em vez de "4SQMET-02_03_00-117-gddcf206")
+### Problema: Versão de build não corresponde ao pacote ou não inclui o sufixo do commit
 
-**Causa:** Checkout shallow no CI/CD sem fetch de tags
+O build mantém o resultado de `git describe` apenas quando ele corresponde à versão do `package.json`. Caso contrário, usa `v<package.json.version>`. Isso evita exibir um hash curto ou uma versão de release anterior como versão do produto.
 
-O `git describe --tags --always` precisa do histórico completo para encontrar tags. Se o workflow faz checkout shallow (padrão), apenas o commit atual é baixado.
+**Causa possível para não ver o sufixo do commit:** checkout shallow ou ausência da tag SemVer correspondente. O fallback da versão do pacote continua funcionando.
 
 **Sintoma:**
 ```json
-// ❌ INCORRETO (sem tags)
+// Fallback quando não há descrição/tag correspondente
 {
-  "version": "7a693ca"
+  "version": "v3.4.0"
 }
 
-// ✅ CORRETO (com tags)
+// Tag correspondente e commits posteriores
 {
-  "version": "4SQMET-02_03_00-117-gddcf206"
+  "version": "v3.4.0-1-gabc1234"
 }
 ```
 
-**Solução:** Adicionar `fetch-depth: 0` no workflow
+Para preservar o sufixo de commit após a tag de release, mantenha `fetch-depth: 0` no checkout do workflow:
 
 ```yaml
 # .github/workflows/deploy.yml
@@ -632,9 +634,9 @@ jobs:
 
 **Verificação:**
 ```bash
-# Deve retornar versão completa com tag
+# Com tags e histórico completos, deve retornar a descrição SemVer
 git describe --tags --always
-# 4SQMET-02_03_00-117-gddcf206
+# v3.4.0-1-gabc1234
 ```
 
 ### Problema: `build-info.json` mostra commit antigo

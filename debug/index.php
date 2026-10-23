@@ -2,11 +2,12 @@
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
+    <link rel="stylesheet" href="../fonts/inter.css">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Ferramentas de Debug - Foursquare Mass Editor</title>
     <style>
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            font-family: "Inter", -apple-system, BlinkMacSystemFont, Helvetica, Arial, sans-serif;
             padding: 40px;
             background: #f0f2f5;
             color: #1a1a1a;
@@ -301,6 +302,13 @@
                 <div class="card">
                     <h2><span class="tag tag-ui">UI</span> Teste da Barra de Botões do Rodapé</h2>
                     <p>Página dedicada para validar ícones, hierarquia visual do botão Salvar e comportamento responsivo da barra de ações da tela de edição.</p>
+                </div>
+            </a>
+
+            <a href="test_fixedtray_layout.php" onclick="sessionStorage.setItem('debugIndexScrollPos', window.scrollY || document.documentElement.scrollTop);">
+                <div class="card">
+                    <h2><span class="tag tag-ui">UI</span> Comparação da Barra de Ações</h2>
+                    <p>Compara a barra fixa atual com o posicionamento proposto junto à lista e permite simular poucos ou muitos locais.</p>
                 </div>
             </a>
 

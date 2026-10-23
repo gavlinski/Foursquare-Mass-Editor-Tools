@@ -19,7 +19,7 @@ include_once __DIR__ . '/../includes/asset_helper.php';
     <?php dojo_script(['parseOnLoad' => true]); ?>
     <style>
         body {
-            font-family: Arial, Helvetica, Verdana, sans-serif;
+            font-family: "Inter", -apple-system, BlinkMacSystemFont, Helvetica, Arial, sans-serif;
             background: #f3f5f9;
             color: #2f3a45;
             margin: 0;

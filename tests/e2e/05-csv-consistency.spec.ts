@@ -12,6 +12,7 @@ type CsvHarnessWindow = Window & {
     hasClass: (element: Element, className: string) => boolean;
     addClass: (element: Element, className: string) => void;
     connect: () => void;
+    cookie: (name: string, value?: string, options?: { expires?: number }) => string | undefined;
   };
   dijit: {
     byId: (id: string) => {
@@ -35,10 +36,12 @@ type CsvHarnessWindow = Window & {
   pendingChainRequests: Record<string, number[]>;
   venuesComDadosCompletos: number[];
   linhasEditadas: number[];
+  marcarLinhaEditada: (index: number) => void;
   obterEstadoEdicaoDaNavegacao: () => {
     version: number;
     venueIds: string[];
     editChains: boolean;
+    linhasEditadas?: number[];
   } | null;
   restaurarEstadoEdicao: (state: {
     modo: number;
@@ -106,7 +109,8 @@ async function carregarLogicaCsv(page: Page) {
       byId: id => document.getElementById(id),
       hasClass: (element, className) => element.classList.contains(className),
       addClass: (element, className) => element.classList.add(className),
-      connect: () => undefined
+      connect: () => undefined,
+      cookie: () => undefined
     };
     editor.__testWidgets = {
       saveButton: { disabled: true, set: (_name, value) => { editor.__testWidgets.saveButton.disabled = Boolean(value); }, setAttribute: (_name, value) => { editor.__testWidgets.saveButton.disabled = Boolean(value); } },
@@ -131,6 +135,7 @@ async function carregarLogicaCsv(page: Page) {
     editor.createTooltip = () => undefined;
     editor.setupVerticalNavigation = () => undefined;
   });
+  await page.addScriptTag({ path: path.resolve(process.cwd(), 'js/fsq-autocomplete.js') });
 }
 
 function colunasCompletas(): string[] {
@@ -886,6 +891,56 @@ test.describe('Consistência do CSV de venues', () => {
     expect(resultado.chainHtml).toBe('');
   });
 
+  test('restaura snapshot sem edições após recarregar o navegador', async ({ page }) => {
+    await carregarLogicaCsv(page);
+
+    const resultado = await page.evaluate(({ partialVenueId, completeVenueId }) => {
+      const editor = window as unknown as CsvHarnessWindow;
+      const armazenamento = new Map<string, string>([[
+        'fmet:editor-state',
+        JSON.stringify({
+          version: 1,
+          venueIds: [partialVenueId, completeVenueId],
+          editChains: true,
+          linhasEditadas: []
+        })
+      ]]);
+      Object.defineProperty(window, 'sessionStorage', {
+        configurable: true,
+        value: {
+          getItem: (key: string) => armazenamento.get(key) || null,
+          removeItem: (key: string) => armazenamento.delete(key)
+        }
+      });
+      Object.defineProperty(window.performance, 'getEntriesByType', {
+        configurable: true,
+        value: () => [{ type: 'reload' }]
+      });
+
+      const estado = editor.obterEstadoEdicaoDaNavegacao();
+      const snapshotSemEdicoesMantido = armazenamento.has('fmet:editor-state');
+      editor.marcarLinhaEditada(0);
+      armazenamento.set('fmet:editor-state', JSON.stringify({
+        version: 1,
+        venueIds: [partialVenueId, completeVenueId],
+        editChains: true,
+        linhasEditadas: [0]
+      }));
+      const estadoComEdicoes = editor.obterEstadoEdicaoDaNavegacao();
+      return {
+        estado,
+        snapshotSemEdicoesMantido,
+        salvarDesabilitado: editor.__testWidgets.saveButton.disabled,
+        edicoesPendentesRestauradas: estadoComEdicoes?.linhasEditadas
+      };
+    }, { partialVenueId, completeVenueId });
+
+    expect(resultado.estado?.linhasEditadas).toEqual([]);
+    expect(resultado.salvarDesabilitado).toBe(false);
+    expect(resultado.snapshotSemEdicoesMantido).toBe(true);
+    expect(resultado.edicoesPendentesRestauradas).toEqual([0]);
+  });
+
   test('mantém a rede primária fora das adições e inclui secundárias e terciárias', async ({ page }) => {
     await carregarLogicaCsv(page);
 
@@ -1053,7 +1108,12 @@ test.describe('Consistência do CSV de venues', () => {
     process.env.CI = 'true';
     const unauthenticatedPage = {
       request: {
-        get: async () => ({ ok: () => true, json: async () => ({ authenticated: false }) })
+        get: async () => ({
+          ok: () => true,
+          status: () => 200,
+          headers: () => ({ 'content-type': 'application/json' }),
+          text: async () => JSON.stringify({ authenticated: false })
+        })
       }
     } as unknown as Page;
 

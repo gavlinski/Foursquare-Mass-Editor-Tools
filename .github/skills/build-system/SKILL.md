@@ -56,7 +56,7 @@ env:
 ├─> Usa Docker container (node:22-alpine)
 ├─> docker run ... sh build-docker.sh
 │   ├─> npm install
-│   ├─> Minifica 5 arquivos JS com terser
+│   ├─> Minifica 6 arquivos JS com terser
 │   ├─> Gera build-info.json com BUILD_SOURCE
 │   └─> Retorna *.min.js e *.min.js.map
 └─> Exibe estatísticas de redução
@@ -93,7 +93,7 @@ GitHub Actions (deploy.yml)
   "commit_hash": "ddcf2069344788632b19934b404ea60f77cb4c78",
   "commit_short": "ddcf206",
   "branch": "refactor-ia",
-  "version": "4SQMET-02_03_00-117-gddcf206",
+  "version": "v3.4.0",
   "build_source": "local",
   "environment": "production"
 }
@@ -106,9 +106,10 @@ GitHub Actions (deploy.yml)
 
 1. `js/4sq.js` → `js/4sq.min.js`
 2. `js/4sq_csv.js` → `js/4sq_csv.min.js`
-3. `js/main.js` → `js/main.min.js`
-4. `js/session-manager.js` → `js/session-manager.min.js`
-5. `js/google-maps.js` → `js/google-maps.min.js`
+3. `js/fsq-autocomplete.js` → `js/fsq-autocomplete.min.js`
+4. `js/main.js` → `js/main.min.js`
+5. `js/session-manager.js` → `js/session-manager.min.js`
+6. `js/google-maps.js` → `js/google-maps.min.js`
 
 ## Common Tasks
 
@@ -118,6 +119,7 @@ GitHub Actions (deploy.yml)
 declare -a FILES=(
     "4sq"
     "4sq_csv"
+    "fsq-autocomplete"
     "main"
     "session-manager"
     "google-maps"
@@ -125,7 +127,7 @@ declare -a FILES=(
 )
 
 # Em build-docker.sh (linha ~14)
-FILES="4sq 4sq_csv main session-manager google-maps novo-arquivo"
+FILES="4sq 4sq_csv fsq-autocomplete main session-manager google-maps novo-arquivo"
 ```
 
 ### Testar build localmente

@@ -73,6 +73,7 @@ echo -e "${BLUE}🔧 Iniciando minificação de scripts JavaScript...${NC}\n"
 declare -a FILES=(
     "4sq"
     "4sq_csv"
+    "fsq-autocomplete"
     "main"
     "session-manager"
     "google-maps"

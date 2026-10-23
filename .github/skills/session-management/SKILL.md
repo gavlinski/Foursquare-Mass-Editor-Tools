@@ -353,7 +353,7 @@ $token = $_SESSION['oauth_token'];
 
 ### Modern (src/)
 ```php
-// PSR-4, PHP 8.1+
+// PSR-4, PHP 8.5+
 use ElioTools\Security\SessionManager;
 
 $manager = new SessionManager();

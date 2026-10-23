@@ -16,7 +16,7 @@ description: Gerencia o ambiente VS Code Dev Container (.devcontainer/devcontain
 
 ## Architecture Decision: Por que Dev Container aqui?
 
-O container já é a imagem `php:8.1-apache` usada em produção. Dev Container permite desenvolver **na mesma imagem**, eliminando discrepâncias. O Dockerfile usa `BUILD_ENV=development` para:
+O container já é a imagem `php:8.5-apache` usada em produção. Dev Container permite desenvolver **na mesma imagem**, eliminando discrepâncias. O Dockerfile usa `BUILD_ENV=development` para:
 1. Copiar `apache-config.conf` (com Alias `/4sqmet/`) em vez de `apache-config-production.conf`
 2. Instalar certificados SSL self-signed de `ssl/localhost.pem`
 
@@ -90,7 +90,7 @@ fi
 
 ## Verificação de portas sem ss/netstat
 
-A imagem `php:8.1-apache` não inclui `ss` nem `netstat`. Use `curl` ou `/proc/net/tcp`:
+A imagem `php:8.5-apache` não inclui `ss` nem `netstat`. Use `curl` ou `/proc/net/tcp`:
 
 ```bash
 # Verificação funcional (preferida)
@@ -121,7 +121,7 @@ Esta correção já está aplicada em `build.sh` (7 ocorrências, linhas 107–1
 
 | Extensão | Status | Motivo |
 |----------|--------|--------|
-| `bmewburn.vscode-intelephense-client` | Obrigatória | IntelliSense PHP com PHP 8.1 do container |
+| `bmewburn.vscode-intelephense-client` | Obrigatória | IntelliSense PHP com PHP 8.5 do container |
 | `eamodio.gitlens` | Opcional | Histórico Git inline — útil mas não essencial |
 
 ## postCreateCommand: ordem de execução

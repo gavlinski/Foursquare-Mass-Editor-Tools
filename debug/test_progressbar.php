@@ -15,7 +15,7 @@ require_once __DIR__ . '/../includes/asset_helper.php';
     <link rel="stylesheet" type="text/css" href="../estilo.css">
     <style>
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            font-family: "Inter", -apple-system, BlinkMacSystemFont, Helvetica, Arial, sans-serif;
             padding: 30px;
             background: #f5f7fa;
             color: #2c3e50;

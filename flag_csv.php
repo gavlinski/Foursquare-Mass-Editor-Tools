@@ -9,7 +9,7 @@
  * @package    Foursquare-Mass-Editor-Tools
  * @author     Elio Gavlinski <gavlinski@gmail.com>
  * @copyright  Copyleft (c) 2011-2026
- * @version    3.3.0
+ * @version    3.4.0
  * @link       https://github.com/gavlinski/Foursquare-Mass-Editor-Tools/blob/master/flag_csv.php
  * @since      File available since Release 1.1
  * @license    GPLv3 <http://www.gnu.org/licenses/gpl.txt>
@@ -56,10 +56,11 @@ include 'includes/app_credentials.php';
 <?php 
 dojo_script(['parseOnLoad' => true]);
 script_versioned('js/session-manager.js');
+script_versioned('js/fsq-autocomplete.js');
 script_versioned('js/4sq_csv.js');
 ?>
 </head>
-<body class="tundra">
+<body class="tundra csv-flag-page">
 
 <?php include 'includes/session-status-bar.php'; ?>
 <header>
@@ -305,13 +306,97 @@ foreach ($file as $f) {
 }
 ?>
 </div>
-</article>
-<article>
+<div id="fixedtray-slot">
 	<div id="fixedtray">
 		<div id="dropdownButtonContainer1" style="float: left; padding-right: 3px;"></div>
 		<button id="cancelButton" dojoType="dijit.form.Button" type="button" onclick="history.go(-1)" name="cancelButton" style="float: left">Cancelar</button>
 		<div id="dropdownButtonContainer2" style="float: left"></div>
 	</div>
+</div>
 </article>
+<script>
+if (typeof dojo !== 'undefined' && dojo.ready) {
+	dojo.ready(function() {
+		const fixedTray = document.getElementById('fixedtray');
+		const fixedTraySlot = document.getElementById('fixedtray-slot');
+		const listContainer = document.getElementById('listContainer');
+
+		if (fixedTray && fixedTraySlot && listContainer) {
+			let trayUpdateScheduled = false;
+			listContainer.classList.add('csv-tray-managed');
+
+			function setFixedTrayAnchored(anchored, trayHeight) {
+				listContainer.classList.toggle('csv-tray-anchored', anchored);
+				fixedTraySlot.style.height = anchored ? trayHeight + 'px' : '0px';
+				if (fixedTray.classList.contains('is-in-flow') === anchored) {
+					return;
+				}
+
+				const previousTop = fixedTray.getBoundingClientRect().top;
+				fixedTray.classList.toggle('is-in-flow', anchored);
+				fixedTray.style.transition = 'none';
+				fixedTray.style.transform = 'none';
+
+				const nextTop = fixedTray.getBoundingClientRect().top;
+				const offset = previousTop - nextTop;
+				fixedTray.style.transform = 'translateY(' + offset + 'px)';
+				fixedTray.getBoundingClientRect();
+
+				window.requestAnimationFrame(function() {
+					fixedTray.style.transition = '';
+					fixedTray.style.transform = '';
+				});
+			}
+
+			function updateFixedTrayPosition() {
+				const trayHeight = Math.ceil(fixedTray.getBoundingClientRect().height);
+				listContainer.style.setProperty('--fixedtray-height', trayHeight + 'px');
+
+				const initialListBounds = listContainer.getBoundingClientRect();
+				const listStyles = window.getComputedStyle(listContainer);
+				const verticalExtras = listStyles.boxSizing === 'border-box'
+					? 0
+					: parseFloat(listStyles.paddingTop) + parseFloat(listStyles.paddingBottom)
+						+ parseFloat(listStyles.borderTopWidth) + parseFloat(listStyles.borderBottomWidth);
+				const pageBottomMargin = parseFloat(window.getComputedStyle(document.body).marginBottom);
+				const availableListHeight = window.innerHeight - initialListBounds.top - trayHeight - 8
+					- verticalExtras - pageBottomMargin;
+				listContainer.style.setProperty('--csv-tray-fit-height', Math.max(0, availableListHeight) + 'px');
+
+				const listBounds = listContainer.getBoundingClientRect();
+				const availableBottom = window.innerHeight - pageBottomMargin;
+				const listAndTrayFitViewport = listBounds.top >= 0
+					&& listBounds.bottom + trayHeight + 8 <= availableBottom;
+
+				setFixedTrayAnchored(listAndTrayFitViewport, trayHeight);
+			}
+
+			function scheduleFixedTrayUpdate() {
+				if (trayUpdateScheduled) {
+					return;
+				}
+
+				trayUpdateScheduled = true;
+				window.requestAnimationFrame(function() {
+					trayUpdateScheduled = false;
+					updateFixedTrayPosition();
+				});
+			}
+
+			window.addEventListener('resize', scheduleFixedTrayUpdate);
+			window.addEventListener('scroll', scheduleFixedTrayUpdate, { passive: true });
+			if (typeof ResizeObserver !== 'undefined') {
+				const trayResizeObserver = new ResizeObserver(scheduleFixedTrayUpdate);
+				trayResizeObserver.observe(fixedTray);
+				trayResizeObserver.observe(listContainer);
+			}
+			if (document.fonts && document.fonts.ready) {
+				document.fonts.ready.then(scheduleFixedTrayUpdate);
+			}
+			scheduleFixedTrayUpdate();
+		}
+	});
+}
+</script>
 </body>
 </html>

@@ -6,14 +6,14 @@ This file is the canonical, tool-agnostic entry point for AI coding agents worki
 
 Foursquare Mass Editor Tools ("Elio Tools") is a PHP/Dojo web app for bulk editing Foursquare venues via the Foursquare API v2.
 
-- **Backend**: PHP 8.1, hybrid architecture — modern PSR-4 code in `src/` (`ElioTools\Config`, `ElioTools\Security`, `ElioTools\Api`) + legacy procedural PHP 5.4+ in the repo root (`edit.php`, `load.php`, `main.php`, `index.php`).
-- **Frontend**: Dojo Toolkit v1.8 (legacy widgets) + ES6 JavaScript (`js/session-manager.js` and friends).
+- **Backend**: PHP 8.5, hybrid architecture — modern PSR-4 code in `src/` (`ElioTools\Config`, `ElioTools\Security`, `ElioTools\Api`) + legacy procedural PHP 5.4+ in the repo root (`edit.php`, `load.php`, `main.php`, `children.php`, `index.php`).
+- **Frontend**: Dojo Toolkit v1.8 (legacy widgets) + ES6 JavaScript (`js/session-manager.js`, `js/fsq-autocomplete.js`, and friends).
 - **API**: Foursquare API v2, OAuth2.
 - **Infra**: Docker + Apache 2.4 + Composer.
 
 ```
 src/            # Modern PSR-4: Api/, Config/, Security/
-js/             # Frontend: legacy Dojo-integrated + modern ES6
+js/             # Frontend: legacy Dojo-integrated + modern ES6; shared API autocomplete/geocoding helper
 debug/          # Consolidated debug/test tools (never add new test files elsewhere)
 .github/skills/       # Task-triggered domain knowledge (Agent Skills spec)
 .github/instructions/ # Path-scoped coding conventions (applyTo globs)
@@ -52,7 +52,7 @@ Coding conventions are enforced through path-scoped instruction files (VS Code `
 
 ## Domain knowledge (skills)
 
-Venue editing includes optional Chains support; the existing `venue-editing-workflow` skill documents its API v2, modal, selection, and CSV behavior.
+Venue editing includes optional Chains support, API-backed category search, Facebook username display/normalization, and a parent-place autocomplete. The main page also supports importing child venues from a parent location. The `venue-editing-workflow` skill documents the API v2, modal, selection, and CSV behavior.
 
 Deeper, task-triggered knowledge lives in `.github/skills/*/SKILL.md`. Load the relevant one before touching its area: `build-system`, `deploy-workflows`, `deploy-safety`, `ci-cd-configuration`, `devcontainer-setup`, `debug-tools`, `scroll-preservation`, `session-management`, `version-info`, `analytics-hardening`, `venue-editing-workflow`, `mcp-playwright-auth`, `playwright-regression`.
 
@@ -76,4 +76,4 @@ Three methods exist — CI/CD (GitHub Actions, the default for normal work), `de
 | High-level architecture, forbidden actions | `.github/copilot-instructions.md` |
 | Path-scoped coding conventions | `.github/instructions/*.instructions.md` |
 | Task-specific domain knowledge | `.github/skills/*/SKILL.md` |
-| Human-facing docs (setup, features) | `README.md`, `docs/` |
+| Human-facing docs (setup, features) | `README.md`, `docs/` (migration docs are under `docs/migration/`) |

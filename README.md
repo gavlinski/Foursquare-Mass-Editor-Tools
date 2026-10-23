@@ -1,17 +1,16 @@
 # Foursquare Mass Editor Tools (Elio Tools)
 
-**Version 3.3.2** - Deploy, Security, and Chains Fixes
+**Version 3.4.0** - Venue Search and Editing Improvements
 
-A comprehensive collection of **Superuser Tools** for Foursquare venues mass/bulk editing and searching, powered by the Foursquare API v2. This project has been **completely modernized** with a hybrid architecture combining modern PHP 8.1 features with legacy compatibility.
+A comprehensive collection of **Superuser Tools** for Foursquare venues mass/bulk editing and searching, powered by the Foursquare API v2. This project has been **completely modernized** with a hybrid architecture combining modern PHP 8.5 features with legacy compatibility.
 
-## 🚀 Version 3.3.2 Highlights
+## 🚀 Version 3.4.0 Highlights
 
-- ✅ **Chains** can be searched, assigned, reordered, and submitted with venue edits
-- ✅ Chain IDs and edit operations are included in CSV exports when selected
-- ✅ Partial and complete venue data stay aligned after reloads and CSV export
-- ✅ Bulk edits apply to selected venues and can prefill values shared by those venues
-- ✅ Session test fixtures are isolated from real authentication sessions
-- ✅ Version 3.3.2 fixes tag deployment, adds Copilot security hooks, and corrects chain search eligibility
+- ✅ Search categories using API autocomplete, including accent-insensitive matches and category icons
+- ✅ Import venues contained within a parent venue, with parent-place autocomplete and region-aware results
+- ✅ Convert city/address regions using Foursquare geocoding, with Google Maps as a browser-side fallback
+- ✅ Display Facebook usernames when available and normalize accidental Facebook URL prefixes before saving
+- ✅ Confirm edits and flags with descriptive dialogs and accurate affected-place counts
 
 ## 🎯 Key Features
 
@@ -19,18 +18,19 @@ A comprehensive collection of **Superuser Tools** for Foursquare venues mass/bul
 - 📄 Import full data from UTF-8 CSV files
 - 🌐 Import venues from public web pages
 - ✏️ Manually enter venue IDs or URLs
+- 🏬 Import venues located inside another place (such as a shopping mall or airport)
 - 🔗 URL parameter support: `load.php?venues=id1,id2,id3`
 - 📊 Export to CSV, URLs only, or editing reports
 
 ### Editing Capabilities
 - ✏️ Mass editing of almost all venue fields
-- 🏷️ Category management with hierarchical tree view
+- 🏷️ Category management with hierarchical tree and API autocomplete search
 - 🏢 Chain search, assignment, primary selection, and editing
 - 🚩 All types of venue flagging
 - 📍 Google Maps integration with location markers
 - 🔍 Advanced search using Foursquare API
 
-### Current Capabilities (v3.3.2)
+### Current Capabilities (v3.4.0)
 - 🔐 **OAuth2 Authentication** with automatic token refresh
 - 📊 **Session Status Bar** with real-time monitoring
 - 🧹 **Cache Management** with automatic cleanup
@@ -43,7 +43,7 @@ For the complete release history, see [CHANGELOG.md](CHANGELOG.md).
 ## 🏗️ Architecture
 
 ### Modern Stack
-- **Backend**: PHP 8.1 with strict typing and PSR-4 autoloading
+- **Backend**: PHP 8.5 with strict typing and PSR-4 autoloading
 - **Frontend**: ES6 JavaScript + Dojo Toolkit v1.8.14 (hybrid approach)
 - **API**: Foursquare API v2 with OAuth2 authentication
 - **Infrastructure**: Docker + Apache 2.4 + Composer
@@ -58,6 +58,7 @@ src/
 js/
 ├── session-manager.js    # Modern ES6 session handling  
 ├── 4sq.js               # Core venue manipulation (legacy)
+├── fsq-autocomplete.js  # Shared category/parent-place autocomplete and geocoding
 └── main.js              # Main interface logic
 
 includes/
@@ -166,7 +167,7 @@ DOJO_FORCE_FALLBACK="false"
 3. Allow application access to your Foursquare account
 
 ### For Development
-- PHP 8.1+
+- PHP 8.5+
 - Composer 2.x
 - Docker (optional but recommended)
 - Git
@@ -208,7 +209,7 @@ For Dojo source/fallback diagnostics, use `debug/test_dojo_cdn.php`.
 
 ## 📝 Migration Notes
 
-This version represents a **hybrid modernization** while maintaining backward compatibility in core workflows. See [docs/migration/MIGRATION.md](docs/migration/MIGRATION.md) for detailed migration information.
+This version continues the **hybrid modernization** while maintaining backward compatibility in core workflows. See [docs/migration/MIGRATION.md](docs/migration/MIGRATION.md) for detailed migration information.
 
 ### Breaking Changes
 - Minimum PHP version: 8.1+
@@ -278,7 +279,7 @@ curl -k "https://localhost/debug/debug_session.php?mode=debug"
 
 ### Migration Status
 
-⚠️ **Migration in Progress**: The codebase is currently being modernized from PHP 5.4 to PHP 8.1 with Google Maps API integration. Some features may be in transition.
+The original migration from PHP 5.4 to PHP 8.1 is complete; the application runtime now targets PHP 8.5. Google Maps modernization and broader PSR-4 migration continue as separate work.
 
 **Completed**:
 

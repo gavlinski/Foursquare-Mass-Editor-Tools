@@ -172,7 +172,7 @@ border-radius: 50%;
 
 ### Typography
 ```css
-Font Family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto
+Font Family: "Inter", -apple-system, BlinkMacSystemFont, Helvetica, Arial, sans-serif
 Primary:   18px / 500 weight
 Secondary: 14px / normal weight
 Color: white (rgba 0.8 for secondary)

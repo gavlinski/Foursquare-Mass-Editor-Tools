@@ -4,16 +4,16 @@
 
 ## Architecture at a glance
 
-- **Backend**: PHP 8.1, hybrid — modern PSR-4 in `src/` (`ElioTools\Config`, `ElioTools\Security`, `ElioTools\Api`) + legacy procedural PHP in the repo root (`edit.php`, `load.php`, `main.php`, `index.php`).
+- **Backend**: PHP 8.5, hybrid — modern PSR-4 in `src/` (`ElioTools\Config`, `ElioTools\Security`, `ElioTools\Api`) + legacy procedural PHP in the repo root (`edit.php`, `load.php`, `main.php`, `index.php`).
 - **Frontend**: Dojo Toolkit v1.8 widgets + ES6 JavaScript (`js/`).
 - **API**: Foursquare API v2, OAuth2.
 - **Infra**: Docker + Apache 2.4 + Composer.
 
 ```
 src/            # Modern PSR-4: Api/, Config/, Security/
-js/             # legacy Dojo-integrated + modern ES6
+js/             # legacy Dojo-integrated + modern ES6, including shared fsq-autocomplete.js
 debug/          # consolidated debug/test tools
-Root *.php      # legacy, functional — edit.php, load.php, main.php, js/4sq.js
+Root *.php      # legacy, functional — edit.php, load.php, main.php, children.php, js/4sq.js
 ```
 
 Two dev workflows exist (Dev Container vs `./dev.sh`) — **never run both at once** (port 80/443 conflict). See the `devcontainer-setup` and `deploy-workflows` skills.
@@ -46,6 +46,7 @@ Load the matching `SKILL.md` before working in its area:
 - **ci-cd-configuration** — GitHub Actions secrets vs. repository variables
 - **devcontainer-setup** — VS Code Dev Container config and troubleshooting
 - **debug-tools** — consolidated debug/index.php interface
+- **debug/test_fixedtray_layout.php** — compare current and dynamic venue editor action-bar positioning
 - **scroll-preservation** — sessionStorage scroll restore pattern in debug/index.php
 - **session-management** — OAuth2 flow, session-manager.js, system info modal
 - **version-info** — version.php dual HTML/JSON endpoint, build-info.json, badges
@@ -71,9 +72,9 @@ The Playwright MCP uses headless/headed Chromium to browse the app. For authenti
 
 ## Additional docs
 
-- **Migration Guide**: `docs/MIGRATION.md`
-- **Google Maps Migration**: `docs/GOOGLE_MAPS_MIGRATION.md`
-- **API Keys Documentation**: `docs/API_KEYS_DOCUMENTATION.md`
+- **Migration Guide**: `docs/migration/MIGRATION.md`
+- **Google Maps Migration**: `docs/migration/GOOGLE_MAPS_MIGRATION.md`
+- **API Keys Documentation**: `docs/api/API_KEYS_DOCUMENTATION.md`
 - **Build & Deploy Guide**: `docs/BUILD_AND_DEPLOY.md`
 - **Advanced Deploy Modes (TODO)**: `docs/TODO_DEPLOY_ADVANCED.md`
 - **Playwright MCP Validation Runbook**: `docs/features/MCP_PLAYWRIGHT_VALIDATION.md`

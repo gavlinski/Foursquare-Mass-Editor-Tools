@@ -1,4 +1,4 @@
-FROM php:8.1-apache
+FROM php:8.5-apache
 
 # Build argument para diferenciar desenvolvimento e produção
 ARG BUILD_ENV=production
@@ -20,7 +20,10 @@ RUN apt-get update \
     && apt-get clean && rm -rf /var/lib/apt/lists/*
 
 # Instala Composer
-COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
+COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
+
+# Keep PHP diagnostics in container logs instead of HTTP response bodies.
+COPY docker/php-runtime.ini /usr/local/etc/php/conf.d/99-elio-tools.ini
 
 # Ativa módulos do Apache necessários
 RUN a2enmod rewrite headers deflate expires ssl

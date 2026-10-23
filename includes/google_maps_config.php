@@ -6,8 +6,12 @@
  * As credenciais sensíveis estão em google_maps_credentials.php
  */
 
-// Carrega credenciais sensíveis
-$credentials = include __DIR__ . '/google_maps_credentials.php';
+// Prefer local credentials, but keep clean checkouts and CI functional via environment variables.
+$credentialsFile = __DIR__ . '/google_maps_credentials.php';
+if (!is_file($credentialsFile)) {
+    $credentialsFile .= '.example';
+}
+$credentials = include $credentialsFile;
 
 return array_merge($credentials, [
     

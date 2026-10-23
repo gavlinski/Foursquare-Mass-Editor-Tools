@@ -87,6 +87,37 @@ test.describe('Edição em Massa', () => {
     await expect(page.getByRole('button', { name: /Continuar/i }).filter({ visible: true }).first()).toBeVisible();
   });
 
+  test('main.php impede continuar sem local e não restaura "undefined" na textarea', async ({ page }) => {
+    await skipIfUnauthenticated(page);
+    await page.context().clearCookies({ name: 'textarea' });
+    await page.goto('/4sqmet/main.php');
+    await abrirPainelDeIds(page);
+
+    const textarea = page.locator('#textarea_ids');
+    await expect(textarea).toHaveValue('');
+
+    await page.context().addCookies([
+      { name: 'textarea', value: 'undefined', domain: 'localhost', path: '/' },
+    ]);
+    await page.reload();
+    await abrirPainelDeIds(page);
+    await expect(textarea).toHaveValue('');
+
+    const dialogPromise = page.waitForEvent('dialog');
+    const clickPromise = page.getByRole('button', { name: /Continuar/i }).filter({ visible: true }).click();
+    const dialog = await dialogPromise;
+    expect(dialog.message()).toBe('Informe pelo menos um ID ou URL de local antes de continuar.');
+    await dialog.accept();
+    await clickPromise;
+
+    await expect(page).toHaveURL(/main\.php/);
+    await expect(textarea).toHaveValue('');
+    await page.reload();
+    await abrirPainelDeIds(page);
+    await expect(textarea).toHaveValue('');
+    await expect(textarea).not.toHaveValue('undefined');
+  });
+
   test('main.php exibe ajudas coerentes com os formatos atuais', async ({ page }) => {
     await skipIfUnauthenticated(page);
     await page.goto('/4sqmet/main.php');
@@ -176,7 +207,7 @@ test.describe('Edição em Massa', () => {
       editorWindow.atualizarRedes([], '');
       editorWindow.adicionarRedeNaEdicao('0123456789abcdef01234567', 'Rede de teste', '');
     });
-    await expect(page.locator('#chainSearchStatus')).toHaveText('Rede adicionada.');
+    await expect(page.locator('#chainSearchStatus')).toHaveText('Rede "Rede de teste" adicionada.');
   });
 
   test('edit.php - sinalização de alteração em campo', async ({ page }) => {

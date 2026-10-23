@@ -33,6 +33,7 @@ tests/
     03-google-maps.spec.ts    ← Regressão 3: Google Maps
     04-errors-retry.spec.ts   ← Regressão 4: Erros e Retry
     05-csv-consistency.spec.ts ← Regressão 5: CSV parcial/completo e Redes
+    06-autocomplete-facebook.spec.ts ← Regressão 6: Autocomplete, importação Dentro, Facebook e modais
     auth-session.ts            ← Helpers de pré-condição de autenticação
 test-results/                 ← Artefatos de falha (gitignored)
 playwright-report/            ← Relatório HTML (gitignored)
@@ -126,7 +127,7 @@ test('redireciona para login sem token', async ({ browser }) => {
 
 ---
 
-## Os 5 Fluxos de Regressão
+## Os 6 Fluxos de Regressão
 
 ### Fluxo 1: Sessão e Autenticação (`01-session-auth.spec.ts`)
 
@@ -157,6 +158,7 @@ npx playwright test tests/e2e/01-session-auth.spec.ts
 - Checkboxes de seleção de campos presentes, incluindo Redes
 - `edit.php` renderiza campos Dojo (requer `TEST_VENUE_ID`)
 - Campo Redes fica disponível quando selecionado; inclusão local e mensagem de confirmação funcionam
+- A confirmação de inclusão de rede exibe o nome selecionado
 - Sinalização visual de campo alterado
 
 **ID de venue:** os testes usam `4ec42a0a9a522f580b42dbeb` como fallback fixo.
@@ -202,6 +204,22 @@ Para substituir: `export TEST_VENUE_ID="outro-id"` antes de rodar.
 - Fluxo de URL direta mantém Redes selecionado conforme o comportamento de todos os campos.
 
 Este spec carrega `js/4sq.js` num harness local e não grava alterações em venues reais. A suíte completa deve ser executada com storage state válido; confirme o resumo do Playwright e não considere skips por falta de autenticação como cobertura aprovada.
+
+### Fluxo 6: Autocomplete, Dentro, Facebook e modais (`06-autocomplete-facebook.spec.ts`)
+
+**O que valida:**
+- Busca de categorias por API na página principal e na modal de edição, incluindo mensagens de inclusão, duplicata e limite.
+- Busca de local pai por nome, validação de ID/link e priorização por região.
+- Importação de locais-filhos, persistência do painel ao voltar da edição e geocodificação Foursquare com fallback Google.
+- Preferência pelo username Facebook, normalização de prefixos e títulos/contagens das modais de comentários.
+- Uso do mesmo autocomplete compartilhado pela aplicação e pelas ferramentas de diagnóstico de geocodificação.
+
+**Como rodar:**
+```bash
+npx playwright test tests/e2e/06-autocomplete-facebook.spec.ts
+```
+
+Os cenários UI que precisam de venue autenticada usam fixtures ou rotas interceptadas quando possível; testes que dependem da sessão real devem reportar explicitamente os skips se o storage state estiver ausente/expirado.
 
 ---
 
@@ -281,10 +299,13 @@ Configurado em `playwright.config.ts`:
 process.env.PLAYWRIGHT_BROWSERS_PATH = '/var/www/html/data/mcp/playwright/browsers';
 ```
 
-**Se `chromium_headless_shell` não existir (após rebuild):**
+**Se o Chromium ou `chromium_headless_shell` estiver ausente/desatualizado** (por exemplo,
+após atualizar `@playwright/test` ou reconstruir o container):
 ```bash
 PLAYWRIGHT_BROWSERS_PATH=/var/www/html/data/mcp/playwright/browsers npx playwright install chromium
 ```
+O setup do Dev Container executa esse comando a cada inicialização para manter o cache alinhado
+à revisão exigida pela versão instalada do Playwright.
 
 ---
 
