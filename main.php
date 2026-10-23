@@ -571,13 +571,13 @@ if ((isset($_COOKIE['name'])) && (strlen($_COOKIE['name']) > 0))
 					<div class="row">
 						<div class="queryinputlabel"><label for="parentSearchMain"><a id="dlg_dentro" href="javascript:showDialogDentro();">Dentro</a>:</label></div>
 						<div class="queryinput" style="position: relative; padding-bottom: 8px;">
-							<input type="text" id="parentSearchMain" dojoType="dijit.form.TextBox" autocomplete="off" placeHolder="Nome, ID ou link do local pai" style="width: 302px; box-sizing: border-box;">
+							<input type="text" id="parentSearchMain" dojoType="dijit.form.TextBox" autocomplete="off" placeHolder="Nome, ID ou link do local pai" style="width: 342px; box-sizing: border-box;">
 							<input type="hidden" id="parentIdMain" name="parentId" value="">
 							<div id="parentSearchMainResults" class="chain-search-results visual-results-list" style="display: none; position: absolute; z-index: 1000; width: 340px; max-height: 260px; overflow-y: auto; background: #fff; border: 1px solid #ccc;"></div>
 							<div id="parentSearchMainStatus" style="display: none; font-size: 11px; color: #888;"></div>
 						</div>
 						<div class="llinputlabel"><label for="ll5"><a href="https://docs.foursquare.com/fsq-developers-places/reference/place-search" target="_blank">Regi&atilde;o</a>:</label></div>
-						<div class="llinput"><input type="text" id="ll5" name="ll" required="false" dojoType="dijit.form.ValidationTextBox" trim="true" placeHolder="Lat,Lng ou Cidade" style="width: 286px"/></div>
+						<div class="llinput"><input type="text" id="ll5" name="ll" required="false" dojoType="dijit.form.ValidationTextBox" trim="true" placeHolder="Lat,Lng ou Cidade" style="width: 246px"/></div>
 					</div>
 					<div class="row">
 						<div class="fieldslabel"><label for="campos5">Campos:</label></div>
