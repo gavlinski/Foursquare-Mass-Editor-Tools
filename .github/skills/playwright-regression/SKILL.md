@@ -299,10 +299,13 @@ Configurado em `playwright.config.ts`:
 process.env.PLAYWRIGHT_BROWSERS_PATH = '/var/www/html/data/mcp/playwright/browsers';
 ```
 
-**Se `chromium_headless_shell` não existir (após rebuild):**
+**Se o Chromium ou `chromium_headless_shell` estiver ausente/desatualizado** (por exemplo,
+após atualizar `@playwright/test` ou reconstruir o container):
 ```bash
 PLAYWRIGHT_BROWSERS_PATH=/var/www/html/data/mcp/playwright/browsers npx playwright install chromium
 ```
+O setup do Dev Container executa esse comando a cada inicialização para manter o cache alinhado
+à revisão exigida pela versão instalada do Playwright.
 
 ---
 

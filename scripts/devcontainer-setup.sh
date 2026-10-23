@@ -81,16 +81,12 @@ npm install --no-audit --no-fund > /tmp/npm-install.log 2>&1 || echo -e "${YELLO
 # instalar nada) quando rodam em versões antigas — falha silenciosa difícil de detectar.
 echo -e "${CYAN}⬇️  Verificando Chromium para Playwright MCP...${NC}"
 export PLAYWRIGHT_BROWSERS_PATH="/var/www/html/data/mcp/playwright/browsers"
-if find "$PLAYWRIGHT_BROWSERS_PATH" -maxdepth 1 -type d -name 'chromium-*' | grep -q .; then
-    echo -e "${GREEN}✅ Chromium já disponível em cache persistente${NC}"
+if npx playwright install chromium > /tmp/mcp-playwright-install.log 2>&1; then
+    echo -e "${GREEN}✅ Chromium compatível com a versão instalada do Playwright${NC}"
 else
-    echo -e "${YELLOW}⚠️  Chromium não encontrado. Instalando (primeira execução)...${NC}"
-    if npx playwright install chromium > /tmp/mcp-playwright-install.log 2>&1; then
-        echo -e "${GREEN}✅ Chromium instalado em cache persistente${NC}"
-    else
-        echo -e "${YELLOW}⚠️  Falha ao instalar Chromium automaticamente.${NC}"
-        echo -e "${YELLOW}   Execute manualmente: ./scripts/mcp-playwright-prepare.sh${NC}"
-    fi
+    echo -e "${YELLOW}⚠️  Falha ao instalar/verificar Chromium compatível.${NC}"
+    echo -e "${YELLOW}   Consulte /tmp/mcp-playwright-install.log e execute manualmente:${NC}"
+    echo -e "${YELLOW}   PLAYWRIGHT_BROWSERS_PATH=$PLAYWRIGHT_BROWSERS_PATH npx playwright install chromium${NC}"
 fi
 
 # Dependências de sistema do Chromium — necessárias em todo rebuild (libs do SO, não do workspace)
