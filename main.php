@@ -565,7 +565,7 @@ if ((isset($_COOKIE['name'])) && (strlen($_COOKIE['name']) > 0))
 				</button>
 			</div>
 		</div>
-		<div id="paneDentro" dojoType="dijit.layout.ContentPane" title="Importar locais dentro de outro local" style="height: 174px;">
+		<div id="paneDentro" dojoType="dijit.layout.ContentPane" title="Importar locais dentro de outro local" style="height: 176px;">
 			<div dojoType="dijit.form.Form" enctype="multipart/form-data" accept-charset="utf-8" id="f_dentro" jsId="f_dentro" action="children.php" method="post">
 				<section class="toolcontainer">
 					<div class="row">
