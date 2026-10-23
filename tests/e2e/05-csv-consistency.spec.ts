@@ -11,6 +11,7 @@ type CsvHarnessWindow = Window & {
     byId: (id: string) => HTMLElement | null;
     hasClass: (element: Element, className: string) => boolean;
     addClass: (element: Element, className: string) => void;
+    removeClass: (element: Element, className: string) => void;
     connect: () => void;
     cookie: (name: string, value?: string, options?: { expires?: number }) => string | undefined;
   };
@@ -65,7 +66,13 @@ type CsvHarnessWindow = Window & {
   setupVerticalNavigation: () => void;
   montarArvore: (categories: unknown) => void;
   debugInfo: (...values: unknown[]) => void;
-  googleMaps: { map: object; updateMarkers: (locations: Array<[string, number, number]>) => void };
+  googleMaps: {
+    map: object;
+    updateMarkers: (locations: Array<[string, number, number]>) => void;
+    moveMarker: (index: number, position: { lat: number; lng: number }) => void;
+  };
+  locais: Array<[string, number, number]>;
+  verificarAlteracao: (textbox: HTMLInputElement, index: number) => void;
   __testWidgets: Record<string, { checked?: boolean; disabled?: boolean; hide?: () => void; get?: (name: string) => string; set: (name: string, value: unknown) => void; setAttribute: (name: string, value: unknown) => void }>;
   buscarRedePeloNome: (query: string) => void;
   __restoredMarkers?: Array<[string, number, number]>;
@@ -95,8 +102,8 @@ const completeVenueId = '64c426d64fc0f44ede091f20';
 
 async function carregarLogicaCsv(page: Page) {
   await page.setContent(`
-    <section id="linha0" class="row"><form><input type="hidden" name="venue" value="${partialVenueId}"><input type="checkbox" name="selecao"><input name="checkinsCount" value="107"><input name="usersCount" value="73"><input name="tipCount" value="1"><input name="createdAt" value="2020-01-01"><input name="likesCount" value="0"><input name="listedCount" value="0"><input name="photosCount" value="0"><input name="isClosed" value="false"><input name="isPrivate" value="false"><input name="isDeleted" value="false"><input id="cna0" value="Cacau Show"><input id="chna0" value="Cacau Show"><span id="result0"></span></form><span id="icone0"><img id="catImg0"></span><span id="chainIcone0"><img id="chainImg0"></span></section>
-    <section id="linha1" class="row"><form><input type="hidden" name="venue" value="${completeVenueId}"><input type="checkbox" name="selecao"><input name="checkinsCount" value="4"><input name="usersCount" value="4"><input name="tipCount" value="0"><input name="createdAt" value="2020-01-01"><input name="likesCount" value="0"><input name="listedCount" value="0"><input name="photosCount" value="0"><input name="isClosed" value="false"><input name="isPrivate" value="false"><input name="isDeleted" value="false"><input id="cna1" value="Cacau Show"><input id="chna1" value="Cacau Show"><span id="result1"></span></form><span id="icone1"><img id="catImg1"></span><span id="chainIcone1"><img id="chainImg1"></span></section>
+    <section id="linha0" class="row"><form><input type="hidden" name="venue" value="${partialVenueId}"><input type="checkbox" name="selecao"><input name="venuell" value="1, 2"><input name="checkinsCount" value="107"><input name="usersCount" value="73"><input name="tipCount" value="1"><input name="createdAt" value="2020-01-01"><input name="likesCount" value="0"><input name="listedCount" value="0"><input name="photosCount" value="0"><input name="isClosed" value="false"><input name="isPrivate" value="false"><input name="isDeleted" value="false"><input id="cna0" value="Cacau Show"><input id="chna0" value="Cacau Show"><span id="result0"></span></form><span id="icone0"><img id="catImg0"></span><span id="chainIcone0"><img id="chainImg0"></span></section>
+    <section id="linha1" class="row"><form><input type="hidden" name="venue" value="${completeVenueId}"><input type="checkbox" name="selecao"><input name="venuell" value="3, 4"><input name="checkinsCount" value="4"><input name="usersCount" value="4"><input name="tipCount" value="0"><input name="createdAt" value="2020-01-01"><input name="likesCount" value="0"><input name="listedCount" value="0"><input name="photosCount" value="0"><input name="isClosed" value="false"><input name="isPrivate" value="false"><input name="isDeleted" value="false"><input id="cna1" value="Cacau Show"><input id="chna1" value="Cacau Show"><span id="result1"></span></form><span id="icone1"><img id="catImg1"></span><span id="chainIcone1"><img id="chainImg1"></span></section>
     <div id="venueChainIndex">1</div><div id="chainsContainer"></div><div id="chainsIds"></div><div id="chainsLogos"></div>
   `);
   await page.evaluate(() => {
@@ -109,6 +116,7 @@ async function carregarLogicaCsv(page: Page) {
       byId: id => document.getElementById(id),
       hasClass: (element, className) => element.classList.contains(className),
       addClass: (element, className) => element.classList.add(className),
+      removeClass: (element, className) => element.classList.remove(className),
       connect: () => undefined,
       cookie: () => undefined
     };
@@ -126,7 +134,10 @@ async function carregarLogicaCsv(page: Page) {
     editor.setupVerticalNavigation = () => undefined;
     editor.googleMaps = {
       map: {},
-      updateMarkers: locations => { editor.__restoredMarkers = locations; }
+      updateMarkers: locations => {
+        editor.__restoredMarkers = locations.map(location => [...location] as [string, number, number]);
+      },
+      moveMarker: () => undefined
     };
   });
   await page.addScriptTag({ path: path.resolve(process.cwd(), 'js/4sq.js') });
@@ -162,6 +173,40 @@ async function prepararBuscaRede(page: Page, superuserLevel: number) {
 }
 
 test.describe('Consistência do CSV de venues', () => {
+  test('preserva a posição editada ao recarregar outro local e redesenhar os marcadores', async ({ page }) => {
+    await carregarLogicaCsv(page);
+
+    const resultado = await page.evaluate(() => {
+      const editor = window as unknown as CsvHarnessWindow;
+      editor.csv = [
+        ['venuell'],
+        ['"1, 2"'],
+        ['"3, 4"']
+      ];
+      editor.locais = [
+        ['1. Local X', 1, 2],
+        ['2. Local Y', 3, 4]
+      ];
+
+      const campoPosicaoX = document.forms[0].elements.namedItem('venuell') as HTMLInputElement;
+      campoPosicaoX.value = '10, 20';
+      editor.verificarAlteracao(campoPosicaoX, 0);
+
+      editor.locais[1] = ['2. Local Y', 30, 40];
+      editor.googleMaps.updateMarkers(editor.locais);
+
+      return {
+        campoX: campoPosicaoX.value,
+        coordenadasX: editor.__restoredMarkers?.[0].slice(1),
+        coordenadasY: editor.__restoredMarkers?.[1].slice(1)
+      };
+    });
+
+    expect(resultado.campoX).toBe('10, 20');
+    expect(resultado.coordenadasX).toEqual([10, 20]);
+    expect(resultado.coordenadasY).toEqual([30, 40]);
+  });
+
   test('usa chains/search e a resposta legada para placemakers nível 9 ou maior', async ({ page }) => {
     await prepararBuscaRede(page, 9);
     const requestUrls: string[] = [];

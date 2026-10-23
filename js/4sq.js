@@ -4635,10 +4635,17 @@ function verificarAlteracao(textbox, i) {
 		marcarLinhaEditada(i);
 		if (textbox.name == "venuell") {
 			var latlng = textbox.value.replace(/ /g, "").split(",");
+			var latitude = parseFloat(latlng[0]);
+			var longitude = parseFloat(latlng[1]);
+
+			if (window.locais[i] && Number.isFinite(latitude) && Number.isFinite(longitude)) {
+				window.locais[i][1] = latitude;
+				window.locais[i][2] = longitude;
+			}
 
 			// Atualiza marcador no mapa
 			if (window.googleMaps && window.googleMaps.moveMarker) {
-				const position = { lat: parseFloat(latlng[0]), lng: parseFloat(latlng[1]) };
+				const position = { lat: latitude, lng: longitude };
 				window.googleMaps.moveMarker(i, position);
 			}
 		}
