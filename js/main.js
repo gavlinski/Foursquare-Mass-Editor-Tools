@@ -480,7 +480,7 @@ dojo.ready(function() {
 				(dijit.byId("descricao" + i).disabled) ? dijit.byId("descricao" + i).attr("checked", false) : dijit.byId("descricao" + i).attr("checked", (campos[14] === 'true'));
 				(dijit.byId("menu" + i).disabled) ? dijit.byId("menu" + i).attr("checked", false) : dijit.byId("menu" + i).attr("checked", (campos[15] === 'true'));
 				if (campos.length > 17)
-					dijit.byId("redes" + i).attr("checked", (campos[16] === 'true'));
+					(dijit.byId("redes" + i).disabled) ? dijit.byId("redes" + i).attr("checked", false) : dijit.byId("redes" + i).attr("checked", (campos[16] === 'true'));
 				(dijit.byId("horas" + i).disabled) ? dijit.byId("horas" + i).attr("checked", false) : dijit.byId("horas" + i).attr("checked", (campos[campos.length > 17 ? 17 : 16] === 'true'));
 			}
 			dijit.byId("accordion").selectChild(dojo.cookie("accordion"), false);
@@ -494,7 +494,7 @@ dojo.ready(function() {
 				dijit.byId("codigopostal" + i).attr("checked", true);
 				dijit.byId("telefone" + i).attr("checked", true);
 				dijit.byId("sitedaweb" + i).attr("checked", true);
-				dijit.byId("redes" + i).attr("checked", true);
+				(dijit.byId("redes" + i).disabled) ? dijit.byId("redes" + i).attr("checked", false) : dijit.byId("redes" + i).attr("checked", true);
 			}
 			dijit.byId("accordion").selectChild("dijit_layout_ContentPane_3", false);
 		}
@@ -521,6 +521,14 @@ dojo.ready(function() {
 				if (parentIdInput) parentIdInput.value = estadoDentro.parentId || "";
 				if (estadoDentro.ll !== undefined) dijit.byId("ll5").set("value", estadoDentro.ll || "");
 				if (estadoDentro.campos) {
+					var redesDentro = dijit.byId("redes5");
+					if (redesDentro && redesDentro.disabled) {
+						redesDentro.set("checked", false);
+						if (estadoDentro.campos.redes !== false) {
+							estadoDentro.campos.redes = false;
+							dojo.cookie("importar_dentro", JSON.stringify(estadoDentro), { expires: 15 });
+						}
+					}
 					camposImportarDentro.forEach(function(nome) {
 						var widget = dijit.byId(nome + "5");
 						if (widget && !widget.disabled && Object.prototype.hasOwnProperty.call(estadoDentro.campos, nome)) {

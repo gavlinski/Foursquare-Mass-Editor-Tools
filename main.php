@@ -649,7 +649,7 @@ if ((isset($_COOKIE['name'])) && (strlen($_COOKIE['name']) > 0))
 								<label for="menu5">Menu</label>
 							</div>
 							<div class="checkbox" style="width: 9.5em;">
-								<input id="redes5" name="campos5[]" dojoType="dijit.form.CheckBox" value="redes">
+								<input id="redes5" name="campos5[]" dojoType="dijit.form.CheckBox" value="redes" disabled>
 								<label for="redes5">Redes</label>
 							</div>
 							<div class="checkbox" style="width: 9.5em;">
