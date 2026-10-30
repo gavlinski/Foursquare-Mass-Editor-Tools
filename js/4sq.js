@@ -2133,12 +2133,13 @@ function atualizarTabela(venue, i) {
 				linha += '&&"' + venue.url + '"';
 				break;
 			case "twitter":
-				document.forms[i]["twitter"].value = venue.contact.twitter;
+				var twitterValue = normalizarRedeSocial(venue.contact.twitter, "twitter");
+				document.forms[i]["twitter"].value = twitterValue;
 				if (venue.contact.twitter !== undefined) {
 					var twitterWidget = dijit.byId(dojo.query("input[name=twitter]")[i].id);
-					if (twitterWidget) twitterWidget.set("value", venue.contact.twitter || "");
+					if (twitterWidget) twitterWidget.set("value", twitterValue);
 				}
-				linha += '&&"' + venue.contact.twitter + '"';
+				linha += '&&"' + twitterValue + '"';
 				break;
 			case "facebook":
 				var facebookValue = obterFacebookDaVenue(venue.contact);
@@ -2148,12 +2149,13 @@ function atualizarTabela(venue, i) {
 				linha += '&&"' + facebookValue + '"';
 				break;
 			case "instagram":
-				document.forms[i]["instagram"].value = venue.contact.instagram;
+				var instagramValue = normalizarRedeSocial(venue.contact.instagram, "instagram");
+				document.forms[i]["instagram"].value = instagramValue;
 				if (venue.contact.instagram !== undefined) {
 					var instagramWidget = dijit.byId(dojo.query("input[name=instagram]")[i].id);
-					if (instagramWidget) instagramWidget.set("value", venue.contact.instagram || "");
+					if (instagramWidget) instagramWidget.set("value", instagramValue);
 				}
-				linha += '&&"' + venue.contact.instagram + '"';
+				linha += '&&"' + instagramValue + '"';
 				break;
 			case "venuell":
 				//document.forms[i]["venuell"].value = (venue.location.lat + ', ' + venue.location.lng).replace(/undefined/gi, "0.0");
@@ -3062,10 +3064,15 @@ function salvarVenues() {
 			elementName = document.forms[i].elements[j].name;
 			if (document.forms[i].elements[j].type == "text") {
 				//console.log(elementName + ' adicionado');
-				if ((['name', 'address', 'crossStreet', 'neighborhood', 'city', 'state', 'zip', 'parentId', 'phone', 'url', 'twitter', 'instagram'].indexOf(elementName) > -1) && (dojo.query("input[name=" + elementName + "]")[i].disabled != true) && (document.forms[i][elementName].readOnly == false))
-					dados += "&" + elementName + "=" + encodeURIComponent(document.forms[i].elements[j].value);
-				else if (elementName == "facebook") {
-					var facebookUsername = normalizarFacebook(document.forms[i].elements[j].value);
+				if ((['name', 'address', 'crossStreet', 'neighborhood', 'city', 'state', 'zip', 'parentId', 'phone', 'url', 'twitter', 'instagram'].indexOf(elementName) > -1) && (dojo.query("input[name=" + elementName + "]")[i].disabled != true) && (document.forms[i][elementName].readOnly == false)) {
+					var valorCampo = document.forms[i].elements[j].value;
+					if (elementName == "twitter" || elementName == "instagram") {
+						valorCampo = normalizarRedeSocial(valorCampo, elementName);
+						document.forms[i].elements[j].value = valorCampo;
+					}
+					dados += "&" + elementName + "=" + encodeURIComponent(valorCampo);
+				} else if (elementName == "facebook") {
+					var facebookUsername = normalizarRedeSocial(document.forms[i].elements[j].value, "facebook");
 					document.forms[i].elements[j].value = facebookUsername;
 					if ((facebookUsername != null) && (facebookUsername != ""))
 						dados += "&facebookUrl=" + encodeURIComponent("facebook.com/" + facebookUsername);
@@ -3928,10 +3935,17 @@ function sincronizarAlteracoesPendentes() {
 	}
 }
 
-function normalizarFacebook(valor) {
+function normalizarRedeSocial(valor, rede) {
 	var v = (valor == null ? "" : String(valor)).trim();
-	v = v.replace(/^(?:https?:)?\/\//i, "").replace(/^(?:www\.|m\.|mbasic\.|web\.)/i, "").replace(/^(?:facebook\.com|fb\.com)(?:\/|$)/i, "");
-	v = v.replace(/^@+/, "").replace(/[?#].*$/, "").replace(/\/+$/, "");
+	var dominios = {
+		facebook: /^(?:www\.|m\.|mbasic\.|web\.)?(?:facebook\.com|fb\.com)(?:[/?#]|$)/i,
+		twitter: /^(?:www\.|m\.|mobile\.)?(?:twitter\.com|x\.com)(?:[/?#]|$)/i,
+		instagram: /^(?:www\.|m\.)?instagram\.com(?:[/?#]|$)/i
+	};
+	if (dominios[rede]) {
+		v = v.replace(/^(?:https?:)?\/\//i, "").replace(dominios[rede], "");
+	}
+	v = v.replace(/^@+/, "").replace(/[/?#].*$/, "");
 	return v.trim();
 }
 
@@ -4615,11 +4629,11 @@ function verificarAlteracao(textbox, i) {
 			else textbox.value = novoParent;
 		}
 	}
-	if (textbox.name == "facebook") {
-		var facebookLimpo = normalizarFacebook(textbox.value);
-		if (facebookLimpo !== textbox.value) {
-			if (typeof textbox.set === "function") textbox.set("value", facebookLimpo, false);
-			else textbox.value = facebookLimpo;
+	if (textbox.name == "facebook" || textbox.name == "twitter" || textbox.name == "instagram") {
+		var usuarioLimpo = normalizarRedeSocial(textbox.value, textbox.name);
+		if (usuarioLimpo !== textbox.value) {
+			if (typeof textbox.set === "function") textbox.set("value", usuarioLimpo, false);
+			else textbox.value = usuarioLimpo;
 		}
 	}
 	var index = csv[0].indexOf(textbox.name);
