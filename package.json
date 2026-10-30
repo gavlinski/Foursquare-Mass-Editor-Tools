@@ -17,6 +17,7 @@
   },
   "devDependencies": {
     "@playwright/test": "^1.64.1",
+    "@types/node": "^26.6.6",
     "terser": "^5.51.2"
   },
   "repository": {

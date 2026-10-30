@@ -4,7 +4,7 @@ import path from 'node:path';
 import { skipIfUnauthenticated } from './auth-session';
 
 /**
- * Regressão 6: Facebook, títulos da modal de comentários e autocompletes
+ * Regressão 6: redes sociais, títulos da modal de comentários e autocompletes
  * (categorias, local pai "Dentro" e aba "locais dentro de outro local").
  *
  * Os testes de unidade extraem funções puras de js/*.js; os testes de UI mockam
@@ -131,22 +131,28 @@ const serproAutocomplete = {
 };
 
 test.describe('Utilitários (sem sessão)', () => {
-  test('normalizarFacebook remove prefixos aceitos erroneamente', () => {
-    const normalizar = carregarFuncao<(v: unknown) => string>('4sq.js', 'normalizarFacebook');
-    const casos: Array<[unknown, string]> = [
-      ['https://facebook.com/minhapagina', 'minhapagina'],
-      ['http://www.facebook.com/minhapagina/', 'minhapagina'],
-      ['facebook.com/minhapagina', 'minhapagina'],
-      ['m.facebook.com/minhapagina?ref=x', 'minhapagina'],
-      ['https://fb.com/minhapagina#topo', 'minhapagina'],
-      ['@minhapagina', 'minhapagina'],
-      ['  minhapagina  ', 'minhapagina'],
-      ['123456789012345', '123456789012345'],
-      ['', ''],
-      [null, '']
+  test('normalizarRedeSocial mantém apenas o usuário para Facebook, Twitter e Instagram', () => {
+    const normalizar = carregarFuncao<(v: unknown, rede: string) => string>('4sq.js', 'normalizarRedeSocial');
+    const casos: Array<[unknown, string, string]> = [
+      ['https://facebook.com/minhapagina', 'facebook', 'minhapagina'],
+      ['http://www.facebook.com/minhapagina/', 'facebook', 'minhapagina'],
+      ['m.facebook.com/minhapagina?ref=x', 'facebook', 'minhapagina'],
+      ['https://fb.com/minhapagina#topo', 'facebook', 'minhapagina'],
+      ['@minhapagina', 'facebook', 'minhapagina'],
+      ['  minhapagina  ', 'facebook', 'minhapagina'],
+      ['https://twitter.com/minha_conta/?lang=pt', 'twitter', 'minha_conta'],
+      ['http://www.twitter.com/@minha_conta/status/123', 'twitter', 'minha_conta'],
+      ['https://x.com/minha_conta#posts', 'twitter', 'minha_conta'],
+      ['@minha_conta', 'twitter', 'minha_conta'],
+      ['https://www.instagram.com/minha.conta/?igsh=abc', 'instagram', 'minha.conta'],
+      ['m.instagram.com/@minha_conta?hl=pt', 'instagram', 'minha_conta'],
+      ['@minha_conta', 'instagram', 'minha_conta'],
+      ['123456789012345', 'facebook', '123456789012345'],
+      ['', 'twitter', ''],
+      [null, 'instagram', '']
     ];
-    for (const [entrada, esperado] of casos) {
-      expect(normalizar(entrada)).toBe(esperado);
+    for (const [entrada, rede, esperado] of casos) {
+      expect(normalizar(entrada, rede)).toBe(esperado);
     }
   });
 
@@ -618,8 +624,8 @@ test.describe('Main: autocompletes e aba "dentro"', () => {
   });
 });
 
-test.describe('Edit: modal, Facebook, Dentro e categorias', () => {
-  test('edit.php aplica títulos da modal, normaliza Facebook e usa autocomplete', async ({ page }) => {
+test.describe('Edit: modal, redes sociais, Dentro e categorias', () => {
+  test('edit.php aplica títulos da modal, normaliza redes sociais e usa autocomplete', async ({ page }) => {
     const venueId = '4ec42a0a9a522f580b42dbeb';
     let facebookId = '';
     let facebookUsername = '';
@@ -654,7 +660,7 @@ test.describe('Edit: modal, Facebook, Dentro e categorias', () => {
       w.dijit.byId('accordion').selectChild(pane, false);
     });
     await page.locator('#textarea_ids').fill(venueId);
-    for (const campo of ['nome3', 'facebook3', 'dentro3']) {
+    for (const campo of ['nome3', 'twitter3', 'facebook3', 'instagram3', 'dentro3']) {
       const checkbox = page.locator(`#${campo}`);
       if (!(await checkbox.isChecked()) && !(await checkbox.isDisabled())) await page.locator(`label[for="${campo}"]`).click();
     }
@@ -672,6 +678,18 @@ test.describe('Edit: modal, Facebook, Dentro e categorias', () => {
     await facebook.fill('https://facebook.com/minhapagina/');
     await facebook.press('Tab');
     await expect(facebook).toHaveValue('minhapagina');
+
+    const twitter = page.locator('input[name=twitter]').first();
+    await expect(twitter).toBeVisible();
+    await twitter.fill('https://x.com/minha_conta/status/123?lang=pt');
+    await twitter.press('Tab');
+    await expect(twitter).toHaveValue('minha_conta');
+
+    const instagram = page.locator('input[name=instagram]').first();
+    await expect(instagram).toBeVisible();
+    await instagram.fill('https://www.instagram.com/minha.conta/?igsh=abc');
+    await instagram.press('Tab');
+    await expect(instagram).toHaveValue('minha.conta');
 
     // Dentro: autocomplete grava o ID do local escolhido
     const dentro = page.locator('input[name=parentId]').first();
